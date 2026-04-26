@@ -1,0 +1,9 @@
+{
+  "name": "mlb-prop-platform",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "prizepicks": "node src/scrapers/prizepicks.js"
+  },
+  "dependencies": {}
+}
