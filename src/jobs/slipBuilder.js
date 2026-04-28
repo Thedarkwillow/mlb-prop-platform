@@ -2,91 +2,71 @@ import fs from 'fs';
 
 const board = JSON.parse(fs.readFileSync('outputs/merged-board.json', 'utf8'));
 
-function num(v) {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : null;
+function validMarket(m) {
+  return ['hits','bases','hrr','hr','rbis','runs','strikeouts'].includes(m);
 }
 
-function validMarket(stat) {
-  const s = (stat || '').toLowerCase();
-  return (
-    s.includes('hits') ||
-    s.includes('bases') ||
-    s.includes('home run') ||
-    s.includes('strikeout') ||
-    s.includes('rbi')
-  );
-}
-
-function scoreLeg(row) {
-  let score = 0;
-
-  if (row.ballpark) score += 3;
-  if (row.oddsTier === 'standard') score += 2;
-
-  if (row.ballpark?.hits) score += 1;
-  if (row.ballpark?.bases) score += 1;
-  if (row.ballpark?.strikeouts) score += 1;
-
-  return score;
-}
-
-// filter hard
-const candidates = board
-  .filter(r => r.player)
-  .filter(r => r.ballpark) // REQUIRE MATCH
+// filter
+const pool = board
+  .filter(r => r.ballpark)
+  .filter(r => r.market && validMarket(r.market))
   .filter(r => r.oddsTier === 'standard')
-  .filter(r => validMarket(r.stat))
-  .map(r => ({
-    ...r,
-    legScore: scoreLeg(r),
-  }))
-  .sort((a, b) => b.legScore - a.legScore);
+  .filter(r => r.edge !== null);
 
-// remove duplicate players
-const unique = [];
-const seen = new Set();
+// rank by edge
+const ranked = pool.sort((a,b) => b.edge - a.edge);
 
-for (const leg of candidates) {
-  if (!seen.has(leg.player)) {
-    unique.push(leg);
-    seen.add(leg.player);
+// build slips with constraints
+function buildSlip(size) {
+  const slip = [];
+  const players = new Set();
+  const teams = {};
+  const games = {};
+
+  for (const leg of ranked) {
+    if (slip.length >= size) break;
+
+    const player = leg.player;
+    const team = leg.team;
+    const game = leg.ballpark?.gamePk;
+
+    if (players.has(player)) continue;
+
+    teams[team] = (teams[team] || 0);
+    if (teams[team] >= 2) continue;
+
+    games[game] = (games[game] || 0);
+    if (games[game] >= 2) continue;
+
+    slip.push(leg);
+    players.add(player);
+    teams[team]++;
+    games[game]++;
   }
-}
-
-const legs = unique.slice(0, 50);
-
-function makeSlip(size) {
-  const chosen = legs.slice(0, size);
 
   return {
     recordType: `best_${size}_man`,
     size,
-    slipScore: Number(
-      (chosen.reduce((sum, l) => sum + l.legScore, 0) / size).toFixed(3)
-    ),
-    legs: chosen,
+    avgEdge: Number((slip.reduce((s,l)=>s+l.edge,0)/slip.length).toFixed(3)),
+    legs: slip
   };
 }
 
 const slips = [
   {
     recordType: 'slip_summary',
-    version: 'local-v2-quality',
-    boardRows: board.length,
-    candidates: candidates.length,
-    uniquePlayers: unique.length,
-    createdAt: new Date().toISOString(),
+    version: 'local-v3-constraints',
+    candidates: pool.length,
+    createdAt: new Date().toISOString()
   },
-  makeSlip(2),
-  makeSlip(3),
-  makeSlip(4),
-  makeSlip(5),
-  makeSlip(6),
+  buildSlip(2),
+  buildSlip(3),
+  buildSlip(4),
+  buildSlip(5),
+  buildSlip(6)
 ];
 
-fs.writeFileSync('outputs/slips.json', JSON.stringify(slips, null, 2));
+fs.writeFileSync('outputs/slips.json', JSON.stringify(slips,null,2));
 
-console.log(`Candidates: ${candidates.length}`);
-console.log(`Unique players: ${unique.length}`);
+console.log(`Candidates: ${pool.length}`);
 console.log('Saved outputs/slips.json');
