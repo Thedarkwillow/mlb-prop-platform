@@ -1,72 +1,88 @@
+
 import fs from 'fs';
 
-const board = JSON.parse(fs.readFileSync('outputs/merged-board.json', 'utf8'));
+const board = JSON.parse(fs.readFileSync('outputs/merged-board.json', 'utf-8'));
 
-function validMarket(m) {
-  return ['hits','bases','hrr','hr','rbis','runs','strikeouts'].includes(m);
-}
+// --- CONFIG ---
+const MIN_EDGE = 0.15;
+const MAX_SAME_GAME = 2;
+const MAX_SAME_MARKET = 2;
+const MAX_SAME_PLAYER = 1;
 
-// filter
-const pool = board
-  .filter(r => r.ballpark)
-  .filter(r => r.market && validMarket(r.market))
-  .filter(r => r.oddsTier === 'standard')
-  .filter(r => r.edge !== null);
+// --- FILTER VALID ---
+const candidates = board.filter(p =>
+    p.recordType === 'merged_prop' &&
+    p.edge !== undefined &&
+    p.edge >= MIN_EDGE
+);
 
-// rank by edge
-const ranked = pool.sort((a,b) => b.edge - a.edge);
+// --- SCORE ---
+candidates.forEach(p => {
+    const projection = p.projection || 0;
+    const edge = p.edge || 0;
 
-// build slips with constraints
+    // weighted score (you can tune this later)
+    p.score = edge * 2 + projection * 0.5;
+});
+
+// --- SORT BEST FIRST ---
+candidates.sort((a, b) => b.score - a.score);
+
+// --- BUILD SLIP FUNCTION ---
 function buildSlip(size) {
-  const slip = [];
-  const players = new Set();
-  const teams = {};
-  const games = {};
+    const slip = [];
 
-  for (const leg of ranked) {
-    if (slip.length >= size) break;
+    const gameCount = {};
+    const marketCount = {};
+    const playerCount = {};
 
-    const player = leg.player;
-    const team = leg.team;
-    const game = leg.ballpark?.gamePk;
+    for (const p of candidates) {
+        if (slip.length >= size) break;
 
-    if (players.has(player)) continue;
+        const game = p.game || 'unknown';
+        const market = p.market || 'unknown';
+        const player = p.player;
 
-    teams[team] = (teams[team] || 0);
-    if (teams[team] >= 2) continue;
+        if ((gameCount[game] || 0) >= MAX_SAME_GAME) continue;
+        if ((marketCount[market] || 0) >= MAX_SAME_MARKET) continue;
+        if ((playerCount[player] || 0) >= MAX_SAME_PLAYER) continue;
 
-    games[game] = (games[game] || 0);
-    if (games[game] >= 2) continue;
+        slip.push(p);
 
-    slip.push(leg);
-    players.add(player);
-    teams[team]++;
-    games[game]++;
-  }
+        gameCount[game] = (gameCount[game] || 0) + 1;
+        marketCount[market] = (marketCount[market] || 0) + 1;
+        playerCount[player] = (playerCount[player] || 0) + 1;
+    }
 
-  return {
-    recordType: `best_${size}_man`,
-    size,
-    avgEdge: Number((slip.reduce((s,l)=>s+l.edge,0)/slip.length).toFixed(3)),
-    legs: slip
-  };
+    const avgEdge =
+        slip.length > 0
+            ? slip.reduce((sum, p) => sum + p.edge, 0) / slip.length
+            : 0;
+
+    return {
+        recordType: `best_${size}_man`,
+        size,
+        avgEdge: Number(avgEdge.toFixed(3)),
+        legs: slip
+    };
 }
 
-const slips = [
-  {
-    recordType: 'slip_summary',
-    version: 'local-v3-constraints',
-    candidates: pool.length,
-    createdAt: new Date().toISOString()
-  },
-  buildSlip(2),
-  buildSlip(3),
-  buildSlip(4),
-  buildSlip(5),
-  buildSlip(6)
+// --- BUILD ALL SLIPS ---
+const output = [
+    {
+        recordType: 'slip_summary',
+        candidates: candidates.length,
+        createdAt: new Date().toISOString()
+    },
+    buildSlip(2),
+    buildSlip(3),
+    buildSlip(4),
+    buildSlip(5),
+    buildSlip(6)
 ];
 
-fs.writeFileSync('outputs/slips.json', JSON.stringify(slips,null,2));
+// --- SAVE ---
+fs.writeFileSync('outputs/slips.json', JSON.stringify(output, null, 2));
 
-console.log(`Candidates: ${pool.length}`);
+console.log(`Candidates: ${candidates.length}`);
 console.log('Saved outputs/slips.json');
