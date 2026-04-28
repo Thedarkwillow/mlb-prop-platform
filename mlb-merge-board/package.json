@@ -1,0 +1,12 @@
+{
+  "name": "mlb-merge-board",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "apify": "^3.7.0",
+    "apify-client": "^2.12.1"
+  },
+  "scripts": {
+    "start": "node src/main.js"
+  }
+}

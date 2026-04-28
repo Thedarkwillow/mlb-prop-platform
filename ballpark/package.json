@@ -1,0 +1,13 @@
+{
+  "name": "ballparkpal-export-scraper",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node src/main.js"
+  },
+  "dependencies": {
+    "apify": "^3.7.0",
+    "playwright": "^1.52.0",
+    "xlsx": "^0.18.5"
+  }
+}
