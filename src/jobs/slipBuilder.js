@@ -7,44 +7,75 @@ function num(v) {
   return Number.isFinite(n) ? n : null;
 }
 
+function validMarket(stat) {
+  const s = (stat || '').toLowerCase();
+  return (
+    s.includes('hits') ||
+    s.includes('bases') ||
+    s.includes('home run') ||
+    s.includes('strikeout') ||
+    s.includes('rbi')
+  );
+}
+
 function scoreLeg(row) {
-  const line = num(row.line);
   let score = 0;
 
-  if (row.ballpark) score += 2;
-  if (line !== null) score += 1;
-  if (row.oddsTier === 'standard') score += 1;
-  if (row.ballpark?.hits || row.ballpark?.bases || row.ballpark?.strikeouts) score += 1;
+  if (row.ballpark) score += 3;
+  if (row.oddsTier === 'standard') score += 2;
+
+  if (row.ballpark?.hits) score += 1;
+  if (row.ballpark?.bases) score += 1;
+  if (row.ballpark?.strikeouts) score += 1;
 
   return score;
 }
 
-const legs = board
-  .filter(r => r.player && r.stat && r.line !== null)
+// filter hard
+const candidates = board
+  .filter(r => r.player)
+  .filter(r => r.ballpark) // REQUIRE MATCH
+  .filter(r => r.oddsTier === 'standard')
+  .filter(r => validMarket(r.stat))
   .map(r => ({
     ...r,
     legScore: scoreLeg(r),
   }))
-  .sort((a, b) => b.legScore - a.legScore)
-  .slice(0, 50);
+  .sort((a, b) => b.legScore - a.legScore);
+
+// remove duplicate players
+const unique = [];
+const seen = new Set();
+
+for (const leg of candidates) {
+  if (!seen.has(leg.player)) {
+    unique.push(leg);
+    seen.add(leg.player);
+  }
+}
+
+const legs = unique.slice(0, 50);
 
 function makeSlip(size) {
+  const chosen = legs.slice(0, size);
+
   return {
     recordType: `best_${size}_man`,
     size,
     slipScore: Number(
-      (legs.slice(0, size).reduce((sum, l) => sum + l.legScore, 0) / size).toFixed(3)
+      (chosen.reduce((sum, l) => sum + l.legScore, 0) / size).toFixed(3)
     ),
-    legs: legs.slice(0, size),
+    legs: chosen,
   };
 }
 
 const slips = [
   {
-    recordType: 'slip_debug_summary',
-    version: 'local-v1',
+    recordType: 'slip_summary',
+    version: 'local-v2-quality',
     boardRows: board.length,
-    candidateLegs: legs.length,
+    candidates: candidates.length,
+    uniquePlayers: unique.length,
     createdAt: new Date().toISOString(),
   },
   makeSlip(2),
@@ -54,8 +85,8 @@ const slips = [
   makeSlip(6),
 ];
 
-fs.mkdirSync('outputs', { recursive: true });
 fs.writeFileSync('outputs/slips.json', JSON.stringify(slips, null, 2));
 
-console.log(`Candidate legs: ${legs.length}`);
+console.log(`Candidates: ${candidates.length}`);
+console.log(`Unique players: ${unique.length}`);
 console.log('Saved outputs/slips.json');
