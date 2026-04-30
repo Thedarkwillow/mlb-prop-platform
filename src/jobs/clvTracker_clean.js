@@ -14,17 +14,16 @@ function writeJson(path, data) {
   fs.writeFileSync(path, JSON.stringify(data, null, 2));
 }
 
-// --- KEY (critical for correct matching) ---
+// ✅ FIXED KEY (locks exact market + line)
 function key(r) {
   return [
     r.player,
     (r.stat || '').toLowerCase(),
     (r.side || '').toUpperCase(),
-    (r.line ?? '').toString() // keep line bucket (goblin/demon separation)
+    Number(r.line).toFixed(1)
   ].join('|');
 }
 
-// --- MAIN ---
 function main() {
   if (!fs.existsSync(INPUT)) {
     console.log('No priced board');
@@ -37,19 +36,19 @@ function main() {
 
   const ts = new Date().toISOString();
 
-  // --- 1. SAVE SNAPSHOT (PRIZEPICKS ONLY) ---
+  // --- SAVE SNAPSHOT ---
   const snapshot = board.map(r => ({
     ts,
     player: r.player,
     stat: (r.stat || '').toLowerCase(),
     side: (r.side || '').toUpperCase(),
-    line: r.line
+    line: Number(r.line)
   }));
 
   history.push(...snapshot);
   writeJson(HISTORY, history);
 
-  // --- 2. BUILD FIRST SEEN (OPEN LINE) ---
+  // --- BUILD OPEN / LATEST ---
   const firstSeen = {};
   const lastSeen = {};
 
@@ -60,10 +59,10 @@ function main() {
       firstSeen[k] = h;
     }
 
-    lastSeen[k] = h; // always overwrite → latest line
+    lastSeen[k] = h;
   }
 
-  // --- 3. CALCULATE CLV ---
+  // --- CLV CALC ---
   const rows = [];
 
   for (const r of board) {
@@ -71,7 +70,7 @@ function main() {
       player: r.player,
       stat: (r.stat || '').toLowerCase(),
       side: (r.side || '').toUpperCase(),
-      line: r.line
+      line: Number(r.line)
     };
 
     const k = key(current);
@@ -82,9 +81,12 @@ function main() {
     if (!open || !latest) continue;
     if (open.line == null || latest.line == null) continue;
 
+    // ✅ ALT-LINE PROTECTION (prevents fake 4.5 → 1.5 jumps)
+    if (Math.abs(latest.line - open.line) > 1.5) continue;
+
     let clv = 0;
 
-    // --- TRUE CLV LOGIC ---
+    // ✅ TRUE CLV LOGIC
     if (current.side === 'OVER') {
       clv = latest.line - open.line;
     } else {
@@ -105,7 +107,7 @@ function main() {
   results.push(...rows);
   writeJson(OUT, results);
 
-  // --- 4. SUMMARY ---
+  // --- SUMMARY ---
   const valid = rows.filter(r => Number.isFinite(r.clv));
 
   const avgClv =
