@@ -88,6 +88,38 @@ function key(player, market, side, line) {
   return [normName(player), normMarket(market), normSide(side), String(Number(line))].join("|");
 }
 
+
+function lineDeltaEdge(side, ppLine, bookLine) {
+  const delta = Number(bookLine) - Number(ppLine);
+  if (!Number.isFinite(delta)) return 0;
+  if (side === "MORE") return delta;
+  if (side === "LESS") return -delta;
+  return 0;
+}
+
+function bestPriceForLeg(priceMap, player, market, side, ppLine) {
+  const exact = priceMap.get(key(player, market, side, ppLine));
+  let best = exact ? { ...exact, lineDelta: 0, lineDeltaBonus: 0, exactLine: true } : null;
+
+  for (const [, p] of priceMap) {
+    if (normName(p.player) !== normName(player)) continue;
+    if (normMarket(p.market) !== normMarket(market)) continue;
+    if (normSide(p.side) !== normSide(side)) continue;
+
+    const d = lineDeltaEdge(side, ppLine, p.line);
+    if (d <= 0) continue;
+
+    const bonus = Math.min(0.12, d * 0.06);
+    const candidate = { ...p, lineDelta: d, lineDeltaBonus: bonus, exactLine: false };
+
+    if (!best || candidate.lineDeltaBonus > best.lineDeltaBonus) {
+      best = candidate;
+    }
+  }
+
+  return best;
+}
+
 function qualityScore(edge, books, savantGrade) {
   let score = Number(edge ?? -999);
 
@@ -193,15 +225,16 @@ const out = legs.map(l => {
   const side = normSide(l.side || l.recommendedSide);
   const line = Number(l.line);
 
-  const p = priceMap.get(key(player, market, side, line));
+  const p = bestPriceForLeg(priceMap, player, market, side, line);
   const sav = savantMap.get(normName(player));
 
   const modelProb = Number(l.recommendedProb);
   const marketProb = p ? Number(p.avgImpliedProb) : null;
 
-  const edge = Number.isFinite(modelProb) && Number.isFinite(marketProb)
+  const baseEdge = Number.isFinite(modelProb) && Number.isFinite(marketProb)
     ? Number((modelProb - marketProb).toFixed(4))
     : null;
+  const edge = baseEdge == null ? null : Number((baseEdge + Number(p?.lineDeltaBonus || 0)).toFixed(4));
 
   const books = p ? Number(p.bookCount || 0) : 0;
   const savantGrade = sav?.savantGradeReport || sav?.grade || "UNKNOWN";
@@ -231,7 +264,10 @@ const out = legs.map(l => {
     sportsbookMatch: !!p,
     sportsbookAvgProb: p ? p.avgImpliedProb : null,
     sportsbookBookCount: books,
+    sportsbookBaseEdge: baseEdge,
     sportsbookEdge: edge,
+    sportsbookLineDelta: p ? p.lineDelta : null,
+    sportsbookExactLine: p ? p.exactLine : false,
     sportsbookAdjustedEdge: adjustedEdge,
     sportsbookGame: p ? p.game : null,
     sportsbookGrade,
