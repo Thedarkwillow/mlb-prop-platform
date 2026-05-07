@@ -95,7 +95,8 @@ for (const s of slips) {
   const warning = correlationWarning(legs);
   const details = stackDetails(legs);
 
-  console.log(`\n${String(title).toUpperCase()} | green=${s.green ?? ""} neutral=${s.neutral ?? ""} correlation=${warning}`);
+  const status = s.complete === false ? "INCOMPLETE / DO NOT PLAY" : "PLAYABLE";
+  console.log(`\n${String(title).toUpperCase()} | ${status} | green=${s.green ?? ""} neutral=${s.neutral ?? ""} correlation=${warning}`);
 
   if (warning !== "OK") {
     if (details.games) console.log(`Game stack: ${details.games}`);
