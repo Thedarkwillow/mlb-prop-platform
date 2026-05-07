@@ -1,4 +1,5 @@
 const fs = require("fs");
+const { modelStrikeouts } = require("../models/markets/strikeouts.cjs");
 
 const slipsRaw = JSON.parse(fs.readFileSync("outputs/slips.json", "utf8"));
 const vegasRaw = JSON.parse(fs.readFileSync("data/vegas-raw.json", "utf8"));
