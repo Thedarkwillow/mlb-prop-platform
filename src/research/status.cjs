@@ -25,6 +25,16 @@ try {
   ).trim();
 } catch {}
 
+const coverageMarkets = coverage.byMarket || coverage.markets || {};
+const coverageTotals = Object.values(coverageMarkets).reduce(
+  (a, x) => {
+    a.total += Number(x.total || 0);
+    a.modeled += Number(x.modeled || 0);
+    return a;
+  },
+  { total: 0, modeled: 0 }
+);
+
 const coveragePct =
   coverage.coverage ??
   coverage.overall?.coverage ??
@@ -33,7 +43,9 @@ const coveragePct =
     typeof coverage.modeled === "number" &&
     coverage.total > 0
       ? (coverage.modeled / coverage.total).toFixed(4)
-      : "unknown"
+      : coverageTotals.total > 0
+        ? (coverageTotals.modeled / coverageTotals.total).toFixed(4)
+        : "unknown"
   );
 
 const finishedLegs =
