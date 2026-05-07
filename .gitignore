@@ -19,3 +19,5 @@ data/
 history/
 logs/
 scripts_cleanup.sh
+
+ballpark/package-lock.json
