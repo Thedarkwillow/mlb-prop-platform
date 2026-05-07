@@ -24,48 +24,56 @@ function enrichLeg(leg) {
   const market = normMarket(leg.market || leg.stat);
   let distribution = null;
 
-  if (market === "strikeouts") {
-    distribution = modelStrikeouts(leg);
+  if (market === "strikeouts") distribution = modelStrikeouts(leg);
+  if (market === "hrr") distribution = modelHrr(leg);
+
+  let distributionProb = null;
+  const side = String(leg.side || "").toUpperCase();
+
+  if (distribution) {
+    if (side === "MORE") distributionProb = distribution.probMore;
+    if (side === "LESS") distributionProb = distribution.probLess;
   }
-  if (market === "hrr") {
-    distribution = modelHrr(leg);
+
+  let calibratedDistributionProb = distributionProb;
+  if (Number.isFinite(distributionProb)) {
+    calibratedDistributionProb = 0.5 + ((distributionProb - 0.5) * 0.55);
+    calibratedDistributionProb = Math.max(0.02, Math.min(0.98, calibratedDistributionProb));
+    calibratedDistributionProb = Number(calibratedDistributionProb.toFixed(4));
   }
 
   return {
     ...leg,
-    market,
-    distributionModel: distribution ? distribution.distribution : null,
-    distributionMean: distribution ? distribution.mean : null,
-    distributionVariance: distribution ? distribution.variance : null,
-    distributionProbMore: distribution ? distribution.probMore : null,
-    distributionProbLess: distribution ? distribution.probLess : null,
-    distributionFairLine: distribution ? distribution.fairLine : null,
-    distributionConfidence: distribution ? distribution.confidence : null
+    distributionModel: distribution,
+    distributionProb,
+    calibratedDistributionProb
   };
 }
 
-const priced = readJson("outputs/slips-priced.json", []);
-const rows = Array.isArray(priced) ? priced : priced.rows || priced.legs || [];
+const input =
+  readJson("outputs/final-slips.json", null) ||
+  readJson("outputs/playable-final-slips.json", null);
 
-const enriched = rows.map(enrichLeg);
+const slips = input?.slips || input || [];
+const legs = Array.isArray(slips) ? slips.flatMap(s => s.legs || []) : [];
 
-fs.writeFileSync("outputs/slips-distribution-enriched.json", JSON.stringify(enriched, null, 2));
+const enriched = legs.map(enrichLeg);
+
+fs.writeFileSync(
+  "outputs/slips-distribution-enriched.json",
+  JSON.stringify(enriched, null, 2)
+);
 
 console.log("Wrote outputs/slips-distribution-enriched.json");
 console.log("legs:", enriched.length);
 console.log("distribution modeled:", enriched.filter(x => x.distributionModel).length);
-console.table(
-  enriched
-    .filter(x => x.distributionModel)
-    .slice(0, 20)
-    .map(x => ({
-      player: x.player,
-      market: x.market,
-      side: x.side,
-      line: x.line,
-      mean: x.distributionMean,
-      probMore: x.distributionProbMore,
-      probLess: x.distributionProbLess,
-      confidence: x.distributionConfidence
-    }))
-);
+
+console.table(enriched.slice(0, 20).map(x => ({
+  player: x.player,
+  market: x.market,
+  side: x.side,
+  line: x.line,
+  raw: x.distributionProb,
+  calibrated: x.calibratedDistributionProb,
+  confidence: x.distributionModel?.confidence
+})));
