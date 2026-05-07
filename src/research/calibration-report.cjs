@@ -21,7 +21,20 @@ const legs =
   graded.legResults ||
   graded.legs ||
   (graded.slips || []).flatMap(s => s.legs || []);
-const finished = legs.filter(x => x.result === "HIT" || x.result === "MISS");
+const seen = new Set();
+const finished = legs.filter(x => {
+  if (x.result !== "HIT" && x.result !== "MISS") return false;
+  const k = [
+    x.player,
+    x.market,
+    x.side,
+    x.line,
+    x.gamePk || x.game
+  ].join("|");
+  if (seen.has(k)) return false;
+  seen.add(k);
+  return true;
+});
 
 function bucket(p) {
   p = Number(p);
