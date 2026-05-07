@@ -126,7 +126,15 @@ const output = {
 
 fs.writeFileSync("outputs/final-slips.json", JSON.stringify(output, null, 2));
 
+const SLATE_DATE =
+  process.argv[2] ||
+  process.env.SLATE_DATE ||
+  new Date().toISOString().slice(0, 10);
+
+fs.writeFileSync(`outputs/final-slips-${SLATE_DATE}.json`, JSON.stringify(output, null, 2));
+
 console.log("Wrote outputs/final-slips.json");
+console.log(`Wrote outputs/final-slips-${SLATE_DATE}.json`);
 console.log("Top legs:");
 console.table(finalTop.map((x, i) => ({
   rank: i + 1,
