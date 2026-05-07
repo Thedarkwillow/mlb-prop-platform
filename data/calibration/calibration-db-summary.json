@@ -1,11 +1,11 @@
 {
-  "totalFinished": 3,
+  "totalFinished": 4,
   "byMarket": {
     "hrr": {
-      "picks": 2,
+      "picks": 3,
       "hits": 2,
-      "misses": 0,
-      "hitRate": 1
+      "misses": 1,
+      "hitRate": 0.6667
     },
     "bases": {
       "picks": 1,
@@ -22,10 +22,10 @@
       "hitRate": 1
     },
     "NEUTRAL": {
-      "picks": 1,
+      "picks": 2,
       "hits": 1,
-      "misses": 0,
-      "hitRate": 1
+      "misses": 1,
+      "hitRate": 0.5
     }
   },
   "byProbabilityBucket": {
@@ -36,10 +36,10 @@
       "hitRate": 1
     },
     "60-65%": {
-      "picks": 1,
+      "picks": 2,
       "hits": 1,
-      "misses": 0,
-      "hitRate": 1
+      "misses": 1,
+      "hitRate": 0.5
     }
   },
   "bySavant": {
@@ -48,6 +48,12 @@
       "hits": 3,
       "misses": 0,
       "hitRate": 1
+    },
+    "OK": {
+      "picks": 1,
+      "hits": 0,
+      "misses": 1,
+      "hitRate": 0
     }
   }
 }

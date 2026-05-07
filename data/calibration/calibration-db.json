@@ -61,5 +61,26 @@
     "adjustedEdge": 0.091,
     "edge": 0.2808,
     "books": 1
+  },
+  {
+    "date": "2026-05-07",
+    "player": "Ian Happ",
+    "team": "CHC",
+    "game": "CIN @ CHC",
+    "gamePk": 824682,
+    "market": "hrr",
+    "side": "MORE",
+    "line": 1.5,
+    "actual": 0,
+    "result": "MISS",
+    "grade": "NEUTRAL",
+    "edge": 0.1465,
+    "adjustedEdge": 0.085,
+    "finalScore": 0.0934,
+    "distributionProb": 0.6859,
+    "calibratedDistributionProb": 0.6022,
+    "distributionConfidence": "MEDIUM",
+    "books": 1,
+    "savant": "OK"
   }
 ]

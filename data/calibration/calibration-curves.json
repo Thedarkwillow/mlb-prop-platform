@@ -10,13 +10,13 @@
     "actualRate": 1
   },
   "60-65%": {
-    "picks": 1,
+    "picks": 2,
     "hits": 1,
-    "misses": 0,
-    "expected": 0.6243,
+    "misses": 1,
+    "expected": 1.2265,
     "actual": 1,
-    "calibrationError": 0.3757,
-    "expectedRate": 0.6243,
-    "actualRate": 1
+    "calibrationError": -0.1132,
+    "expectedRate": 0.6132,
+    "actualRate": 0.5
   }
 }
