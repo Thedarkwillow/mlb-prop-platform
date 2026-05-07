@@ -1,8 +1,9 @@
 const fs = require("fs");
 
 const DATE = process.argv[2] || new Date().toISOString().slice(0, 10);
-const IN = `outputs/final-slips-${DATE}.json`;
-const OUT = `outputs/final-slips-graded-${DATE}.json`;
+const IN = "outputs/playable-final-slips.json";
+const OUT = `outputs/playable-final-slips-graded-${DATE}.json`;
+const HISTORY = "data/history/all-graded-slips.jsonl";
 
 function normName(s) {
   return String(s || "")
@@ -80,14 +81,9 @@ function actualForMarket(playerRecord, market) {
   const m = String(market || "").toLowerCase();
 
   if (m === "hits") return Number(batting.hits ?? 0);
-
   if (m === "runs") return Number(batting.runs ?? 0);
-
   if (m === "rbis" || m === "rbi") return Number(batting.rbi ?? 0);
-
-  if (m === "home_runs" || m === "home runs" || m === "hr") {
-    return Number(batting.homeRuns ?? 0);
-  }
+  if (m === "home_runs" || m === "home runs" || m === "hr") return Number(batting.homeRuns ?? 0);
 
   if (m === "bases") {
     const hits = Number(batting.hits ?? 0);
@@ -103,100 +99,161 @@ function actualForMarket(playerRecord, market) {
   }
 
   if (m === "strikeouts") return Number(pitching.strikeOuts ?? 0);
-
-  if (m === "pitching_outs" || m === "outs") {
-    return Number(pitching.outs ?? 0);
-  }
-
-  if (m === "hits_allowed") {
-    return Number(pitching.hits ?? 0);
-  }
-
-  if (m === "earned_runs_allowed") {
-    return Number(pitching.earnedRuns ?? 0);
-  }
+  if (m === "pitching_outs" || m === "outs") return Number(pitching.outs ?? 0);
+  if (m === "hits_allowed") return Number(pitching.hits ?? 0);
+  if (m === "earned_runs_allowed") return Number(pitching.earnedRuns ?? 0);
 
   return null;
 }
 
-(async () => {
-  const final = JSON.parse(fs.readFileSync(IN, "utf8"));
-  const legs = final.topLegs || [];
+function gradeSlip(legs) {
+  const hits = legs.filter(x => x.result === "HIT").length;
+  const misses = legs.filter(x => x.result === "MISS").length;
+  const pushes = legs.filter(x => x.result === "PUSH").length;
+  const unknown = legs.filter(x => x.result === "UNKNOWN").length;
 
+  return {
+    hits,
+    misses,
+    pushes,
+    unknown,
+    clean: unknown === 0,
+    result: unknown > 0 ? "UNKNOWN" : misses === 0 ? "HIT" : "MISS"
+  };
+}
+
+(async () => {
+  if (!fs.existsSync(IN)) {
+    throw new Error(`Missing ${IN}. Run: node src/research/playable-final-slips.cjs`);
+  }
+
+  const playableSlips = JSON.parse(fs.readFileSync(IN, "utf8"));
   const schedule = await getSchedule(DATE);
   const cache = new Map();
-  const graded = [];
 
-  for (const leg of legs) {
-    const gamePk = leg.gamePk || resolveGamePkFromSchedule(schedule, leg.game);
+  const gradedSlips = [];
 
-    if (!gamePk) {
-      graded.push({ ...leg, gamePk: null, actual: null, result: "UNKNOWN", note: "could not resolve gamePk" });
-      continue;
+  for (const slip of playableSlips) {
+    const gradedLegs = [];
+
+    for (const leg of slip.legs || []) {
+      const gamePk = leg.gamePk || resolveGamePkFromSchedule(schedule, leg.game);
+
+      if (!gamePk) {
+        gradedLegs.push({
+          ...leg,
+          gamePk: null,
+          actual: null,
+          result: "UNKNOWN",
+          note: "could not resolve gamePk"
+        });
+        continue;
+      }
+
+      if (!cache.has(gamePk)) {
+        cache.set(gamePk, await getGameFeed(gamePk));
+      }
+
+      const feed = cache.get(gamePk);
+
+      if (!isFinalGame(feed)) {
+        gradedLegs.push({
+          ...leg,
+          gamePk,
+          actual: null,
+          result: "UNKNOWN",
+          note: "game not final"
+        });
+        continue;
+      }
+
+      const box = feed.liveData?.boxscore;
+      const player = findPlayerRecord(box, leg.player);
+      const actual = actualForMarket(player, leg.market);
+      const res = result(actual, leg.side, leg.line);
+
+      gradedLegs.push({
+        ...leg,
+        gamePk,
+        actual,
+        result: res,
+        foundPlayer: !!player,
+        note: player ? "" : "player not found"
+      });
     }
 
-    if (!cache.has(gamePk)) {
-      cache.set(gamePk, await getGameFeed(gamePk));
-    }
-
-    const feed = cache.get(gamePk);
-
-    if (!isFinalGame(feed)) {
-      graded.push({ ...leg, gamePk, actual: null, result: "UNKNOWN", note: "game not final" });
-      continue;
-    }
-
-    const box = feed.liveData?.boxscore;
-    const player = findPlayerRecord(box, leg.player);
-    const actual = actualForMarket(player, leg.market);
-    const res = result(actual, leg.side, leg.line);
-
-    graded.push({
-      ...leg,
-      gamePk,
-      actual,
-      result: res,
-      foundPlayer: !!player
+    gradedSlips.push({
+      ...slip,
+      graded: gradeSlip(gradedLegs),
+      legs: gradedLegs
     });
   }
 
+  const allLegs = gradedSlips.flatMap(s =>
+    (s.legs || []).map(leg => ({
+      ...leg,
+      slipName: s.name,
+      slipSize: s.size
+    }))
+  );
+
   const summary = {
     date: DATE,
+    source: IN,
     gradedAt: new Date().toISOString(),
-    hits: graded.filter(x => x.result === "HIT").length,
-    misses: graded.filter(x => x.result === "MISS").length,
-    pushes: graded.filter(x => x.result === "PUSH").length,
-    unknown: graded.filter(x => x.result === "UNKNOWN").length,
-    legs: graded
+    slips: gradedSlips,
+    overall: {
+      slips: gradedSlips.length,
+      legs: allLegs.length,
+      hits: allLegs.filter(x => x.result === "HIT").length,
+      misses: allLegs.filter(x => x.result === "MISS").length,
+      pushes: allLegs.filter(x => x.result === "PUSH").length,
+      unknown: allLegs.filter(x => x.result === "UNKNOWN").length
+    }
   };
 
-  
-fs.writeFileSync(OUT, JSON.stringify(summary, null, 2));
+  fs.writeFileSync(OUT, JSON.stringify(summary, null, 2));
 
-const HISTORY = "data/history/all-graded-slips.jsonl";
-
-for (const leg of graded) {
-  fs.appendFileSync(HISTORY, JSON.stringify({
-    date: DATE,
-    gradedAt: new Date().toISOString(),
-    player: leg.player,
-    team: leg.team,
-    game: leg.game,
-    market: leg.market,
-    side: leg.side,
-    line: leg.line,
-    edge: leg.edge,
-    adjustedEdge: leg.adjustedEdge,
-    grade: leg.grade,
-    books: leg.books,
-    savant: leg.savant,
-    actual: leg.actual,
-    result: leg.result
-  }) + "\n");
-}
+  fs.mkdirSync("data/history", { recursive: true });
+  for (const leg of allLegs) {
+    fs.appendFileSync(HISTORY, JSON.stringify({
+      date: DATE,
+      gradedAt: new Date().toISOString(),
+      slipName: leg.slipName,
+      slipSize: leg.slipSize,
+      player: leg.player,
+      team: leg.team,
+      game: leg.game,
+      gamePk: leg.gamePk,
+      market: leg.market,
+      side: leg.side,
+      line: leg.line,
+      edge: leg.edge,
+      adjustedEdge: leg.adjustedEdge,
+      grade: leg.grade,
+      books: leg.books,
+      savant: leg.savant,
+      marketSupportFlag: leg.marketSupportFlag,
+      actual: leg.actual,
+      result: leg.result
+    }) + "\n");
+  }
 
   console.log("Wrote", OUT);
-  console.table(graded.map(x => ({
+  console.log("\nSLIP RESULTS");
+  console.table(gradedSlips.map(s => ({
+    slip: s.name,
+    size: s.size,
+    result: s.graded.result,
+    hits: s.graded.hits,
+    misses: s.graded.misses,
+    pushes: s.graded.pushes,
+    unknown: s.graded.unknown
+  })));
+
+  console.log("\nLEG RESULTS");
+  console.table(allLegs.map(x => ({
+    slip: x.slipName,
     player: x.player,
     game: x.game,
     gamePk: x.gamePk,
