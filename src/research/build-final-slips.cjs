@@ -130,6 +130,7 @@ function canAddStrict(legs, x) {
   const fam = marketFamily(x);
   if (gameKey(x) && c.sameGame >= 1) return false;
   if (teamKey(x) && c.sameTeam >= 1) return false;
+  if (isCheapHrrHalf(x) && cheapHrrHalfCount(legs) >= 1) return false;
   if (fam === "hitter_counting" && c.sameFamily >= 4) return false;
   if (fam === "pitcher_k" && c.sameFamily >= 1) return false;
   if (c.sameMarket >= 3) return false;
@@ -143,6 +144,7 @@ function canAddBalanced(legs, x) {
   const fam = marketFamily(x);
   if (gameKey(x) && c.sameGame >= 1) return false;
   if (teamKey(x) && c.sameTeam >= 1) return false;
+  if (isCheapHrrHalf(x) && cheapHrrHalfCount(legs) >= 2) return false;
   if (fam === "hitter_counting" && c.sameFamily >= 5) return false;
   if (fam === "pitcher_k" && c.sameFamily >= 1) return false;
   if (c.sameMarket >= 4) return false;
