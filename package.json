@@ -15,7 +15,8 @@
     "caldb:summary": "node src/research/calibration-db-summary.cjs",
     "rebuild-caldb": "node src/research/rebuild-calibration-db.cjs",
     "calibration:curves": "node src/research/calibration-curves.cjs",
-    "show": "node src/research/show-todays-slips.cjs"
+    "show": "node src/research/show-todays-slips.cjs",
+    "status": "node src/research/status.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
