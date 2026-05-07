@@ -7,7 +7,6 @@ const date =
   new Date().toISOString().slice(0, 10);
 
 const outDir = path.join("data", "history", date);
-
 fs.mkdirSync(outDir, { recursive: true });
 
 const files = [
@@ -15,15 +14,16 @@ const files = [
   "outputs/slips-distribution-enriched.json",
   "outputs/final-slips.json",
   "outputs/playable-final-slips.json",
+  "outputs/watchlist-final-slips.json",
+  `outputs/playable-final-slips-graded-${date}.json`,
+  `outputs/watchlist-final-slips-graded-${date}.json`,
   "outputs/distribution-coverage-report.json"
 ];
 
 for (const file of files) {
   if (!fs.existsSync(file)) continue;
-
   const target = path.join(outDir, path.basename(file));
   fs.copyFileSync(file, target);
-
   console.log("archived:", target);
 }
 
