@@ -278,12 +278,24 @@ const out = legs.map(l => {
   };
 });
 
-const dkPlayable = out.filter(x =>
-  x.sportsbookMatch &&
-  typeof x.sportsbookEdge === "number" &&
-  x.sportsbookEdge > 0 &&
-  x.qualityGrade !== "FADE"
-);
+const dkPlayable = out.filter(x => {
+  if (!x.sportsbookMatch) return false;
+  if (typeof x.sportsbookEdge !== "number") return false;
+  if (x.sportsbookEdge <= 0) return false;
+
+  const m = normMarket(x.market || x.stat);
+
+  // HRR stays strict because it has been dominating the board.
+  if (m === "hrr") return x.qualityGrade !== "FADE";
+
+  // Softer secondary markets can enter as watchlist candidates
+  // with positive sportsbook edge even if they are not GREEN.
+  if (["bases", "hits", "runs", "rbis"].includes(m)) {
+    return Number(x.sportsbookAdjustedEdge ?? -999) >= 0.015;
+  }
+
+  return x.qualityGrade !== "FADE";
+});
 
 const sortedPlayable = [...dkPlayable].sort((a, b) =>
   (Number(b.sportsbookAdjustedEdge ?? -999) + Number(b.recommendedProb ?? 0) * 0.01) -
