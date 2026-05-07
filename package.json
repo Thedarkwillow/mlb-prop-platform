@@ -11,7 +11,8 @@
     "regrade": "npm run grade",
     "calibration": "node src/research/calibration-report.cjs",
     "archive": "node src/research/archive-daily-slate.cjs",
-    "caldb": "node src/research/update-calibration-db.cjs"
+    "caldb": "node src/research/update-calibration-db.cjs",
+    "caldb:summary": "node src/research/calibration-db-summary.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
