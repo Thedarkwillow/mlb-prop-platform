@@ -87,7 +87,7 @@ if (Array.isArray(priced) && priced.length) {
         x.sportsbookMatch &&
         typeof x.sportsbookEdge === "number" &&
         x.sportsbookEdge > 0 &&
-        Number(x.sportsbookAdjustedEdge ?? -999) >= 0.015
+        Number(x.sportsbookAdjustedEdge ?? -999) >= 0.04
       );
     }
 

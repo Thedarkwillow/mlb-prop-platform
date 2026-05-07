@@ -291,7 +291,10 @@ const dkPlayable = out.filter(x => {
   // Softer secondary markets can enter as watchlist candidates
   // with positive sportsbook edge even if they are not GREEN.
   if (["bases", "hits", "runs", "rbis"].includes(m)) {
-    return Number(x.sportsbookAdjustedEdge ?? -999) >= 0.015;
+    return (
+      Number(x.sportsbookAdjustedEdge ?? -999) >= 0.04 &&
+      Number(x.recommendedProb ?? 0) >= 0.58
+    );
   }
 
   return x.qualityGrade !== "FADE";
