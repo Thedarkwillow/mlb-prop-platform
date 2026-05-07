@@ -58,6 +58,27 @@ function finalScore(x) {
   return Number(score.toFixed(4));
 }
 
+
+function displayGrade(x) {
+  const grade = x.qualityGrade || x.grade;
+  const adj = Number(x.sportsbookAdjustedEdge ?? x.adjustedEdge);
+  const calibrated = Number(x.calibratedDistributionProb);
+  const books = Number(x.sportsbookBookCount ?? x.books ?? 0);
+
+  if (
+    grade !== "FADE" &&
+    books >= 1 &&
+    Number.isFinite(adj) &&
+    Number.isFinite(calibrated) &&
+    adj >= 0.085 &&
+    calibrated >= 0.67
+  ) {
+    return "GREEN";
+  }
+
+  return grade;
+}
+
 function cleanLeg(x) {
   return {
     player: x.player,
@@ -73,7 +94,7 @@ function cleanLeg(x) {
     distributionProb: x.distributionProb ?? null,
     calibratedDistributionProb: x.calibratedDistributionProb ?? null,
     distributionConfidence: x.distributionModel?.confidence || null,
-    grade: x.qualityGrade,
+    grade: displayGrade(x),
     books: x.sportsbookBookCount,
     savant: x.savantReportGrade,
     marketSupportFlag: x.marketSupportFlag || null
@@ -170,8 +191,8 @@ const slips = slipDefs.map(def => {
     name: def.name,
     size: def.size,
     complete: legs.length === def.size,
-    green: legs.filter(x => x.qualityGrade === "GREEN").length,
-    neutral: legs.filter(x => x.qualityGrade === "NEUTRAL").length,
+    green: legs.filter(x => displayGrade(x) === "GREEN").length,
+    neutral: legs.filter(x => displayGrade(x) === "NEUTRAL").length,
     correlation: correlationLabel(legs),
     legs: legs.map(cleanLeg)
   };
@@ -205,7 +226,7 @@ console.table(finalTop.slice(0, 10).map((x, i) => ({
   adjEdge: x.sportsbookAdjustedEdge,
   dist: x.calibratedDistributionProb ?? null,
   score: x.finalScore,
-  grade: x.qualityGrade,
+  grade: displayGrade(x),
   books: x.sportsbookBookCount
 })));
 
