@@ -78,8 +78,10 @@ function finalScore(x) {
 
 function displayGrade(x) {
   const grade = x.qualityGrade || x.grade;
+  const market = String(x.market || x.stat || "").toLowerCase();
   const adj = Number(x.sportsbookAdjustedEdge ?? x.adjustedEdge);
   const calibrated = Number(x.calibratedDistributionProb);
+  const edge = Number(x.sportsbookEdge ?? x.edge);
   const books = Number(x.sportsbookBookCount ?? x.books ?? 0);
 
   if (
@@ -91,6 +93,17 @@ function displayGrade(x) {
     calibrated >= 0.67
   ) {
     return "GREEN";
+  }
+
+  if (
+    grade === "FADE" &&
+    ["bases", "hits", "runs", "rbis"].includes(market) &&
+    Number.isFinite(edge) &&
+    Number.isFinite(adj) &&
+    edge > 0 &&
+    adj >= 0.015
+  ) {
+    return "WATCHLIST";
   }
 
   return grade;
