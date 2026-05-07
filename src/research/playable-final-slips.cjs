@@ -16,7 +16,8 @@ function slipQualityStatus(slip) {
   return "PLAYABLE";
 }
 
-const slips = JSON.parse(fs.readFileSync("outputs/final-slips.json", "utf8"));
+const raw = JSON.parse(fs.readFileSync("outputs/final-slips.json", "utf8"));
+const slips = Array.isArray(raw) ? raw : (raw.slips || raw.finalSlips || []);
 
 const processed = slips.map(slip => ({
   ...slip,
