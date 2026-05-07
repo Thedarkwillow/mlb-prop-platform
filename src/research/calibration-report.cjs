@@ -17,7 +17,10 @@ if (!graded) {
   process.exit(1);
 }
 
-const legs = graded.legResults || graded.legs || [];
+const legs =
+  graded.legResults ||
+  graded.legs ||
+  (graded.slips || []).flatMap(s => s.legs || []);
 const finished = legs.filter(x => x.result === "HIT" || x.result === "MISS");
 
 function bucket(p) {
