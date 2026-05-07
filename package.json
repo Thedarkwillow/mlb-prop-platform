@@ -20,7 +20,8 @@
     "final": "npm run pipeline --date=${npm_config_date:-$(date +%F)} && npm run status && npm run show",
     "grade:watchlist": "node src/research/grade-watchlist-slips.cjs",
     "history": "node src/research/show-history.cjs ${npm_config_date:-$(date +%F)}",
-    "summary": "node src/research/daily-summary.cjs ${npm_config_date:-$(date +%F)}"
+    "summary": "node src/research/daily-summary.cjs ${npm_config_date:-$(date +%F)}",
+    "decision": "node src/research/decision.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
