@@ -3,6 +3,7 @@ const { modelStrikeouts } = require("../models/markets/strikeouts.cjs");
 const { modelHrr } = require("../models/markets/hrr.cjs");
 const { modelHits } = require("../models/markets/hits.cjs");
 const { modelPitchingOuts } = require("../models/markets/pitching-outs.cjs");
+const { modelEarnedRunsAllowed } = require("../models/markets/earned-runs-allowed.cjs");
 const { modelRuns } = require("../models/markets/runs.cjs");
 const { modelRbis } = require("../models/markets/rbis.cjs");
 const { modelBases } = require("../models/markets/bases.cjs");
@@ -34,6 +35,7 @@ function enrichLeg(leg) {
 
   if (market === "strikeouts") distribution = modelStrikeouts(leg);
   if (market === "pitching_outs") distribution = modelPitchingOuts(leg);
+  if (market === "earned_runs_allowed") distribution = modelEarnedRunsAllowed(leg);
   if (market === "hrr") distribution = modelHrr(leg);
   if (market === "hits") distribution = modelHits(leg);
   if (market === "runs") distribution = modelRuns(leg);
