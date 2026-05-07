@@ -99,11 +99,11 @@ function canAddBalanced(legs, x) {
   const c = counts(legs, x);
   const fam = marketFamily(x);
 
-  // 5/6-mans may need a little flexibility, but still no 3-player game stacks.
-  if (gameKey(x) && c.sameGame >= 2) return false;
+  // Hard rule: no same-game stacks in final playable slips.
+  if (gameKey(x) && c.sameGame >= 1) return false;
 
-  // No 3-player team stacks.
-  if (teamKey(x) && c.sameTeam >= 2) return false;
+  // Hard rule: no same-team hitter stacks.
+  if (teamKey(x) && c.sameTeam >= 1) return false;
 
   if (fam === "hitter_counting" && c.sameFamily >= 5) return false;
   if (fam === "pitcher_k" && c.sameFamily >= 1) return false;
