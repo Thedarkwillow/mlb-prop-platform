@@ -1,61 +1,62 @@
 import fs from 'fs';
 
-const historyPath = 'data/history.json';
 const slipsPath = 'outputs/slips.json';
+const currentPath = 'outputs/priced-board.json';
 const outputPath = 'outputs/clv-report.txt';
 
-if (!fs.existsSync(historyPath) || !fs.existsSync(slipsPath)) {
-  console.log('Missing history or slips file');
+if (!fs.existsSync(slipsPath) || !fs.existsSync(currentPath)) {
+  console.log('Missing outputs/slips.json or outputs/priced-board.json');
   process.exit(1);
 }
 
-const history = JSON.parse(fs.readFileSync(historyPath, 'utf8'));
-const slips = JSON.parse(fs.readFileSync(slipsPath, 'utf8'));
+const slipsRaw = JSON.parse(fs.readFileSync(slipsPath, 'utf8'));
+const currentRows = JSON.parse(fs.readFileSync(currentPath, 'utf8'))
+  .filter(r => r.recordType === 'merged_prop');
 
-// Build lookup: latest line per player+stat
-const latestMap = new Map();
-for (const row of history) {
-  const key = `${row.player}|${row.stat}`;
-  latestMap.set(key, row);
+const currentMap = new Map();
+for (const row of currentRows) {
+  const key = `${row.player}|${row.stat}|${row.oddsTier}`;
+  currentMap.set(key, row);
 }
 
-let output = [];
-output.push(`CLV REPORT (SLIPS ONLY)`);
-output.push(`Generated: ${new Date().toISOString()}\n`);
+const slips = Array.isArray(slipsRaw)
+  ? slipsRaw
+  : Object.values(slipsRaw);
 
-for (const slipName of Object.keys(slips)) {
-  const slip = slips[slipName];
-  if (!slip || !slip.legs) continue;
+const out = [];
+out.push('CLV REPORT (SLIPS ONLY)');
+out.push(`Generated: ${new Date().toISOString()}\n`);
 
-  let totalMove = 0;
+for (const slip of slips) {
+  if (!slip?.legs?.length) continue;
+
+  out.push(`${slip.recordType || 'slip'}`);
+  out.push(`Size: ${slip.size || slip.legs.length}`);
+
+  let total = 0;
   let count = 0;
 
-  output.push(`${slipName.toUpperCase()}`);
-  output.push(`---------------------`);
-
   for (const leg of slip.legs) {
-    const key = `${leg.player}|${leg.stat}`;
-    const latest = latestMap.get(key);
+    const key = `${leg.player}|${leg.stat}|${leg.oddsTier}`;
+    const current = currentMap.get(key);
+    if (!current) continue;
 
-    if (!latest) continue;
+    const open = Number(leg.line);
+    const now = Number(current.line);
+    const rawMove = now - open;
 
-    const open = leg.line;
-    const current = latest.line;
-    const move = current - open;
+    const side = leg.recommendedSide || leg.side || leg.pick || leg.direction || (rawMove < 0 ? 'LESS' : 'MORE');
+    const clv = side === 'LESS' ? open - now : now - open;
 
-    totalMove += move;
+    total += clv;
     count++;
 
-    output.push(
-      `${leg.player} — ${leg.stat}\n` +
-      `Open: ${open} | Current: ${current} | Move: ${move.toFixed(2)}`
-    );
+    out.push(`${leg.player} — ${leg.stat} ${side} ${open}`);
+    out.push(`Open: ${open} | Current: ${now} | Raw Move: ${rawMove.toFixed(2)} | Side CLV: ${clv.toFixed(2)}`);
   }
 
-  const avg = count ? totalMove / count : 0;
-
-  output.push(`\nAvg CLV: ${avg.toFixed(2)} (${count} legs)\n`);
+  out.push(`Avg Side CLV: ${count ? (total / count).toFixed(2) : '0.00'} (${count} legs)\n---`);
 }
 
-fs.writeFileSync(outputPath, output.join('\n'));
+fs.writeFileSync(outputPath, out.join('\n'));
 console.log(`Saved ${outputPath}`);

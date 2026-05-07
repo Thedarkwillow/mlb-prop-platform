@@ -1,93 +1,106 @@
 import fs from 'fs';
 
-const PRICED_FILE = 'outputs/priced-board.json';
-const SLIPS_FILE = 'outputs/slips.json';
+const pricedPath = 'outputs/priced-board.json';
+const slipsPath = 'outputs/slips.json';
+const topTxt = 'outputs/top-plays.txt';
+const slipTxt = 'outputs/slip-summary.txt';
 
-function fmt(n, d = 3) {
-  const x = Number(n);
-  return Number.isFinite(x) ? x.toFixed(d) : 'NA';
+function readJson(path, fallback = []) {
+  if (!fs.existsSync(path)) return fallback;
+  return JSON.parse(fs.readFileSync(path, 'utf8'));
 }
 
-function pct(n) {
-  const x = Number(n);
-  return Number.isFinite(x) ? `${(x * 100).toFixed(1)}%` : 'NA';
+function pct(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 'NA';
+  return `${(n * 100).toFixed(1)}%`;
 }
 
-function legLine(leg, i) {
-  const side = leg.recommendedSide || leg.side || 'NA';
-  const prob = leg.recommendedProb ?? leg.probability;
-  const ev = leg.expectedValue;
-  const bucket = leg.confidenceBucket || 'NA';
-
-  return `${i + 1}. ${leg.player} — ${leg.stat} ${side} ${leg.line}
-   Team/Game: ${leg.team} | ${leg.game}
-   Projection: ${fmt(leg.projection)} | Prob: ${pct(prob)} | EV: ${fmt(ev)} | Bucket: ${bucket}
-   Market: ${leg.market} | Source: ${leg.sourceType}`;
+function num(v, digits = 3) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 'NA';
+  return n.toFixed(digits).replace(/\.?0+$/, '');
 }
 
-function main() {
-  if (!fs.existsSync(PRICED_FILE)) {
-    throw new Error(`Missing ${PRICED_FILE}`);
-  }
+function sideOf(row) {
+  return row.recommendedSide || row.side || row.pick || row.direction || 'NA';
+}
 
-  if (!fs.existsSync(SLIPS_FILE)) {
-    throw new Error(`Missing ${SLIPS_FILE}`);
-  }
+function playable(row) {
+  if (row.recordType !== 'merged_prop') return false;
+  if (!row.player || !row.stat) return false;
+  if (!sideOf(row)) return false;
+  if (!Number.isFinite(Number(row.recommendedProb))) return false;
+  if (!Number.isFinite(Number(row.expectedValue))) return false;
+  if (Number(row.recommendedProb) < 0.60) return false;
+  if (Number(row.expectedValue) < 1.08) return false;
+  if (row.vegasSkip === 'unsupported_market') return false;
+  return true;
+}
 
-  const priced = JSON.parse(fs.readFileSync(PRICED_FILE, 'utf8'));
-  const slips = JSON.parse(fs.readFileSync(SLIPS_FILE, 'utf8'));
-
-  const topPlays = priced
-    .filter(r => r.recordType === 'merged_prop')
-    .filter(r => r.pricingStatus === 'PRICED')
-    .filter(r => r.expectedValue >= 1.2)
-    .filter(r => r.recommendedProb >= 0.85)
-    .sort((a, b) => {
-      if ((b.expectedValue ?? 0) !== (a.expectedValue ?? 0)) {
-        return (b.expectedValue ?? 0) - (a.expectedValue ?? 0);
-      }
-      return (b.recommendedProb ?? 0) - (a.recommendedProb ?? 0);
-    })
-    .slice(0, 30);
-
-  const topText = [
-    `MLB TOP EV PLAYS`,
-    `Generated: ${new Date().toISOString()}`,
-    ``,
-    ...topPlays.map((leg, i) => legLine(leg, i)),
-    ``,
+function formatPlay(row, i) {
+  return [
+    `${i + 1}. ${row.player} — ${row.stat} ${sideOf(row)} ${row.line}`,
+    `   Team/Game: ${row.team || 'NA'} | ${row.game || 'NA'}`,
+    `   Projection: ${num(row.projection)} | Prob: ${pct(row.recommendedProb)} | EV: ${num(row.expectedValue)}`,
+    `   Bucket: ${row.confidenceBucket || 'NA'} | Market: ${row.market || 'NA'} | Tier: ${row.oddsTier || 'NA'}`,
+    `   Vegas: ${row.vegasDriven ? 'YES' : 'NO'} | Vegas Line: ${row.vegasLine ?? 'NA'} | Vegas Prob: ${row.vegasPickProb ?? 'NA'} | Source: ${row.probabilitySource || 'NA'}`,
   ].join('\n');
+}
 
-  const slipTextParts = [
-    `MLB EV SLIP SUMMARY`,
-    `Generated: ${new Date().toISOString()}`,
-    ``,
+function formatSlip(slip) {
+  const legs = Array.isArray(slip.legs) ? slip.legs : [];
+
+  const lines = [
+    String(slip.name || `best_${slip.size}_man`).toUpperCase(),
+    `Size: ${slip.size} | Avg Prob: ${pct(slip.avgProb)} | Avg EV: ${num(slip.avgEV)} | Complete: ${!!slip.complete}`,
   ];
 
-  for (const slip of slips) {
-    if (!slip.recordType?.startsWith('best_')) continue;
-
-    slipTextParts.push(`${slip.recordType.toUpperCase()}`);
-    slipTextParts.push(
-      `Size: ${slip.size} | Avg Prob: ${pct(slip.avgProb)} | Avg EV: ${fmt(slip.avgEV)} | Complete: ${slip.complete}`
+  legs.forEach((leg, idx) => {
+    lines.push(
+      `${idx + 1}. ${leg.player} — ${leg.stat} ${sideOf(leg)} ${leg.line}`,
+      `   Team/Game: ${leg.team || 'NA'} | ${leg.game || 'NA'}`,
+      `   Projection: ${num(leg.projection)} | Prob: ${pct(leg.recommendedProb)} | EV: ${num(leg.expectedValue)}`,
+      `   Bucket: ${leg.confidenceBucket || 'NA'} | Market: ${leg.market || 'NA'} | Tier: ${leg.oddsTier || 'NA'}`,
+      `   Vegas: ${leg.vegasDriven ? 'YES' : 'NO'} | Vegas Line: ${leg.vegasLine ?? 'NA'} | Vegas Prob: ${leg.vegasPickProb ?? 'NA'} | Source: ${leg.probabilitySource || 'NA'}`
     );
-    slipTextParts.push('');
+  });
 
-    for (const [i, leg] of (slip.legs || []).entries()) {
-      slipTextParts.push(legLine(leg, i));
-      slipTextParts.push('');
-    }
-
-    slipTextParts.push('---');
-    slipTextParts.push('');
-  }
-
-  fs.mkdirSync('outputs', { recursive: true });
-  fs.writeFileSync('outputs/top-plays.txt', topText);
-  fs.writeFileSync('outputs/slip-summary.txt', slipTextParts.join('\n'));
-
-  console.log('Saved outputs/top-plays.txt');
-  console.log('Saved outputs/slip-summary.txt');
+  lines.push('---');
+  return lines.join('\n');
 }
 
-main();
+const priced = readJson(pricedPath, []);
+const slipsRaw = readJson(slipsPath, []);
+
+const top = priced
+  .filter(playable)
+  .sort((a, b) => Number(b.expectedValue || 0) - Number(a.expectedValue || 0))
+  .slice(0, 50);
+
+const slips = Array.isArray(slipsRaw)
+  ? slipsRaw
+  : Object.values(slipsRaw).filter(Boolean);
+
+const topReport = [
+  'MLB TOP EV PLAYS',
+  `Generated: ${new Date().toISOString()}`,
+  `Playable rows: ${top.length}`,
+  '',
+  ...top.map(formatPlay),
+  '',
+].join('\n');
+
+const slipReport = [
+  'MLB EV SLIP SUMMARY',
+  `Generated: ${new Date().toISOString()}`,
+  '',
+  ...slips.map(formatSlip),
+  '',
+].join('\n');
+
+fs.writeFileSync(topTxt, topReport);
+fs.writeFileSync(slipTxt, slipReport);
+
+console.log(`Saved ${topTxt}`);
+console.log(`Saved ${slipTxt}`);

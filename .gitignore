@@ -1,0 +1,15 @@
+
+node_modules/
+.env
+outputs/
+archives/
+data/vegas-raw.json
+data/vegas-latest.json
+*.backup.*
+*.before*
+*.safe*
+*.bad.js
+history/
+logs/
+scripts/
+ballpark/storage/

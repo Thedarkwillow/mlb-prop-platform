@@ -1,21 +1,33 @@
 import fs from 'fs';
 
-function stamp() {
-  return new Date().toISOString().replace(/[:.]/g, '-');
+const pricedPath = 'outputs/priced-board.json';
+const historyPath = 'outputs/history.json';
+
+function read(path, fallback = []) {
+  if (!fs.existsSync(path)) return fallback;
+  return JSON.parse(fs.readFileSync(path, 'utf8'));
 }
 
-function copyIfExists(src, destDir, prefix) {
-  if (!fs.existsSync(src)) return;
+const priced = read(pricedPath, []);
+const existing = read(historyPath, []);
 
-  fs.mkdirSync(destDir, { recursive: true });
+const newEntries = priced
+  .filter(r => r.recordType === 'merged_prop')
+  .map(r => ({
+    recordType: 'history_entry',
+    createdAt: new Date().toISOString(),
+    player: r.player,
+    stat: r.stat,
+    line: r.line,
+    side: r.recommendedSide,
+    projection: r.projection,
+    result: 'PENDING',
+    actual: null,
+    clv: null,
+  }));
 
-  const dest = `${destDir}/${prefix}-${stamp()}.json`;
-  fs.copyFileSync(src, dest);
+const combined = [...existing, ...newEntries];
 
-  console.log(`Saved ${dest}`);
-}
+fs.writeFileSync(historyPath, JSON.stringify(combined, null, 2));
 
-copyIfExists('data/prizepicks-latest.json', 'history/prizepicks', 'prizepicks');
-copyIfExists('data/ballpark-latest.json', 'history/ballpark', 'ballpark');
-copyIfExists('outputs/merged-board.json', 'history/merged', 'merged');
-copyIfExists('outputs/slips.json', 'history/slips', 'slips');
+console.log(`Saved ${newEntries.length} history entries`);
