@@ -7,7 +7,8 @@
     "picks": "node src/research/price-current-slips.cjs && node src/research/enrich-slips-distributions.cjs && node src/research/build-final-slips.cjs && node src/research/playable-final-slips.cjs",
     "grade": "node src/research/repair-slip-gamepks.cjs && node src/research/grade-final-slips.cjs",
     "coverage": "node src/research/distribution-coverage-report.cjs",
-    "pipeline": "npm run picks && npm run coverage && npm run grade"
+    "pipeline": "npm run picks && npm run coverage && npm run grade",
+    "regrade": "npm run grade"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
