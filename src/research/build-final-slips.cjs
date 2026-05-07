@@ -1,5 +1,6 @@
 const fs = require("fs");
 const { scoreEliteContext } = require("./elite-context-score.cjs");
+const { marketModelScore } = require("./market-model-router.cjs");
 
 function readJson(path, fallback) {
   try {
@@ -53,6 +54,12 @@ function finalScore(x) {
   const edge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? -999);
   const cal = Number(x.calibratedDistributionProb);
   const raw = Number(x.distributionProb);
+  const marketModel = marketModelScore(x);
+  const elite = scoreEliteContext({
+    savant: x.savantReportGrade,
+    books: x.sportsbookBookCount,
+    edge: x.sportsbookEdge
+  });
 
   let score = edge;
 
@@ -61,9 +68,9 @@ function finalScore(x) {
 
   if (x.distributionModel?.confidence === "HIGH") score += 0.01;
   if (x.distributionModel?.confidence === "LOW") score -= 0.015;
-  if (x.savantReportGrade === "BOOST") score += 0.006;
-  if (x.savantReportGrade === "DOWNGRADE") score -= 0.01;
-  if ((x.sportsbookBookCount || 0) <= 1) score -= 0.01;
+
+  score += marketModel.marketModelScore;
+  score += elite.contextScore;
 
   return Number(score.toFixed(4));
 }
@@ -112,6 +119,7 @@ function cleanLeg(x) {
       books: x.sportsbookBookCount,
       edge: x.sportsbookEdge
     }),
+    marketModel: marketModelScore(x),
     marketSupportFlag: x.marketSupportFlag || null
   };
 }
