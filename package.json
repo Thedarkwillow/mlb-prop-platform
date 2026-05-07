@@ -17,7 +17,8 @@
     "calibration:curves": "node src/research/calibration-curves.cjs",
     "show": "node src/research/show-todays-slips.cjs",
     "status": "node src/research/status.cjs",
-    "final": "npm run pipeline --date=${npm_config_date:-$(date +%F)} && npm run status && npm run show"
+    "final": "npm run pipeline --date=${npm_config_date:-$(date +%F)} && npm run status && npm run show",
+    "grade:watchlist": "node src/research/grade-watchlist-slips.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
