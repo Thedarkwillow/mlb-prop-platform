@@ -9,6 +9,7 @@ const MARKET_MAP = {
   batter_rbis: "rbis",
   batter_runs_scored: "runs",
   batter_home_runs: "home_runs",
+  batter_hits_runs_rbis: "hrr",
   pitcher_strikeouts: "strikeouts",
   pitcher_outs: "pitching_outs"
 };

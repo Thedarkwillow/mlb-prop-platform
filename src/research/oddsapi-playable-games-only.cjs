@@ -12,6 +12,7 @@ const MARKETS = [
   "batter_rbis",
   "batter_runs_scored",
   "batter_home_runs",
+  "batter_hits_runs_rbis",
   "pitcher_strikeouts",
   "pitcher_outs"
 ];
