@@ -310,14 +310,20 @@ for (const r of sortedPlayable) {
   onePerPlayer.push(r);
 }
 
-// Backfill with remaining best props if board is too thin.
+// Backfill with remaining best props if board is too thin,
+// but do not let HRR swallow the board again.
 for (const r of sortedPlayable) {
   if (onePerPlayer.length >= 30) break;
 
   const p = normName(r.player);
+  const m = normMarket(r.market || r.stat);
   if (seenPlayers.has(p)) continue;
 
+  const count = marketCounts.get(m) || 0;
+  if (m === "hrr" && count >= 8) continue;
+
   seenPlayers.add(p);
+  marketCounts.set(m, count + 1);
   onePerPlayer.push(r);
 }
 
