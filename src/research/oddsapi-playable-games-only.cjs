@@ -1,9 +1,11 @@
 const fs = require("fs");
+
 const API_KEY = process.env.ODDS_API_KEY;
 if (!API_KEY) throw new Error("Missing ODDS_API_KEY");
 
 const SPORT = "baseball_mlb";
 const BOOKMAKER = "draftkings";
+
 const MARKETS = [
   "batter_hits",
   "batter_total_bases",
@@ -14,8 +16,57 @@ const MARKETS = [
   "pitcher_outs"
 ];
 
+const TEAM = {
+  ARI: "arizona diamondbacks",
+  ATH: "athletics",
+  ATL: "atlanta braves",
+  BAL: "baltimore orioles",
+  BOS: "boston red sox",
+  CHC: "chicago cubs",
+  CIN: "cincinnati reds",
+  CLE: "cleveland guardians",
+  COL: "colorado rockies",
+  CWS: "chicago white sox",
+  DET: "detroit tigers",
+  HOU: "houston astros",
+  KC: "kansas city royals",
+  LAA: "los angeles angels",
+  LAD: "los angeles dodgers",
+  MIA: "miami marlins",
+  MIL: "milwaukee brewers",
+  MIN: "minnesota twins",
+  NYM: "new york mets",
+  NYY: "new york yankees",
+  PHI: "philadelphia phillies",
+  PIT: "pittsburgh pirates",
+  SD: "san diego padres",
+  SEA: "seattle mariners",
+  SF: "san francisco giants",
+  STL: "st louis cardinals",
+  TB: "tampa bay rays",
+  TEX: "texas rangers",
+  TOR: "toronto blue jays",
+  WSH: "washington nationals",
+  WAS: "washington nationals"
+};
+
 function norm(s) {
-  return String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  return String(s || "")
+    .toLowerCase()
+    .replace(/\./g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function expandGame(game) {
+  const parts = String(game || "").split("@").map(x => x.trim().toUpperCase());
+  if (parts.length !== 2) return [];
+  const [away, home] = parts;
+  const awayFull = TEAM[away] || away;
+  const homeFull = TEAM[home] || home;
+  return [
+    norm(`${awayFull} @ ${homeFull}`),
+    norm(`${homeFull} @ ${awayFull}`)
+  ];
 }
 
 async function fetchJson(url) {
@@ -27,31 +78,34 @@ async function fetchJson(url) {
 }
 
 (async () => {
+  fs.mkdirSync("data/oddsapi", { recursive: true });
+
   const playable = JSON.parse(fs.readFileSync("outputs/playable-final-slips.json", "utf8"));
   const targetGames = new Set();
 
   for (const slip of playable) {
     for (const leg of slip.legs || []) {
-      targetGames.add(norm(leg.game));
+      for (const key of expandGame(leg.game)) targetGames.add(key);
     }
   }
 
-  const eventsUrl =
-    `https://api.the-odds-api.com/v4/sports/${SPORT}/events` +
-    `?apiKey=${API_KEY}`;
-
+  const eventsUrl = `https://api.the-odds-api.com/v4/sports/${SPORT}/events?apiKey=${API_KEY}`;
   const events = await fetchJson(eventsUrl);
 
   const wanted = events.filter(e => {
-    const g1 = norm(`${e.away_team} @ ${e.home_team}`);
-    const g2 = norm(`${e.home_team} @ ${e.away_team}`);
-    return targetGames.has(g1) || targetGames.has(g2);
+    const key = norm(`${e.away_team} @ ${e.home_team}`);
+    const reverse = norm(`${e.home_team} @ ${e.away_team}`);
+    return targetGames.has(key) || targetGames.has(reverse);
   });
 
-  console.log("target games:", [...targetGames]);
   console.log("matched events:", wanted.length);
+  console.table(wanted.map(e => ({
+    id: e.id,
+    away: e.away_team,
+    home: e.home_team,
+    commence: e.commence_time
+  })));
 
-  fs.mkdirSync("data/oddsapi", { recursive: true });
   fs.writeFileSync("data/oddsapi/playable-events.json", JSON.stringify(wanted, null, 2));
 
   const all = [];
