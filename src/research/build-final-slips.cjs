@@ -202,6 +202,16 @@ const slips = slipDefs.map(def => {
     const ok = def.size <= 4 ? canAddStrict(legs, x) : canAddBalanced(legs, x);
     if (ok) legs.push(x);
   }
+  if (def.size === 6 && legs.length < 6) {
+    for (const x of top) {
+      if (legs.length >= 6) break;
+      if (legs.some(l => normName(l.player) === normName(x.player))) continue;
+      if (gameKey(x) && counts(legs, x).sameGame >= 1) continue;
+      if (displayGrade(x) === "FADE") continue;
+      legs.push(x);
+    }
+  }
+
   return {
     name: def.name,
     size: def.size,
