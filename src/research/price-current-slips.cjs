@@ -129,14 +129,14 @@ const confirmed = new Set(
 const priceBuckets = new Map();
 
 for (const r of vegasRaw) {
-  if (r.marketType !== "player_prop") continue;
-
-  const player = r.participant;
+  if (r.marketType !== "player_prop" && r.source !== "oddsapi") continue;
+  const player = r.participant || r.player;
   const market = normMarket(r.market);
-  const side = dkSide(r);
-  const line = dkLine(r);
-  const prob = impliedProb(r.decimalOdds);
-
+  const side = r.source === "oddsapi" ? normSide(r.side) : dkSide(r);
+  const line = r.source === "oddsapi" ? Number(r.line) : dkLine(r);
+  const prob = r.source === "oddsapi"
+    ? impliedProb(Number(r.odds) > 0 ? 1 + Number(r.odds) / 100 : 1 + 100 / Math.abs(Number(r.odds)))
+    : impliedProb(r.decimalOdds);
   if (!player || !market || !side || line == null || prob == null) continue;
 
   const k = key(player, market, side, line);

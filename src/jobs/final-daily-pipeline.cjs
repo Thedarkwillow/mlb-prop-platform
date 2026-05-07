@@ -7,16 +7,16 @@ function run(cmd) {
   execSync(cmd, { stdio: "inherit", cwd: "/root/mlb-prop-platform" });
 }
 
-if (process.env.ODDS_API_KEY) {
-  run("node src/research/oddsapi-playable-games-only.cjs");
-  run("node src/research/convert-oddsapi-props.cjs");
-} else {
-  console.log("Skipping Odds API fetch; using existing data/vegas-raw.json");
-}
+console.log("Preparing board before Odds API pricing");
 
 run("node src/jobs/slipBuilder.js");
 run("node src/research/savant-slip-report.cjs");
 run("node src/research/lineups-simple.cjs");
+if (process.env.ODDS_API_KEY) {
+  run("node src/research/oddsapi-dk-mlb-props.cjs");
+} else {
+  console.log("Skipping Odds API fetch; using existing data/vegas-raw.json");
+}
 run("node src/research/price-current-slips.cjs");
 run("node src/research/build-final-slips.cjs");
 run("node src/research/final-slip-summary.cjs");
