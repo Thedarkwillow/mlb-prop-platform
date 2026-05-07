@@ -13,6 +13,35 @@ const priced = readJson("outputs/slips-distribution-enriched.json", []);
 const final = readJson("outputs/final-slips.json", {});
 const topLegs = final.topLegs || [];
 
+function displayGrade(x) {
+  const grade = displayGrade(x);
+  const market = String(x.market || x.stat || "").toLowerCase();
+  const adj = Number(x.sportsbookAdjustedEdge ?? x.adjustedEdge);
+  const calibrated = Number(x.calibratedDistributionProb ?? x.distributionProb);
+  const edge = Number(x.sportsbookEdge ?? x.edge);
+
+  if (
+    grade !== "FADE" &&
+    Number.isFinite(adj) &&
+    Number.isFinite(calibrated) &&
+    adj >= 0.085 &&
+    calibrated >= 0.67
+  ) return "GREEN";
+
+  if (
+    grade === "FADE" &&
+    ["bases", "hits", "runs", "rbis"].includes(market) &&
+    Number.isFinite(edge) &&
+    Number.isFinite(adj) &&
+    Number.isFinite(calibrated) &&
+    edge > 0 &&
+    adj >= 0.015 &&
+    calibrated >= 0.55
+  ) return "WATCHLIST";
+
+  return grade;
+}
+
 function marketOf(x) {
   return String(x.market || x.stat || "unknown").toLowerCase();
 }
@@ -39,7 +68,7 @@ function summarize(rows) {
     if (x.sportsbookMatch) r.matched++;
     if (x.calibratedDistributionProb != null || x.distributionProb != null) r.modeled++;
 
-    const grade = x.grade || x.qualityGrade;
+    const grade = displayGrade(x);
     if (grade === "GREEN") r.green++;
     else if (grade === "NEUTRAL") r.neutral++;
     else if (grade === "WATCHLIST") r.watchlist++;
