@@ -6,7 +6,8 @@
     "prizepicks": "node src/scrapers/prizepicks.js",
     "picks": "node src/jobs/pull-dk-latest-and-build.cjs && node src/research/clean-final-slips.cjs",
     "grade": "node src/research/repair-slip-gamepks.cjs && node src/research/grade-final-slips.cjs",
-    "coverage": "node src/research/distribution-coverage-report.cjs"
+    "coverage": "node src/research/distribution-coverage-report.cjs",
+    "pipeline": "npm run picks && npm run coverage && npm run grade"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
