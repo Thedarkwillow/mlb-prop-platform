@@ -2,11 +2,18 @@ const fs = require("fs");
 
 const slipsRaw = JSON.parse(fs.readFileSync("outputs/slips.json", "utf8"));
 const vegasRaw = JSON.parse(fs.readFileSync("data/vegas-latest.json", "utf8"));
+
 const slips = slipsRaw.slips || slipsRaw;
 const legs = Array.isArray(slips) ? slips.flatMap(s => s.legs || []) : [];
+
 const EDGE_MIN = -0.015;
 const SINGLE_BOOK_EDGE_CAP = 0.12;
 const SINGLE_BOOK_EDGE_PENALTY = 0.035;
+
+// New anti-fake-green rules
+const MIN_GREEN_BOOKS = 2;
+const SINGLE_BOOK_GREEN_EDGE_MIN = 0.12;
+const SINGLE_BOOK_NEUTRAL_EDGE_MIN = 0.06;
 
 function readJson(path, fallback) {
   try {
@@ -29,6 +36,7 @@ function normName(s) {
 
 function normMarket(s) {
   s = String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
+
   if (s.includes("strikeout")) return "strikeouts";
   if (s.includes("hits + runs + rbis") || s.includes("hits+runs+rbis") || s.includes("hrr")) return "hrr";
   if (s.includes("home runs") || s.includes("home run")) return "home_runs";
@@ -37,6 +45,7 @@ function normMarket(s) {
   if (s.includes("runs")) return "runs";
   if (s.includes("hits")) return "hits";
   if (s.includes("home run")) return "home_runs";
+
   return s;
 }
 
@@ -49,18 +58,23 @@ function normSide(s) {
 
 function dkLine(row) {
   if (row.points != null) return Number(row.points);
+
   const sel = String(row.selection || "").trim();
   const m = sel.match(/^(\d+)\+$/);
+
   if (m) return Number(m[1]) - 0.5;
+
   return null;
 }
 
 function dkSide(row) {
   const sel = String(row.selection || "").toLowerCase();
   const out = String(row.outcome || "").toLowerCase();
+
   if (sel === "over" || out === "over") return "MORE";
   if (sel === "under" || out === "under") return "LESS";
   if (/^\d+\+$/.test(sel)) return "MORE";
+
   return null;
 }
 
@@ -85,10 +99,27 @@ function qualityScore(edge, books, savantGrade) {
     score -= SINGLE_BOOK_EDGE_PENALTY;
   }
 
-  if (savantGrade === "UPGRADE") score += 0.006;
+  if (savantGrade === "UPGRADE" || savantGrade === "BOOST") score += 0.006;
   if (savantGrade === "DOWNGRADE") score -= 0.012;
 
   return Number(score.toFixed(4));
+}
+
+function getQualityGrade({ edge, adjustedEdge, books }) {
+  if (edge == null || adjustedEdge == null) return "UNKNOWN";
+
+  // Hard downgrade weak market support.
+  // 1-book props can only be GREEN with very large adjusted edge.
+  if (books < MIN_GREEN_BOOKS) {
+    if (adjustedEdge >= SINGLE_BOOK_GREEN_EDGE_MIN) return "GREEN";
+    if (adjustedEdge >= SINGLE_BOOK_NEUTRAL_EDGE_MIN) return "NEUTRAL";
+    return "FADE";
+  }
+
+  // Multi-book props use normal thresholds.
+  if (adjustedEdge >= 0.015) return "GREEN";
+  if (adjustedEdge >= EDGE_MIN) return "NEUTRAL";
+  return "FADE";
 }
 
 const confirmed = new Set(
@@ -109,6 +140,7 @@ for (const r of vegasRaw) {
   if (!player || !market || !side || line == null || prob == null) continue;
 
   const k = key(player, market, side, line);
+
   if (!priceBuckets.has(k)) {
     priceBuckets.set(k, {
       player,
@@ -144,11 +176,13 @@ for (const [k, b] of priceBuckets) {
 }
 
 const savantRaw = readJson("outputs/slips-savant.json", []);
+
 const savantRows = Array.isArray(savantRaw)
   ? savantRaw
   : (savantRaw.savantMatchedReport || savantRaw.rows || savantRaw.legs || []);
 
 const savantMap = new Map();
+
 for (const s of savantRows) {
   savantMap.set(normName(s.player), s);
 }
@@ -179,11 +213,16 @@ const out = legs.map(l => {
     edge >= EDGE_MIN ? "NEUTRAL" :
     "FADE";
 
-  const qualityGrade =
-    sportsbookGrade === "FADE" ? "FADE" :
-    adjustedEdge >= 0.015 ? "GREEN" :
-    adjustedEdge >= EDGE_MIN ? "NEUTRAL" :
-    "FADE";
+  const qualityGrade = getQualityGrade({
+    edge,
+    adjustedEdge,
+    books
+  });
+
+  const marketSupportFlag =
+    books < MIN_GREEN_BOOKS
+      ? "LOW_BOOK_SUPPORT"
+      : "OK";
 
   return {
     ...l,
@@ -197,6 +236,7 @@ const out = legs.map(l => {
     sportsbookGame: p ? p.game : null,
     sportsbookGrade,
     savantReportGrade: savantGrade,
+    marketSupportFlag,
     qualityGrade
   };
 });
@@ -214,6 +254,7 @@ const seenPlayers = new Set();
 for (const r of dkPlayable) {
   const p = normName(r.player);
   if (seenPlayers.has(p)) continue;
+
   seenPlayers.add(p);
   onePerPlayer.push(r);
 }
@@ -221,6 +262,7 @@ for (const r of dkPlayable) {
 const filtered = onePerPlayer
   .map(r => {
     const inLineup = confirmed.size === 0 || confirmed.has(normName(r.player));
+
     return {
       ...r,
       lineupBoost: inLineup ? 0.01 : 0,
@@ -241,6 +283,7 @@ console.log("dk playable:", dkPlayable.length);
 console.log("one per player:", onePerPlayer.length);
 console.log("kept:", filtered.length);
 console.log("faded:", out.length - filtered.length);
+console.log("low book support:", out.filter(x => x.marketSupportFlag === "LOW_BOOK_SUPPORT").length);
 
 console.table(filtered.map(x => ({
   player: x.player,
@@ -250,9 +293,11 @@ console.table(filtered.map(x => ({
   edge: x.sportsbookEdge,
   adjEdge: x.sportsbookAdjustedEdge,
   books: x.sportsbookBookCount,
+  support: x.marketSupportFlag,
   savant: x.savantReportGrade,
   grade: x.qualityGrade
 })));
 
 fs.writeFileSync("outputs/slips-priced.json", JSON.stringify(filtered, null, 2));
+
 console.log("Wrote outputs/slips-priced.json");
