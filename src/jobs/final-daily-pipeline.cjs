@@ -11,7 +11,7 @@ run("node src/research/savant-slip-report.cjs");
 run("node src/research/lineups-simple.cjs");
 run("node src/research/price-current-slips.cjs");
 run("node src/research/build-final-slips.cjs");
-run("node src/research/final-slip-summary.cjs");
+run("node src/research/final-slip-summary.cjs\nnode src/research/playable-final-slips.cjs");
 run(`node src/research/save-clv-snapshot.cjs ${new Date().toISOString().slice(0, 10)}`);
 
 console.log("\nfinal daily pipeline complete");
