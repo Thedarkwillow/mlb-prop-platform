@@ -1,4 +1,5 @@
 const fs = require("fs");
+const { scoreEliteContext } = require("./elite-context-score.cjs");
 
 function readJson(path, fallback) {
   try {
@@ -106,6 +107,11 @@ function cleanLeg(x) {
     grade: displayGrade(x),
     books: x.sportsbookBookCount,
     savant: x.savantReportGrade,
+    eliteContext: scoreEliteContext({
+      savant: x.savantReportGrade,
+      books: x.sportsbookBookCount,
+      edge: x.sportsbookEdge
+    }),
     marketSupportFlag: x.marketSupportFlag || null
   };
 }
