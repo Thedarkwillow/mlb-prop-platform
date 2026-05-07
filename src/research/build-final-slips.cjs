@@ -32,6 +32,15 @@ function teamKey(x) {
   return String(x.team || "").toUpperCase().trim();
 }
 
+function isCheapHrrHalf(x) {
+  const market = String(x.market || x.stat || "").toLowerCase();
+  return market === "hrr" && Number(x.line) === 0.5;
+}
+
+function cheapHrrHalfCount(legs) {
+  return legs.filter(isCheapHrrHalf).length;
+}
+
 function marketFamily(x) {
   const m = String(x.market || x.stat || "").toLowerCase();
   if (["hits", "bases", "hrr", "runs", "rbis", "home_runs"].includes(m)) return "hitter_counting";
@@ -137,6 +146,10 @@ function canAddBalanced(legs, x) {
   if (fam === "hitter_counting" && c.sameFamily >= 5) return false;
   if (fam === "pitcher_k" && c.sameFamily >= 1) return false;
   if (c.sameMarket >= 4) return false;
+
+  // Larger slips can use more HRR 0.5, but still cap exposure.
+  if (isCheapHrrHalf(x) && cheapHrrHalfCount(legs) >= 2) return false;
+
   return true;
 }
 

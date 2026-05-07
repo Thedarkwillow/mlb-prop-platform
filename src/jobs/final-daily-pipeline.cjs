@@ -18,6 +18,7 @@ if (process.env.ODDS_API_KEY) {
   console.log("Skipping Odds API fetch; using existing data/vegas-raw.json");
 }
 run("node src/research/price-current-slips.cjs");
+run("node src/research/enrich-slips-distributions.cjs");
 run("node src/research/build-final-slips.cjs");
 run("node src/research/final-slip-summary.cjs");
 run("node src/research/playable-final-slips.cjs");
