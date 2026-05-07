@@ -16,7 +16,8 @@
     "rebuild-caldb": "node src/research/rebuild-calibration-db.cjs",
     "calibration:curves": "node src/research/calibration-curves.cjs",
     "show": "node src/research/show-todays-slips.cjs",
-    "status": "node src/research/status.cjs"
+    "status": "node src/research/status.cjs",
+    "final": "npm run pipeline --date=${npm_config_date:-$(date +%F)} && npm run status && npm run show"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
