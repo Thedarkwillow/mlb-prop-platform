@@ -18,5 +18,6 @@ run("node src/research/final-slip-summary.cjs");
 run("node src/research/playable-final-slips.cjs");
 run(`node src/research/save-playable-clv-snapshot.cjs ${DATE}`);
 run(`node src/research/save-clv-snapshot.cjs ${DATE}`);
+run(`node src/research/daily-review-report.cjs ${DATE}`);
 
 console.log("\nfinal daily pipeline complete");
