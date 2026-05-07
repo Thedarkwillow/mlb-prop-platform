@@ -76,7 +76,23 @@ const playable = readJson("outputs/playable-final-slips.json", null);
 
 let legs = [];
 if (Array.isArray(priced) && priced.length) {
-  legs = priced.filter(x => x.qualityGrade !== "FADE");
+  legs = priced.filter(x => {
+    const market = normMarket(x.market || x.stat);
+    if (x.qualityGrade !== "FADE") return true;
+
+    // Allow positive-edge secondary markets through as watchlist/model candidates.
+    // They are still not auto-playable unless later gates approve them.
+    if (["bases", "hits", "runs", "rbis"].includes(market)) {
+      return (
+        x.sportsbookMatch &&
+        typeof x.sportsbookEdge === "number" &&
+        x.sportsbookEdge > 0 &&
+        Number(x.sportsbookAdjustedEdge ?? -999) >= 0.015
+      );
+    }
+
+    return false;
+  });
 } else {
   const slips = final?.slips || playable?.slips || final || playable || [];
   legs = Array.isArray(slips) ? slips.flatMap(s => s.legs || []) : [];
