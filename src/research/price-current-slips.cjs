@@ -1,7 +1,7 @@
 const fs = require("fs");
 
 const slipsRaw = JSON.parse(fs.readFileSync("outputs/slips.json", "utf8"));
-const vegasRaw = JSON.parse(fs.readFileSync("data/vegas-latest.json", "utf8"));
+const vegasRaw = JSON.parse(fs.readFileSync("data/vegas-raw.json", "utf8"));
 
 const slips = slipsRaw.slips || slipsRaw;
 const legs = Array.isArray(slips) ? slips.flatMap(s => s.legs || []) : [];
@@ -274,7 +274,7 @@ const filtered = onePerPlayer
     ((a.sportsbookAdjustedEdge ?? -999) + a.lineupBoost + a.savantPenalty)
   );
 
-console.log("vegas player prop rows:", vegasRaw.filter(x => x.marketType === "player_prop").length);
+console.log("vegas player prop rows:", vegasRaw.filter(x => x.marketType === "player_prop" || x.source === "oddsapi").length);
 console.log("price keys:", priceMap.size);
 console.log("slip legs:", out.length);
 console.log("matched:", out.filter(x => x.sportsbookMatch).length);
