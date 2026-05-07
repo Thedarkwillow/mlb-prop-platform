@@ -7,7 +7,12 @@ function run(cmd) {
   execSync(cmd, { stdio: "inherit", cwd: "/root/mlb-prop-platform" });
 }
 
-console.log("Skipping vegas scraper; using webhook-provided data/vegas-raw.json");
+if (process.env.ODDS_API_KEY) {
+  run("node src/research/oddsapi-playable-games-only.cjs");
+  run("node src/research/convert-oddsapi-props.cjs");
+} else {
+  console.log("Skipping Odds API fetch; using existing data/vegas-raw.json");
+}
 
 run("node src/jobs/slipBuilder.js");
 run("node src/research/savant-slip-report.cjs");
