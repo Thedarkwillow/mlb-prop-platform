@@ -5,6 +5,7 @@ const { modelHits } = require("../models/markets/hits.cjs");
 const { modelPitchingOuts } = require("../models/markets/pitching-outs.cjs");
 const { modelEarnedRunsAllowed } = require("../models/markets/earned-runs-allowed.cjs");
 const { modelHitsAllowed } = require("../models/markets/hits-allowed.cjs");
+const { modelHomeRuns } = require("../models/markets/home-runs.cjs");
 const { modelRuns } = require("../models/markets/runs.cjs");
 const { modelRbis } = require("../models/markets/rbis.cjs");
 const { modelBases } = require("../models/markets/bases.cjs");
@@ -26,6 +27,7 @@ function normMarket(s) {
   if (s.includes("total bases")) return "bases";
   if (s.includes("runs")) return "runs";
   if (s.includes("rbi")) return "rbis";
+  if (s.includes("home_runs") || s.includes("home runs") || s.includes("homer")) return "home_runs";
   if (s.includes("hits")) return "hits";
   return s;
 }
@@ -38,6 +40,7 @@ function enrichLeg(leg) {
   if (market === "pitching_outs") distribution = modelPitchingOuts(leg);
   if (market === "earned_runs_allowed") distribution = modelEarnedRunsAllowed(leg);
   if (market === "hits_allowed") distribution = modelHitsAllowed(leg);
+  if (market === "home_runs") distribution = modelHomeRuns(leg);
   if (market === "hrr") distribution = modelHrr(leg);
   if (market === "hits") distribution = modelHits(leg);
   if (market === "runs") distribution = modelRuns(leg);
