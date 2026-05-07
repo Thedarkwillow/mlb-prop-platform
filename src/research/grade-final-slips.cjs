@@ -7,7 +7,7 @@ const OUT = `outputs/final-slips-graded-${DATE}.json`;
 function normName(s) {
   return String(s || "")
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/[.'’\-]/g, "")
+    .replace(/[.'’-]/g, "")
     .replace(/\b(jr|sr|ii|iii|iv)\b/gi, "")
     .replace(/\s+/g, " ")
     .trim()
@@ -22,11 +22,34 @@ function result(actual, side, line) {
   return "UNKNOWN";
 }
 
-async function getGameFeed(gamePk) {
-  const url = `https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`;
+async function fetchJson(url) {
   const r = await fetch(url);
-  if (!r.ok) throw new Error(`game feed failed ${r.status} gamePk=${gamePk}`);
+  if (!r.ok) throw new Error(`fetch failed ${r.status}: ${url}`);
   return r.json();
+}
+
+async function getSchedule(date) {
+  return fetchJson(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}&hydrate=team`);
+}
+
+function resolveGamePkFromSchedule(schedule, gameText) {
+  const parts = String(gameText || "").split("@").map(x => x.trim().toUpperCase());
+  if (parts.length !== 2) return null;
+
+  const [away, home] = parts;
+  const games = schedule?.dates?.flatMap(d => d.games || []) || [];
+
+  for (const g of games) {
+    const a = String(g.teams?.away?.team?.abbreviation || "").toUpperCase();
+    const h = String(g.teams?.home?.team?.abbreviation || "").toUpperCase();
+    if (a === away && h === home) return g.gamePk;
+  }
+
+  return null;
+}
+
+async function getGameFeed(gamePk) {
+  return fetchJson(`https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`);
 }
 
 function isFinalGame(feed) {
@@ -58,6 +81,14 @@ function actualForMarket(playerRecord, market) {
 
   if (m === "hits") return Number(batting.hits ?? 0);
 
+  if (m === "runs") return Number(batting.runs ?? 0);
+
+  if (m === "rbis" || m === "rbi") return Number(batting.rbi ?? 0);
+
+  if (m === "home_runs" || m === "home runs" || m === "hr") {
+    return Number(batting.homeRuns ?? 0);
+  }
+
   if (m === "bases") {
     const hits = Number(batting.hits ?? 0);
     const doubles = Number(batting.doubles ?? 0);
@@ -73,34 +104,45 @@ function actualForMarket(playerRecord, market) {
 
   if (m === "strikeouts") return Number(pitching.strikeOuts ?? 0);
 
+  if (m === "pitching_outs" || m === "outs") {
+    return Number(pitching.outs ?? 0);
+  }
+
+  if (m === "hits_allowed") {
+    return Number(pitching.hits ?? 0);
+  }
+
+  if (m === "earned_runs_allowed") {
+    return Number(pitching.earnedRuns ?? 0);
+  }
+
   return null;
 }
 
 (async () => {
   const final = JSON.parse(fs.readFileSync(IN, "utf8"));
   const legs = final.topLegs || [];
+
+  const schedule = await getSchedule(DATE);
   const cache = new Map();
   const graded = [];
 
   for (const leg of legs) {
-    if (!leg.gamePk) {
-      graded.push({ ...leg, actual: null, result: "UNKNOWN", note: "no gamePk" });
+    const gamePk = leg.gamePk || resolveGamePkFromSchedule(schedule, leg.game);
+
+    if (!gamePk) {
+      graded.push({ ...leg, gamePk: null, actual: null, result: "UNKNOWN", note: "could not resolve gamePk" });
       continue;
     }
 
-    if (!cache.has(leg.gamePk)) {
-      cache.set(leg.gamePk, await getGameFeed(leg.gamePk));
+    if (!cache.has(gamePk)) {
+      cache.set(gamePk, await getGameFeed(gamePk));
     }
 
-    const feed = cache.get(leg.gamePk);
+    const feed = cache.get(gamePk);
 
     if (!isFinalGame(feed)) {
-      graded.push({
-        ...leg,
-        actual: null,
-        result: "UNKNOWN",
-        note: "game not final"
-      });
+      graded.push({ ...leg, gamePk, actual: null, result: "UNKNOWN", note: "game not final" });
       continue;
     }
 
@@ -111,6 +153,7 @@ function actualForMarket(playerRecord, market) {
 
     graded.push({
       ...leg,
+      gamePk,
       actual,
       result: res,
       foundPlayer: !!player
@@ -129,5 +172,15 @@ function actualForMarket(playerRecord, market) {
 
   fs.writeFileSync(OUT, JSON.stringify(summary, null, 2));
   console.log("Wrote", OUT);
-  console.table(graded);
+  console.table(graded.map(x => ({
+    player: x.player,
+    game: x.game,
+    gamePk: x.gamePk,
+    market: x.market,
+    side: x.side,
+    line: x.line,
+    actual: x.actual,
+    result: x.result,
+    note: x.note || ""
+  })));
 })();

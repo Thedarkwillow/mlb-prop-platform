@@ -1,0 +1,28 @@
+name: Grade Final Slips
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 8 * * *"
+
+jobs:
+  grade:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Grade final slips
+        run: |
+          npm install
+          node src/research/grade-final-slips.cjs $(date -u -d "yesterday" +%F)
+
+      - name: Upload graded output
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-slips-graded
+          path: outputs/final-slips-graded-*.json
