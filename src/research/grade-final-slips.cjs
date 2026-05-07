@@ -1,7 +1,7 @@
 const fs = require("fs");
 
 const DATE = process.argv[2] || new Date().toISOString().slice(0, 10);
-const IN = "outputs/final-slips.json";
+const IN = `outputs/final-slips-${DATE}.json`;
 const OUT = `outputs/final-slips-graded-${DATE}.json`;
 
 function normName(s) {
@@ -170,7 +170,31 @@ function actualForMarket(playerRecord, market) {
     legs: graded
   };
 
-  fs.writeFileSync(OUT, JSON.stringify(summary, null, 2));
+  
+fs.writeFileSync(OUT, JSON.stringify(summary, null, 2));
+
+const HISTORY = "data/history/all-graded-slips.jsonl";
+
+for (const leg of graded) {
+  fs.appendFileSync(HISTORY, JSON.stringify({
+    date: DATE,
+    gradedAt: new Date().toISOString(),
+    player: leg.player,
+    team: leg.team,
+    game: leg.game,
+    market: leg.market,
+    side: leg.side,
+    line: leg.line,
+    edge: leg.edge,
+    adjustedEdge: leg.adjustedEdge,
+    grade: leg.grade,
+    books: leg.books,
+    savant: leg.savant,
+    actual: leg.actual,
+    result: leg.result
+  }) + "\n");
+}
+
   console.log("Wrote", OUT);
   console.table(graded.map(x => ({
     player: x.player,
