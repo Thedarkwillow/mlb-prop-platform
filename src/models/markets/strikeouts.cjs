@@ -10,18 +10,18 @@ function poissonPmf(k, lambda) {
 }
 
 function poissonProbMore(lambda, line) {
-  const floor = Math.floor(Number(line));
+  const maxK = Math.floor(Number(line));
   let cdf = 0;
-  for (let k = 0; k <= floor; k++) cdf += poissonPmf(k, lambda);
+  for (let k = 0; k <= maxK; k++) cdf += poissonPmf(k, lambda);
   return Math.max(0, Math.min(1, 1 - cdf));
 }
 
 function poissonProbLess(lambda, line) {
-  return 1 - poissonProbMore(lambda, line);
+  return Math.max(0, Math.min(1, 1 - poissonProbMore(lambda, line)));
 }
 
 function estimateStrikeoutMean(leg) {
-  const candidates = [
+  const vals = [
     leg.modelMean,
     leg.mean,
     leg.projectedMean,
@@ -31,8 +31,8 @@ function estimateStrikeoutMean(leg) {
     leg.line
   ];
 
-  for (const x of candidates) {
-    const n = Number(x);
+  for (const v of vals) {
+    const n = Number(v);
     if (Number.isFinite(n) && n > 0) return n;
   }
 
@@ -40,10 +40,10 @@ function estimateStrikeoutMean(leg) {
 }
 
 function modelStrikeouts(leg) {
-  const mean = estimateStrikeoutMean(leg);
   const line = Number(leg.line);
+  const mean = estimateStrikeoutMean(leg);
 
-  if (!Number.isFinite(mean) || !Number.isFinite(line)) {
+  if (!Number.isFinite(line) || !Number.isFinite(mean)) {
     return {
       market: "strikeouts",
       distribution: "poisson",
@@ -52,7 +52,7 @@ function modelStrikeouts(leg) {
       probMore: null,
       probLess: null,
       fairLine: null,
-      confidence: "UNKNOWN"
+      confidence: "LOW"
     };
   }
 
@@ -62,20 +62,18 @@ function modelStrikeouts(leg) {
   return {
     market: "strikeouts",
     distribution: "poisson",
-    mean: Number(mean.toFixed(4)),
-    variance: Number(mean.toFixed(4)),
+    mean: Number(mean.toFixed(3)),
+    variance: Number(mean.toFixed(3)),
     probMore,
     probLess,
     fairLine: Number(mean.toFixed(2)),
-    confidence:
-      Math.max(probMore, probLess) >= 0.65 ? "HIGH" :
-      Math.max(probMore, probLess) >= 0.58 ? "MEDIUM" :
-      "LOW"
+    confidence: "MEDIUM"
   };
 }
 
 module.exports = {
   modelStrikeouts,
+  poissonPmf,
   poissonProbMore,
   poissonProbLess
 };
