@@ -13,35 +13,46 @@ const MARKET_MAP = {
   pitcher_outs: "pitching_outs"
 };
 
-const data = JSON.parse(fs.readFileSync(IN, "utf8"));
+function toSide(name) {
+  const n = String(name || "").toLowerCase();
+  if (n === "over") return "MORE";
+  if (n === "under") return "LESS";
+  return String(name || "").toUpperCase();
+}
+
+const raw = JSON.parse(fs.readFileSync(IN, "utf8"));
+const events = Array.isArray(raw) ? raw : [raw];
+
 const rows = [];
 
-for (const book of data.bookmakers || []) {
-  for (const market of book.markets || []) {
-    const mappedMarket = MARKET_MAP[market.key];
-    if (!mappedMarket) continue;
+for (const event of events) {
+  for (const book of event.bookmakers || []) {
+    for (const market of book.markets || []) {
+      const mappedMarket = MARKET_MAP[market.key];
+      if (!mappedMarket) continue;
 
-    for (const o of market.outcomes || []) {
-      rows.push({
-        source: "oddsapi",
-        sportsbook: book.key,
-        sportsbookTitle: book.title,
-        game: `${data.away_team} @ ${data.home_team}`,
-        eventId: data.id,
-        commenceTime: data.commence_time,
-        market: mappedMarket,
-        rawMarket: market.key,
-        player: o.description,
-        side: String(o.name || "").toUpperCase() === "OVER" ? "MORE" : "LESS",
-        line: o.point,
-        odds: o.price,
-        lastUpdate: market.last_update
-      });
+      for (const o of market.outcomes || []) {
+        rows.push({
+          source: "oddsapi",
+          sportsbook: book.key,
+          sportsbookTitle: book.title,
+          game: `${event.away_team} @ ${event.home_team}`,
+          eventId: event.id,
+          commenceTime: event.commence_time,
+          market: mappedMarket,
+          rawMarket: market.key,
+          player: o.description,
+          side: toSide(o.name),
+          line: o.point,
+          odds: o.price,
+          lastUpdate: market.last_update
+        });
+      }
     }
   }
 }
 
 fs.writeFileSync(OUT, JSON.stringify(rows, null, 2));
-console.log(`Wrote ${OUT}`);
-console.log(`Rows: ${rows.length}`);
-console.table(rows.slice(0, 20));
+console.log("Wrote", OUT);
+console.log("Rows:", rows.length);
+console.table(rows.slice(0, 25));
