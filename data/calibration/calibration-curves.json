@@ -1,0 +1,22 @@
+{
+  "70-75%": {
+    "picks": 2,
+    "hits": 2,
+    "misses": 0,
+    "expected": 1.4691,
+    "actual": 2,
+    "calibrationError": 0.2654,
+    "expectedRate": 0.7346,
+    "actualRate": 1
+  },
+  "60-65%": {
+    "picks": 1,
+    "hits": 1,
+    "misses": 0,
+    "expected": 0.6243,
+    "actual": 1,
+    "calibrationError": 0.3757,
+    "expectedRate": 0.6243,
+    "actualRate": 1
+  }
+}
