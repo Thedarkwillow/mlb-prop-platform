@@ -31,7 +31,7 @@ console.log("PLAYABLE FINAL SLIPS");
 
 for (const slip of processed) {
   console.log(
-    `${slip.name} | status=${slip.status} green=${slip.green} neutral=${slip.neutral} correlation=${slip.correlation}`
+    `${slip.name} | status=${slip.status} green=${slip.green} neutral=${slip.neutral} watchlist=${slip.watchlist || 0} fade=${slip.fade || 0} correlation=${slip.correlation}`
   );
   console.table(
     (slip.legs || []).map((x, i) => ({
