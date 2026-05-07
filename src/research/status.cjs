@@ -10,68 +10,35 @@ function readJson(file, fallback) {
   }
 }
 
-const slips = readJson("outputs/playable-final-slips.json", []);
+function latestCommit() {
+  try {
+    return cp.execSync("git log -1 --oneline", { encoding: "utf8" }).trim();
+  } catch {
+    return "unknown";
+  }
+}
+
+const playable = readJson("outputs/playable-final-slips.json", []);
 const caldb = readJson("data/calibration/calibration-db.json", []);
 const coverage = readJson("outputs/distribution-coverage-report.json", {});
-const summary = readJson("data/calibration/calibration-db-summary.json", {});
 const curves = readJson("data/calibration/calibration-curves.json", {});
 
-let commit = "unknown";
+console.log("MLB PROP PLATFORM STATUS");
+console.log("latest commit:", latestCommit());
+console.log("playable slips:", Array.isArray(playable) ? playable.length : 0);
+console.log("calibration db rows:", Array.isArray(caldb) ? caldb.length : 0);
+console.log("distribution coverage:", coverage?.summary?.coverage ?? coverage?.hrr?.coverage ?? "unknown");
+console.log("calibration curve buckets:", Array.isArray(curves) ? curves.length : Object.keys(curves || {}).length);
 
-try {
-  commit = cp.execSync(
-    "git log -1 --oneline",
-    { encoding: "utf8" }
-  ).trim();
-} catch {}
-
-const coverageMarkets = coverage.byMarket || coverage.markets || {};
-const coverageTotals = Object.values(coverageMarkets).reduce(
-  (a, x) => {
-    a.total += Number(x.total || 0);
-    a.modeled += Number(x.modeled || 0);
-    return a;
-  },
-  { total: 0, modeled: 0 }
-);
-
-const coveragePct =
-  coverage.coverage ??
-  coverage.overall?.coverage ??
-  (
-    typeof coverage.total === "number" &&
-    typeof coverage.modeled === "number" &&
-    coverage.total > 0
-      ? (coverage.modeled / coverage.total).toFixed(4)
-      : coverageTotals.total > 0
-        ? (coverageTotals.modeled / coverageTotals.total).toFixed(4)
-        : "unknown"
-  );
-
-const finishedLegs =
-  summary.finishedLegs ??
-  summary.overall?.finishedLegs ??
-  caldb.filter(
-    x => x.result === "HIT" || x.result === "MISS"
-  ).length;
-
-const curveBuckets =
-  Array.isArray(curves)
-    ? curves.length
-    : Object.keys(curves.buckets || curves || {}).length;
-
-console.log("\nMLB PROP PLATFORM STATUS\n");
-
-console.log("latest commit:", commit);
-console.log("playable slips:", slips.length);
-console.log("calibration db rows:", caldb.length);
-console.log("distribution coverage:", coveragePct);
-console.log("calibration finished legs:", finishedLegs);
-console.log("calibration curve buckets:", curveBuckets);
-
-console.log("\nScripts:");
+console.log("Scripts:");
+console.log("npm run final --date=YYYY-MM-DD");
 console.log("npm run pipeline --date=YYYY-MM-DD");
 console.log("npm run show");
+console.log("npm run summary --date=YYYY-MM-DD");
+console.log("npm run decision");
+console.log("npm run history --date=YYYY-MM-DD");
+console.log("npm run markets");
+console.log("npm run grade:watchlist");
 console.log("npm run status");
 console.log("npm run calibration:curves");
 console.log("npm run caldb:summary");
