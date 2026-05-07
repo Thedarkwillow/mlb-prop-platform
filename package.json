@@ -21,7 +21,8 @@
     "grade:watchlist": "node src/research/grade-watchlist-slips.cjs",
     "history": "node src/research/show-history.cjs ${npm_config_date:-$(date +%F)}",
     "summary": "node src/research/daily-summary.cjs ${npm_config_date:-$(date +%F)}",
-    "decision": "node src/research/decision.cjs"
+    "decision": "node src/research/decision.cjs",
+    "markets": "node src/research/check-market-roadmap.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
