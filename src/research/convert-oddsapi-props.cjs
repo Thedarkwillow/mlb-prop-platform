@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-const IN = "data/oddsapi/sample-player-props.json";
+const IN = "data/oddsapi/playable-dk-player-props.json";
 const OUT = "data/vegas-raw.json";
 
 const MARKET_MAP = {
