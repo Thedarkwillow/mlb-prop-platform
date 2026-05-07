@@ -25,6 +25,8 @@ if (playable.length > 0) {
     size: x.size,
     green: x.green,
     neutral: x.neutral,
+    watchlist: x.watchlist || 0,
+    fade: x.fade || 0,
     correlation: x.correlation
   })));
 } else if (completeWatchlist.length > 0) {
@@ -36,7 +38,11 @@ if (playable.length > 0) {
     size: x.size,
     green: x.green,
     neutral: x.neutral,
+    watchlist: x.watchlist || 0,
+    fade: x.fade || 0,
     reason:
+      (x.watchlist || 0) > 0 ? "has WATCHLIST leg" :
+      (x.fade || 0) > 0 ? "has FADE leg" :
       x.size === 2 && x.green < 2 ? "needs 2 GREEN legs" :
       x.size >= 3 && x.green < 2 ? "needs more GREEN legs" :
       x.neutral > x.green + 1 ? "too many NEUTRAL legs" :
