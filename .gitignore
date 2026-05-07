@@ -13,3 +13,9 @@ history/
 logs/
 scripts/
 ballpark/storage/
+
+ballpark/storage/
+data/
+history/
+logs/
+scripts_cleanup.sh
