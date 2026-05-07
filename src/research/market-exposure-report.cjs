@@ -14,7 +14,7 @@ const final = readJson("outputs/final-slips.json", {});
 const topLegs = final.topLegs || [];
 
 function displayGrade(x) {
-  const grade = displayGrade(x);
+  const grade = x.grade || x.qualityGrade;
   const market = String(x.market || x.stat || "").toLowerCase();
   const adj = Number(x.sportsbookAdjustedEdge ?? x.adjustedEdge);
   const calibrated = Number(x.calibratedDistributionProb ?? x.distributionProb);
