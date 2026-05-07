@@ -29,15 +29,21 @@
     }
   },
   "byProbabilityBucket": {
-    "unknown": {
-      "picks": 3,
-      "hits": 3,
+    "70%+": {
+      "picks": 2,
+      "hits": 2,
+      "misses": 0,
+      "hitRate": 1
+    },
+    "60-65%": {
+      "picks": 1,
+      "hits": 1,
       "misses": 0,
       "hitRate": 1
     }
   },
   "bySavant": {
-    "unknown": {
+    "BOOST": {
       "picks": 3,
       "hits": 3,
       "misses": 0,
