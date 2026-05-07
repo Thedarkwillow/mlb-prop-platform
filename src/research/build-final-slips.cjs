@@ -261,6 +261,8 @@ const slips = slipDefs.map(def => {
     complete: legs.length === def.size,
     green: legs.filter(x => displayGrade(x) === "GREEN").length,
     neutral: legs.filter(x => displayGrade(x) === "NEUTRAL").length,
+    watchlist: legs.filter(x => displayGrade(x) === "WATCHLIST").length,
+    fade: legs.filter(x => displayGrade(x) === "FADE").length,
     correlation: correlationLabel(legs),
     legs: legs.map(cleanLeg)
   };
