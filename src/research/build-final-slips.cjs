@@ -19,10 +19,19 @@ function gameKey(x) {
     .trim();
 }
 
+function teamKey(x) {
+  return String(x.team || "").toUpperCase().trim();
+}
+
 function marketFamily(x) {
   const m = String(x.market || x.stat || "").toLowerCase();
-  if (["hits", "bases", "hrr", "runs", "rbis", "home_runs"].includes(m)) return "hitter_counting";
+
+  if (["hits", "bases", "hrr", "runs", "rbis", "home_runs"].includes(m)) {
+    return "hitter_counting";
+  }
+
   if (m.includes("strikeout")) return "pitcher_k";
+
   return m;
 }
 
@@ -31,6 +40,7 @@ function cleanLeg(x) {
     player: x.player,
     team: x.team,
     game: x.game || x.sportsbookGame || null,
+    gamePk: x.gamePk || null,
     market: x.market,
     side: x.side,
     line: x.line,
@@ -38,26 +48,91 @@ function cleanLeg(x) {
     adjustedEdge: x.sportsbookAdjustedEdge,
     grade: x.qualityGrade,
     books: x.sportsbookBookCount,
-    savant: x.savantReportGrade
+    savant: x.savantReportGrade,
+    marketSupportFlag: x.marketSupportFlag || null
   };
 }
 
-function canAdd(legs, x) {
+function counts(legs, x) {
+  const g = gameKey(x);
+  const t = teamKey(x);
+  const fam = marketFamily(x);
+  const market = String(x.market || x.stat || "").toLowerCase();
+
+  return {
+    sameGame: legs.filter(l => gameKey(l) === g).length,
+    sameTeam: legs.filter(l => teamKey(l) === t).length,
+    sameFamily: legs.filter(l => marketFamily(l) === fam).length,
+    sameMarket: legs.filter(l => String(l.market || l.stat || "").toLowerCase() === market).length
+  };
+}
+
+function canAddStrict(legs, x) {
   const player = normName(x.player);
+
   if (legs.some(l => normName(l.player) === player)) return false;
 
-  const sameGame = legs.filter(l => gameKey(l) === gameKey(x)).length;
-  if (gameKey(x) && sameGame >= 2) return false;
-
-  const sameTeam = legs.filter(l => String(l.team || "") === String(x.team || "")).length;
-  if (sameTeam >= 2) return false;
-
+  const c = counts(legs, x);
   const fam = marketFamily(x);
-  const sameFamily = legs.filter(l => marketFamily(l) === fam).length;
-  if (fam === "hitter_counting" && sameFamily >= 4) return false;
-  if (fam === "pitcher_k" && sameFamily >= 1) return false;
+
+  // Avoid same-game stacks in final slips.
+  if (gameKey(x) && c.sameGame >= 1) return false;
+
+  // Avoid same-team hitter stacks.
+  if (teamKey(x) && c.sameTeam >= 1) return false;
+
+  // Avoid too much of same market family.
+  if (fam === "hitter_counting" && c.sameFamily >= 4) return false;
+  if (fam === "pitcher_k" && c.sameFamily >= 1) return false;
+
+  // Avoid same exact market overload.
+  if (c.sameMarket >= 3) return false;
 
   return true;
+}
+
+function canAddBalanced(legs, x) {
+  const player = normName(x.player);
+
+  if (legs.some(l => normName(l.player) === player)) return false;
+
+  const c = counts(legs, x);
+  const fam = marketFamily(x);
+
+  // 5/6-mans may need a little flexibility, but still no 3-player game stacks.
+  if (gameKey(x) && c.sameGame >= 2) return false;
+
+  // No 3-player team stacks.
+  if (teamKey(x) && c.sameTeam >= 2) return false;
+
+  if (fam === "hitter_counting" && c.sameFamily >= 5) return false;
+  if (fam === "pitcher_k" && c.sameFamily >= 1) return false;
+
+  if (c.sameMarket >= 4) return false;
+
+  return true;
+}
+
+function correlationLabel(legs) {
+  const byGame = new Map();
+  const byTeam = new Map();
+
+  for (const l of legs) {
+    const g = gameKey(l);
+    const t = teamKey(l);
+
+    if (g) byGame.set(g, (byGame.get(g) || 0) + 1);
+    if (t) byTeam.set(t, (byTeam.get(t) || 0) + 1);
+  }
+
+  const maxGame = Math.max(0, ...byGame.values());
+  const maxTeam = Math.max(0, ...byTeam.values());
+
+  if (maxGame >= 3 || maxTeam >= 3) return "HIGH_CORRELATION";
+  if (maxGame >= 2) return "GAME_STACK";
+  if (maxTeam >= 2) return "TEAM_PAIR";
+
+  return "OK";
 }
 
 const top = priced
@@ -73,22 +148,9 @@ const top = priced
   );
 
 const finalTop = [];
+
 for (const x of top) {
-  if (canAdd(finalTop, x)) finalTop.push(x);
-}
-
-
-function canAddRelaxed(legs, x) {
-  const player = normName(x.player);
-  if (legs.some(y => normName(y.player) === player)) return false;
-
-  const sameGame = legs.filter(y => gameKey(y) === gameKey(x)).length;
-  if (sameGame >= 3) return false;
-
-  const sameMarket = legs.filter(y => String(y.market || y.stat || "").toLowerCase() === String(x.market || x.stat || "").toLowerCase()).length;
-  if (sameMarket >= 4) return false;
-
-  return true;
+  if (canAddStrict(finalTop, x)) finalTop.push(x);
 }
 
 const slipDefs = [
@@ -99,24 +161,30 @@ const slipDefs = [
   { name: "6-MAN FLEX", size: 6 }
 ];
 
-const slips = slipDefs
-  .map(def => {
-    const legs = [];
-    const pool = def.size <= 4 ? finalTop : top;
-    for (const x of pool) {
-      if (legs.length >= def.size) break;
-      const ok = def.size <= 4 ? canAdd(legs, x) : canAddRelaxed(legs, x);
-      if (ok) legs.push(x);
-    }
-    return {
-      name: def.name,
-      size: def.size,
-      complete: legs.length === def.size,
-      green: legs.filter(x => x.qualityGrade === "GREEN").length,
-      neutral: legs.filter(x => x.qualityGrade === "NEUTRAL").length,
-      legs: legs.map(cleanLeg)
-    };
-  });
+const slips = slipDefs.map(def => {
+  const legs = [];
+
+  // Build from full priced pool, but use stricter rules for 2-4 and balanced rules for 5-6.
+  for (const x of top) {
+    if (legs.length >= def.size) break;
+
+    const ok = def.size <= 4
+      ? canAddStrict(legs, x)
+      : canAddBalanced(legs, x);
+
+    if (ok) legs.push(x);
+  }
+
+  return {
+    name: def.name,
+    size: def.size,
+    complete: legs.length === def.size,
+    green: legs.filter(x => x.qualityGrade === "GREEN").length,
+    neutral: legs.filter(x => x.qualityGrade === "NEUTRAL").length,
+    correlation: correlationLabel(legs),
+    legs: legs.map(cleanLeg)
+  };
+});
 
 const output = {
   generatedAt: new Date().toISOString(),
@@ -135,13 +203,25 @@ fs.writeFileSync(`outputs/final-slips-${SLATE_DATE}.json`, JSON.stringify(output
 
 console.log("Wrote outputs/final-slips.json");
 console.log(`Wrote outputs/final-slips-${SLATE_DATE}.json`);
+
 console.log("Top legs:");
 console.table(finalTop.map((x, i) => ({
   rank: i + 1,
   player: x.player,
   team: x.team,
+  game: x.game || x.sportsbookGame || null,
   pick: `${x.market} ${x.side} ${x.line}`,
   edge: x.sportsbookEdge,
   grade: x.qualityGrade,
   books: x.sportsbookBookCount
+})));
+
+console.log("Slip correlation:");
+console.table(slips.map(s => ({
+  name: s.name,
+  size: s.size,
+  complete: s.complete,
+  green: s.green,
+  neutral: s.neutral,
+  correlation: s.correlation
 })));
