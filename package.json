@@ -22,7 +22,8 @@
     "history": "node src/research/show-history.cjs ${npm_config_date:-$(date +%F)}",
     "summary": "node src/research/daily-summary.cjs ${npm_config_date:-$(date +%F)}",
     "decision": "node src/research/decision.cjs",
-    "markets": "node src/research/check-market-roadmap.cjs"
+    "markets": "node src/research/check-market-roadmap.cjs",
+    "market:exposure": "node src/research/market-exposure-report.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
