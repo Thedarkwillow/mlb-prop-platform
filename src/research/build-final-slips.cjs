@@ -186,13 +186,29 @@ function correlationLabel(legs) {
   return "OK";
 }
 
+function isFinalCandidate(x) {
+  if (!x.sportsbookMatch) return false;
+  if (typeof x.sportsbookEdge !== "number") return false;
+  if (x.sportsbookEdge <= 0) return false;
+
+  const market = String(x.market || x.stat || "").toLowerCase();
+
+  if (x.qualityGrade !== "FADE") return true;
+
+  // Allow secondary markets into final ranking as watchlist candidates.
+  // They still need positive adjusted edge and distribution support.
+  if (["bases", "hits", "runs", "rbis"].includes(market)) {
+    const adj = Number(x.sportsbookAdjustedEdge ?? -999);
+    const cal = Number(x.calibratedDistributionProb ?? -999);
+    return adj >= 0.015 && cal >= 0.515;
+  }
+
+  return false;
+}
+
+
 const top = priced
-  .filter(x =>
-    x.sportsbookMatch &&
-    x.qualityGrade !== "FADE" &&
-    typeof x.sportsbookEdge === "number" &&
-    x.sportsbookEdge > 0
-  )
+  .filter(isFinalCandidate)
   .map(x => ({ ...x, finalScore: finalScore(x) }))
   .sort((a, b) => b.finalScore - a.finalScore);
 
@@ -221,7 +237,7 @@ const slips = slipDefs.map(def => {
       if (legs.length >= 6) break;
       if (legs.some(l => normName(l.player) === normName(x.player))) continue;
       if (gameKey(x) && counts(legs, x).sameGame >= 1) continue;
-      if (displayGrade(x) === "FADE") continue;
+      if (!isFinalCandidate(x)) continue;
       legs.push(x);
     }
   }
