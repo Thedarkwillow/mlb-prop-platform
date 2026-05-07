@@ -50,12 +50,17 @@ function enrichLeg(leg) {
   };
 }
 
-const input =
-  readJson("outputs/final-slips.json", null) ||
-  readJson("outputs/playable-final-slips.json", null);
+const priced = readJson("outputs/slips-priced.json", []);
+const final = readJson("outputs/final-slips.json", null);
+const playable = readJson("outputs/playable-final-slips.json", null);
 
-const slips = input?.slips || input || [];
-const legs = Array.isArray(slips) ? slips.flatMap(s => s.legs || []) : [];
+let legs = [];
+if (Array.isArray(priced) && priced.length) {
+  legs = priced.filter(x => x.qualityGrade !== "FADE");
+} else {
+  const slips = final?.slips || playable?.slips || final || playable || [];
+  legs = Array.isArray(slips) ? slips.flatMap(s => s.legs || []) : [];
+}
 
 const enriched = legs.map(enrichLeg);
 
