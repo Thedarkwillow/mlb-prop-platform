@@ -285,10 +285,35 @@ const dkPlayable = out.filter(x =>
   x.qualityGrade !== "FADE"
 );
 
+const sortedPlayable = [...dkPlayable].sort((a, b) =>
+  (Number(b.sportsbookAdjustedEdge ?? -999) + Number(b.recommendedProb ?? 0) * 0.01) -
+  (Number(a.sportsbookAdjustedEdge ?? -999) + Number(a.recommendedProb ?? 0) * 0.01)
+);
+
 const onePerPlayer = [];
 const seenPlayers = new Set();
+const marketCounts = new Map();
 
-for (const r of dkPlayable) {
+for (const r of sortedPlayable) {
+  const p = normName(r.player);
+  const m = normMarket(r.market || r.stat);
+
+  if (seenPlayers.has(p)) continue;
+
+  const count = marketCounts.get(m) || 0;
+
+  // Prevent HRR from swallowing the full priced board.
+  if (m === "hrr" && count >= 8) continue;
+
+  seenPlayers.add(p);
+  marketCounts.set(m, count + 1);
+  onePerPlayer.push(r);
+}
+
+// Backfill with remaining best props if board is too thin.
+for (const r of sortedPlayable) {
+  if (onePerPlayer.length >= 30) break;
+
   const p = normName(r.player);
   if (seenPlayers.has(p)) continue;
 
