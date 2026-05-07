@@ -1,6 +1,15 @@
 const fs = require("fs");
 
-const priced = JSON.parse(fs.readFileSync("outputs/slips-priced.json", "utf8"));
+function readJson(path, fallback) {
+  try {
+    if (!fs.existsSync(path)) return fallback;
+    return JSON.parse(fs.readFileSync(path, "utf8"));
+  } catch {
+    return fallback;
+  }
+}
+
+const priced = readJson("outputs/slips-distribution-enriched.json", null) || readJson("outputs/slips-priced.json", []);
 
 function normName(s) {
   return String(s || "")
@@ -25,14 +34,28 @@ function teamKey(x) {
 
 function marketFamily(x) {
   const m = String(x.market || x.stat || "").toLowerCase();
-
-  if (["hits", "bases", "hrr", "runs", "rbis", "home_runs"].includes(m)) {
-    return "hitter_counting";
-  }
-
+  if (["hits", "bases", "hrr", "runs", "rbis", "home_runs"].includes(m)) return "hitter_counting";
   if (m.includes("strikeout")) return "pitcher_k";
-
   return m;
+}
+
+function finalScore(x) {
+  const edge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? -999);
+  const cal = Number(x.calibratedDistributionProb);
+  const raw = Number(x.distributionProb);
+
+  let score = edge;
+
+  if (Number.isFinite(cal)) score += (cal - 0.5) * 0.18;
+  else if (Number.isFinite(raw)) score += (raw - 0.5) * 0.08;
+
+  if (x.distributionModel?.confidence === "HIGH") score += 0.01;
+  if (x.distributionModel?.confidence === "LOW") score -= 0.015;
+  if (x.savantReportGrade === "BOOST") score += 0.006;
+  if (x.savantReportGrade === "DOWNGRADE") score -= 0.01;
+  if ((x.sportsbookBookCount || 0) <= 1) score -= 0.01;
+
+  return Number(score.toFixed(4));
 }
 
 function cleanLeg(x) {
@@ -46,6 +69,10 @@ function cleanLeg(x) {
     line: x.line,
     edge: x.sportsbookEdge,
     adjustedEdge: x.sportsbookAdjustedEdge,
+    finalScore: x.finalScore,
+    distributionProb: x.distributionProb ?? null,
+    calibratedDistributionProb: x.calibratedDistributionProb ?? null,
+    distributionConfidence: x.distributionModel?.confidence || null,
     grade: x.qualityGrade,
     books: x.sportsbookBookCount,
     savant: x.savantReportGrade,
@@ -58,7 +85,6 @@ function counts(legs, x) {
   const t = teamKey(x);
   const fam = marketFamily(x);
   const market = String(x.market || x.stat || "").toLowerCase();
-
   return {
     sameGame: legs.filter(l => gameKey(l) === g).length,
     sameTeam: legs.filter(l => teamKey(l) === t).length,
@@ -69,69 +95,44 @@ function counts(legs, x) {
 
 function canAddStrict(legs, x) {
   const player = normName(x.player);
-
   if (legs.some(l => normName(l.player) === player)) return false;
-
   const c = counts(legs, x);
   const fam = marketFamily(x);
-
-  // Avoid same-game stacks in final slips.
   if (gameKey(x) && c.sameGame >= 1) return false;
-
-  // Avoid same-team hitter stacks.
   if (teamKey(x) && c.sameTeam >= 1) return false;
-
-  // Avoid too much of same market family.
   if (fam === "hitter_counting" && c.sameFamily >= 4) return false;
   if (fam === "pitcher_k" && c.sameFamily >= 1) return false;
-
-  // Avoid same exact market overload.
   if (c.sameMarket >= 3) return false;
-
   return true;
 }
 
 function canAddBalanced(legs, x) {
   const player = normName(x.player);
-
   if (legs.some(l => normName(l.player) === player)) return false;
-
   const c = counts(legs, x);
   const fam = marketFamily(x);
-
-  // Hard rule: no same-game stacks in final playable slips.
   if (gameKey(x) && c.sameGame >= 1) return false;
-
-  // Hard rule: no same-team hitter stacks.
   if (teamKey(x) && c.sameTeam >= 1) return false;
-
   if (fam === "hitter_counting" && c.sameFamily >= 5) return false;
   if (fam === "pitcher_k" && c.sameFamily >= 1) return false;
-
   if (c.sameMarket >= 4) return false;
-
   return true;
 }
 
 function correlationLabel(legs) {
   const byGame = new Map();
   const byTeam = new Map();
-
   for (const l of legs) {
     const g = gameKey(l);
     const t = teamKey(l);
-
     if (g) byGame.set(g, (byGame.get(g) || 0) + 1);
     if (t) byTeam.set(t, (byTeam.get(t) || 0) + 1);
   }
-
   const maxGame = Math.max(0, ...byGame.values());
   const maxTeam = Math.max(0, ...byTeam.values());
-
   if (maxGame >= 3 || maxTeam >= 3) return "HIGH_CORRELATION";
   if (maxGame >= 2) return "GAME_STACK";
   if (maxTeam >= 2) return "TEAM_PAIR";
-
   return "OK";
 }
 
@@ -142,13 +143,10 @@ const top = priced
     typeof x.sportsbookEdge === "number" &&
     x.sportsbookEdge > 0
   )
-  .sort((a, b) =>
-    (b.sportsbookAdjustedEdge ?? b.sportsbookEdge ?? -999) -
-    (a.sportsbookAdjustedEdge ?? a.sportsbookEdge ?? -999)
-  );
+  .map(x => ({ ...x, finalScore: finalScore(x) }))
+  .sort((a, b) => b.finalScore - a.finalScore);
 
 const finalTop = [];
-
 for (const x of top) {
   if (canAddStrict(finalTop, x)) finalTop.push(x);
 }
@@ -163,18 +161,11 @@ const slipDefs = [
 
 const slips = slipDefs.map(def => {
   const legs = [];
-
-  // Build from full priced pool, but use stricter rules for 2-4 and balanced rules for 5-6.
   for (const x of top) {
     if (legs.length >= def.size) break;
-
-    const ok = def.size <= 4
-      ? canAddStrict(legs, x)
-      : canAddBalanced(legs, x);
-
+    const ok = def.size <= 4 ? canAddStrict(legs, x) : canAddBalanced(legs, x);
     if (ok) legs.push(x);
   }
-
   return {
     name: def.name,
     size: def.size,
@@ -203,15 +194,17 @@ fs.writeFileSync(`outputs/final-slips-${SLATE_DATE}.json`, JSON.stringify(output
 
 console.log("Wrote outputs/final-slips.json");
 console.log(`Wrote outputs/final-slips-${SLATE_DATE}.json`);
-
 console.log("Top legs:");
-console.table(finalTop.map((x, i) => ({
+console.table(finalTop.slice(0, 10).map((x, i) => ({
   rank: i + 1,
   player: x.player,
   team: x.team,
   game: x.game || x.sportsbookGame || null,
   pick: `${x.market} ${x.side} ${x.line}`,
   edge: x.sportsbookEdge,
+  adjEdge: x.sportsbookAdjustedEdge,
+  dist: x.calibratedDistributionProb ?? null,
+  score: x.finalScore,
   grade: x.qualityGrade,
   books: x.sportsbookBookCount
 })));
