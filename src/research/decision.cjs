@@ -9,6 +9,13 @@ function readJson(file, fallback) {
   }
 }
 
+function legSummaryByGrade(slip, grade) {
+  return (slip.legs || [])
+    .filter(l => String(l.grade || "").toUpperCase() === grade)
+    .map(l => `${l.player} ${l.market} ${l.side} ${l.line}`)
+    .join("; ") || null;
+}
+
 const playable = readJson("outputs/playable-final-slips.json", []);
 const watchlist = readJson("outputs/watchlist-final-slips.json", []);
 
@@ -40,6 +47,8 @@ if (playable.length > 0) {
     neutral: x.neutral,
     watchlist: x.watchlist || 0,
     fade: x.fade || 0,
+    watchlistLegs: legSummaryByGrade(x, "WATCHLIST"),
+    fadeLegs: legSummaryByGrade(x, "FADE"),
     reason:
       (x.watchlist || 0) > 0 ? "has WATCHLIST leg" :
       (x.fade || 0) > 0 ? "has FADE leg" :
