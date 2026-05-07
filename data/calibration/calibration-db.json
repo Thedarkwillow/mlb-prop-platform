@@ -1,0 +1,44 @@
+[
+  {
+    "date": "2026-05-07",
+    "player": "Bobby Witt Jr.",
+    "market": "hrr",
+    "side": "MORE",
+    "line": 0.5,
+    "actual": 3,
+    "result": "HIT",
+    "game": "CLE @ KC",
+    "gamePk": 824119,
+    "grade": "GREEN",
+    "edge": 0.5073,
+    "books": 1
+  },
+  {
+    "date": "2026-05-07",
+    "player": "Aaron Judge",
+    "market": "bases",
+    "side": "MORE",
+    "line": 1.5,
+    "actual": 2,
+    "result": "HIT",
+    "game": "TEX @ NYY",
+    "gamePk": 823553,
+    "grade": "NEUTRAL",
+    "edge": 0.153,
+    "books": 1
+  },
+  {
+    "date": "2026-05-07",
+    "player": "Nico Hoerner",
+    "market": "hrr",
+    "side": "MORE",
+    "line": 0.5,
+    "actual": 1,
+    "result": "HIT",
+    "game": "CIN @ CHC",
+    "gamePk": 824682,
+    "grade": "GREEN",
+    "edge": 0.2808,
+    "books": 1
+  }
+]
