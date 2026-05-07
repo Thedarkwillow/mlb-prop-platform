@@ -27,6 +27,7 @@ function summarize(rows) {
       modeled: 0,
       green: 0,
       neutral: 0,
+      watchlist: 0,
       fade: 0,
       avgEdge: 0,
       avgAdjEdge: 0,
@@ -38,9 +39,10 @@ function summarize(rows) {
     if (x.sportsbookMatch) r.matched++;
     if (x.calibratedDistributionProb != null || x.distributionProb != null) r.modeled++;
 
-    const grade = x.qualityGrade || x.grade;
+    const grade = x.grade || x.qualityGrade;
     if (grade === "GREEN") r.green++;
     else if (grade === "NEUTRAL") r.neutral++;
+    else if (grade === "WATCHLIST") r.watchlist++;
     else if (grade === "FADE") r.fade++;
 
     r.avgEdge += Number(x.sportsbookEdge || x.edge || 0);
@@ -55,6 +57,7 @@ function summarize(rows) {
     modeled: r.modeled,
     green: r.green,
     neutral: r.neutral,
+    watchlist: r.watchlist,
     fade: r.fade,
     avgEdge: Number((r.avgEdge / r.total).toFixed(4)),
     avgAdjEdge: Number((r.avgAdjEdge / r.total).toFixed(4)),
