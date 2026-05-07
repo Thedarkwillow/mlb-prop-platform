@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "prizepicks": "node src/scrapers/prizepicks.js"
+    "prizepicks": "node src/scrapers/prizepicks.js",
+    "picks": "node src/jobs/pull-dk-latest-and-build.cjs && node src/research/clean-final-slips.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
