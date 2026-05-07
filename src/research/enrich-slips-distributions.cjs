@@ -1,6 +1,7 @@
 const fs = require("fs");
 const { modelStrikeouts } = require("../models/markets/strikeouts.cjs");
 const { modelHrr } = require("../models/markets/hrr.cjs");
+const { modelHits } = require("../models/markets/hits.cjs");
 const { modelBases } = require("../models/markets/bases.cjs");
 
 function readJson(path, fallback) {
@@ -27,6 +28,7 @@ function enrichLeg(leg) {
 
   if (market === "strikeouts") distribution = modelStrikeouts(leg);
   if (market === "hrr") distribution = modelHrr(leg);
+  if (market === "hits") distribution = modelHits(leg);
   if (market === "bases") distribution = modelBases(leg);
 
   let distributionProb = null;
