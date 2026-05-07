@@ -2,6 +2,8 @@ const fs = require("fs");
 const { modelStrikeouts } = require("../models/markets/strikeouts.cjs");
 const { modelHrr } = require("../models/markets/hrr.cjs");
 const { modelHits } = require("../models/markets/hits.cjs");
+const { modelRuns } = require("../models/markets/runs.cjs");
+const { modelRbis } = require("../models/markets/rbis.cjs");
 const { modelBases } = require("../models/markets/bases.cjs");
 
 function readJson(path, fallback) {
@@ -18,6 +20,8 @@ function normMarket(s) {
   if (s.includes("strikeout")) return "strikeouts";
   if (s.includes("hrr") || s.includes("hits + runs + rbis")) return "hrr";
   if (s.includes("total bases")) return "bases";
+  if (s.includes("runs")) return "runs";
+  if (s.includes("rbi")) return "rbis";
   if (s.includes("hits")) return "hits";
   return s;
 }
@@ -29,6 +33,8 @@ function enrichLeg(leg) {
   if (market === "strikeouts") distribution = modelStrikeouts(leg);
   if (market === "hrr") distribution = modelHrr(leg);
   if (market === "hits") distribution = modelHits(leg);
+  if (market === "runs") distribution = modelRuns(leg);
+  if (market === "rbis") distribution = modelRbis(leg);
   if (market === "bases") distribution = modelBases(leg);
 
   let distributionProb = null;
