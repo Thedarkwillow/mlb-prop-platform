@@ -27,7 +27,7 @@ console.log("MLB PROP PLATFORM STATUS");
 console.log("latest commit:", latestCommit());
 console.log("playable slips:", Array.isArray(playable) ? playable.length : 0);
 console.log("calibration db rows:", Array.isArray(caldb) ? caldb.length : 0);
-console.log("distribution coverage:", coverage?.coverage ?? coverage?.summary?.coverage ?? coverage?.hrr?.coverage ?? "unknown");
+console.log("distribution coverage:", coverage?.coverage ?? coverage?.summary?.coverage ?? coverage?.markets?.hrr?.coverage ?? "unknown");
 console.log("calibration curve buckets:", Array.isArray(curves) ? curves.length : Object.keys(curves || {}).length);
 
 console.log("Scripts:");
