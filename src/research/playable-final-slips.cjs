@@ -24,6 +24,32 @@ const processed = slips.map(slip => ({
   status: slipQualityStatus(slip)
 }));
 
+for (const slip of processed) {
+  slip.legs = (slip.legs || []).filter(leg => {
+    const market = String(leg.market || "").toLowerCase();
+    const grade = String(leg.grade || "").toUpperCase();
+    const savant = String(leg.savant || "").toUpperCase();
+    const prob = Number(leg.calibratedDistributionProb || 0);
+    const edge = Number(leg.adjustedEdge || 0);
+
+    if (
+      market === "hrr" &&
+      grade === "NEUTRAL" &&
+      (
+        savant !== "BOOST" ||
+        prob < 0.64 ||
+        edge < 0.085
+      )
+    ) {
+      return false;
+    }
+
+    return true;
+  });
+
+  slip.size = (slip.legs || []).length;
+}
+
 const playable = processed.filter(slip => slip.status === "PLAYABLE");
 const watchlist = processed.filter(slip => slip.status !== "PLAYABLE");
 
