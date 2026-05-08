@@ -79,6 +79,10 @@ async function fetchJson(url) {
     }
   }
 
+  if (!all.length) {
+    throw new Error("No Odds API prop events fetched. Refusing to write empty odds file.");
+  }
+
   fs.writeFileSync(
     "data/oddsapi/all-dk-player-props.json",
     JSON.stringify(all, null, 2)

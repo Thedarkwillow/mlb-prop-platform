@@ -58,6 +58,9 @@ function noVigTwoWay(overProb, underProb) {
 }
 
 const events = JSON.parse(fs.readFileSync(inFile, "utf8"));
+if (!Array.isArray(events) || !events.length) {
+  throw new Error("No Odds API events found. Refusing to write empty vegas file.");
+}
 const rows = [];
 
 for (const event of events) {
