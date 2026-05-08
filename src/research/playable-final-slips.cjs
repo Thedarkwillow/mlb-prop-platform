@@ -10,8 +10,8 @@ function slipQualityStatus(slip) {
   if (size === 3 && green < 2) return "WATCHLIST";
   if (size === 4 && green < 2) return "WATCHLIST";
   if (size === 5 && green < 3) return "WATCHLIST";
-  if (size === 6 && green < 3) return "WATCHLIST";
-  if (neutral > green + 1) return "WATCHLIST";
+  if (size === 6 && green < 4) return "WATCHLIST";
+  if (neutral >= green) return "WATCHLIST";
 
   return "PLAYABLE";
 }
