@@ -25,7 +25,11 @@
     "decision": "node src/research/decision.cjs",
     "markets": "node src/research/check-market-roadmap.cjs",
     "market:exposure": "node src/research/market-exposure-report.cjs",
-    "odds": "node src/research/oddsapi-dk-mlb-props.cjs && node src/research/convert-oddsapi-props.cjs && node src/research/odds-api-summary.cjs"
+    "odds": "node src/research/oddsapi-dk-mlb-props.cjs && node src/research/convert-oddsapi-props.cjs && node src/research/odds-api-summary.cjs",
+    "snap": "node src/research/odds-snapshot.cjs",
+    "clv": "node src/research/clv-report.cjs",
+    "roi": "node src/research/roi-summary.cjs",
+    "validate": "npm run mobile && npm run clv --date=${npm_config_date:-$(date +%F)} && npm run roi --date=${npm_config_date:-$(date +%F)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
