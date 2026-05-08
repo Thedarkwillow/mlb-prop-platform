@@ -47,7 +47,16 @@ for (const slip of processed) {
     return true;
   });
 
-  slip.size = (slip.legs || []).length;
+  const targetSize = Number(slip.originalSize || slip.targetSize || slip.name?.match(/\d+/)?.[0] || slip.size || 0);
+
+  slip.targetSize = targetSize;
+  slip.size = targetSize;
+  slip.complete = (slip.legs || []).length === targetSize;
+  slip.green = (slip.legs || []).filter(l => String(l.grade || "").toUpperCase() === "GREEN").length;
+  slip.neutral = (slip.legs || []).filter(l => String(l.grade || "").toUpperCase() === "NEUTRAL").length;
+  slip.watchlist = (slip.legs || []).filter(l => String(l.grade || "").toUpperCase() === "WATCHLIST").length;
+  slip.fade = (slip.legs || []).filter(l => String(l.grade || "").toUpperCase() === "FADE").length;
+  slip.status = slipQualityStatus(slip);
 }
 
 const playable = processed.filter(slip => slip.status === "PLAYABLE");
