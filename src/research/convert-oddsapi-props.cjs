@@ -1,59 +1,61 @@
 const fs = require("fs");
 
-const IN = "data/oddsapi/playable-dk-player-props.json";
-const OUT = "data/vegas-raw.json";
+const inFile = "data/oddsapi/all-dk-player-props.json";
+const outFile = "data/vegas-raw.json";
 
-const MARKET_MAP = {
+const marketMap = {
   batter_hits: "hits",
   batter_total_bases: "bases",
   batter_rbis: "rbis",
   batter_runs_scored: "runs",
-  batter_home_runs: "home_runs",
-  batter_hits_runs_rbis: "hrr",
   pitcher_strikeouts: "strikeouts",
+  pitcher_record_a_win: "pitcher_win",
+  pitcher_hits_allowed: "hits_allowed",
+  pitcher_earned_runs: "earned_runs_allowed",
   pitcher_outs: "pitching_outs"
 };
 
-function toSide(name) {
+function sideName(name) {
   const n = String(name || "").toLowerCase();
   if (n === "over") return "MORE";
   if (n === "under") return "LESS";
   return String(name || "").toUpperCase();
 }
 
-const raw = JSON.parse(fs.readFileSync(IN, "utf8"));
-const events = Array.isArray(raw) ? raw : [raw];
-
+const events = JSON.parse(fs.readFileSync(inFile, "utf8"));
 const rows = [];
 
 for (const event of events) {
+  const game = `${event.away_team} @ ${event.home_team}`;
+
   for (const book of event.bookmakers || []) {
     for (const market of book.markets || []) {
-      const mappedMarket = MARKET_MAP[market.key];
+      const mappedMarket = marketMap[market.key];
       if (!mappedMarket) continue;
 
-      for (const o of market.outcomes || []) {
+      for (const outcome of market.outcomes || []) {
         rows.push({
           source: "oddsapi",
           sportsbook: book.key,
           sportsbookTitle: book.title,
-          game: `${event.away_team} @ ${event.home_team}`,
+          game,
           eventId: event.id,
           commenceTime: event.commence_time,
           market: mappedMarket,
           rawMarket: market.key,
-          player: o.description,
-          side: toSide(o.name),
-          line: o.point,
-          odds: o.price,
-          lastUpdate: market.last_update
+          player: outcome.description || outcome.name,
+          side: sideName(outcome.name),
+          line: outcome.point ?? null,
+          odds: outcome.price ?? null,
+          lastUpdate: market.last_update || null
         });
       }
     }
   }
 }
 
-fs.writeFileSync(OUT, JSON.stringify(rows, null, 2));
-console.log("Wrote", OUT);
+fs.writeFileSync(outFile, JSON.stringify(rows, null, 2) + "\n");
+
+console.log(`Wrote ${outFile}`);
 console.log("Rows:", rows.length);
 console.table(rows.slice(0, 25));
