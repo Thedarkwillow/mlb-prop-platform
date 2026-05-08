@@ -39,7 +39,15 @@ for (const f of files) {
 }
 
 const slips = read(PICKS, []);
-const legs = slips.flatMap(s => s.legs || []);
+const allLegs = slips.flatMap(s => s.legs || []);
+const seenLegs = new Set();
+const legs = [];
+for (const l of allLegs) {
+  const k = [l.player, l.market, l.side, l.line].join("|").toLowerCase();
+  if (seenLegs.has(k)) continue;
+  seenLegs.add(k);
+  legs.push(l);
+}
 
 const report = [];
 for (const l of legs) {
