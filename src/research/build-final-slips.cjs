@@ -204,19 +204,8 @@ function isFinalCandidate(x) {
   if (typeof x.sportsbookEdge !== "number") return false;
   if (x.sportsbookEdge <= 0) return false;
 
-  const market = String(x.market || x.stat || "").toLowerCase();
-
-  if (x.qualityGrade !== "FADE") return true;
-
-  // Allow secondary markets into final ranking as watchlist candidates.
-  // They still need positive adjusted edge and distribution support.
-  if (["bases", "hits", "runs", "rbis"].includes(market)) {
-    const adj = Number(x.sportsbookAdjustedEdge ?? -999);
-    const cal = Number(x.calibratedDistributionProb ?? -999);
-    return adj >= 0.015 && cal >= 0.515;
-  }
-
-  return false;
+  const grade = displayGrade(x);
+  return grade === "GREEN" || grade === "NEUTRAL";
 }
 
 
