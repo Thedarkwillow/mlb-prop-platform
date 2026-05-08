@@ -34,7 +34,10 @@
     "clv:buckets": "node src/research/clv-buckets.cjs ${npm_config_date:-$(date +%F)}",
     "postgame": "npm run validate --date=${npm_config_date:-$(date +%F)} && npm run calibration:report --date=${npm_config_date:-$(date +%F)} && npm run clv:buckets --date=${npm_config_date:-$(date +%F)}",
     "safe": "npm run picks && npm run mobile && npm run decision && npm run clv && npm run clv:buckets",
-    "refresh": "npm run odds && npm run snap && npm run picks && npm run mobile && npm run decision"
+    "refresh": "npm run odds && npm run snap && npm run picks && npm run mobile && npm run decision",
+    "save:history": "node src/research/save-graded-history.cjs ${npm_config_date:-$(date +%F)}",
+    "history:roi": "node src/research/history-roi.cjs",
+    "validate:final": "npm run grade && npm run roi && npm run save:history && npm run history:roi && npm run calibration:report && npm run clv:buckets && npm run mobile"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
