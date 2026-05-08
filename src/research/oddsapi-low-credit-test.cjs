@@ -1,3 +1,4 @@
+require("dotenv").config({ override: true });
 const fs = require("fs");
 
 const API_KEY = process.env.ODDS_API_KEY;
