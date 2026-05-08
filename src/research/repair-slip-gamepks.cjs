@@ -1,6 +1,10 @@
 const fs = require("fs");
 
-const DATE = process.argv[2] || "2026-05-05";
+const DATE =
+  process.argv[2] ||
+  process.env.SLATE_DATE ||
+  process.env.npm_config_date ||
+  new Date().toISOString().slice(0, 10);
 const IN = "outputs/slips.json";
 const OUT = "outputs/slips.gamepk-fixed.json";
 

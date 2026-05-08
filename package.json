@@ -5,7 +5,7 @@
   "scripts": {
     "prizepicks": "node src/scrapers/prizepicks.js",
     "picks": "node src/research/price-current-slips.cjs && node src/research/enrich-slips-distributions.cjs && node src/research/build-final-slips.cjs && node src/research/playable-final-slips.cjs",
-    "grade": "node src/research/repair-slip-gamepks.cjs && node src/research/grade-final-slips.cjs",
+    "grade": "node src/research/repair-slip-gamepks.cjs ${npm_config_date:-$(date +%F)} && node src/research/grade-final-slips.cjs",
     "coverage": "node src/research/distribution-coverage-report.cjs",
     "pipeline": "SLATE_DATE=${npm_config_date:-$(date +%F)} npm run picks && npm run coverage && npm run market:exposure && npm run grade && npm run grade:watchlist && npm run calibration -- ${npm_config_date:-$(date +%F)} && npm run archive -- ${npm_config_date:-$(date +%F)} && npm run caldb -- ${npm_config_date:-$(date +%F)} && npm run caldb:summary && npm run calibration:curves",
     "regrade": "npm run grade",
