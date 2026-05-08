@@ -37,7 +37,8 @@
     "refresh": "npm run odds && npm run snap && npm run picks && npm run mobile && npm run decision",
     "save:history": "node src/research/save-graded-history.cjs ${npm_config_date:-$(date +%F)}",
     "history:roi": "node src/research/history-roi.cjs",
-    "validate:final": "npm run grade && npm run roi && npm run save:history && npm run history:roi && npm run calibration:report && npm run clv:buckets && npm run mobile"
+    "validate:final": "npm run grade && npm run roi && npm run save:history && npm run history:roi && npm run calibration:report && npm run clv:buckets && npm run mobile",
+    "history:intel": "node src/research/history-intelligence.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
