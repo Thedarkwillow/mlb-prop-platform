@@ -26,8 +26,9 @@ const seen = new Set(
   db.map(x => [x.date, x.player, x.market, x.side, x.line, x.gamePk || x.game].join("|"))
 );
 
-for (const slip of graded.slips || []) {
-  for (const leg of slip.legs || []) {
+for (const graded of gradedSets) {
+  for (const slip of graded.data.slips || []) {
+    for (const leg of slip.legs || []) {
     if (leg.result !== "HIT" && leg.result !== "MISS") continue;
 
     const key = [date, leg.player, leg.market, leg.side, leg.line, leg.gamePk || leg.game].join("|");
