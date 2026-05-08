@@ -7,9 +7,13 @@ function read(path, fallback) {
   try { return JSON.parse(fs.readFileSync(path, "utf8")); } catch { return fallback; }
 }
 
-const slips = read(FILE, []);
-const legs = slips.flatMap(s => (s.legs || []).map(l => ({ ...l, slip: s.name || s.slip, slipSize: s.size })))
-  .filter(l => ["HIT", "MISS", "PUSH"].includes(l.result));
+const raw = read(FILE, []);
+const slips = Array.isArray(raw) ? raw : (raw.slips || raw.results || []);
+const legs = slips.flatMap(s => (s.legs || []).map(l => ({
+  ...l,
+  slip: s.name || s.slip,
+  slipSize: s.size
+}))).filter(l => ["HIT", "MISS", "PUSH"].includes(l.result));
 
 function bucketProb(p) {
   p = Number(p);
