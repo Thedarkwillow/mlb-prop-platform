@@ -12,16 +12,23 @@ function readJson(file, fallback) {
 function reason(slip) {
   const green = Number(slip.green || 0);
   const neutral = Number(slip.neutral || 0);
+  const watchlist = Number(slip.watchlist || 0);
+  const fade = Number(slip.fade || 0);
   const size = Number(slip.size || 0);
 
   if (!slip.complete) return "incomplete slip";
+  if (fade > 0) return "has FADE leg";
+  if (watchlist > 0) return "has WATCHLIST leg";
+
   if (size === 2 && green < 2) return "needs 2 GREEN legs";
-  if (size === 3 && green < 2) return "needs at least 2 GREEN legs";
-  if (size === 4 && green < 2) return "needs at least 2 GREEN legs";
-  if (size === 5 && green < 3) return "needs at least 3 GREEN legs";
-  if (size === 6 && green < 3) return "needs at least 3 GREEN legs";
-  if (neutral > green + 1) return "too many NEUTRAL legs";
-  return "passed";
+  if (size === 3 && green < 2) return "needs more GREEN legs";
+  if (size === 4 && green < 2) return "needs more GREEN legs";
+  if (size === 5 && green < 3) return "needs more GREEN legs";
+  if (size === 6 && green < 4) return "needs more GREEN legs";
+
+  if (neutral >= green) return "too many NEUTRAL legs";
+
+  return "playable";
 }
 
 function printSlip(slip) {
