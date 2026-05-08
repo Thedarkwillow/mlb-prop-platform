@@ -23,7 +23,8 @@
     "summary": "node src/research/daily-summary.cjs ${npm_config_date:-$(date +%F)}",
     "decision": "node src/research/decision.cjs",
     "markets": "node src/research/check-market-roadmap.cjs",
-    "market:exposure": "node src/research/market-exposure-report.cjs"
+    "market:exposure": "node src/research/market-exposure-report.cjs",
+    "odds": "node src/research/oddsapi-dk-mlb-props.cjs && node src/research/convert-oddsapi-props.cjs && node src/research/odds-api-summary.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
