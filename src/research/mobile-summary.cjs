@@ -28,7 +28,14 @@ function legLine(l, i) {
 const playable = read("outputs/playable-final-slips.json", []);
 const watchlist = read("outputs/watchlist-final-slips.json", []);
 const coverage = read("outputs/distribution-coverage-report.json", {});
-const clv = read(`outputs/clv-report-${DATE}.json`, read("outputs/clv-report.json", null));
+const clvRows = read(`outputs/clv-report-${DATE}.json`, []);
+const clv = Array.isArray(clvRows) && clvRows.length
+  ? {
+      trackedLegs: clvRows.length,
+      avgClv: clvRows.reduce((a, x) => a + Number(x.clv || 0), 0) / clvRows.length,
+      beatCloseRate: clvRows.filter(x => x.beatClose).length / clvRows.length
+    }
+  : null;
 const roi = read(`outputs/roi-summary-${DATE}.json`, read("outputs/roi-summary.json", null));
 const graded = read(`outputs/playable-final-slips-graded-${DATE}.json`, []);
 
@@ -82,8 +89,8 @@ console.log("-----------");
 if (!clv) {
   console.log("No CLV report yet. Run: npm run clv --date=YYYY-MM-DD");
 } else {
-  console.log(`Tracked legs: ${clv.trackedLegs ?? clv.rows?.length ?? "?"}`);
-  console.log(`Average CLV: ${clv.averageClv ?? clv.avgClv ?? "n/a"} cents`);
+  console.log(`Tracked legs: ${clv.trackedLegs}`);
+  console.log(`Average CLV: ${Number(clv.avgClv).toFixed(2)} cents`);
   console.log(`Beat close: ${pct(clv.beatCloseRate)}`);
 }
 console.log("");
