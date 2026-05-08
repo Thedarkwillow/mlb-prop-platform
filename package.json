@@ -17,6 +17,7 @@
     "calibration:curves": "node src/research/calibration-curves.cjs",
     "show": "node src/research/show-todays-slips.cjs",
     "status": "node src/research/status.cjs",
+    "mobile": "node src/research/mobile-summary.cjs",
     "final": "npm run pipeline --date=${npm_config_date:-$(date +%F)} && npm run status && npm run summary --date=${npm_config_date:-$(date +%F)} && npm run decision && npm run show",
     "grade:watchlist": "node src/research/grade-watchlist-slips.cjs ${npm_config_date:-$(date +%F)}",
     "history": "node src/research/show-history.cjs ${npm_config_date:-$(date +%F)}",
