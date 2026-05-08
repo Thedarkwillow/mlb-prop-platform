@@ -137,9 +137,9 @@ function gradeSlip(legs) {
     const gradedLegs = [];
 
     for (const leg of slip.legs || []) {
-      // Always resolve gamePk from the slate schedule first.
-      // Stored gamePk can be stale from archived/previous slates.
-      const gamePk = resolveGamePkFromSchedule(schedule, leg.game) || leg.gamePk;
+      // Never trust stored gamePk for grading.
+      // It can be stale from archived/previous slates.
+      const gamePk = resolveGamePkFromSchedule(schedule, leg.game);
 
       if (!gamePk) {
         gradedLegs.push({
