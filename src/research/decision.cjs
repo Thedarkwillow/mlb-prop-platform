@@ -53,8 +53,11 @@ if (playable.length > 0) {
       (x.watchlist || 0) > 0 ? "has WATCHLIST leg" :
       (x.fade || 0) > 0 ? "has FADE leg" :
       x.size === 2 && x.green < 2 ? "needs 2 GREEN legs" :
-      x.size >= 3 && x.green < 2 ? "needs more GREEN legs" :
-      x.neutral > x.green + 1 ? "too many NEUTRAL legs" :
+      x.size === 3 && x.green < 2 ? "needs more GREEN legs" :
+      x.size === 4 && x.green < 2 ? "needs more GREEN legs" :
+      x.size === 5 && x.green < 3 ? "needs more GREEN legs" :
+      x.size === 6 && x.green < 4 ? "needs more GREEN legs" :
+      x.neutral >= x.green ? "too many NEUTRAL legs" :
       "watchlist"
   })));
 } else {
