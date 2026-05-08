@@ -33,19 +33,41 @@ async function getSchedule(date) {
   return fetchJson(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}&hydrate=team`);
 }
 
-function resolveGamePkFromSchedule(schedule, gameText) {
-  const parts = String(gameText || "").split("@").map(x => x.trim().toUpperCase());
+
+const TEAM_ALIAS = {
+  "ARIZONA DIAMONDBACKS":"ARI","ARIZONA D-BACKS":"ARI","D-BACKS":"ARI","DIAMONDBACKS":"ARI","ATLANTA BRAVES":"ATL","BALTIMORE ORIOLES":"BAL","BOSTON RED SOX":"BOS",
+  "CHICAGO CUBS":"CHC","CHICAGO WHITE SOX":"CWS","CINCINNATI REDS":"CIN","CLEVELAND GUARDIANS":"CLE",
+  "COLORADO ROCKIES":"COL","DETROIT TIGERS":"DET","HOUSTON ASTROS":"HOU","KANSAS CITY ROYALS":"KC",
+  "LOS ANGELES ANGELS":"LAA","LOS ANGELES DODGERS":"LAD","MIAMI MARLINS":"MIA","MILWAUKEE BREWERS":"MIL",
+  "MINNESOTA TWINS":"MIN","NEW YORK METS":"NYM","NEW YORK YANKEES":"NYY","ATHLETICS":"ATH",
+  "OAKLAND ATHLETICS":"ATH","PHILADELPHIA PHILLIES":"PHI","PITTSBURGH PIRATES":"PIT","SAN DIEGO PADRES":"SD",
+  "SAN FRANCISCO GIANTS":"SF","SEATTLE MARINERS":"SEA","ST. LOUIS CARDINALS":"STL","ST LOUIS CARDINALS":"STL",
+  "TAMPA BAY RAYS":"TB","TEXAS RANGERS":"TEX","TORONTO BLUE JAYS":"TOR","WASHINGTON NATIONALS":"WSH",
+  "ARI":"ARI","AZ":"ARI","ATL":"ATL","BAL":"BAL","BOS":"BOS","CHC":"CHC","CWS":"CWS","CHW":"CWS","CIN":"CIN",
+  "CLE":"CLE","COL":"COL","DET":"DET","HOU":"HOU","KC":"KC","KCR":"KC","LAA":"LAA","LAD":"LAD",
+  "MIA":"MIA","MIL":"MIL","MIN":"MIN","NYM":"NYM","NYY":"NYY","ATH":"ATH","OAK":"ATH","PHI":"PHI",
+  "PIT":"PIT","SD":"SD","SDP":"SD","SF":"SF","SFG":"SF","SEA":"SEA","STL":"STL","TB":"TB","TBR":"TB",
+  "TEX":"TEX","TOR":"TOR","WSH":"WSH","WAS":"WSH"
+};
+function normTeamName(x) {
+  const s = String(x || "").replace(/\./g, "").replace(/\s+/g, " ").trim().toUpperCase();
+  return TEAM_ALIAS[s] || s;
+}
+
+function resolveGamePkFromSchedule(schedule, game) {
+  const target = String(game || "").replace(/\s+/g, " ").trim().toUpperCase();
+  const parts = target.split("@").map(x => normTeamName(x.trim()));
   if (parts.length !== 2) return null;
+  const a = parts[0];
+  const b = parts[1];
 
-  const [away, home] = parts;
-  const games = schedule?.dates?.flatMap(d => d.games || []) || [];
-
-  for (const g of games) {
-    const a = String(g.teams?.away?.team?.abbreviation || "").toUpperCase();
-    const h = String(g.teams?.home?.team?.abbreviation || "").toUpperCase();
-    if (a === away && h === home) return g.gamePk;
+  for (const d of schedule.dates || []) {
+    for (const g of d.games || []) {
+      const away = normTeamName(g.teams?.away?.team?.abbreviation || g.teams?.away?.team?.name);
+      const home = normTeamName(g.teams?.home?.team?.abbreviation || g.teams?.home?.team?.name);
+      if ((away === a && home === b) || (away === b && home === a)) return g.gamePk;
+    }
   }
-
   return null;
 }
 
