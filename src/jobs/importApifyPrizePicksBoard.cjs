@@ -87,5 +87,10 @@ const out = rows
 
 fs.writeFileSync(output, JSON.stringify(out, null, 2));
 
+const fantasyRows = out.filter(r => r.isFantasy || String(r.market || "").includes("fantasy"));
+fs.mkdirSync("outputs", { recursive: true });
+fs.writeFileSync("outputs/fantasy-tracking.json", JSON.stringify(fantasyRows, null, 2));
+
 console.log(`Imported ${out.length} rows -> ${output}`);
-console.log("Fantasy rows:", out.filter(r => r.isFantasy).length);
+console.log("Fantasy rows:", fantasyRows.length);
+console.log("Fantasy tracking written: outputs/fantasy-tracking.json");
