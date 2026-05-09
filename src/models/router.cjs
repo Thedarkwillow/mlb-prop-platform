@@ -1,6 +1,8 @@
 const { modelBases } = require("./hitters/bases.cjs");
 const { modelHits } = require("./hitters/hits.cjs");
 const { modelRuns } = require("./hitters/runs.cjs");
+const { modelHitterFantasy } = require("./fantasy/hitter_fantasy_score.cjs");
+const { modelPitcherFantasy } = require("./fantasy/pitcher_fantasy_score.cjs");
 const { modelHrr } = require("./hitters/hrr.cjs");
 const { modelKs } = require("./pitchers/ks.cjs");
 const { modelOuts } = require("./pitchers/outs.cjs");
