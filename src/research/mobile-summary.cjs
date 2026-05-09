@@ -54,7 +54,9 @@ const clv = Array.isArray(clvRows) && clvRows.length
 const roi = read(`outputs/roi-summary-${DATE}.json`, read("outputs/roi-summary.json", null));
 const graded = read(`outputs/playable-final-slips-graded-${DATE}.json`, []);
 
-const sourceSlips = Array.isArray(validated) && validated.length ? validated : playable;
+const validatedRows = Array.isArray(validated) ? validated : [];
+const validatedLegs = validatedRows.filter(l => (l.validationGrade || l.grade || "GREEN") !== "WATCHLIST");
+const sourceSlips = validatedLegs.length ? [{ legs: validatedLegs }] : playable;
 const allLegs = sourceSlips.flatMap(s => s.legs || [])
   .filter(l => (l.validationGrade || l.grade || "GREEN") !== "WATCHLIST");
 
@@ -77,12 +79,13 @@ const gradedLegs = Array.isArray(graded) ? graded.flatMap(s => s.legs || []) : [
 const unknownGraded = gradedLegs.filter(l => l.result === "UNKNOWN").length;
 const finishedGraded = gradedLegs.filter(l => ["HIT", "MISS", "PUSH"].includes(l.result)).length;
 
-const validatedCandidates = (Array.isArray(validated) ? validated : [])
-  .map(s => ({
-    ...s,
-    legs: (s.legs || []).filter(l => (l.validationGrade || l.grade || "GREEN") !== "WATCHLIST")
-  }))
-  .filter(s => (s.legs || []).length >= 2);
+const validatedCandidates = [];
+if (validatedLegs.length >= 2) {
+  validatedCandidates.push({ name: "2-MAN POWER", status: "PLAYABLE", legs: validatedLegs.slice(0, 2), neutral: 0 });
+}
+if (validatedLegs.length >= 3) {
+  validatedCandidates.push({ name: "3-MAN FLEX", status: "PLAYABLE", legs: validatedLegs.slice(0, 3), neutral: 0 });
+}
 
 const bestValidated =
   validatedCandidates.find(s => (s.legs || []).length === 2) ||
