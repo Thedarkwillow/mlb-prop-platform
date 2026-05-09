@@ -6,6 +6,7 @@ const OUT = "outputs/final-slips-validated.json";
 const MARKET_INTEL = "outputs/market-intelligence.json";
 const CLV_FILE = `outputs/clv-report-${new Date().toISOString().slice(0,10)}.json`;
 const VALIDATION_RULES = "data/results/validation-rules.json";
+const CLV_FRESHNESS = "outputs/clv-freshness.json";
 
 function read(path, fallback) {
   try {
@@ -33,6 +34,7 @@ const marketRoi = new Map(
   marketRows.map(r => [String(r.bucket || "").toLowerCase(), Number(r.roi || 0)])
 );
 
+const freshness = read(CLV_FRESHNESS, null);
 const rules = read(VALIDATION_RULES, {});
 const marketRuleMap = new Map((rules.byMarket || []).map(r => [String(r.bucket || "").toLowerCase(), r]));
 const booksRuleMap = new Map((rules.byBooks || []).map(r => [String(r.bucket || "").toLowerCase(), r]));
@@ -118,6 +120,11 @@ function validateLeg(leg) {
   if (ruleAdj !== 0) notes.push("warehouse validation rules");
 
   const books = Number(leg.books ?? leg.sportsbookBookCount ?? 0);
+  if (freshness && Number(freshness.penalty || 0) > 0) {
+    penalty += Number(freshness.penalty || 0);
+    notes.push(`CLV freshness ${freshness.status} penalty -${freshness.penalty}`);
+  }
+
   if (books < 2) {
     penalty += 0.10;
     notes.push("below 2-book support");
