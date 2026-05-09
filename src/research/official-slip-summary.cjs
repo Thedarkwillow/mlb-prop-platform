@@ -218,3 +218,15 @@ if (greens.length >= 2) {
     suppressed.slice(0, 5).forEach(printLeg);
   }
 }
+
+const strikeoutWatchlist = read("outputs/strikeout-watchlist.json", []);
+if (Array.isArray(strikeoutWatchlist) && strikeoutWatchlist.length) {
+  console.log("");
+  console.log("STRIKEOUT WATCHLIST");
+  console.log("-------------------");
+  strikeoutWatchlist.slice(0, 5).forEach((r, i) => {
+    console.log(
+      `${i + 1}. ${r.player} | ${r.team || ""} | ${r.market} ${r.side || r.recommendedSide} ${r.line} | prob=${n(r.recommendedProb)} | EV=${n(r.expectedValue)} | conf=${r.confidenceBucket || "n/a"}`
+    );
+  });
+}
