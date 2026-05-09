@@ -57,7 +57,8 @@
     "intel:adjust": "node src/research/apply-market-intelligence-adjustments.cjs",
     "sharp-mobile": "npm run clv:freshness && npm run validation:penalties && npm run intel:adjust && npm run mobile",
     "daily": "npm run prizepicks && npm run snap && npm run odds && npm run picks && npm run sharp-mobile && npm run snapshot:status",
-    "clean:warehouse": "node src/research/clean-warehouse-duplicates.cjs"
+    "clean:warehouse": "node src/research/clean-warehouse-duplicates.cjs",
+    "cc": "node src/research/command-center-status.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
