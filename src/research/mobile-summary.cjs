@@ -152,7 +152,7 @@ if (!validationRules) {
     console.log("No low-sample warnings.");
   } else {
     lowSampleRules.slice(0, 8).forEach(r => {
-      console.log(`${r.type} ${r.bucket}: count=${r.count}, action=${r.action}, edge=${num(r.calibrationEdge)}, heldAdjustment=${num(r.adjustment)}`);
+      console.log(`${r.type} ${r.bucket}: count=${r.count}, action=${r.action}, edge=${num(r.calibrationEdge)}, heldAdjustment=${num(r.adjustment)}` + "\n");
     });
   }
 }
