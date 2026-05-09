@@ -73,10 +73,20 @@ for (const l of allLegs) {
   unique.push(l);
 }
 
-unique.sort((a, b) =>
-  Number(b.score ?? b.sportsbookAdjustedEdge ?? b.edge ?? 0) -
-  Number(a.score ?? a.sportsbookAdjustedEdge ?? a.edge ?? 0)
-);
+unique.sort((a, b) => {
+  const aScore = Number(a.intelAdjustedEdge ?? a.score ?? a.sportsbookAdjustedEdge ?? a.edge ?? 0);
+  const bScore = Number(b.intelAdjustedEdge ?? b.score ?? b.sportsbookAdjustedEdge ?? b.edge ?? 0);
+
+  if (bScore !== aScore) return bScore - aScore;
+
+  const aProb = Number(a.prob ?? a.calibratedDistributionProb ?? 0);
+  const bProb = Number(b.prob ?? b.calibratedDistributionProb ?? 0);
+
+  if (bProb !== aProb) return bProb - aProb;
+
+  return Number(b.books ?? b.sportsbookBookCount ?? 0) -
+    Number(a.books ?? a.sportsbookBookCount ?? 0);
+});
 
 const gradedLegs = Array.isArray(graded) ? graded.flatMap(s => s.legs || []) : [];
 const unknownGraded = gradedLegs.filter(l => l.result === "UNKNOWN").length;
