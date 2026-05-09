@@ -70,14 +70,25 @@ console.log(`Watchlist slips: ${watchlist.length}`);
 console.log(`Distribution coverage: ${coverage.coverage ?? coverage.overallCoverage ?? "unknown"}`);
 console.log("");
 
-console.log("BEST PLAYABLE SLIP");
-console.log("------------------");
-if (!playable.length) {
+console.log("BEST VALIDATED SLIP");
+console.log("-------------------");
+const validatedCandidates = (Array.isArray(validated) ? validated : [])
+  .map(s => ({
+    ...s,
+    legs: (s.legs || []).filter(l => (l.validationGrade || l.grade || "GREEN") !== "WATCHLIST")
+  }))
+  .filter(s => (s.legs || []).length >= 2);
+
+const bestValidated =
+  validatedCandidates.find(s => (s.legs || []).length === 2) ||
+  validatedCandidates[0] ||
+  null;
+
+if (!bestValidated) {
   console.log("None.");
 } else {
-  const s = playable[0];
-  console.log(`${s.name || s.slip} | status=${s.status} | green=${s.green ?? "?"} | neutral=${s.neutral ?? 0}`);
-  (s.legs || []).forEach((l, i) => console.log(legLine(l, i)));
+  console.log(`${bestValidated.name || bestValidated.slip || "VALIDATED"} | status=${bestValidated.status || "PLAYABLE"} | green=${(bestValidated.legs || []).length} | neutral=${bestValidated.neutral ?? 0}`);
+  (bestValidated.legs || []).forEach((l, i) => console.log(legLine(l, i)));
 }
 console.log("");
 
