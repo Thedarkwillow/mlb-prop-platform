@@ -122,6 +122,31 @@ function getResult(row) {
   return null;
 }
 
+function rowDate(row) {
+  return String(
+    row.date ||
+    row.gameDate ||
+    row.slateDate ||
+    row.boardDate ||
+    row.startDate ||
+    row.startTime ||
+    row.gameStart ||
+    ""
+  ).slice(0, 10);
+}
+
+function dedupeKey(row, parsed) {
+  return [
+    rowDate(row),
+    String(row.player || row.player_name || "").toLowerCase().trim(),
+    parsed.market,
+    parsed.direction,
+    String(row.line ?? row.projectionLine ?? "").trim(),
+    String(parsed.hit)
+  ].join("|");
+}
+
+
 function bucketProb(p) {
   const low = Math.floor(p * 20) / 20;
   const high = low + 0.05;
@@ -171,19 +196,27 @@ function main() {
 
   const { path, rows } = findRows();
 
+  const seen = new Set();
+
   const usable = rows
     .map(row => {
       const prob = getProb(row);
       const hit = getResult(row);
       if (prob == null || hit == null) return null;
 
-      return {
+      const parsed = {
         market: normalizeMarket(row),
         direction: normalizeDirection(row),
         bucket: bucketProb(prob),
         prob,
         hit
       };
+
+      const key = dedupeKey(row, parsed);
+      if (seen.has(key)) return null;
+      seen.add(key);
+
+      return parsed;
     })
     .filter(Boolean);
 
