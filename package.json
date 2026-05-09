@@ -52,7 +52,8 @@
     "validation:rules": "node src/research/build-validation-rules.cjs",
     "snapshot:status": "node src/research/snapshot-status.cjs",
     "clv:freshness": "node src/research/clv-freshness.cjs",
-    "warehouse:cycle": "npm run validation --date=${npm_config_date:-$(date +%F)} && npm run warehouse:export --date=${npm_config_date:-$(date +%F)} && npm run warehouse:calibration && npm run validation:rules && npm run history:intel && npm run market:intel && npm run mobile --date=${npm_config_date:-$(date +%F)}"
+    "warehouse:cycle": "npm run warehouse:date-guard --date=${npm_config_date:-$(date +%F)} && npm run validation --date=${npm_config_date:-$(date +%F)} && npm run warehouse:export --date=${npm_config_date:-$(date +%F)} && npm run warehouse:calibration && npm run validation:rules && npm run history:intel && npm run market:intel && npm run mobile --date=${npm_config_date:-$(date +%F)}",
+    "warehouse:date-guard": "node src/research/warehouse-date-guard.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
