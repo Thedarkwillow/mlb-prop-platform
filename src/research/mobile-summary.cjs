@@ -93,8 +93,8 @@ const unknownGraded = gradedLegs.filter(l => l.result === "UNKNOWN").length;
 const finishedGraded = gradedLegs.filter(l => ["HIT", "MISS", "PUSH"].includes(l.result)).length;
 
 const validatedCandidates = [];
-if (validatedLegs.length >= 2) {
-  validatedCandidates.push({ name: "2-MAN POWER", status: "PLAYABLE", legs: validatedLegs.slice(0, 2), neutral: 0 });
+if (unique.length >= 2) {
+  validatedCandidates.push({ name: "2-MAN POWER", status: "PLAYABLE", legs: unique.slice(0, 2), neutral: 0 });
 }
 if (validatedLegs.length >= 3) {
   validatedCandidates.push({ name: "3-MAN FLEX", status: "PLAYABLE", legs: validatedLegs.slice(0, 3), neutral: 0 });
