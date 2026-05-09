@@ -121,7 +121,8 @@ if (!bestValidated) {
   const size = (bestValidated.legs || []).length;
   const green = (bestValidated.legs || []).filter(l => (l.validationGrade || l.grade) === "GREEN").length;
   const neutral = (bestValidated.legs || []).filter(l => (l.validationGrade || l.grade) === "NEUTRAL").length;
-  console.log(`${slipLabel(size)} | status=${bestValidated.status || "PLAYABLE"} | green=${green} | neutral=${neutral}`);
+  const status = green === size ? "PLAYABLE" : green > 0 ? "MIXED" : "PASS";
+  console.log(`${slipLabel(size)} | status=${status} | green=${green} | neutral=${neutral}`);
   (bestValidated.legs || []).forEach((l, i) => console.log(legLine(l, i)));
 }
 
