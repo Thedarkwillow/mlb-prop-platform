@@ -84,10 +84,20 @@ const bestValidated =
   validatedCandidates[0] ||
   null;
 
+function slipLabel(size) {
+  if (size === 2) return "2-MAN POWER";
+  if (size === 3) return "3-MAN FLEX";
+  if (size === 4) return "4-MAN FLEX";
+  if (size === 5) return "5-MAN FLEX";
+  if (size === 6) return "6-MAN FLEX";
+  return `${size}-MAN`;
+}
+
 if (!bestValidated) {
   console.log("None.");
 } else {
-  console.log(`${bestValidated.name || bestValidated.slip || "VALIDATED"} | status=${bestValidated.status || "PLAYABLE"} | green=${(bestValidated.legs || []).length} | neutral=${bestValidated.neutral ?? 0}`);
+  const size = (bestValidated.legs || []).length;
+  console.log(`${slipLabel(size)} | status=${bestValidated.status || "PLAYABLE"} | green=${size} | neutral=${bestValidated.neutral ?? 0}`);
   (bestValidated.legs || []).forEach((l, i) => console.log(legLine(l, i)));
 }
 console.log("");
