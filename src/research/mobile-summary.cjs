@@ -22,9 +22,10 @@ function num(x, d = 4) {
 }
 
 function legLine(l, i) {
-  return `${i + 1}. ${l.player} | ${l.team || ""} | ${l.game || ""} | ${l.market} ${l.side} ${l.line} | prob=${num(l.prob ?? l.calibratedDistributionProb)} | edge=${num(l.edge ?? l.sportsbookEdge)} | books=${l.books ?? l.sportsbookBookCount ?? "?"}`;
+  return `${i + 1}. ${l.player} | ${l.team || ""} | ${l.game || ""} | ${l.market} ${l.side} ${l.line} | prob=${num(l.prob ?? l.calibratedDistributionProb)} | edge=${num(l.edge ?? l.sportsbookEdge)} | books=${l.books ?? l.sportsbookBookCount ?? "?"} | grade=${l.validationGrade || l.grade || "?"}`;
 }
 
+const validated = read("outputs/final-slips-validated.json", []);
 const playable = read("outputs/playable-final-slips.json", []);
 const watchlist = read("outputs/watchlist-final-slips.json", []);
 const coverage = read("outputs/distribution-coverage-report.json", {});
@@ -39,7 +40,9 @@ const clv = Array.isArray(clvRows) && clvRows.length
 const roi = read(`outputs/roi-summary-${DATE}.json`, read("outputs/roi-summary.json", null));
 const graded = read(`outputs/playable-final-slips-graded-${DATE}.json`, []);
 
-const allLegs = playable.flatMap(s => s.legs || []);
+const sourceSlips = Array.isArray(validated) && validated.length ? validated : playable;
+const allLegs = sourceSlips.flatMap(s => s.legs || [])
+  .filter(l => (l.validationGrade || l.grade || "GREEN") !== "WATCHLIST");
 const unique = [];
 const seen = new Set();
 for (const l of allLegs) {
