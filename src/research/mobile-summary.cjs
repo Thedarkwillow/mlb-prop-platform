@@ -119,7 +119,9 @@ if (!bestValidated) {
   console.log("None.");
 } else {
   const size = (bestValidated.legs || []).length;
-  console.log(`${slipLabel(size)} | status=${bestValidated.status || "PLAYABLE"} | green=${size} | neutral=${bestValidated.neutral ?? 0}`);
+  const green = (bestValidated.legs || []).filter(l => (l.validationGrade || l.grade) === "GREEN").length;
+  const neutral = (bestValidated.legs || []).filter(l => (l.validationGrade || l.grade) === "NEUTRAL").length;
+  console.log(`${slipLabel(size)} | status=${bestValidated.status || "PLAYABLE"} | green=${green} | neutral=${neutral}`);
   (bestValidated.legs || []).forEach((l, i) => console.log(legLine(l, i)));
 }
 

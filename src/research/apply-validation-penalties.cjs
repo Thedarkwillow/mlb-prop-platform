@@ -130,7 +130,16 @@ function validateLeg(leg) {
     notes.push("below 2-book support");
   }
 
-  const baseScore = Number(leg.modelScore ?? leg.score ?? 0);
+  const baseScore = Number(
+    leg.modelScore ??
+    leg.score ??
+    leg.adjustedScore ??
+    leg.adjEdge ??
+    leg.edge ??
+    leg.sportsbookAdjustedEdge ??
+    leg.sportsbookEdge ??
+    0
+  );
   const validationScore = clamp(baseScore + boost - penalty);
 
   let validationGrade = leg.modelGrade || leg.grade || "UNKNOWN";
