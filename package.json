@@ -40,7 +40,7 @@
     "validate:final": "npm run grade && npm run roi && npm run save:history && npm run history:roi && npm run calibration:report && npm run clv:buckets && npm run mobile",
     "history:intel": "node src/research/history-intelligence.cjs",
     "daily-cycle": "npm run odds && npm run snap && npm run picks && npm run mobile && npm run decision",
-    "postgame-cycle": "npm run validation --date=${npm_config_date:-$(date +%F)} && npm run warehouse:export --date=${npm_config_date:-$(date +%F)} && npm run history:intel && npm run market:intel && npm run mobile --date=${npm_config_date:-$(date +%F)}",
+    "postgame-cycle": "npm run warehouse:cycle --date=${npm_config_date:-$(date +%F)}",
     "full-cycle": "npm run daily-cycle && npm run postgame-cycle",
     "market:intel": "node src/research/market-intelligence.cjs",
     "models:apply": "node src/research/apply-market-models.cjs",
@@ -51,7 +51,8 @@
     "warehouse:calibration": "node src/research/warehouse-calibration-report.cjs",
     "validation:rules": "node src/research/build-validation-rules.cjs",
     "snapshot:status": "node src/research/snapshot-status.cjs",
-    "clv:freshness": "node src/research/clv-freshness.cjs"
+    "clv:freshness": "node src/research/clv-freshness.cjs",
+    "warehouse:cycle": "npm run validation --date=${npm_config_date:-$(date +%F)} && npm run warehouse:export --date=${npm_config_date:-$(date +%F)} && npm run warehouse:calibration && npm run validation:rules && npm run history:intel && npm run market:intel && npm run mobile --date=${npm_config_date:-$(date +%F)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
