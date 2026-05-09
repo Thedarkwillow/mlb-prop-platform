@@ -62,7 +62,8 @@
     "freshness": "node src/research/freshness-guard.cjs",
     "safe-picks": "npm run freshness && npm run picks",
     "safe-mobile": "npm run freshness && npm run sharp-mobile",
-    "live": "npm run prizepicks && npm run snap && npm run picks && npm run sharp-mobile"
+    "live": "npm run prizepicks && npm run snap && npm run picks && npm run sharp-mobile",
+    "official": "node src/research/official-slip-summary.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
