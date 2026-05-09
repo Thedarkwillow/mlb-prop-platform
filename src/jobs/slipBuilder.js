@@ -350,6 +350,7 @@ function normalizeForOptimizer(r) {
 }
 function playable(r) {
   if (r.rankEligible === false) return false;
+  const isStandardK = market(r) === 'strikeouts' && tier(r) === 'standard';
   if (
     r.isFantasy === true ||
     String(r.market || r.stat || '').toLowerCase().includes('fantasy')
@@ -363,11 +364,11 @@ function playable(r) {
     // allow bases again now that DK pricing can filter bad legs
     // allow HRR/runs/RBIs again now that DK pricing can filter bad legs
     && !(market(r) === 'hits' && sideKey(r) === 'MORE' && tier(r) === 'goblin')
-    && !(market(r) === 'strikeouts' && sideKey(r) === 'MORE')
+    // K MORE allowed now that strikeouts use Poisson probability.
     && !r.learningSuppressed
     && !['pass'].includes(String(r.confidenceBucket || '').toLowerCase())
     && isValidGameAssignment(r)
-    && projectionSanityOk(r)
+    && (isStandardK || projectionSanityOk(r))
     && kLessTightOk(r)
     && (
       tier(r) === 'standard'
