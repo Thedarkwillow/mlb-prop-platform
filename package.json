@@ -61,7 +61,8 @@
     "cc": "node src/research/command-center-status.cjs",
     "freshness": "node src/research/freshness-guard.cjs",
     "safe-picks": "npm run freshness && npm run picks",
-    "safe-mobile": "npm run freshness && npm run sharp-mobile"
+    "safe-mobile": "npm run freshness && npm run sharp-mobile",
+    "live": "npm run prizepicks && npm run snap && npm run picks && npm run sharp-mobile"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
