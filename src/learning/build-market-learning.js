@@ -1,12 +1,40 @@
 import fs from "fs";
 
-const RESULTS_PATHS = [
+const BASE_RESULTS_PATHS = [
   "outputs/all-markets-graded.json",
+  "outputs/fantasy-graded.json",
   "data/results/all-markets-graded.json",
+  "data/results/fantasy-graded.json",
   "data/results/graded-props.json",
   "data/results/history.json",
   "outputs/graded-props.json",
   "outputs/history.json"
+];
+
+function historicalGradedPaths() {
+  const dirs = ["outputs/history", "data/results/history"];
+  const paths = [];
+
+  for (const dir of dirs) {
+    if (!fs.existsSync(dir)) continue;
+
+    for (const file of fs.readdirSync(dir)) {
+      if (
+        file.endsWith("-all-markets-graded.json") ||
+        file.endsWith("-fantasy-grades.json") ||
+        file.endsWith("-hrr-graded.json")
+      ) {
+        paths.push(`${dir}/${file}`);
+      }
+    }
+  }
+
+  return paths.sort();
+}
+
+const RESULTS_PATHS = [
+  ...BASE_RESULTS_PATHS,
+  ...historicalGradedPaths()
 ];
 
 const OUT_DIR = "data/learning";
