@@ -49,5 +49,29 @@ for (const g of summary.sort((a,b) => b.rows - a.rows)) {
   txt += `${g.market} | rows=${g.rows} | hits=${g.hits} | misses=${g.misses} | pushes=${g.pushes} | hitRate=${g.hitRate == null ? "NA" : (g.hitRate*100).toFixed(1)+"%"}\n`;
 }
 
+
+const rules = {};
+for (const g of summary) {
+  const canPromote = g.rows >= 250 && g.hitRate != null && g.hitRate >= 0.55;
+  rules[g.market] = {
+    rows: g.rows,
+    hits: g.hits,
+    misses: g.misses,
+    pushes: g.pushes,
+    hitRate: g.hitRate,
+    trackingOnly: !canPromote,
+    rankEligible: canPromote,
+    suppressed: !canPromote,
+    reason: canPromote
+      ? "fantasy sample and hit rate meet promotion threshold"
+      : "fantasy tracking only until sample >= 250 and hitRate >= 55%"
+  };
+}
+
+fs.writeFileSync("data/learning/fantasy-rules.json", JSON.stringify({
+  generatedAt: new Date().toISOString(),
+  rules
+}, null, 2) + "\n");
+
 fs.writeFileSync("outputs/learning/fantasy-learning-report.txt", txt);
 console.log(txt);
