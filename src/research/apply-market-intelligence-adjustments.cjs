@@ -11,8 +11,9 @@ function read(path, fallback) {
 
 const FILE = "outputs/final-slips-validated.json";
 const rows = read(FILE, []);
+const legs = rows.flatMap(x => Array.isArray(x.legs) ? x.legs : [x]);
 
-for (const r of rows) {
+for (const r of legs) {
   r.intelPenalty = 0;
   r.intelBoost = 0;
   r.intelNotes = [];
