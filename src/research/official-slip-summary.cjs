@@ -29,32 +29,21 @@ function probBucket(prob) {
 }
 
 function marketKey(l) {
-  return String(l.market || l.stat || "unknown")
-    .toLowerCase()
-    .replace(/\s+/g, "_")
-    .trim();
+  return String(l.market || l.stat || "unknown").toLowerCase().replace(/\s+/g, "_").trim();
 }
 
 function directionKey(l) {
-  return String(l.side || l.recommendedSide || l.pick || l.direction || "")
-    .toUpperCase()
-    .includes("LESS") ? "LESS" : "MORE";
+  return String(l.side || l.recommendedSide || l.pick || l.direction || "").toUpperCase().includes("LESS") ? "LESS" : "MORE";
 }
 
 function baseProb(l) {
-  return clampProb(
-    l.prob ??
-    l.calibratedDistributionProb ??
-    l.recommendedProb ??
-    l.probability
-  );
+  return clampProb(l.prob ?? l.calibratedDistributionProb ?? l.recommendedProb ?? l.probability);
 }
 
 function getLearningAdjustment(l, prob, learning) {
   const market = marketKey(l);
   const direction = directionKey(l);
   const bucket = probBucket(prob);
-
   const exactKey = `${market}_${direction}_${bucket}`;
   const mdKey = `${market}_${direction}`;
 
@@ -69,14 +58,7 @@ function getLearningAdjustment(l, prob, learning) {
     null;
 
   if (!chosen) {
-    return {
-      applied: false,
-      key: null,
-      sample: 0,
-      multiplier: 1,
-      suppressed: false,
-      bias: 0
-    };
+    return { applied: false, key: null, sample: 0, multiplier: 1, suppressed: false, bias: 0 };
   }
 
   return {
@@ -94,12 +76,7 @@ function getLearningAdjustment(l, prob, learning) {
 function applyLearning(l, learning) {
   const rawProb = baseProb(l);
   if (rawProb == null) {
-    return {
-      ...l,
-      learnedProb: null,
-      learningAdjusted: false,
-      learningSuppressed: false
-    };
+    return { ...l, learnedProb: null, learningAdjusted: false, learningSuppressed: false };
   }
 
   const adj = getLearningAdjustment(l, rawProb, learning);
@@ -118,7 +95,7 @@ function applyLearning(l, learning) {
 function effectiveGrade(l) {
   const grade = l.validationGrade || l.grade;
   if (l.learningSuppressed) return "SUPPRESSED";
-  return grade;
+  return grade || "UNKNOWN";
 }
 
 function printLeg(l, i) {
@@ -131,6 +108,56 @@ function printLeg(l, i) {
   );
 }
 
+function printObject(title, obj) {
+  console.log(title);
+  const entries = Object.entries(obj).sort((a, b) => b[1] - a[1]);
+  if (!entries.length) {
+    console.log("  none");
+    return;
+  }
+  for (const [k, v] of entries) console.log(`  ${k}: ${v}`);
+}
+
+function gradeCounts(legs) {
+  const out = {};
+  for (const l of legs) {
+    const g = effectiveGrade(l);
+    out[g] = (out[g] || 0) + 1;
+  }
+  return out;
+}
+
+function marketCounts(legs) {
+  const out = {};
+  for (const l of legs) {
+    const k = `${String(l.market || l.stat || "unknown").toLowerCase()}_${String(l.side || l.recommendedSide || "").toUpperCase() || "NA"}`;
+    out[k] = (out[k] || 0) + 1;
+  }
+  return out;
+}
+
+function countByReason(legs) {
+  const out = {};
+
+  for (const l of legs) {
+    const reasons = [];
+
+    if (l.learningSuppressed) reasons.push("learning_suppressed");
+    if (l.isFantasy || String(l.market || l.stat || "").toLowerCase().includes("fantasy")) reasons.push("fantasy_tracking_only");
+    if ((l.validationGrade || l.grade) === "WATCHLIST") reasons.push("watchlist");
+    if (String(l.disabledReason || "").trim()) reasons.push(String(l.disabledReason).trim());
+    if (Number(l.books ?? l.sportsbookBookCount ?? 99) < 2) reasons.push("low_book_support");
+    if (Number(l.edge ?? l.sportsbookEdge ?? 0) <= 0) reasons.push("non_positive_edge");
+    if (l.clvFresh === false || l.stale === true) reasons.push("stale_or_bad_clv");
+
+    if (!reasons.length) reasons.push("not_green");
+
+    for (const r of reasons) out[r] = (out[r] || 0) + 1;
+  }
+
+  return out;
+}
+
 const learning = read("data/learning/market-learning.json", {
   byMarketDirectionBucket: {},
   byMarketDirection: {},
@@ -138,7 +165,6 @@ const learning = read("data/learning/market-learning.json", {
 });
 
 const rows = read("outputs/final-slips-validated.json", []);
-
 const rawLegs = rows
   .flatMap(x => Array.isArray(x.legs) ? x.legs : [x])
   .filter(l => l && l.player)
@@ -155,21 +181,24 @@ for (const l of rawLegs) {
   legs.push(l);
 }
 
-const greens = legs
-  .filter(l => effectiveGrade(l) === "GREEN")
-  .sort((a, b) => Number(b.learnedProb || 0) - Number(a.learnedProb || 0));
-
-const neutrals = legs
-  .filter(l => effectiveGrade(l) === "NEUTRAL")
-  .sort((a, b) => Number(b.learnedProb || 0) - Number(a.learnedProb || 0));
-
-const suppressed = legs
-  .filter(l => effectiveGrade(l) === "SUPPRESSED")
-  .sort((a, b) => Number(b.rawProb || 0) - Number(a.rawProb || 0));
+const greens = legs.filter(l => effectiveGrade(l) === "GREEN").sort((a, b) => Number(b.learnedProb || 0) - Number(a.learnedProb || 0));
+const neutrals = legs.filter(l => effectiveGrade(l) === "NEUTRAL").sort((a, b) => Number(b.learnedProb || 0) - Number(a.learnedProb || 0));
+const suppressed = legs.filter(l => effectiveGrade(l) === "SUPPRESSED").sort((a, b) => Number(b.rawProb || 0) - Number(a.rawProb || 0));
 
 console.log("OFFICIAL SLIP DECISION");
 console.log("======================");
 console.log(`LEARNING SOURCE: ${learning.sourceFile || "none"} | rows=${learning.usableRows || 0}`);
+console.log("");
+
+console.log("AUDIT");
+console.log("-----");
+console.log(`Total legs considered: ${legs.length}`);
+console.log(`GREEN: ${greens.length}`);
+console.log(`NEUTRAL: ${neutrals.length}`);
+console.log(`SUPPRESSED: ${suppressed.length}`);
+printObject("Grade counts:", gradeCounts(legs));
+printObject("Market counts:", marketCounts(legs));
+printObject("Non-playable reason counts:", countByReason(legs.filter(l => effectiveGrade(l) !== "GREEN")));
 console.log("");
 
 if (greens.length >= 2) {
@@ -180,7 +209,6 @@ if (greens.length >= 2) {
   console.log("STATUS: PASS");
   console.log(`REASON: only ${greens.length} GREEN legs available after learning suppression`);
   console.log("");
-
   console.log("BEST NEUTRAL WATCHLIST");
   neutrals.slice(0, 5).forEach(printLeg);
 
