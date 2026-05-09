@@ -33,7 +33,7 @@
     "calibration:report": "node src/research/calibration-report.cjs ${npm_config_date:-$(date +%F)}",
     "clv:buckets": "node src/research/clv-buckets.cjs ${npm_config_date:-$(date +%F)}",
     "postgame": "npm run validate --date=${npm_config_date:-$(date +%F)} && npm run calibration:report --date=${npm_config_date:-$(date +%F)} && npm run clv:buckets --date=${npm_config_date:-$(date +%F)}",
-    "safe": "npm run picks && npm run models:apply && npm run warehouse:calibration && npm run validation:rules && npm run validation:penalties && npm run mobile && npm run decision && npm run clv && npm run clv:buckets",
+    "safe": "npm run snapshot:status && npm run picks && npm run models:apply && npm run warehouse:calibration && npm run validation:rules && npm run validation:penalties && npm run mobile && npm run decision && npm run clv && npm run clv:buckets",
     "refresh": "npm run odds && npm run snap && npm run picks && npm run mobile && npm run decision",
     "save:history": "node src/research/save-graded-history.cjs ${npm_config_date:-$(date +%F)}",
     "history:roi": "node src/research/history-roi.cjs",
@@ -49,7 +49,8 @@
     "fantasy:check": "node src/research/fantasy-availability.cjs",
     "warehouse:export": "node src/research/export-historical-warehouse.cjs",
     "warehouse:calibration": "node src/research/warehouse-calibration-report.cjs",
-    "validation:rules": "node src/research/build-validation-rules.cjs"
+    "validation:rules": "node src/research/build-validation-rules.cjs",
+    "snapshot:status": "node src/research/snapshot-status.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
