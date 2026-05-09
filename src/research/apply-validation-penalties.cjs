@@ -1,7 +1,7 @@
 const fs = require("fs");
 
-const IN = "outputs/final-slips-modeled.json";
-const FALLBACK_IN = "outputs/final-slips.json";
+const IN = "outputs/final-slips.json";
+const FALLBACK_IN = "outputs/final-slips-modeled.json";
 const OUT = "outputs/final-slips-validated.json";
 const MARKET_INTEL = "outputs/market-intelligence.json";
 const CLV_FILE = `outputs/clv-report-${new Date().toISOString().slice(0,10)}.json`;
