@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-const HISTORY = "data/results/graded-leg-history.json";
+const HISTORY = "data/results/prop-warehouse.json";
 const CLV = `outputs/clv-report-${new Date().toISOString().slice(0,10)}.json`;
 
 function read(path, fallback) {

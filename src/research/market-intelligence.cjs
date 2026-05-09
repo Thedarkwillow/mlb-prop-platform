@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-const HISTORY = "data/results/graded-leg-history.json";
+const HISTORY = "data/results/prop-warehouse.json";
 
 function read(path, fallback) {
   try {
