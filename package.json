@@ -32,7 +32,7 @@
     "validate": "node src/research/validation-cycle.cjs ${npm_config_date:-$(date +%F)}",
     "calibration:report": "node src/research/calibration-report.cjs ${npm_config_date:-$(date +%F)}",
     "clv:buckets": "node src/research/clv-buckets.cjs ${npm_config_date:-$(date +%F)}",
-    "postgame": "npm run validate --date=${npm_config_date:-$(date +%F)} && npm run calibration:report --date=${npm_config_date:-$(date +%F)} && npm run clv:buckets --date=${npm_config_date:-$(date +%F)}",
+    "postgame": "npm run warehouse:date-guard --date=${npm_config_date:-$(date +%F)} && npm run validation --date=${npm_config_date:-$(date +%F)} && npm run save:history --date=${npm_config_date:-$(date +%F)} && npm run warehouse:export --date=${npm_config_date:-$(date +%F)} && npm run clean:warehouse && npm run warehouse:calibration && npm run validation:rules && npm run history:intel && npm run market:intel && npm run mobile --date=${npm_config_date:-$(date +%F)}",
     "safe": "npm run snapshot:status && npm run clv:freshness && npm run picks && npm run models:apply && npm run warehouse:calibration && npm run validation:rules && npm run validation:penalties && npm run mobile && npm run decision && npm run clv && npm run clv:buckets",
     "refresh": "npm run odds && npm run snap && npm run picks && npm run mobile && npm run decision",
     "save:history": "node src/research/save-graded-history.cjs ${npm_config_date:-$(date +%F)}",
@@ -55,7 +55,9 @@
     "warehouse:cycle": "npm run warehouse:date-guard --date=${npm_config_date:-$(date +%F)} && npm run validation --date=${npm_config_date:-$(date +%F)} && npm run warehouse:export --date=${npm_config_date:-$(date +%F)} && npm run warehouse:calibration && npm run validation:rules && npm run history:intel && npm run market:intel && npm run mobile --date=${npm_config_date:-$(date +%F)}",
     "warehouse:date-guard": "node src/research/warehouse-date-guard.cjs",
     "intel:adjust": "node src/research/apply-market-intelligence-adjustments.cjs",
-    "sharp-mobile": "npm run clv:freshness && npm run validation:penalties && npm run intel:adjust && npm run mobile"
+    "sharp-mobile": "npm run clv:freshness && npm run validation:penalties && npm run intel:adjust && npm run mobile",
+    "daily": "npm run prizepicks && npm run snap && npm run odds && npm run picks && npm run sharp-mobile && npm run snapshot:status",
+    "clean:warehouse": "node src/research/clean-warehouse-duplicates.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
