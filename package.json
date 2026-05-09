@@ -47,7 +47,8 @@
     "validation": "npm run grade --date=${npm_config_date:-$(date +%F)} && npm run roi --date=${npm_config_date:-$(date +%F)} && npm run save:history --date=${npm_config_date:-$(date +%F)} && npm run calibration:report --date=${npm_config_date:-$(date +%F)} && npm run clv --date=${npm_config_date:-$(date +%F)} && npm run clv:buckets --date=${npm_config_date:-$(date +%F)}",
     "validation:penalties": "node src/research/apply-validation-penalties.cjs",
     "fantasy:check": "node src/research/fantasy-availability.cjs",
-    "warehouse:export": "node src/research/export-historical-warehouse.cjs"
+    "warehouse:export": "node src/research/export-historical-warehouse.cjs",
+    "warehouse:calibration": "node src/research/warehouse-calibration-report.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
