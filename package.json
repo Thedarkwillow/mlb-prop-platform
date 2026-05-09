@@ -55,7 +55,7 @@
     "warehouse:cycle": "npm run warehouse:date-guard --date=${npm_config_date:-$(date +%F)} && npm run validation --date=${npm_config_date:-$(date +%F)} && npm run warehouse:export --date=${npm_config_date:-$(date +%F)} && npm run warehouse:calibration && npm run validation:rules && npm run history:intel && npm run market:intel && npm run mobile --date=${npm_config_date:-$(date +%F)}",
     "warehouse:date-guard": "node src/research/warehouse-date-guard.cjs",
     "intel:adjust": "node src/research/apply-market-intelligence-adjustments.cjs",
-    "sharp-mobile": "npm run clv:freshness && npm run validation:penalties && npm run intel:adjust && npm run mobile",
+    "sharp-mobile": "npm run clv:freshness && npm run validation:penalties && npm run intel:adjust && npm run mobile && npm run official",
     "daily": "npm run prizepicks && npm run snap && npm run odds && npm run picks && npm run sharp-mobile && npm run snapshot:status",
     "clean:warehouse": "node src/research/clean-warehouse-duplicates.cjs",
     "cc": "node src/research/command-center-status.cjs",
