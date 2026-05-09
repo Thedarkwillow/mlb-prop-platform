@@ -55,9 +55,15 @@ function marketModelScore(x = {}) {
   } else if (market === "earned_runs_allowed") {
     score += 0.004;
     notes.push("earned runs model");
+  } else if (market.includes("hitter_fantasy") || market.includes("hitter_fantasy_score")) {
+    score += 0.006;
+    notes.push("verified hitter fantasy model");
+  } else if (market.includes("pitcher_fantasy") || market.includes("pitcher_fantasy_score")) {
+    score += 0.006;
+    notes.push("verified pitcher fantasy model");
   } else if (market.includes("fantasy")) {
-    score -= 0.025;
-    notes.push("fantasy scale not verified");
+    score += 0.004;
+    notes.push("verified fantasy scoring model");
   } else {
     score -= 0.01;
     notes.push("unsupported market model");
