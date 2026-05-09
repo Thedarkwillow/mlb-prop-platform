@@ -62,11 +62,21 @@ function enrichLeg(leg) {
     calibratedDistributionProb = Number(calibratedDistributionProb.toFixed(4));
   }
 
+  const isStrikeouts = market === "strikeouts";
+  const poissonStrikeoutsProb =
+    isStrikeouts && Number.isFinite(calibratedDistributionProb)
+      ? calibratedDistributionProb
+      : null;
+
   return {
     ...leg,
     distributionModel: distribution,
     distributionProb,
-    calibratedDistributionProb
+    calibratedDistributionProb,
+    poissonStrikeoutsProb,
+    probabilityModel: poissonStrikeoutsProb != null ? "poisson_strikeouts_v1" : leg.probabilityModel,
+    recommendedProb: poissonStrikeoutsProb != null ? poissonStrikeoutsProb : leg.recommendedProb,
+    prob: poissonStrikeoutsProb != null ? poissonStrikeoutsProb : leg.prob
   };
 }
 
