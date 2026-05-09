@@ -65,8 +65,9 @@
     "live": "npm run prizepicks && npm run snap && npm run picks && npm run sharp-mobile",
     "official": "node src/research/official-slip-summary.cjs",
     "nightly": "npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run learn:markets && npm run learn:report && npm run official",
-    "learn:markets": "node src/learning/build-market-learning.js",
-    "learn:report": "node src/learning/report-market-learning.js"
+    "learn:markets": "node src/reports/grade-all-markets.js && node src/learning/build-market-learning.js",
+    "learn:report": "node src/learning/report-market-learning.js",
+    "grade:all-markets": "node src/reports/grade-all-markets.js"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

@@ -1,6 +1,8 @@
 import fs from "fs";
 
 const RESULTS_PATHS = [
+  "outputs/all-markets-graded.json",
+  "data/results/all-markets-graded.json",
   "data/results/graded-props.json",
   "data/results/history.json",
   "outputs/graded-props.json",
@@ -20,17 +22,26 @@ function readJson(path) {
 }
 
 function findRows() {
+  const allRows = [];
+  const usedPaths = [];
+
   for (const p of RESULTS_PATHS) {
     const data = readJson(p);
     if (!data) continue;
 
-    if (Array.isArray(data)) return { path: p, rows: data };
-    if (Array.isArray(data.results)) return { path: p, rows: data.results };
-    if (Array.isArray(data.props)) return { path: p, rows: data.props };
-    if (Array.isArray(data.rows)) return { path: p, rows: data.rows };
+    let rows = [];
+    if (Array.isArray(data)) rows = data;
+    else if (Array.isArray(data.results)) rows = data.results;
+    else if (Array.isArray(data.props)) rows = data.props;
+    else if (Array.isArray(data.rows)) rows = data.rows;
+
+    if (rows.length) {
+      usedPaths.push(p);
+      for (const row of rows) allRows.push(row);
+    }
   }
 
-  return { path: null, rows: [] };
+  return { path: usedPaths.join(" + "), rows: allRows };
 }
 
 function normalizeMarket(row) {
