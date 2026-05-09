@@ -25,3 +25,4 @@ ballpark/package-lock.json
 # Local/live odds data
 data/oddsapi/
 data/vegas-raw.json
+snapshot-loop.log
