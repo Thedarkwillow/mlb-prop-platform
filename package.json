@@ -40,10 +40,11 @@
     "validate:final": "npm run grade && npm run roi && npm run save:history && npm run history:roi && npm run calibration:report && npm run clv:buckets && npm run mobile",
     "history:intel": "node src/research/history-intelligence.cjs",
     "daily-cycle": "npm run odds && npm run snap && npm run picks && npm run mobile && npm run decision",
-    "postgame-cycle": "npm run validation && npm run history:intel && npm run market:intel && npm run mobile",
+    "postgame-cycle": "npm run validation --date=${npm_config_date:-$(date +%F)} && npm run history:intel && npm run market:intel && npm run mobile --date=${npm_config_date:-$(date +%F)}",
     "full-cycle": "npm run daily-cycle && npm run postgame-cycle",
     "market:intel": "node src/research/market-intelligence.cjs",
-    "models:apply": "node src/research/apply-market-models.cjs"
+    "models:apply": "node src/research/apply-market-models.cjs",
+    "validation": "npm run grade --date=${npm_config_date:-$(date +%F)} && npm run roi --date=${npm_config_date:-$(date +%F)} && npm run save:history --date=${npm_config_date:-$(date +%F)} && npm run calibration:report --date=${npm_config_date:-$(date +%F)} && npm run clv --date=${npm_config_date:-$(date +%F)} && npm run clv:buckets --date=${npm_config_date:-$(date +%F)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
