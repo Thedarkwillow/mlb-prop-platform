@@ -32,6 +32,112 @@ const MAX_SPECIAL_PER_SLIP = {
 
 const DIVERSITY_PENALTY = 0.03;
 
+const LEARNING_PATH = 'data/learning/market-learning.json';
+
+function readJsonSafe(path, fallback = null) {
+  try {
+    if (!fs.existsSync(path)) return fallback;
+    return JSON.parse(fs.readFileSync(path, 'utf8'));
+  } catch {
+    return fallback;
+  }
+}
+
+const MARKET_LEARNING = readJsonSafe(LEARNING_PATH, {
+  byMarketDirectionBucket: {},
+  byMarketDirection: {},
+  byBucket: {}
+});
+
+function clampProb(v) {
+  const x = Number(v);
+  if (!Number.isFinite(x)) return null;
+  return Math.max(0.01, Math.min(0.99, x));
+}
+
+function probBucket(prob) {
+  const p = clampProb(prob);
+  if (p == null) return null;
+  const low = Math.floor(p * 20) / 20;
+  const high = low + 0.05;
+  return `${low.toFixed(2)}-${high.toFixed(2)}`;
+}
+
+function learningMarketKey(r) {
+  return String(r.market || r.stat || 'unknown')
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .trim();
+}
+
+function learningDirectionKey(r) {
+  return String(r.side || r.recommendedSide || r.pick || r.direction || '')
+    .toUpperCase()
+    .includes('LESS')
+    ? 'LESS'
+    : 'MORE';
+}
+
+function getLearningAdjustment(r, prob) {
+  const marketKey = learningMarketKey(r);
+  const directionKey = learningDirectionKey(r);
+  const bucket = probBucket(prob);
+
+  const bucketKey = `${marketKey}_${directionKey}_${bucket}`;
+  const mdKey = `${marketKey}_${directionKey}`;
+
+  const exact = MARKET_LEARNING.byMarketDirectionBucket?.[bucketKey];
+  const marketDirection = MARKET_LEARNING.byMarketDirection?.[mdKey];
+  const bucketOnly = MARKET_LEARNING.byBucket?.[bucket];
+
+  const chosen =
+    exact && exact.sample >= 50 ? exact :
+    marketDirection && marketDirection.sample >= 100 ? marketDirection :
+    bucketOnly && bucketOnly.sample >= 150 ? bucketOnly :
+    null;
+
+  if (!chosen) {
+    return {
+      applied: false,
+      key: null,
+      sample: 0,
+      multiplier: 1,
+      suppressed: false,
+      bias: 0
+    };
+  }
+
+  return {
+    applied: true,
+    key: exact === chosen ? bucketKey : marketDirection === chosen ? mdKey : bucket,
+    sample: chosen.sample || 0,
+    multiplier: Number(chosen.adjustmentMultiplier || 1),
+    suppressed: Boolean(chosen.suppressed),
+    bias: Number(chosen.bias || 0),
+    predicted: chosen.predicted ?? null,
+    actual: chosen.actual ?? null
+  };
+}
+
+function applyLearningToRow(r, prob) {
+  const p0 = clampProb(prob);
+  if (p0 == null) return { prob, learning: null };
+
+  const adj = getLearningAdjustment(r, p0);
+  const learnedProb = clampProb(p0 * adj.multiplier);
+
+  return {
+    prob: learnedProb ?? p0,
+    learning: {
+      ...adj,
+      originalProb: Number(p0.toFixed(4)),
+      learnedProb: Number((learnedProb ?? p0).toFixed(4))
+    }
+  };
+}
+
+
+
 function n(v) {
   const x = Number(v);
   return Number.isFinite(x) ? x : 0;
@@ -168,6 +274,7 @@ function dedupeRows(rows) {
 
 function normalizeForOptimizer(r) {
   const rawMarketText = String(r.market || r.stat || "").toLowerCase();
+
   if (rawMarketText.includes("fantasy")) {
     return {
       ...r,
@@ -175,32 +282,51 @@ function normalizeForOptimizer(r) {
       disabledReason: "fantasy scale not verified"
     };
   }
-  const line = n(r.line);
-  const proj = n(r.projection);
 
-  let side = String(r.side || r.recommendedSide || "").toUpperCase();
-  if (!side && line != null && proj != null) {
-    side = proj >= line ? "MORE" : "LESS";
+  const line = clampProb(null) ?? Number(r.line);
+  const proj = Number(r.projection);
+
+  let resolvedSide = String(r.side || r.recommendedSide || "").toUpperCase();
+  if (!resolvedSide && Number.isFinite(Number(r.line)) && Number.isFinite(proj)) {
+    resolvedSide = proj >= Number(r.line) ? "MORE" : "LESS";
   }
 
-  let prob = n(r.recommendedProb) ?? n(r.probability) ?? n(r.prob);
+  let prob =
+    clampProb(r.recommendedProb) ??
+    clampProb(r.probability) ??
+    clampProb(r.prob);
+
   if (prob == null) {
     const stat = String(r.stat || r.market || "").toLowerCase();
     const bp = r.ballpark || {};
-    if (stat.includes("hit") && bp.hitProbability != null) prob = n(bp.hitProbability);
-    else if (stat.includes("home run") && bp.homeRunProbability != null) prob = n(bp.homeRunProbability);
-    else if (stat.includes("stolen") && bp.stolenBaseProbability != null) prob = n(bp.stolenBaseProbability);
+    if (stat.includes("hit") && bp.hitProbability != null) prob = clampProb(bp.hitProbability);
+    else if (stat.includes("home run") && bp.homeRunProbability != null) prob = clampProb(bp.homeRunProbability);
+    else if (stat.includes("stolen") && bp.stolenBaseProbability != null) prob = clampProb(bp.stolenBaseProbability);
   }
-  if (prob == null && line != null && proj != null) {
-    const gap = Math.abs(proj - line);
+
+  if (prob == null && Number.isFinite(Number(r.line)) && Number.isFinite(proj)) {
+    const gap = Math.abs(proj - Number(r.line));
     prob = Math.max(0.51, Math.min(0.72, 0.52 + gap * 0.08));
   }
 
-  let ev = n(r.expectedValue);
-  if (ev == null && prob != null) ev = Number(((prob - 0.5) * 2).toFixed(3));
+  const preLearningProb = prob;
+  const learned = applyLearningToRow(
+    {
+      ...r,
+      side: resolvedSide,
+      recommendedSide: resolvedSide,
+      market: r.market || r.stat
+    },
+    prob
+  );
+
+  prob = learned.prob;
+
+  let ev = Number(r.expectedValue);
+  if (!Number.isFinite(ev) && prob != null) ev = Number(((prob - 0.5) * 2).toFixed(3));
 
   let confidenceBucket = r.confidenceBucket;
-  if (!confidenceBucket && prob != null) {
+  if (prob != null) {
     confidenceBucket =
       prob >= 0.66 ? "elite" :
       prob >= 0.60 ? "strong" :
@@ -210,15 +336,18 @@ function normalizeForOptimizer(r) {
 
   return {
     ...r,
-    side,
-    recommendedSide: side,
+    side: resolvedSide,
+    recommendedSide: resolvedSide,
+    rawRecommendedProb: preLearningProb,
     recommendedProb: prob,
+    learningAdjusted: Boolean(learned.learning?.applied),
+    learningSuppressed: Boolean(learned.learning?.suppressed),
+    learningAdjustment: learned.learning,
     expectedValue: ev,
     confidenceBucket,
-    market: r.market || r.stat,
+    market: r.market || r.stat
   };
 }
-
 function playable(r) {
   if (r.rankEligible === false) return false;
   if (
@@ -235,6 +364,7 @@ function playable(r) {
     // allow HRR/runs/RBIs again now that DK pricing can filter bad legs
     && !(market(r) === 'hits' && sideKey(r) === 'MORE' && tier(r) === 'goblin')
     && !(market(r) === 'strikeouts' && sideKey(r) === 'MORE')
+    && !r.learningSuppressed
     && !['pass'].includes(String(r.confidenceBucket || '').toLowerCase())
     && isValidGameAssignment(r)
     && projectionSanityOk(r)
