@@ -115,7 +115,9 @@ console.log("");
 console.log("WARNINGS");
 console.log("--------");
 if (unknownGraded > 0) console.log(`Games not final / unresolved graded legs: ${unknownGraded}`);
-if (finishedGraded === 0) console.log("No finished graded legs yet. ROI is not meaningful until games finish.");
+if ((roi?.gradedLegs || finishedGraded) === 0) {
+  console.log("No finished graded legs yet. ROI is not meaningful until games finish.");
+}
 if (unique.some(l => Number(l.books ?? l.sportsbookBookCount ?? 0) < 2)) {
   console.log("Some legs have low book support.");
 }
