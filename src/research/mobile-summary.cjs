@@ -51,7 +51,7 @@ const clv = Array.isArray(clvRows) && clvRows.length
     }
   : null;
 
-const roi = read(`outputs/roi-summary-${DATE}.json`, read("outputs/roi-summary.json", null));
+const roi = read(`outputs/roi-summary-${DATE}.json`, null);
 const graded = read(`outputs/playable-final-slips-graded-${DATE}.json`, []);
 
 const validatedRows = Array.isArray(validated) ? validated : [];
