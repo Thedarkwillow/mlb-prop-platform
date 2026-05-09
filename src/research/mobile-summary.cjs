@@ -22,12 +22,8 @@ function num(x, d = 4) {
 }
 
 function legLine(l, i) {
-  const intel = l.intelAdjustedEdge != null
-    ? ` | intelEdge=${num(l.intelAdjustedEdge)}`
-    : "";
-  const notes = Array.isArray(l.intelNotes) && l.intelNotes.length
-    ? ` | intel=${l.intelNotes.join("; ")}`
-    : "";
+  const intel = l.intelAdjustedEdge != null ? ` | intelEdge=${num(l.intelAdjustedEdge)}` : "";
+  const notes = Array.isArray(l.intelNotes) && l.intelNotes.length ? ` | intel=${l.intelNotes.join("; ")}` : "";
   return `${i + 1}. ${l.player} | ${l.team || ""} | ${l.game || ""} | ${l.market} ${l.side} ${l.line} | prob=${num(l.prob ?? l.calibratedDistributionProb)} | edge=${num(l.edge ?? l.sportsbookEdge)}${intel} | books=${l.books ?? l.sportsbookBookCount ?? "?"} | grade=${l.validationGrade || l.grade || "?"}${notes}`;
 }
 
