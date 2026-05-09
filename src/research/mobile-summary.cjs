@@ -55,7 +55,10 @@ const roi = read(`outputs/roi-summary-${DATE}.json`, read("outputs/roi-summary.j
 const graded = read(`outputs/playable-final-slips-graded-${DATE}.json`, []);
 
 const validatedRows = Array.isArray(validated) ? validated : [];
-const validatedLegs = validatedRows.filter(l => (l.validationGrade || l.grade || "GREEN") !== "WATCHLIST");
+const validatedLegs = validatedRows
+  .flatMap(x => Array.isArray(x.legs) ? x.legs : [x])
+  .filter(l => l && l.player)
+  .filter(l => (l.validationGrade || l.grade || "GREEN") !== "WATCHLIST");
 const sourceSlips = validatedLegs.length ? [{ legs: validatedLegs }] : playable;
 const allLegs = sourceSlips.flatMap(s => s.legs || [])
   .filter(l => (l.validationGrade || l.grade || "GREEN") !== "WATCHLIST");
