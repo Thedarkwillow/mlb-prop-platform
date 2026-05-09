@@ -65,4 +65,4 @@ rows.sort((a, b) =>
 fs.writeFileSync(FILE, JSON.stringify(rows, null, 2));
 
 console.log("MARKET INTELLIGENCE ADJUSTMENTS APPLIED");
-console.log(`rows: ${rows.length}`);
+console.log(`legs: ${legs.length}`);
