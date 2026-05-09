@@ -2,6 +2,9 @@ const fs = require("fs");
 
 const CAL = "outputs/warehouse-calibration-report.json";
 const OUT = "data/results/validation-rules.json";
+const MIN_SAMPLE_MAJOR = 30;
+const MIN_SAMPLE_NORMAL = 15;
+const MIN_SAMPLE_LIGHT = 8;
 
 function read(path, fallback) {
   try {
@@ -21,9 +24,19 @@ function ruleFromRow(type, row) {
   let action = "neutral";
   let adjustment = 0;
 
-  if (count < 5) {
+  if (count < MIN_SAMPLE_LIGHT) {
     action = "sample-too-small";
     adjustment = 0;
+  } else if (count < MIN_SAMPLE_NORMAL) {
+    action = "light-sample";
+    if (edge <= -0.20) adjustment = -0.02;
+    else if (edge >= 0.20) adjustment = 0.015;
+  } else if (count < MIN_SAMPLE_MAJOR) {
+    action = "medium-sample";
+    if (edge <= -0.20) adjustment = -0.04;
+    else if (edge <= -0.10) adjustment = -0.025;
+    else if (edge >= 0.15) adjustment = 0.02;
+    else if (edge >= 0.08) adjustment = 0.01;
   } else if (edge <= -0.20) {
     action = "major-downgrade";
     adjustment = -0.08;
@@ -56,7 +69,9 @@ if (!cal) throw new Error(`Missing ${CAL}. Run npm run warehouse:calibration fir
 const rules = {
   createdAt: new Date().toISOString(),
   source: CAL,
-  minSampleForAction: 5,
+  minSampleLight: MIN_SAMPLE_LIGHT,
+  minSampleNormal: MIN_SAMPLE_NORMAL,
+  minSampleMajor: MIN_SAMPLE_MAJOR,
   byProb: (cal.byProb || []).map(r => ruleFromRow("probability", r)),
   byMarket: (cal.byMarket || []).map(r => ruleFromRow("market", r)),
   byBooks: (cal.byBooks || []).map(r => ruleFromRow("books", r))
