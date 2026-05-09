@@ -71,7 +71,13 @@ function marketOf(row) {
 }
 
 function sideOf(row) {
-  return String(row.side || row.recommendedSide || row.pick || "").toUpperCase();
+  const raw = String(row.side || row.recommendedSide || row.pick || row.direction || row.type || "").toUpperCase();
+  if (raw.includes("LESS") || raw.includes("UNDER")) return "LESS";
+  if (raw.includes("MORE") || raw.includes("OVER")) return "MORE";
+
+  if (isFantasy(row)) return "MORE";
+
+  return "";
 }
 
 function isFantasy(row) {
@@ -109,11 +115,17 @@ function resultFor(actual, line, side) {
 }
 
 function flattenFantasyRows() {
-  const today = new Date().toISOString().slice(0, 10);
+  const tracking = readJson("outputs/fantasy-tracking.json", []);
+  const trackingRows = Array.isArray(tracking) ? tracking.filter(isFantasy) : [];
+  if (trackingRows.length) return trackingRows;
 
+  const withFantasy = readJson("outputs/slips-with-fantasy.json", []);
+  const withFantasyRows = Array.isArray(withFantasy) ? withFantasy.filter(isFantasy) : [];
+  if (withFantasyRows.length) return withFantasyRows;
+
+  const today = new Date().toISOString().slice(0, 10);
   const locked = readJson(LOCKED, []);
   const lockedLegs = locked.flatMap(s => s.legs || []).filter(isFantasy);
-
   if (date !== today) return lockedLegs;
   if (lockedLegs.length) return lockedLegs;
 

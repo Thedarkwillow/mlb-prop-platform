@@ -11,17 +11,15 @@ if (!input) {
 const rows = JSON.parse(fs.readFileSync(input, "utf8"));
 
 function market(stat) {
-  const s = String(stat || "").toLowerCase();
+  const s = String(stat || "").toLowerCase().trim();
 
   if (s === "pitcher fantasy score") return "pitcher_fantasy_score";
   if (s === "hitter fantasy score") return "hitter_fantasy_score";
-
   if (s === "pitcher strikeouts") return "strikeouts";
   if (s === "pitching outs") return "pitching_outs";
   if (s === "hits allowed") return "hits_allowed";
   if (s === "earned runs allowed") return "earned_runs_allowed";
   if (s === "walks allowed") return "walks_allowed";
-
   if (s === "hits+runs+rbis") return "hrr";
   if (s === "total bases") return "bases";
   if (s === "hits") return "hits";
@@ -33,21 +31,34 @@ function market(stat) {
 }
 
 function opponent(r) {
-  if (r.player_team === r.home_team) return r.away_team;
-  if (r.player_team === r.away_team) return r.home_team;
-  return null;
+  if (r.home_team && r.away_team) {
+    if (r.player_team === r.home_team) return r.away_team;
+    if (r.player_team === r.away_team) return r.home_team;
+  }
+
+  return r.opponent || r.description || null;
+}
+
+function gameString(r, opp) {
+  if (r.away_team && r.home_team) return `${r.away_team} @ ${r.home_team}`;
+  return `${r.player_team || "UNK"} @ ${opp || "UNK"}`;
 }
 
 const out = rows
-  .filter(r => r.league === "MLB" && !r.player_combo && r.event_type !== "combo")
+  .filter(r => String(r.league || "").toUpperCase() === "MLB")
+  .filter(r => !r.player_combo)
+  .filter(r => String(r.event_type || "").toLowerCase() !== "combo")
   .map(r => {
     const m = market(r.stat);
-    const opp = opponent(r);
-    if (!m || !opp) return null;
+    if (!m) return null;
 
     const isFantasy =
       m === "pitcher_fantasy_score" ||
       m === "hitter_fantasy_score";
+
+    const opp = opponent(r);
+
+    if (!opp && !isFantasy) return null;
 
     return {
       recordType: "merged_prop",
@@ -55,7 +66,7 @@ const out = rows
       player: r.player_name,
       team: r.player_team,
       opponent: opp,
-      game: `${r.away_team} @ ${r.home_team}`,
+      game: gameString(r, opp),
       stat: r.stat,
       market: m,
       line: Number(r.line),
@@ -67,12 +78,14 @@ const out = rows
       source: "apify_prizepicks",
       isFantasy,
       fantasyType: isFantasy ? m : null,
+      trackingOnly: isFantasy,
       rankEligible: !isFantasy,
-      disabledReason: isFantasy ? "fantasy scale not verified" : null
+      disabledReason: isFantasy ? "fantasy tracking only until validated" : null
     };
   })
   .filter(Boolean);
 
 fs.writeFileSync(output, JSON.stringify(out, null, 2));
+
 console.log(`Imported ${out.length} rows -> ${output}`);
 console.log("Fantasy rows:", out.filter(r => r.isFantasy).length);
