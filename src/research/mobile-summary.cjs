@@ -25,10 +25,21 @@ function legLine(l, i) {
   return `${i + 1}. ${l.player} | ${l.team || ""} | ${l.game || ""} | ${l.market} ${l.side} ${l.line} | prob=${num(l.prob ?? l.calibratedDistributionProb)} | edge=${num(l.edge ?? l.sportsbookEdge)} | books=${l.books ?? l.sportsbookBookCount ?? "?"} | grade=${l.validationGrade || l.grade || "?"}`;
 }
 
+function slipLabel(size) {
+  if (size === 2) return "2-MAN POWER";
+  if (size === 3) return "3-MAN FLEX";
+  if (size === 4) return "4-MAN FLEX";
+  if (size === 5) return "5-MAN FLEX";
+  if (size === 6) return "6-MAN FLEX";
+  return `${size}-MAN`;
+}
+
 const validated = read("outputs/final-slips-validated.json", []);
 const playable = read("outputs/playable-final-slips.json", []);
 const watchlist = read("outputs/watchlist-final-slips.json", []);
 const coverage = read("outputs/distribution-coverage-report.json", {});
+const validationRules = read("data/results/validation-rules.json", null);
+
 const clvRows = read(`outputs/clv-report-${DATE}.json`, []);
 const clv = Array.isArray(clvRows) && clvRows.length
   ? {
@@ -37,42 +48,33 @@ const clv = Array.isArray(clvRows) && clvRows.length
       beatCloseRate: clvRows.filter(x => x.beatClose).length / clvRows.length
     }
   : null;
+
 const roi = read(`outputs/roi-summary-${DATE}.json`, read("outputs/roi-summary.json", null));
-const validationRules = read("data/results/validation-rules.json", null);
 const graded = read(`outputs/playable-final-slips-graded-${DATE}.json`, []);
 
 const sourceSlips = Array.isArray(validated) && validated.length ? validated : playable;
 const allLegs = sourceSlips.flatMap(s => s.legs || [])
   .filter(l => (l.validationGrade || l.grade || "GREEN") !== "WATCHLIST");
+
 const unique = [];
 const seen = new Set();
+
 for (const l of allLegs) {
   const k = [l.player, l.market, l.side, l.line].join("|").toLowerCase();
   if (seen.has(k)) continue;
   seen.add(k);
   unique.push(l);
 }
+
 unique.sort((a, b) =>
   Number(b.score ?? b.sportsbookAdjustedEdge ?? b.edge ?? 0) -
   Number(a.score ?? a.sportsbookAdjustedEdge ?? a.edge ?? 0)
 );
 
-const gradedLegs = Array.isArray(graded)
-  ? graded.flatMap(s => s.legs || [])
-  : [];
+const gradedLegs = Array.isArray(graded) ? graded.flatMap(s => s.legs || []) : [];
 const unknownGraded = gradedLegs.filter(l => l.result === "UNKNOWN").length;
 const finishedGraded = gradedLegs.filter(l => ["HIT", "MISS", "PUSH"].includes(l.result)).length;
 
-console.log("MOBILE MLB PROP COMMAND CENTER");
-console.log("==============================");
-console.log(`Slate date: ${DATE}`);
-console.log(`Playable slips: ${playable.length}`);
-console.log(`Watchlist slips: ${watchlist.length}`);
-console.log(`Distribution coverage: ${coverage.coverage ?? coverage.overallCoverage ?? "unknown"}`);
-console.log("");
-
-console.log("BEST VALIDATED SLIP");
-console.log("-------------------");
 const validatedCandidates = (Array.isArray(validated) ? validated : [])
   .map(s => ({
     ...s,
@@ -85,15 +87,16 @@ const bestValidated =
   validatedCandidates[0] ||
   null;
 
-function slipLabel(size) {
-  if (size === 2) return "2-MAN POWER";
-  if (size === 3) return "3-MAN FLEX";
-  if (size === 4) return "4-MAN FLEX";
-  if (size === 5) return "5-MAN FLEX";
-  if (size === 6) return "6-MAN FLEX";
-  return `${size}-MAN`;
-}
+console.log("MOBILE MLB PROP COMMAND CENTER");
+console.log("==============================");
+console.log(`Slate date: ${DATE}`);
+console.log(`Playable slips: ${playable.length}`);
+console.log(`Watchlist slips: ${watchlist.length}`);
+console.log(`Distribution coverage: ${coverage.coverage ?? coverage.overallCoverage ?? "unknown"}`);
 
+console.log("");
+console.log("BEST VALIDATED SLIP");
+console.log("-------------------");
 if (!bestValidated) {
   console.log("None.");
 } else {
@@ -101,14 +104,14 @@ if (!bestValidated) {
   console.log(`${slipLabel(size)} | status=${bestValidated.status || "PLAYABLE"} | green=${size} | neutral=${bestValidated.neutral ?? 0}`);
   (bestValidated.legs || []).forEach((l, i) => console.log(legLine(l, i)));
 }
-console.log("");
 
+console.log("");
 console.log("TOP UNIQUE LEGS");
 console.log("---------------");
 unique.slice(0, 10).forEach((l, i) => console.log(legLine(l, i)));
 if (!unique.length) console.log("None.");
-console.log("");
 
+console.log("");
 console.log("CLV SUMMARY");
 console.log("-----------");
 if (!clv) {
@@ -118,8 +121,8 @@ if (!clv) {
   console.log(`Average CLV: ${Number(clv.avgClv).toFixed(2)} cents`);
   console.log(`Beat close: ${pct(clv.beatCloseRate)}`);
 }
-console.log("");
 
+console.log("");
 console.log("ROI SUMMARY");
 console.log("-----------");
 if (!roi) {
@@ -132,16 +135,33 @@ if (!roi) {
     }
   }
 }
-console.log("");
 
+console.log("");
+console.log("VALIDATION SAMPLE WARNINGS");
+console.log("--------------------------");
+if (!validationRules) {
+  console.log("No validation rules found. Run: npm run validation:rules");
+} else {
+  const lowSampleRules = [
+    ...(validationRules.byProb || []),
+    ...(validationRules.byMarket || []),
+    ...(validationRules.byBooks || [])
+  ].filter(r => r.action === "sample-too-small" || r.action === "light-sample");
+
+  if (!lowSampleRules.length) {
+    console.log("No low-sample warnings.");
+  } else {
+    lowSampleRules.slice(0, 8).forEach(r => {
+      console.log(`${r.type} ${r.bucket}: count=${r.count}, action=${r.action}, edge=${num(r.calibrationEdge)}, heldAdjustment=${num(r.adjustment)}`);
+    });
+  }
+}
+
+console.log("");
 console.log("WARNINGS");
 console.log("--------");
 if (unknownGraded > 0) console.log(`Games not final / unresolved graded legs: ${unknownGraded}`);
-if ((roi?.gradedLegs || finishedGraded) === 0) {
-  console.log("No finished graded legs yet. ROI is not meaningful until games finish.");
-}
-if (unique.some(l => Number(l.books ?? l.sportsbookBookCount ?? 0) < 2)) {
-  console.log("Some legs have low book support.");
-}
+if ((roi?.gradedLegs || finishedGraded) === 0) console.log("No finished graded legs yet. ROI is not meaningful until games finish.");
+if (unique.some(l => Number(l.books ?? l.sportsbookBookCount ?? 0) < 2)) console.log("Some legs have low book support.");
 if (!clv) console.log("CLV needs snapshots from: npm run snap");
 if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm run picks");
