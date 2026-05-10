@@ -81,8 +81,11 @@ function lineDeltaEdge(side, ppLine, bookLine) {
 function qualityScore(edge, books, savantGrade) {
   let score = Number(edge ?? -999);
 
-  if (books >= 3) score += 0.006;
+  // 4+ books is currently overconfident in validation history.
+  // Reward exactly 3 books, but do not blindly boost 4+ books yet.
+  if (books === 3) score += 0.006;
   else if (books === 2) score += 0.003;
+  else if (books >= 4) score -= 0.01;
 
   if (books <= 1) {
     score = Math.min(score, SINGLE_BOOK_EDGE_CAP);
