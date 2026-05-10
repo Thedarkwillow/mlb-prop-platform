@@ -551,7 +551,24 @@ const beforePlayable = rows.filter(r => r.recordType === 'merged_prop').length;
 const invalidGameRows = rows.filter(r => r.recordType === 'merged_prop' && !isValidGameAssignment(r)).length;
 
 const normalizedRows = rows.map(normalizeForOptimizer);
-const candidates = dedupeRows(normalizedRows.filter(playable))
+const baseCandidates = dedupeRows(normalizedRows.filter(playable));
+
+const standardKWatchlist = normalizedRows
+  .filter(r =>
+    r.recordType === 'merged_prop' &&
+    market(r) === 'strikeouts' &&
+    tier(r) === 'standard' &&
+    sideKey(r) === 'MORE' &&
+    isValidGameAssignment(r) &&
+    n(r.recommendedProb) >= 0.52 &&
+    !['pass'].includes(String(r.confidenceBucket || '').toLowerCase())
+  )
+  .map(r => ({
+    ...r,
+    kWatchlistCandidate: true
+  }));
+
+const candidates = dedupeRows([...baseCandidates, ...standardKWatchlist])
   .sort((a, b) => baseScore(b) - baseScore(a))
   .slice(0, MAX_CANDIDATES);
 

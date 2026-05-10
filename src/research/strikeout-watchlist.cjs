@@ -18,7 +18,8 @@ const ks = rows
     (r.side || r.recommendedSide) &&
     Number.isFinite(Number(r.recommendedProb)) &&
     Number(r.recommendedProb) >= 0.52 &&
-    !String(r.game || "").includes("null")
+    !String(r.game || "").includes("null") &&
+    !["pass"].includes(String(r.confidenceBucket || "").toLowerCase())
   )
   .sort((a,b) => Number(b.expectedValue || 0) - Number(a.expectedValue || 0));
 
