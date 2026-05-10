@@ -361,6 +361,10 @@ function hrrMoreAllowed(r) {
 
 function playable(r) {
   if (r.rankEligible === false) return false;
+
+  // HARD BLOCK: HRR MORE is historically underperforming.
+  // Do not allow it into slips unless we later build a dedicated override.
+  if (market(r) === 'hrr' && sideKey(r) === 'MORE') return false;
   const isStandardK = market(r) === 'strikeouts' && tier(r) === 'standard';
   if (
     r.isFantasy === true ||
