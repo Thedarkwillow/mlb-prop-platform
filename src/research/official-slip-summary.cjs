@@ -198,52 +198,34 @@ function printPlayableSlips() {
     s.complete === true
   );
 
+  console.log("");
+  console.log("BEST PLAYABLE SLIP");
+  console.log("------------------");
+
   if (!playable.length) {
-    console.log("");
-    console.log("PLAYABLE SLIPS");
-    console.log("--------------");
     console.log("none");
     return;
   }
 
-  console.log("");
-  console.log("PLAYABLE SLIPS");
-  console.log("--------------");
+  const best = playable
+    .slice()
+    .sort((a, b) => {
+      const ag = Number(a.green ?? (a.legs || []).filter(l => effectiveGrade(l) === "GREEN").length);
+      const bg = Number(b.green ?? (b.legs || []).filter(l => effectiveGrade(l) === "GREEN").length);
+      const al = (a.legs || []).length;
+      const bl = (b.legs || []).length;
+      return bg - ag || bl - al;
+    })[0];
 
-  for (const slip of playable) {
-    const name = slip.name || `${slip.size || (slip.legs || []).length}-MAN`;
-    const legs = slip.legs || [];
-    console.log(`${name} | legs=${legs.length} | green=${slip.green ?? legs.filter(l => effectiveGrade(l) === "GREEN").length} | correlation=${slip.correlation || "OK"}`);
+  const legs = best.legs || [];
+  console.log(`${best.name || best.type || "SLIP"} | legs=${legs.length} | green=${best.green ?? legs.filter(l => effectiveGrade(l) === "GREEN").length} | correlation=${best.correlation || "OK"}`);
 
-    legs.forEach((l, i) => {
-      console.log(
-        `  ${i + 1}. ${l.player} | ${l.team || ""} | ${l.market} ${l.side} ${l.line} | edge=${n(l.edge ?? l.sportsbookEdge)} | grade=${effectiveGrade(l)} | books=${l.books ?? l.sportsbookBookCount ?? ""}`
-      );
-    });
+  for (const [i, l] of legs.entries()) {
+    console.log(
+      `  ${i + 1}. ${l.player} | ${l.team || ""} | ${l.market} ${l.side} ${l.line} | edge=${n(l.edge)} | grade=${effectiveGrade(l)} | books=${l.books ?? ""}`
+    );
   }
 }
-
-function rankValue(l) {
-  return Number(
-    l.finalScore ??
-    l.score ??
-    l.calibratedDistributionProb ??
-    l.learnedProb ??
-    l.adjustedEdge ??
-    l.edge ??
-    l.sportsbookAdjustedEdge ??
-    l.sportsbookEdge ??
-    l.rawProb ??
-    0
-  );
-}
-function rankSort(a, b) {
-  return rankValue(b) - rankValue(a);
-}
-
-const greens = legs.filter(l => effectiveGrade(l) === "GREEN").sort(rankSort);
-const neutrals = legs.filter(l => effectiveGrade(l) === "NEUTRAL").sort(rankSort);
-const suppressed = legs.filter(l => effectiveGrade(l) === "SUPPRESSED").sort(rankSort);
 
 console.log("OFFICIAL SLIP DECISION");
 console.log("======================");
