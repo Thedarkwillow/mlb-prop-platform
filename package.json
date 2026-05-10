@@ -64,7 +64,7 @@
     "safe-mobile": "npm run freshness && npm run sharp-mobile",
     "live": "npm run prizepicks && npm run snap && npm run picks && npm run sharp-mobile",
     "official": "node src/research/official-slip-summary.cjs && npm run audit:final",
-    "nightly": "npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run learn:markets && npm run learn:report && npm run fantasy:learn && npm run official",
+    "nightly": "npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run learn:all && node src/jobs/slipBuilder.js && npm run picks && npm run official",
     "learn:markets": "node src/reports/grade-all-markets.js && node src/learning/build-market-learning.js",
     "learn:report": "node src/learning/report-market-learning.js",
     "grade:all-markets": "node src/reports/grade-all-markets.js",
