@@ -227,6 +227,29 @@ function printPlayableSlips() {
   }
 }
 
+function rankValue(l) {
+  return Number(
+    l.finalScore ??
+    l.score ??
+    l.calibratedDistributionProb ??
+    l.learnedProb ??
+    l.adjustedEdge ??
+    l.edge ??
+    l.sportsbookAdjustedEdge ??
+    l.sportsbookEdge ??
+    l.rawProb ??
+    0
+  );
+}
+
+function rankSort(a, b) {
+  return rankValue(b) - rankValue(a);
+}
+
+const greens = legs.filter(l => effectiveGrade(l) === "GREEN").sort(rankSort);
+const neutrals = legs.filter(l => effectiveGrade(l) === "NEUTRAL").sort(rankSort);
+const suppressed = legs.filter(l => effectiveGrade(l) === "SUPPRESSED").sort(rankSort);
+
 console.log("OFFICIAL SLIP DECISION");
 console.log("======================");
 console.log(`LEARNING SOURCE: ${learning.sourceFile || "none"} | rows=${learning.usableRows || 0}`);
