@@ -30,6 +30,23 @@ function readJson(path, fallback) {
   }
 }
 
+const BOOK_TRUST = readJson("data/learning/book-support-trust.json", { byBookBucket: {} });
+
+function bookTrustKey(books) {
+  const n = Number(books || 0);
+  if (n >= 4) return "4_plus_books";
+  if (n === 3) return "3_books";
+  if (n === 2) return "2_books";
+  if (n === 1) return "1_book";
+  return "0_books";
+}
+
+function bookTrustAdjustment(books) {
+  const rec = BOOK_TRUST.byBookBucket?.[bookTrustKey(books)];
+  return Number(rec?.adjustment || 0);
+}
+
+
 function normName(s) {
   return String(s || "")
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -81,11 +98,7 @@ function lineDeltaEdge(side, ppLine, bookLine) {
 function qualityScore(edge, books, savantGrade) {
   let score = Number(edge ?? -999);
 
-  // 4+ books is currently overconfident in validation history.
-  // Reward exactly 3 books, but do not blindly boost 4+ books yet.
-  if (books === 3) score += 0.006;
-  else if (books === 2) score += 0.003;
-  else if (books >= 4) score -= 0.01;
+  score += bookTrustAdjustment(books);
 
   if (books <= 1) {
     score = Math.min(score, SINGLE_BOOK_EDGE_CAP);
