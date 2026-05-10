@@ -71,7 +71,9 @@
     "fantasy:grade": "node src/jobs/gradeFantasyProps.cjs ${npm_config_date:-$(date +%F)}",
     "fantasy:report": "node src/research/daily-research-report.cjs",
     "fantasy:learn": "node src/learning/report-fantasy-learning.js",
-    "ks:watchlist": "node src/research/strikeout-watchlist.cjs"
+    "ks:watchlist": "node src/research/strikeout-watchlist.cjs",
+    "trust:markets": "node src/learning/build-market-trust.js",
+    "learn:all": "npm run learn:markets && npm run trust:markets && npm run learn:report && npm run fantasy:learn"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

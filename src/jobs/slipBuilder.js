@@ -33,6 +33,7 @@ const MAX_SPECIAL_PER_SLIP = {
 const DIVERSITY_PENALTY = 0.03;
 
 const LEARNING_PATH = 'data/learning/market-learning.json';
+const MARKET_TRUST_PATH = 'data/learning/market-trust.json';
 
 function readJsonSafe(path, fallback = null) {
   try {
@@ -47,6 +48,9 @@ const MARKET_LEARNING = readJsonSafe(LEARNING_PATH, {
   byMarketDirectionBucket: {},
   byMarketDirection: {},
   byBucket: {}
+});
+const MARKET_TRUST = readJsonSafe(MARKET_TRUST_PATH, {
+  byMarketDirection: {}
 });
 
 function clampProb(v) {
@@ -117,6 +121,22 @@ function getLearningAdjustment(r, prob) {
     predicted: chosen.predicted ?? null,
     actual: chosen.actual ?? null
   };
+}
+
+function marketTrustKey(r) {
+  return `${learningMarketKey(r)}_${learningDirectionKey(r)}`;
+}
+function getMarketTrust(r) {
+  return MARKET_TRUST.byMarketDirection?.[marketTrustKey(r)] || {
+    trust: 'unknown',
+    suppressed: false,
+    adjustmentMultiplier: 1,
+    sample: 0
+  };
+}
+function marketTrustAllowed(r) {
+  const t = getMarketTrust(r);
+  return !t.suppressed;
 }
 
 function applyLearningToRow(r, prob) {
@@ -381,6 +401,7 @@ function playable(r) {
     && !(market(r) === 'hits' && sideKey(r) === 'MORE' && tier(r) === 'goblin')
     // K MORE allowed now that strikeouts use Poisson probability.
     && !r.learningSuppressed
+    && marketTrustAllowed(r)
     && hrrMoreAllowed(r)
     && !['pass'].includes(String(r.confidenceBucket || '').toLowerCase())
     && isValidGameAssignment(r)
