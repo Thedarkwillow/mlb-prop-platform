@@ -183,9 +183,27 @@ for (const l of rawLegs) {
   legs.push(l);
 }
 
-const greens = legs.filter(l => effectiveGrade(l) === "GREEN").sort((a, b) => Number(b.learnedProb || 0) - Number(a.learnedProb || 0));
-const neutrals = legs.filter(l => effectiveGrade(l) === "NEUTRAL").sort((a, b) => Number(b.learnedProb || 0) - Number(a.learnedProb || 0));
-const suppressed = legs.filter(l => effectiveGrade(l) === "SUPPRESSED").sort((a, b) => Number(b.rawProb || 0) - Number(a.rawProb || 0));
+function rankValue(l) {
+  return Number(
+    l.finalScore ??
+    l.score ??
+    l.calibratedDistributionProb ??
+    l.learnedProb ??
+    l.adjustedEdge ??
+    l.edge ??
+    l.sportsbookAdjustedEdge ??
+    l.sportsbookEdge ??
+    l.rawProb ??
+    0
+  );
+}
+function rankSort(a, b) {
+  return rankValue(b) - rankValue(a);
+}
+
+const greens = legs.filter(l => effectiveGrade(l) === "GREEN").sort(rankSort);
+const neutrals = legs.filter(l => effectiveGrade(l) === "NEUTRAL").sort(rankSort);
+const suppressed = legs.filter(l => effectiveGrade(l) === "SUPPRESSED").sort(rankSort);
 
 console.log("OFFICIAL SLIP DECISION");
 console.log("======================");
