@@ -385,6 +385,10 @@ function playable(r) {
   // HARD BLOCK: HRR MORE is historically underperforming.
   // Do not allow it into slips unless we later build a dedicated override.
   if (market(r) === 'hrr' && sideKey(r) === 'MORE') return false;
+
+  // HARD BLOCK: runs MORE is currently 0-for-11 in graded history.
+  // Re-enable only after the market trust engine upgrades it.
+  if (market(r) === 'runs' && sideKey(r) === 'MORE') return false;
   const isStandardK = market(r) === 'strikeouts' && tier(r) === 'standard';
   if (
     r.isFantasy === true ||
