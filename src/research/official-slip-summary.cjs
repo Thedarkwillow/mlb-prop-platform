@@ -164,7 +164,9 @@ const learning = read("data/learning/market-learning.json", {
   byBucket: {}
 });
 
-const rows = read("outputs/final-slips-validated.json", []);
+const rows =
+  read("outputs/playable-final-slips.json", null) ||
+  read("outputs/final-slips-validated.json", []);
 const rawLegs = rows
   .flatMap(x => Array.isArray(x.legs) ? x.legs : [x])
   .filter(l => l && l.player)
