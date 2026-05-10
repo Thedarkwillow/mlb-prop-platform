@@ -207,15 +207,18 @@ function printPlayableSlips() {
     return;
   }
 
+  function slipScore(s) {
+    const legs = s.legs || [];
+    const avg = legs.reduce((sum, l) => sum + rankValue(l), 0) / Math.max(1, legs.length);
+    const green = Number(s.green ?? legs.filter(l => effectiveGrade(l) === "GREEN").length);
+    const sizePenalty = legs.length >= 5 ? 0.035 : legs.length === 4 ? 0.015 : 0;
+    const correlationPenalty = String(s.correlation || "OK") === "OK" ? 0 : 0.05;
+    return avg + green * 0.01 - sizePenalty - correlationPenalty;
+  }
+
   const best = playable
     .slice()
-    .sort((a, b) => {
-      const ag = Number(a.green ?? (a.legs || []).filter(l => effectiveGrade(l) === "GREEN").length);
-      const bg = Number(b.green ?? (b.legs || []).filter(l => effectiveGrade(l) === "GREEN").length);
-      const al = (a.legs || []).length;
-      const bl = (b.legs || []).length;
-      return bg - ag || bl - al;
-    })[0];
+    .sort((a, b) => slipScore(b) - slipScore(a))[0];
 
   const legs = best.legs || [];
   console.log(`${best.name || best.type || "SLIP"} | legs=${legs.length} | green=${best.green ?? legs.filter(l => effectiveGrade(l) === "GREEN").length} | correlation=${best.correlation || "OK"}`);
