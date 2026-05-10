@@ -348,6 +348,17 @@ function normalizeForOptimizer(r) {
     market: r.market || r.stat
   };
 }
+function hrrMoreAllowed(r) {
+  if (market(r) !== 'hrr' || sideKey(r) !== 'MORE') return true;
+  // HRR MORE is underperforming historically, so only allow extreme overrides.
+  return (
+    tier(r) === 'standard' &&
+    n(r.recommendedProb) >= 0.72 &&
+    n(r.expectedValue) >= 0.35 &&
+    String(r.confidenceBucket || '').toLowerCase() === 'elite'
+  );
+}
+
 function playable(r) {
   if (r.rankEligible === false) return false;
   const isStandardK = market(r) === 'strikeouts' && tier(r) === 'standard';
@@ -366,6 +377,7 @@ function playable(r) {
     && !(market(r) === 'hits' && sideKey(r) === 'MORE' && tier(r) === 'goblin')
     // K MORE allowed now that strikeouts use Poisson probability.
     && !r.learningSuppressed
+    && hrrMoreAllowed(r)
     && !['pass'].includes(String(r.confidenceBucket || '').toLowerCase())
     && isValidGameAssignment(r)
     && (isStandardK || projectionSanityOk(r))
