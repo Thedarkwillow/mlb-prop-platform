@@ -183,6 +183,46 @@ for (const l of rawLegs) {
   legs.push(l);
 }
 
+
+function playableSlipRows() {
+  const data = read("outputs/playable-final-slips.json", []);
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.slips)) return data.slips;
+  return [];
+}
+
+function printPlayableSlips() {
+  const slips = playableSlipRows();
+  const playable = slips.filter(s =>
+    String(s.status || "").toUpperCase() === "PLAYABLE" ||
+    s.complete === true
+  );
+
+  if (!playable.length) {
+    console.log("");
+    console.log("PLAYABLE SLIPS");
+    console.log("--------------");
+    console.log("none");
+    return;
+  }
+
+  console.log("");
+  console.log("PLAYABLE SLIPS");
+  console.log("--------------");
+
+  for (const slip of playable) {
+    const name = slip.name || `${slip.size || (slip.legs || []).length}-MAN`;
+    const legs = slip.legs || [];
+    console.log(`${name} | legs=${legs.length} | green=${slip.green ?? legs.filter(l => effectiveGrade(l) === "GREEN").length} | correlation=${slip.correlation || "OK"}`);
+
+    legs.forEach((l, i) => {
+      console.log(
+        `  ${i + 1}. ${l.player} | ${l.team || ""} | ${l.market} ${l.side} ${l.line} | edge=${n(l.edge ?? l.sportsbookEdge)} | grade=${effectiveGrade(l)} | books=${l.books ?? l.sportsbookBookCount ?? ""}`
+      );
+    });
+  }
+}
+
 function rankValue(l) {
   return Number(
     l.finalScore ??
@@ -250,3 +290,5 @@ if (Array.isArray(strikeoutWatchlist) && strikeoutWatchlist.length) {
     );
   });
 }
+
+printPlayableSlips();
