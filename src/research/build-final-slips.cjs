@@ -12,6 +12,29 @@ function readJson(path, fallback) {
 }
 
 const priced = readJson("outputs/slips-distribution-enriched.json", null) || readJson("outputs/slips-priced.json", []);
+const MARKET_TRUST = readJson("data/learning/market-trust.json", { byMarketDirection: {} });
+
+function sideKey(x) {
+  return String(x.side || x.recommendedSide || "").toUpperCase();
+}
+function trustKey(x) {
+  const market = String(x.market || x.stat || "unknown").toLowerCase().replace(/\s+/g, "_").trim();
+  return `${market}_${sideKey(x)}`;
+}
+function marketTrust(x) {
+  return MARKET_TRUST.byMarketDirection?.[trustKey(x)] || null;
+}
+function trustSuppressed(x) {
+  return Boolean(marketTrust(x)?.suppressed);
+}
+function trustScoreAdjustment(x) {
+  const t = marketTrust(x);
+  if (!t) return 0;
+  if (t.trust === "strong") return 0.025;
+  if (t.trust === "weak") return -0.04;
+  if (t.trust === "blocked") return -0.25;
+  return 0;
+}
 
 function normName(s) {
   return String(s || "")
@@ -21,6 +44,29 @@ function normName(s) {
     .replace(/\s+/g, " ")
     .trim()
     .toLowerCase();
+}
+
+
+function sideKey(x) {
+  return String(x.side || x.recommendedSide || "").toUpperCase();
+}
+function trustKey(x) {
+  const market = String(x.market || x.stat || "unknown").toLowerCase().replace(/\s+/g, "_").trim();
+  return `${market}_${sideKey(x)}`;
+}
+function marketTrust(x) {
+  return MARKET_TRUST.byMarketDirection?.[trustKey(x)] || null;
+}
+function trustSuppressed(x) {
+  return Boolean(marketTrust(x)?.suppressed);
+}
+function trustScoreAdjustment(x) {
+  const t = marketTrust(x);
+  if (!t) return 0;
+  if (t.trust === "strong") return 0.025;
+  if (t.trust === "weak") return -0.04;
+  if (t.trust === "blocked") return -0.25;
+  return 0;
 }
 
 function gameKey(x) {
@@ -71,6 +117,8 @@ function finalScore(x) {
 
   score += marketModel.marketModelScore;
   score += elite.contextScore;
+  score += trustScoreAdjustment(x);
+  score += trustScoreAdjustment(x);
 
   return Number(score.toFixed(4));
 }
@@ -133,6 +181,8 @@ function cleanLeg(x) {
       edge: x.sportsbookEdge
     }),
     marketModel: marketModelScore(x),
+    marketTrust: marketTrust(x),
+    marketTrust: marketTrust(x),
     marketSupportFlag: x.marketSupportFlag || null
   };
 }
@@ -200,6 +250,7 @@ function correlationLabel(legs) {
 }
 
 function isFinalCandidate(x) {
+  if (trustSuppressed(x)) return false;
   if (!x.sportsbookMatch) return false;
   if (typeof x.sportsbookEdge !== "number") return false;
   if (x.sportsbookEdge <= 0) return false;
