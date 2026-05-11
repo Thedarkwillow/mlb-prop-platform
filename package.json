@@ -91,14 +91,15 @@
     "pricing:unmatched": "node src/research/unmatched-pricing-diagnostics.cjs",
     "pregame:local": "npm run snap && npm run context:refresh && npm run picks && npm run pricing:unmatched && npm run steam && npm run bayes && npm run official && npm run context:guards && npm run clv && npm run clv:guard && npm run mobile && npm run decision && npm run audit:official",
     "context:guards": "node src/research/context-guards.cjs",
-    "context:refresh": "npm run context:lineups && npm run context:savant-catchers && npm run context:catchers && npm run context:umpscorecards && npm run context:umpire-scorecards && npm run context:today-umpires && node src/research/refresh-context.cjs",
+    "context:refresh": "npm run context:lineups && npm run context:savant-catchers && npm run context:catchers && npm run context:umpscorecards && npm run context:umpire-scorecards && npm run context:pull-today-umpires && npm run context:today-umpires && node src/research/refresh-context.cjs",
     "context:lineups": "node src/research/refresh-lineups.cjs",
     "context:catchers": "node src/research/import-catcher-framing.cjs",
     "context:umpires": "node src/research/import-umpires.cjs",
     "context:savant-catchers": "node src/research/pull-savant-catcher-framing.cjs",
     "context:umpire-scorecards": "node src/research/import-umpire-scorecards.cjs",
     "context:umpscorecards": "node src/research/pull-umpscorecards.cjs",
-    "context:today-umpires": "node src/research/import-today-umpires.cjs"
+    "context:today-umpires": "node src/research/import-today-umpires.cjs",
+    "context:pull-today-umpires": "node src/research/pull-today-umpires.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
