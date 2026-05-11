@@ -21,8 +21,8 @@ async function main() {
   const candidates = [
     `https://umpscorecards.com/data/umpires?season=${YEAR}&csv=true`,
     `https://www.umpscorecards.com/data/umpires?season=${YEAR}&csv=true`,
-    `https://umpscorecards.com/api/umpires?season=${YEAR}`,
-    `https://www.umpscorecards.com/api/umpires?season=${YEAR}`
+    `https://umpscorecards.com/api/games?season=${YEAR}`,
+    `https://www.umpscorecards.com/api/games?season=${YEAR}`
   ];
 
   for (const url of candidates) {
