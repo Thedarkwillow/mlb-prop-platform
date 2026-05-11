@@ -65,6 +65,7 @@ const volatility = readJson("data/learning/market-volatility.json", {});
 const weakEnv = readJson("data/learning/weak-environment-downgrades.json", {});
 const roiIntel = readJson("data/learning/roi-intelligence.json", {});
 const autoMarkets = readJson("data/learning/auto-market-adjustments.json", {});
+const eliteContextPack = readJson("data/context/elite-context-pack.json", {});
 
 function findByName(obj, nameKey) {
   if (!obj || !nameKey) return null;
@@ -235,7 +236,31 @@ export function applyPhase5ContextAdjustments(row) {
     adj.modules.weakEnvironment = weak;
   }
 
-  // 8. Feature attribution placeholder using ROI intelligence.
+  // 8. Elite context pack: batter/pitcher/environment score.
+  {
+    const eliteKey = [
+      keyName(row.player || row.playerName || row.name),
+      String(row.team || row.playerTeam || "").toUpperCase(),
+      market(row),
+      side(row)
+    ].join("|");
+
+    const elite = eliteContextPack.byKey?.[eliteKey];
+
+    if (elite) {
+      const eliteDelta = clamp(n(elite.totalDelta, 0), -0.075, 0.075);
+      add(adj, eliteDelta, `elite_context_${eliteDelta.toFixed(3)}`);
+      adj.modules.eliteContext = {
+        batter: elite.batter,
+        pitcher: elite.pitcher,
+        environment: elite.environment,
+        totalDelta: elite.totalDelta,
+        reasons: elite.reasons
+      };
+    }
+  }
+
+  // 9. Feature attribution placeholder using ROI intelligence.
   const roi =
     roiIntel.byMarketDirection?.[volKey] ||
     roiIntel.byMarket?.[m] ||
