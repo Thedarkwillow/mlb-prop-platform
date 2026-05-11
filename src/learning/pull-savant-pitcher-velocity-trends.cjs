@@ -11,6 +11,7 @@ const YEAR = Number(DATE.slice(0, 4));
 const SEASON_START = `${YEAR}-03-01`;
 
 const PROBABLES = "data/context/probable-pitcher-hands.json";
+const STAFFS = "data/context/pitching-staffs.json";
 const OUT = "data/savant/pitcher-velocity-trends.json";
 const RAW_DIR = "data/savant/velocity-raw";
 
@@ -28,6 +29,48 @@ function read(path, fallback = {}) {
   } catch {
     return fallback;
   }
+}
+
+function collectPitchers() {
+  const staffs = read(STAFFS, {});
+  const out = new Map();
+
+  for (const t of Object.values(staffs.teams || {})) {
+    const all = [
+      t.probableStarter,
+      ...(Array.isArray(t.bullpen) ? t.bullpen : [])
+    ].filter(Boolean);
+
+    for (const p of all) {
+      if (!p.name || !p.id) continue;
+      out.set(String(p.id), {
+        id: p.id,
+        pitcher: p.name,
+        team: p.team || t.team,
+        opponent: p.opponent || t.opponent,
+        hand: p.hand || null,
+        role: p.role || "staff"
+      });
+    }
+  }
+
+  // Fallback: starters only
+  if (!out.size) {
+    for (const [team, p] of Object.entries(probables.pitcherByTeam || {})) {
+      if (!p.pitcher || !p.id) continue;
+      out.set(String(p.id), {
+        id: p.id,
+        pitcher: p.pitcher,
+        team,
+        opponent: p.opponent || null,
+        hand: p.hand || null,
+        role: "probable_starter"
+      });
+    }
+  }
+
+  const max = Number(process.env.SAVANT_MAX_PITCHERS || 35);
+  return [...out.values()].slice(0, max);
 }
 
 function norm(v) {
@@ -268,8 +311,7 @@ async function main() {
   fs.mkdirSync(RAW_DIR, { recursive: true });
   fs.mkdirSync("data/savant", { recursive: true });
 
-  const probables = read(PROBABLES, {});
-  const pitchers = collectProbables(probables);
+  const pitchers = collectPitchers();
   const withIds = pitchers.filter(p => p.id);
   const missingIds = pitchers.filter(p => !p.id);
 
