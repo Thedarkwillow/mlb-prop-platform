@@ -16,7 +16,7 @@ function legSummaryByGrade(slip, grade) {
     .join("; ") || null;
 }
 
-const playable = readJson("outputs/playable-final-slips.json", []);
+const playable = readJson("outputs/official-slip.json", []);
 const watchlist = readJson("outputs/watchlist-final-slips.json", []);
 
 const completeWatchlist = watchlist.filter(x => x.complete);
@@ -26,7 +26,7 @@ console.log("\nDAILY BETTING DECISION\n");
 
 if (playable.length > 0) {
   console.log("DECISION: PLAY");
-  console.log(`Playable slips: ${playable.length}`);
+  console.log(`Official playable slips: ${playable.length}`);
   console.table(playable.map(x => ({
     slip: x.name,
     size: x.size,
