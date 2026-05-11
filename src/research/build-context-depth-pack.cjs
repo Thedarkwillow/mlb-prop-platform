@@ -88,6 +88,8 @@ function enrichPitcher(sp) {
     whip: n(stat.whip ?? sp.whip),
     fip: n(stat.fip ?? sp.fip),
     xfip: n(stat.xfip ?? sp.xfip),
+    fipSource: stat.fipSource ?? sp.fipSource ?? null,
+    xfipSource: stat.xfipSource ?? sp.xfipSource ?? null,
     kRate: n(stat.kRate ?? stat.kPct ?? adv.kRate ?? sp.kRate),
     bbRate: n(stat.bbRate ?? stat.bbPct ?? adv.bbRate ?? sp.bbRate),
     avgAgainst: n(stat.avgAgainst ?? sp.avgAgainst),
