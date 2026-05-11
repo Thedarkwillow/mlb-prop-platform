@@ -83,7 +83,8 @@
     "pregame": "npm run snap && npm run clv && npm run clv:guard && npm run mobile && npm run decision && npm run audit:official",
     "postgame:official": "npm run grade:official --date=${npm_config_date:-$(date +%F)} && npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run roi --date=${npm_config_date:-$(date +%F)} && npm run mobile --date=${npm_config_date:-$(date +%F)}",
     "learn:adaptive": "node src/learning/build-adaptive-calibration.cjs",
-    "clv:guard": "node src/research/clv-stoploss-guard.cjs"
+    "clv:guard": "node src/research/clv-stoploss-guard.cjs",
+    "match:diag": "node src/research/sportsbook-match-diagnostics.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
