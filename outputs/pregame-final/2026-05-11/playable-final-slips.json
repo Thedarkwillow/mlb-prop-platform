@@ -1,0 +1,1135 @@
+[
+  {
+    "name": "2-MAN POWER",
+    "size": 2,
+    "complete": true,
+    "green": 2,
+    "neutral": 0,
+    "watchlist": 0,
+    "fade": 0,
+    "correlation": "OK",
+    "legs": [
+      {
+        "player": "Aaron Judge",
+        "team": "NYY",
+        "game": "New York Yankees @ Baltimore Orioles",
+        "gamePk": 824844,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "NYY",
+        "resolvedGame": "New York Yankees @ Baltimore Orioles",
+        "resolvedGamePk": 824844,
+        "disabledReason": null,
+        "market": "bases",
+        "side": "MORE",
+        "line": 0.5,
+        "edge": 0.3969,
+        "adjustedEdge": 0.4029,
+        "finalScore": 0.5418,
+        "distributionProb": 0.9232,
+        "calibratedDistributionProb": 0.7328,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "BOOST",
+        "eliteContext": {
+          "contextScore": 0.037,
+          "contextNotes": [
+            "savant boost",
+            "strong book support",
+            "large raw edge"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "bases",
+          "marketModelScore": 0.05,
+          "marketModelNotes": [
+            "high calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "total bases model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 10,
+          "predicted": 0.7401,
+          "actual": 0.7,
+          "bias": -0.0401,
+          "adjustmentMultiplier": 1,
+          "trust": "unknown",
+          "suppressed": false,
+          "reason": "neutral_or_insufficient_edge"
+        },
+        "marketSupportFlag": "OK"
+      },
+      {
+        "player": "Josh Jung",
+        "team": "TEX",
+        "game": "Arizona Diamondbacks @ Texas Rangers",
+        "gamePk": 822901,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "TEX",
+        "resolvedGame": "Arizona Diamondbacks @ Texas Rangers",
+        "resolvedGamePk": 822901,
+        "disabledReason": null,
+        "market": "bases",
+        "side": "MORE",
+        "line": 0.5,
+        "edge": 0.3746,
+        "adjustedEdge": 0.3806,
+        "finalScore": 0.5058,
+        "distributionProb": 0.8457,
+        "calibratedDistributionProb": 0.6901,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "BOOST",
+        "eliteContext": {
+          "contextScore": 0.037,
+          "contextNotes": [
+            "savant boost",
+            "strong book support",
+            "large raw edge"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "bases",
+          "marketModelScore": 0.044,
+          "marketModelNotes": [
+            "solid calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "total bases model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 10,
+          "predicted": 0.7401,
+          "actual": 0.7,
+          "bias": -0.0401,
+          "adjustmentMultiplier": 1,
+          "trust": "unknown",
+          "suppressed": false,
+          "reason": "neutral_or_insufficient_edge"
+        },
+        "marketSupportFlag": "OK"
+      }
+    ],
+    "status": "PLAYABLE",
+    "removedOffSlateLegs": [],
+    "originalSize": 2,
+    "targetSize": 2
+  },
+  {
+    "name": "3-MAN FLEX",
+    "size": 3,
+    "complete": true,
+    "green": 3,
+    "neutral": 0,
+    "watchlist": 0,
+    "fade": 0,
+    "correlation": "OK",
+    "legs": [
+      {
+        "player": "Aaron Judge",
+        "team": "NYY",
+        "game": "New York Yankees @ Baltimore Orioles",
+        "gamePk": 824844,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "NYY",
+        "resolvedGame": "New York Yankees @ Baltimore Orioles",
+        "resolvedGamePk": 824844,
+        "disabledReason": null,
+        "market": "bases",
+        "side": "MORE",
+        "line": 0.5,
+        "edge": 0.3969,
+        "adjustedEdge": 0.4029,
+        "finalScore": 0.5418,
+        "distributionProb": 0.9232,
+        "calibratedDistributionProb": 0.7328,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "BOOST",
+        "eliteContext": {
+          "contextScore": 0.037,
+          "contextNotes": [
+            "savant boost",
+            "strong book support",
+            "large raw edge"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "bases",
+          "marketModelScore": 0.05,
+          "marketModelNotes": [
+            "high calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "total bases model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 10,
+          "predicted": 0.7401,
+          "actual": 0.7,
+          "bias": -0.0401,
+          "adjustmentMultiplier": 1,
+          "trust": "unknown",
+          "suppressed": false,
+          "reason": "neutral_or_insufficient_edge"
+        },
+        "marketSupportFlag": "OK"
+      },
+      {
+        "player": "Josh Jung",
+        "team": "TEX",
+        "game": "Arizona Diamondbacks @ Texas Rangers",
+        "gamePk": 822901,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "TEX",
+        "resolvedGame": "Arizona Diamondbacks @ Texas Rangers",
+        "resolvedGamePk": 822901,
+        "disabledReason": null,
+        "market": "bases",
+        "side": "MORE",
+        "line": 0.5,
+        "edge": 0.3746,
+        "adjustedEdge": 0.3806,
+        "finalScore": 0.5058,
+        "distributionProb": 0.8457,
+        "calibratedDistributionProb": 0.6901,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "BOOST",
+        "eliteContext": {
+          "contextScore": 0.037,
+          "contextNotes": [
+            "savant boost",
+            "strong book support",
+            "large raw edge"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "bases",
+          "marketModelScore": 0.044,
+          "marketModelNotes": [
+            "solid calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "total bases model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 10,
+          "predicted": 0.7401,
+          "actual": 0.7,
+          "bias": -0.0401,
+          "adjustmentMultiplier": 1,
+          "trust": "unknown",
+          "suppressed": false,
+          "reason": "neutral_or_insufficient_edge"
+        },
+        "marketSupportFlag": "OK"
+      },
+      {
+        "player": "Will Smith",
+        "team": "LAD",
+        "game": "San Francisco Giants @ Los Angeles Dodgers",
+        "gamePk": 823953,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "LAD",
+        "resolvedGame": "San Francisco Giants @ Los Angeles Dodgers",
+        "resolvedGamePk": 823953,
+        "disabledReason": null,
+        "market": "hrr",
+        "side": "LESS",
+        "line": 1.5,
+        "edge": 0.2362,
+        "adjustedEdge": 0.2422,
+        "finalScore": 0.3727,
+        "distributionProb": 1,
+        "calibratedDistributionProb": 0.775,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 2,
+        "savant": "BOOST",
+        "eliteContext": {
+          "contextScore": 0.012,
+          "contextNotes": [
+            "savant boost"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "hrr",
+          "marketModelScore": 0.034,
+          "marketModelNotes": [
+            "high calibrated probability",
+            "strong adjusted edge",
+            "hrr model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 537,
+          "predicted": 0.6643,
+          "actual": 0.8547,
+          "bias": 0.1904,
+          "adjustmentMultiplier": 1.1333,
+          "trust": "strong",
+          "suppressed": false,
+          "reason": "historical_outperformance"
+        },
+        "marketSupportFlag": "OK"
+      }
+    ],
+    "status": "PLAYABLE",
+    "removedOffSlateLegs": [],
+    "originalSize": 3,
+    "targetSize": 3
+  },
+  {
+    "name": "4-MAN FLEX",
+    "size": 4,
+    "complete": true,
+    "green": 4,
+    "neutral": 0,
+    "watchlist": 0,
+    "fade": 0,
+    "correlation": "OK",
+    "legs": [
+      {
+        "player": "Aaron Judge",
+        "team": "NYY",
+        "game": "New York Yankees @ Baltimore Orioles",
+        "gamePk": 824844,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "NYY",
+        "resolvedGame": "New York Yankees @ Baltimore Orioles",
+        "resolvedGamePk": 824844,
+        "disabledReason": null,
+        "market": "bases",
+        "side": "MORE",
+        "line": 0.5,
+        "edge": 0.3969,
+        "adjustedEdge": 0.4029,
+        "finalScore": 0.5418,
+        "distributionProb": 0.9232,
+        "calibratedDistributionProb": 0.7328,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "BOOST",
+        "eliteContext": {
+          "contextScore": 0.037,
+          "contextNotes": [
+            "savant boost",
+            "strong book support",
+            "large raw edge"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "bases",
+          "marketModelScore": 0.05,
+          "marketModelNotes": [
+            "high calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "total bases model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 10,
+          "predicted": 0.7401,
+          "actual": 0.7,
+          "bias": -0.0401,
+          "adjustmentMultiplier": 1,
+          "trust": "unknown",
+          "suppressed": false,
+          "reason": "neutral_or_insufficient_edge"
+        },
+        "marketSupportFlag": "OK"
+      },
+      {
+        "player": "Josh Jung",
+        "team": "TEX",
+        "game": "Arizona Diamondbacks @ Texas Rangers",
+        "gamePk": 822901,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "TEX",
+        "resolvedGame": "Arizona Diamondbacks @ Texas Rangers",
+        "resolvedGamePk": 822901,
+        "disabledReason": null,
+        "market": "bases",
+        "side": "MORE",
+        "line": 0.5,
+        "edge": 0.3746,
+        "adjustedEdge": 0.3806,
+        "finalScore": 0.5058,
+        "distributionProb": 0.8457,
+        "calibratedDistributionProb": 0.6901,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "BOOST",
+        "eliteContext": {
+          "contextScore": 0.037,
+          "contextNotes": [
+            "savant boost",
+            "strong book support",
+            "large raw edge"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "bases",
+          "marketModelScore": 0.044,
+          "marketModelNotes": [
+            "solid calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "total bases model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 10,
+          "predicted": 0.7401,
+          "actual": 0.7,
+          "bias": -0.0401,
+          "adjustmentMultiplier": 1,
+          "trust": "unknown",
+          "suppressed": false,
+          "reason": "neutral_or_insufficient_edge"
+        },
+        "marketSupportFlag": "OK"
+      },
+      {
+        "player": "Will Smith",
+        "team": "LAD",
+        "game": "San Francisco Giants @ Los Angeles Dodgers",
+        "gamePk": 823953,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "LAD",
+        "resolvedGame": "San Francisco Giants @ Los Angeles Dodgers",
+        "resolvedGamePk": 823953,
+        "disabledReason": null,
+        "market": "hrr",
+        "side": "LESS",
+        "line": 1.5,
+        "edge": 0.2362,
+        "adjustedEdge": 0.2422,
+        "finalScore": 0.3727,
+        "distributionProb": 1,
+        "calibratedDistributionProb": 0.775,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 2,
+        "savant": "BOOST",
+        "eliteContext": {
+          "contextScore": 0.012,
+          "contextNotes": [
+            "savant boost"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "hrr",
+          "marketModelScore": 0.034,
+          "marketModelNotes": [
+            "high calibrated probability",
+            "strong adjusted edge",
+            "hrr model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 537,
+          "predicted": 0.6643,
+          "actual": 0.8547,
+          "bias": 0.1904,
+          "adjustmentMultiplier": 1.1333,
+          "trust": "strong",
+          "suppressed": false,
+          "reason": "historical_outperformance"
+        },
+        "marketSupportFlag": "OK"
+      },
+      {
+        "player": "Cal Raleigh",
+        "team": "SEA",
+        "game": "Seattle Mariners @ Houston Astros",
+        "gamePk": 824199,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "SEA",
+        "resolvedGame": "Seattle Mariners @ Houston Astros",
+        "resolvedGamePk": 824199,
+        "disabledReason": null,
+        "market": "hrr",
+        "side": "LESS",
+        "line": 1.5,
+        "edge": 0.185,
+        "adjustedEdge": 0.173,
+        "finalScore": 0.2905,
+        "distributionProb": 1,
+        "calibratedDistributionProb": 0.775,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "DOWNGRADE",
+        "eliteContext": {
+          "contextScore": 0.003,
+          "contextNotes": [
+            "savant downgrade",
+            "strong book support"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "hrr",
+          "marketModelScore": 0.03,
+          "marketModelNotes": [
+            "high calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "hrr model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 537,
+          "predicted": 0.6643,
+          "actual": 0.8547,
+          "bias": 0.1904,
+          "adjustmentMultiplier": 1.1333,
+          "trust": "strong",
+          "suppressed": false,
+          "reason": "historical_outperformance"
+        },
+        "marketSupportFlag": "OK"
+      }
+    ],
+    "status": "PLAYABLE",
+    "removedOffSlateLegs": [],
+    "originalSize": 4,
+    "targetSize": 4
+  },
+  {
+    "name": "5-MAN FLEX",
+    "size": 5,
+    "complete": true,
+    "green": 5,
+    "neutral": 0,
+    "watchlist": 0,
+    "fade": 0,
+    "correlation": "OK",
+    "legs": [
+      {
+        "player": "Aaron Judge",
+        "team": "NYY",
+        "game": "New York Yankees @ Baltimore Orioles",
+        "gamePk": 824844,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "NYY",
+        "resolvedGame": "New York Yankees @ Baltimore Orioles",
+        "resolvedGamePk": 824844,
+        "disabledReason": null,
+        "market": "bases",
+        "side": "MORE",
+        "line": 0.5,
+        "edge": 0.3969,
+        "adjustedEdge": 0.4029,
+        "finalScore": 0.5418,
+        "distributionProb": 0.9232,
+        "calibratedDistributionProb": 0.7328,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "BOOST",
+        "eliteContext": {
+          "contextScore": 0.037,
+          "contextNotes": [
+            "savant boost",
+            "strong book support",
+            "large raw edge"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "bases",
+          "marketModelScore": 0.05,
+          "marketModelNotes": [
+            "high calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "total bases model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 10,
+          "predicted": 0.7401,
+          "actual": 0.7,
+          "bias": -0.0401,
+          "adjustmentMultiplier": 1,
+          "trust": "unknown",
+          "suppressed": false,
+          "reason": "neutral_or_insufficient_edge"
+        },
+        "marketSupportFlag": "OK"
+      },
+      {
+        "player": "Josh Jung",
+        "team": "TEX",
+        "game": "Arizona Diamondbacks @ Texas Rangers",
+        "gamePk": 822901,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "TEX",
+        "resolvedGame": "Arizona Diamondbacks @ Texas Rangers",
+        "resolvedGamePk": 822901,
+        "disabledReason": null,
+        "market": "bases",
+        "side": "MORE",
+        "line": 0.5,
+        "edge": 0.3746,
+        "adjustedEdge": 0.3806,
+        "finalScore": 0.5058,
+        "distributionProb": 0.8457,
+        "calibratedDistributionProb": 0.6901,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "BOOST",
+        "eliteContext": {
+          "contextScore": 0.037,
+          "contextNotes": [
+            "savant boost",
+            "strong book support",
+            "large raw edge"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "bases",
+          "marketModelScore": 0.044,
+          "marketModelNotes": [
+            "solid calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "total bases model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 10,
+          "predicted": 0.7401,
+          "actual": 0.7,
+          "bias": -0.0401,
+          "adjustmentMultiplier": 1,
+          "trust": "unknown",
+          "suppressed": false,
+          "reason": "neutral_or_insufficient_edge"
+        },
+        "marketSupportFlag": "OK"
+      },
+      {
+        "player": "Will Smith",
+        "team": "LAD",
+        "game": "San Francisco Giants @ Los Angeles Dodgers",
+        "gamePk": 823953,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "LAD",
+        "resolvedGame": "San Francisco Giants @ Los Angeles Dodgers",
+        "resolvedGamePk": 823953,
+        "disabledReason": null,
+        "market": "hrr",
+        "side": "LESS",
+        "line": 1.5,
+        "edge": 0.2362,
+        "adjustedEdge": 0.2422,
+        "finalScore": 0.3727,
+        "distributionProb": 1,
+        "calibratedDistributionProb": 0.775,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 2,
+        "savant": "BOOST",
+        "eliteContext": {
+          "contextScore": 0.012,
+          "contextNotes": [
+            "savant boost"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "hrr",
+          "marketModelScore": 0.034,
+          "marketModelNotes": [
+            "high calibrated probability",
+            "strong adjusted edge",
+            "hrr model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 537,
+          "predicted": 0.6643,
+          "actual": 0.8547,
+          "bias": 0.1904,
+          "adjustmentMultiplier": 1.1333,
+          "trust": "strong",
+          "suppressed": false,
+          "reason": "historical_outperformance"
+        },
+        "marketSupportFlag": "OK"
+      },
+      {
+        "player": "Cal Raleigh",
+        "team": "SEA",
+        "game": "Seattle Mariners @ Houston Astros",
+        "gamePk": 824199,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "SEA",
+        "resolvedGame": "Seattle Mariners @ Houston Astros",
+        "resolvedGamePk": 824199,
+        "disabledReason": null,
+        "market": "hrr",
+        "side": "LESS",
+        "line": 1.5,
+        "edge": 0.185,
+        "adjustedEdge": 0.173,
+        "finalScore": 0.2905,
+        "distributionProb": 1,
+        "calibratedDistributionProb": 0.775,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "DOWNGRADE",
+        "eliteContext": {
+          "contextScore": 0.003,
+          "contextNotes": [
+            "savant downgrade",
+            "strong book support"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "hrr",
+          "marketModelScore": 0.03,
+          "marketModelNotes": [
+            "high calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "hrr model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 537,
+          "predicted": 0.6643,
+          "actual": 0.8547,
+          "bias": 0.1904,
+          "adjustmentMultiplier": 1.1333,
+          "trust": "strong",
+          "suppressed": false,
+          "reason": "historical_outperformance"
+        },
+        "marketSupportFlag": "OK"
+      },
+      {
+        "player": "Zach Neto",
+        "team": "LAA",
+        "game": "Los Angeles Angels @ Cleveland Guardians",
+        "gamePk": 824441,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "LAA",
+        "resolvedGame": "Los Angeles Angels @ Cleveland Guardians",
+        "resolvedGamePk": 824441,
+        "disabledReason": null,
+        "market": "hrr",
+        "side": "LESS",
+        "line": 1.5,
+        "edge": 0.1768,
+        "adjustedEdge": 0.1648,
+        "finalScore": 0.2823,
+        "distributionProb": 1,
+        "calibratedDistributionProb": 0.775,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "DOWNGRADE",
+        "eliteContext": {
+          "contextScore": 0.003,
+          "contextNotes": [
+            "savant downgrade",
+            "strong book support"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "hrr",
+          "marketModelScore": 0.03,
+          "marketModelNotes": [
+            "high calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "hrr model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 537,
+          "predicted": 0.6643,
+          "actual": 0.8547,
+          "bias": 0.1904,
+          "adjustmentMultiplier": 1.1333,
+          "trust": "strong",
+          "suppressed": false,
+          "reason": "historical_outperformance"
+        },
+        "marketSupportFlag": "OK"
+      }
+    ],
+    "status": "PLAYABLE",
+    "removedOffSlateLegs": [],
+    "originalSize": 5,
+    "targetSize": 5
+  },
+  {
+    "name": "6-MAN FLEX",
+    "size": 6,
+    "complete": true,
+    "green": 6,
+    "neutral": 0,
+    "watchlist": 0,
+    "fade": 0,
+    "correlation": "OK",
+    "legs": [
+      {
+        "player": "Aaron Judge",
+        "team": "NYY",
+        "game": "New York Yankees @ Baltimore Orioles",
+        "gamePk": 824844,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "NYY",
+        "resolvedGame": "New York Yankees @ Baltimore Orioles",
+        "resolvedGamePk": 824844,
+        "disabledReason": null,
+        "market": "bases",
+        "side": "MORE",
+        "line": 0.5,
+        "edge": 0.3969,
+        "adjustedEdge": 0.4029,
+        "finalScore": 0.5418,
+        "distributionProb": 0.9232,
+        "calibratedDistributionProb": 0.7328,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "BOOST",
+        "eliteContext": {
+          "contextScore": 0.037,
+          "contextNotes": [
+            "savant boost",
+            "strong book support",
+            "large raw edge"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "bases",
+          "marketModelScore": 0.05,
+          "marketModelNotes": [
+            "high calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "total bases model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 10,
+          "predicted": 0.7401,
+          "actual": 0.7,
+          "bias": -0.0401,
+          "adjustmentMultiplier": 1,
+          "trust": "unknown",
+          "suppressed": false,
+          "reason": "neutral_or_insufficient_edge"
+        },
+        "marketSupportFlag": "OK"
+      },
+      {
+        "player": "Josh Jung",
+        "team": "TEX",
+        "game": "Arizona Diamondbacks @ Texas Rangers",
+        "gamePk": 822901,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "TEX",
+        "resolvedGame": "Arizona Diamondbacks @ Texas Rangers",
+        "resolvedGamePk": 822901,
+        "disabledReason": null,
+        "market": "bases",
+        "side": "MORE",
+        "line": 0.5,
+        "edge": 0.3746,
+        "adjustedEdge": 0.3806,
+        "finalScore": 0.5058,
+        "distributionProb": 0.8457,
+        "calibratedDistributionProb": 0.6901,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "BOOST",
+        "eliteContext": {
+          "contextScore": 0.037,
+          "contextNotes": [
+            "savant boost",
+            "strong book support",
+            "large raw edge"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "bases",
+          "marketModelScore": 0.044,
+          "marketModelNotes": [
+            "solid calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "total bases model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 10,
+          "predicted": 0.7401,
+          "actual": 0.7,
+          "bias": -0.0401,
+          "adjustmentMultiplier": 1,
+          "trust": "unknown",
+          "suppressed": false,
+          "reason": "neutral_or_insufficient_edge"
+        },
+        "marketSupportFlag": "OK"
+      },
+      {
+        "player": "Will Smith",
+        "team": "LAD",
+        "game": "San Francisco Giants @ Los Angeles Dodgers",
+        "gamePk": 823953,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "LAD",
+        "resolvedGame": "San Francisco Giants @ Los Angeles Dodgers",
+        "resolvedGamePk": 823953,
+        "disabledReason": null,
+        "market": "hrr",
+        "side": "LESS",
+        "line": 1.5,
+        "edge": 0.2362,
+        "adjustedEdge": 0.2422,
+        "finalScore": 0.3727,
+        "distributionProb": 1,
+        "calibratedDistributionProb": 0.775,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 2,
+        "savant": "BOOST",
+        "eliteContext": {
+          "contextScore": 0.012,
+          "contextNotes": [
+            "savant boost"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "hrr",
+          "marketModelScore": 0.034,
+          "marketModelNotes": [
+            "high calibrated probability",
+            "strong adjusted edge",
+            "hrr model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 537,
+          "predicted": 0.6643,
+          "actual": 0.8547,
+          "bias": 0.1904,
+          "adjustmentMultiplier": 1.1333,
+          "trust": "strong",
+          "suppressed": false,
+          "reason": "historical_outperformance"
+        },
+        "marketSupportFlag": "OK"
+      },
+      {
+        "player": "Cal Raleigh",
+        "team": "SEA",
+        "game": "Seattle Mariners @ Houston Astros",
+        "gamePk": 824199,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "SEA",
+        "resolvedGame": "Seattle Mariners @ Houston Astros",
+        "resolvedGamePk": 824199,
+        "disabledReason": null,
+        "market": "hrr",
+        "side": "LESS",
+        "line": 1.5,
+        "edge": 0.185,
+        "adjustedEdge": 0.173,
+        "finalScore": 0.2905,
+        "distributionProb": 1,
+        "calibratedDistributionProb": 0.775,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "DOWNGRADE",
+        "eliteContext": {
+          "contextScore": 0.003,
+          "contextNotes": [
+            "savant downgrade",
+            "strong book support"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "hrr",
+          "marketModelScore": 0.03,
+          "marketModelNotes": [
+            "high calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "hrr model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 537,
+          "predicted": 0.6643,
+          "actual": 0.8547,
+          "bias": 0.1904,
+          "adjustmentMultiplier": 1.1333,
+          "trust": "strong",
+          "suppressed": false,
+          "reason": "historical_outperformance"
+        },
+        "marketSupportFlag": "OK"
+      },
+      {
+        "player": "Zach Neto",
+        "team": "LAA",
+        "game": "Los Angeles Angels @ Cleveland Guardians",
+        "gamePk": 824441,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "LAA",
+        "resolvedGame": "Los Angeles Angels @ Cleveland Guardians",
+        "resolvedGamePk": 824441,
+        "disabledReason": null,
+        "market": "hrr",
+        "side": "LESS",
+        "line": 1.5,
+        "edge": 0.1768,
+        "adjustedEdge": 0.1648,
+        "finalScore": 0.2823,
+        "distributionProb": 1,
+        "calibratedDistributionProb": 0.775,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "DOWNGRADE",
+        "eliteContext": {
+          "contextScore": 0.003,
+          "contextNotes": [
+            "savant downgrade",
+            "strong book support"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "hrr",
+          "marketModelScore": 0.03,
+          "marketModelNotes": [
+            "high calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "hrr model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 537,
+          "predicted": 0.6643,
+          "actual": 0.8547,
+          "bias": 0.1904,
+          "adjustmentMultiplier": 1.1333,
+          "trust": "strong",
+          "suppressed": false,
+          "reason": "historical_outperformance"
+        },
+        "marketSupportFlag": "OK"
+      },
+      {
+        "player": "Brandon Valenzuela",
+        "team": "TOR",
+        "game": "Tampa Bay Rays @ Toronto Blue Jays",
+        "gamePk": 822986,
+        "teamResolved": true,
+        "teamValid": true,
+        "teamResolverStatus": "corrected",
+        "resolvedTeam": "TOR",
+        "resolvedGame": "Tampa Bay Rays @ Toronto Blue Jays",
+        "resolvedGamePk": 822818,
+        "disabledReason": null,
+        "market": "hits",
+        "side": "LESS",
+        "line": 0.5,
+        "edge": 0.1025,
+        "adjustedEdge": 0.0905,
+        "finalScore": 0.0778,
+        "distributionProb": 0.4724,
+        "calibratedDistributionProb": 0.4848,
+        "distributionConfidence": "LOW",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "DOWNGRADE",
+        "eliteContext": {
+          "contextScore": 0.003,
+          "contextNotes": [
+            "savant downgrade",
+            "strong book support"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "hits",
+          "marketModelScore": 0.002,
+          "marketModelNotes": [
+            "thin calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "hitter hits model"
+          ]
+        },
+        "marketTrust": null,
+        "marketSupportFlag": "OK"
+      }
+    ],
+    "status": "PLAYABLE",
+    "removedOffSlateLegs": [],
+    "originalSize": 6,
+    "targetSize": 6
+  }
+]

@@ -1,0 +1,6 @@
+OFFICIAL PLAYABLE SLIPS
+=======================
+
+2-MAN POWER | status=PLAYABLE | green=2 | correlation=OK
+1. Aaron Judge | NYY | bases MORE 0.5 | edge=0.3969 | grade=GREEN | books=3
+2. Josh Jung | TEX | bases MORE 0.5 | edge=0.3746 | grade=GREEN | books=3

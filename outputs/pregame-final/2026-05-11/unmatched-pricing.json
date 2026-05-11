@@ -1,0 +1,373 @@
+[
+  {
+    "player": "Ryan Weathers",
+    "team": "NYY",
+    "game": "NYY @ BAL",
+    "market": "hits",
+    "side": "LESS",
+    "ppLine": 4.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "earned_runs_allowed",
+      "hits_allowed",
+      "pitching_outs",
+      "strikeouts"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "Trevor McDonald",
+    "team": "SF",
+    "game": "SF @ LAD",
+    "market": "hits",
+    "side": "LESS",
+    "ppLine": 5.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "earned_runs_allowed",
+      "hits_allowed",
+      "pitching_outs",
+      "strikeouts"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "George Kirby",
+    "team": "SEA",
+    "game": "SEA @ HOU",
+    "market": "hits",
+    "side": "LESS",
+    "ppLine": 5.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "earned_runs_allowed",
+      "hits_allowed",
+      "pitching_outs",
+      "strikeouts"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "Peter Lambert",
+    "team": "HOU",
+    "game": "SEA @ HOU",
+    "market": "runs",
+    "side": "LESS",
+    "ppLine": 2.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "earned_runs_allowed",
+      "hits_allowed",
+      "pitching_outs",
+      "strikeouts"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "Roki Sasaki",
+    "team": "LAD",
+    "game": "SF @ LAD",
+    "market": "runs",
+    "side": "LESS",
+    "ppLine": 2.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "earned_runs_allowed",
+      "hits_allowed",
+      "pitching_outs",
+      "strikeouts"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "Ernie Clement",
+    "team": "TOR",
+    "game": "TOR @ TB",
+    "market": "hrr",
+    "side": "LESS",
+    "ppLine": 1.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "bases",
+      "hits",
+      "home_runs",
+      "rbis"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "Corbin Carroll",
+    "team": "AZ",
+    "game": "AZ @ TEX",
+    "market": "hrr",
+    "side": "LESS",
+    "ppLine": 1.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "bases",
+      "hits",
+      "home_runs",
+      "rbis",
+      "walks"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "Ketel Marte",
+    "team": "AZ",
+    "game": "AZ @ TEX",
+    "market": "hrr",
+    "side": "LESS",
+    "ppLine": 1.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "bases",
+      "hits",
+      "home_runs",
+      "rbis",
+      "walks"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "Kazuma Okamoto",
+    "team": "TOR",
+    "game": "TOR @ TB",
+    "market": "hrr",
+    "side": "LESS",
+    "ppLine": 1.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "bases",
+      "hits",
+      "home_runs",
+      "rbis",
+      "walks"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "Kevin Gausman",
+    "team": "TOR",
+    "game": "TOR @ TB",
+    "market": "walks_allowed",
+    "side": "LESS",
+    "ppLine": 1.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "pitching_outs",
+      "strikeouts"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "Chandler Simpson",
+    "team": "TB",
+    "game": "TOR @ TB",
+    "market": "bases",
+    "side": "MORE",
+    "ppLine": 0.5,
+    "reason": "NO_PLAYER_AT_BOOKS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "Gunnar Henderson",
+    "team": "BAL",
+    "game": "NYY @ BAL",
+    "market": "singles",
+    "side": "LESS",
+    "ppLine": 0.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "bases",
+      "hits",
+      "home_runs",
+      "hrr",
+      "rbis",
+      "runs",
+      "walks"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "José Caballero",
+    "team": "NYY",
+    "game": "NYY @ BAL",
+    "market": "singles",
+    "side": "LESS",
+    "ppLine": 0.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "bases",
+      "hits",
+      "home_runs",
+      "hrr",
+      "rbis",
+      "runs",
+      "walks"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "George Springer",
+    "team": "TOR",
+    "game": "TOR @ TB",
+    "market": "runs",
+    "side": "LESS",
+    "ppLine": 0.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "bases",
+      "hits",
+      "home_runs",
+      "rbis",
+      "walks"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "Ezequiel Duran",
+    "team": "TEX",
+    "game": "AZ @ TEX",
+    "market": "singles",
+    "side": "LESS",
+    "ppLine": 0.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "bases",
+      "hits",
+      "home_runs",
+      "rbis",
+      "walks"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "Geraldo Perdomo",
+    "team": "AZ",
+    "game": "AZ @ TEX",
+    "market": "singles",
+    "side": "LESS",
+    "ppLine": 0.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "bases",
+      "hits",
+      "home_runs",
+      "rbis",
+      "walks"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "Lourdes Gurriel Jr.",
+    "team": "AZ",
+    "game": "AZ @ TEX",
+    "market": "singles",
+    "side": "LESS",
+    "ppLine": 0.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "bases",
+      "hits",
+      "home_runs",
+      "rbis"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "Gabriel Moreno",
+    "team": "AZ",
+    "game": "AZ @ TEX",
+    "market": "singles",
+    "side": "LESS",
+    "ppLine": 0.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "bases",
+      "hits",
+      "home_runs",
+      "hrr",
+      "rbis",
+      "walks"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  },
+  {
+    "player": "Taylor Ward",
+    "team": "BAL",
+    "game": "NYY @ BAL",
+    "market": "singles",
+    "side": "LESS",
+    "ppLine": 0.5,
+    "reason": "PLAYER_FOUND_MARKET_MISS",
+    "nearestLine": null,
+    "nearestDistance": null,
+    "availableMarkets": [
+      "bases",
+      "hits",
+      "home_runs",
+      "hrr",
+      "rbis",
+      "runs",
+      "walks"
+    ],
+    "availableLinesSameMarket": [],
+    "availableSidesSameMarket": []
+  }
+]

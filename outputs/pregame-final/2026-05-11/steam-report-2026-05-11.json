@@ -1,0 +1,80 @@
+[
+  {
+    "player": "Aaron Judge",
+    "team": "NYY",
+    "game": "New York Yankees @ Baltimore Orioles",
+    "market": "bases",
+    "side": "MORE",
+    "line": 0.5,
+    "openOdds": -180,
+    "closeOdds": -180,
+    "move": 0,
+    "snapshots": 10,
+    "label": "STABLE"
+  },
+  {
+    "player": "Josh Jung",
+    "team": "TEX",
+    "game": "Arizona Diamondbacks @ Texas Rangers",
+    "market": "bases",
+    "side": "MORE",
+    "line": 0.5,
+    "openOdds": -200,
+    "closeOdds": -200,
+    "move": 0,
+    "snapshots": 10,
+    "label": "STABLE"
+  },
+  {
+    "player": "Will Smith",
+    "team": "LAD",
+    "game": "San Francisco Giants @ Los Angeles Dodgers",
+    "market": "hrr",
+    "side": "LESS",
+    "line": 1.5,
+    "openOdds": 106,
+    "closeOdds": 105,
+    "move": -1,
+    "snapshots": 24,
+    "label": "STABLE"
+  },
+  {
+    "player": "Cal Raleigh",
+    "team": "SEA",
+    "game": "Seattle Mariners @ Houston Astros",
+    "market": "hrr",
+    "side": "LESS",
+    "line": 1.5,
+    "openOdds": -125,
+    "closeOdds": -120,
+    "move": 5,
+    "snapshots": 36,
+    "label": "STEAM_WITH_US"
+  },
+  {
+    "player": "Zach Neto",
+    "team": "LAA",
+    "game": "Los Angeles Angels @ Cleveland Guardians",
+    "market": "hrr",
+    "side": "LESS",
+    "line": 1.5,
+    "openOdds": -115,
+    "closeOdds": -125,
+    "move": -10,
+    "snapshots": 36,
+    "label": "STEAM_AGAINST_US"
+  },
+  {
+    "player": "Brandon Valenzuela",
+    "team": "TOR",
+    "game": "Tampa Bay Rays @ Toronto Blue Jays",
+    "market": "hits",
+    "side": "LESS",
+    "line": 0.5,
+    "openOdds": -110,
+    "closeOdds": -105,
+    "move": 5,
+    "snapshots": 106,
+    "label": "STEAM_WITH_US"
+  }
+]
