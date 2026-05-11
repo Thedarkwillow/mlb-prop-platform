@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { applyPhase55RiskAdjustments } from '../lib/phase55Adjustments.js';
 
 const rows = JSON.parse(fs.readFileSync('outputs/priced-board.json', 'utf8'));
 
@@ -617,7 +618,31 @@ function buildSlip(candidates, size, offset, exposure) {
 const beforePlayable = rows.filter(r => r.recordType === 'merged_prop').length;
 const invalidGameRows = rows.filter(r => r.recordType === 'merged_prop' && !isValidGameAssignment(r)).length;
 
-const normalizedRows = rows.map(normalizeForOptimizer);
+function applyPhase55ToOptimizerRow(r) {
+  const adjusted = applyPhase55RiskAdjustments({
+    ...r,
+    probability: r.recommendedProb,
+    prob: r.recommendedProb,
+    confidence: r.confidenceBucket,
+    side: r.recommendedSide || r.side,
+    market: r.market || r.stat
+  });
+
+  const adjustedProb = Number(adjusted.probability ?? adjusted.prob ?? r.recommendedProb);
+  const expectedValue = Number(((adjustedProb - 0.5) * 2).toFixed(3));
+
+  return {
+    ...r,
+    recommendedProb: adjustedProb,
+    prob: adjustedProb,
+    probability: adjustedProb,
+    expectedValue,
+    confidenceBucket: adjusted.confidence || r.confidenceBucket,
+    phase55: adjusted.phase55 ?? null
+  };
+}
+
+const normalizedRows = rows.map(normalizeForOptimizer).map(applyPhase55ToOptimizerRow);
 const baseCandidates = dedupeRows(normalizedRows.filter(playable));
 
 const standardKWatchlist = normalizedRows
