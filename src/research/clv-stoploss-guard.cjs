@@ -4,6 +4,7 @@ const DATE = process.env.npm_config_date || process.argv[2] || new Date().toISOS
 const CLV_FILE = `outputs/clv-report-${DATE}.json`;
 const MAX_NEG_AVG_CLV = -5;
 const MIN_BEAT_CLOSE = 0.40;
+const MIN_SAMPLE_FOR_BEAT_CLOSE_GUARD = 5;
 
 function read(path, fallback) {
   try {
@@ -83,9 +84,14 @@ if (avgClv < MAX_NEG_AVG_CLV) {
   process.exit(1);
 }
 
-if (beatClose < MIN_BEAT_CLOSE) {
+if (tracked >= MIN_SAMPLE_FOR_BEAT_CLOSE_GUARD && beatClose < MIN_BEAT_CLOSE) {
   console.log("STATUS: CAUTION");
   console.log(`Reason: beat-close rate below ${pct(MIN_BEAT_CLOSE)}.`);
+  process.exit(0);
+}
+if (tracked < MIN_SAMPLE_FOR_BEAT_CLOSE_GUARD) {
+  console.log("STATUS: PASS");
+  console.log(`Reason: CLV sample below ${MIN_SAMPLE_FOR_BEAT_CLOSE_GUARD}; ignoring beat-close rate unless average CLV is severely negative.`);
   process.exit(0);
 }
 
