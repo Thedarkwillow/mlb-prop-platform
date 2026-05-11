@@ -162,7 +162,7 @@ for (const r of vegasRaw) {
   if (!player || !market || !side || !Number.isFinite(line) || !Number.isFinite(prob)) continue;
 
   const books = Number(r.books ?? r.bookCount ?? (Array.isArray(r.sportsbooks) ? r.sportsbooks.length : 1));
-  if (books < 2) continue;
+  // Keep 1-book prices for matching. Quality grading handles LOW_BOOK_SUPPORT later.
   const k = key(player, market, side, line);
 
   priceMap.set(k, {
@@ -225,9 +225,10 @@ const out = legs.map(l => {
     sportsbookImpliedProb: marketProb,
     sportsbookBookCount: books,
     sportsbookGame: p?.game || null,
-    // Never let sportsbook event matching overwrite PrizePicks/resolved game.
-    // Book game is only reference metadata.
-    game: l.game,
+    // If sportsbook pricing matched, use that current event as the canonical game.
+    game: p?.game || l.game,
+    resolvedGame: p?.game || l.resolvedGame || l.game,
+    staleInputGame: l.game && p?.game && l.game !== p.game ? l.game : null,
     commenceTime: p?.commenceTime || l.commenceTime || null,
     sportsbooks: p?.sportsbooks || [],
     sportsbookDisagreement: p?.disagreement ?? null,
