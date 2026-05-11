@@ -91,16 +91,6 @@ async function buildPlayerTeamMap(date) {
 }
 
 
-const KNOWN_BAD_PLAYER_TEAMS = new Set([
-  'brandonnimmo|TEX',
-  'brandonlowe|PIT',
-  'marcussemien|NYM'
-]);
-
-function isKnownBadPlayerTeam(player, team) {
-  return KNOWN_BAD_PLAYER_TEAMS.has(`${normName(player)}|${normTeam(team)}`);
-}
-
 function isComboPlayer(name) {
   return String(name || '').includes('+');
 }
@@ -140,18 +130,6 @@ async function main() {
     }
 
     const sourceTeam = normTeam(row.team);
-
-    if (isKnownBadPlayerTeam(row.player, sourceTeam)) {
-      unresolved++;
-      return {
-        ...row,
-        teamResolved: false,
-        teamResolverStatus: 'known_bad_player_team',
-        teamValid: false,
-        rankEligible: false,
-        disabledReason: `known bad player/team metadata: ${row.player} ${sourceTeam}`
-      };
-    }
 
     const hit = playerTeamMap.get(`${normName(row.player)}|${sourceTeam}`) || null;
 
