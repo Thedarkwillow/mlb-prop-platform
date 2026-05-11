@@ -1,0 +1,24 @@
+OFFICIAL PLAYABLE SLIPS
+=======================
+
+3-MAN FLEX | status=PLAYABLE | green=3 | correlation=OK
+1. Aaron Judge | NYY | bases MORE 0.5 | edge=0.4434 | grade=GREEN | books=4
+2. Brandon Lowe | PIT | bases MORE 0.5 | edge=0.4504 | grade=GREEN | books=2
+3. Mark Vientos | NYM | bases MORE 0.5 | edge=0.4361 | grade=GREEN | books=4
+
+2-MAN POWER | status=PLAYABLE | green=2 | correlation=OK
+1. Aaron Judge | NYY | bases MORE 0.5 | edge=0.4434 | grade=GREEN | books=4
+2. Brandon Lowe | PIT | bases MORE 0.5 | edge=0.4504 | grade=GREEN | books=2
+
+5-MAN FLEX | status=PLAYABLE | green=5 | correlation=OK
+1. Aaron Judge | NYY | bases MORE 0.5 | edge=0.4434 | grade=GREEN | books=4
+2. Brandon Lowe | PIT | bases MORE 0.5 | edge=0.4504 | grade=GREEN | books=2
+3. Mark Vientos | NYM | bases MORE 0.5 | edge=0.4361 | grade=GREEN | books=4
+4. Alec Burleson | STL | bases MORE 0.5 | edge=0.3935 | grade=GREEN | books=4
+5. Michael Massey | KC | hits MORE 0.5 | edge=0.0760 | grade=GREEN | books=3
+
+4-MAN FLEX | status=PLAYABLE | green=4 | correlation=OK
+1. Aaron Judge | NYY | bases MORE 0.5 | edge=0.4434 | grade=GREEN | books=4
+2. Brandon Lowe | PIT | bases MORE 0.5 | edge=0.4504 | grade=GREEN | books=2
+3. Mark Vientos | NYM | bases MORE 0.5 | edge=0.4361 | grade=GREEN | books=4
+4. Michael Massey | KC | hits MORE 0.5 | edge=0.0760 | grade=GREEN | books=3
