@@ -87,7 +87,8 @@
     "match:diag": "node src/research/sportsbook-match-diagnostics.cjs",
     "ensemble:diag": "node src/research/ensemble-diagnostics.cjs",
     "steam": "node src/research/steam-report.cjs",
-    "bayes": "node src/research/bayesian-confidence.cjs"
+    "bayes": "node src/research/bayesian-confidence.cjs",
+    "pricing:unmatched": "node src/research/unmatched-pricing-diagnostics.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
