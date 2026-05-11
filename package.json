@@ -91,7 +91,7 @@
     "pricing:unmatched": "node src/research/unmatched-pricing-diagnostics.cjs",
     "pregame:local": "npm run snap && npm run context:refresh && npm run picks && npm run pricing:unmatched && npm run steam && npm run bayes && npm run official && npm run context:guards && npm run clv && npm run clv:guard && npm run mobile && npm run decision && npm run audit:official",
     "context:guards": "node src/research/context-guards.cjs",
-    "context:refresh": "npm run context:lineups && npm run context:savant-catchers && npm run context:catchers && npm run context:umpscorecards && npm run context:umpire-scorecards && npm run context:pull-today-umpires && npm run context:today-umpires && node src/research/refresh-context.cjs && npm run context:pitcher-hands",
+    "context:refresh": "node src/jobs/contextRefresh.js",
     "context:lineups": "node src/research/refresh-lineups.cjs",
     "context:catchers": "node src/research/import-catcher-framing.cjs",
     "context:umpires": "node src/research/import-umpires.cjs",
@@ -116,7 +116,9 @@
     "learn:weak-env": "node src/learning/build-weak-environment-downgrades.cjs",
     "context:game-model": "node src/research/build-game-model-context.cjs",
     "context:pitching-staffs": "node src/research/build-pitching-staffs.cjs",
-    "context:pitcher-stats": "node src/research/build-pitcher-stat-table.cjs"
+    "context:pitcher-stats": "node src/research/build-pitcher-stat-table.cjs",
+    "context:pitcher-advanced": "node src/research/build-pitcher-context-advanced.cjs",
+    "refresh:full": "npm run context:refresh && node src/jobs/probabilityEngine.js && node src/jobs/slipBuilder.js && npm run picks && npm run official && npm run audit:final"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
