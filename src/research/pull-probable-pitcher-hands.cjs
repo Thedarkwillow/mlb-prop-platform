@@ -92,8 +92,10 @@ async function main() {
         awayTeam,
         homeTeam,
         awayProbablePitcher: awayPitcher?.fullName || null,
+        awayPitcherId: awayPitcher?.id || null,
         awayPitcherHand: awayHand,
         homeProbablePitcher: homePitcher?.fullName || null,
+        homePitcherId: homePitcher?.id || null,
         homePitcherHand: homeHand,
         status: g.status?.detailedState || null
       };
@@ -101,6 +103,7 @@ async function main() {
       if (awayTeam) {
         pitcherByTeam[awayTeam] = {
           pitcher: awayPitcher?.fullName || null,
+          id: awayPitcher?.id || null,
           hand: awayHand,
           opponent: homeTeam,
           gamePk: g.gamePk
@@ -117,6 +120,7 @@ async function main() {
       if (homeTeam) {
         pitcherByTeam[homeTeam] = {
           pitcher: homePitcher?.fullName || null,
+          id: homePitcher?.id || null,
           hand: homeHand,
           opponent: awayTeam,
           gamePk: g.gamePk
