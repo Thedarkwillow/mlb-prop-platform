@@ -115,7 +115,8 @@
     "savant:pitch-matchups": "node src/learning/build-pitch-type-matchups.cjs",
     "learn:weak-env": "node src/learning/build-weak-environment-downgrades.cjs",
     "context:game-model": "node src/research/build-game-model-context.cjs",
-    "context:pitching-staffs": "node src/research/build-pitching-staffs.cjs"
+    "context:pitching-staffs": "node src/research/build-pitching-staffs.cjs",
+    "context:pitcher-stats": "node src/research/build-pitcher-stat-table.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
