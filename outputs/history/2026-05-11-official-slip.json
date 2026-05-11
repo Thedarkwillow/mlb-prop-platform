@@ -1,1 +1,123 @@
-[]
+[
+  {
+    "name": "2-MAN POWER",
+    "size": 2,
+    "complete": true,
+    "green": 2,
+    "neutral": 0,
+    "watchlist": 0,
+    "fade": 0,
+    "correlation": "OK",
+    "legs": [
+      {
+        "player": "Aaron Judge",
+        "team": "NYY",
+        "game": "New York Yankees @ Baltimore Orioles",
+        "gamePk": 823551,
+        "teamResolverStatus": null,
+        "resolvedTeam": null,
+        "resolvedGame": "New York Yankees @ Baltimore Orioles",
+        "resolvedGamePk": null,
+        "disabledReason": null,
+        "market": "bases",
+        "side": "MORE",
+        "line": 0.5,
+        "edge": 0.3599,
+        "adjustedEdge": 0.3659,
+        "finalScore": 0.5051,
+        "distributionProb": 0.9268,
+        "calibratedDistributionProb": 0.7347,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "BOOST",
+        "eliteContext": {
+          "contextScore": 0.037,
+          "contextNotes": [
+            "savant boost",
+            "strong book support",
+            "large raw edge"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "bases",
+          "marketModelScore": 0.05,
+          "marketModelNotes": [
+            "high calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "total bases model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 10,
+          "predicted": 0.7401,
+          "actual": 0.7,
+          "bias": -0.0401,
+          "adjustmentMultiplier": 1,
+          "trust": "unknown",
+          "suppressed": false,
+          "reason": "neutral_or_insufficient_edge"
+        },
+        "marketSupportFlag": "OK"
+      },
+      {
+        "player": "Corey Seager",
+        "team": "TEX",
+        "game": "Arizona Diamondbacks @ Texas Rangers",
+        "gamePk": 823551,
+        "teamResolverStatus": null,
+        "resolvedTeam": null,
+        "resolvedGame": "Arizona Diamondbacks @ Texas Rangers",
+        "resolvedGamePk": null,
+        "disabledReason": null,
+        "market": "bases",
+        "side": "MORE",
+        "line": 0.5,
+        "edge": 0.3854,
+        "adjustedEdge": 0.3734,
+        "finalScore": 0.4559,
+        "distributionProb": 0.8186,
+        "calibratedDistributionProb": 0.6752,
+        "distributionConfidence": "HIGH",
+        "grade": "GREEN",
+        "books": 3,
+        "savant": "DOWNGRADE",
+        "eliteContext": {
+          "contextScore": 0.013,
+          "contextNotes": [
+            "savant downgrade",
+            "strong book support",
+            "large raw edge"
+          ]
+        },
+        "marketModel": {
+          "marketModel": "bases",
+          "marketModelScore": 0.028,
+          "marketModelNotes": [
+            "solid calibrated probability",
+            "strong adjusted edge",
+            "multi-book support",
+            "total bases model"
+          ]
+        },
+        "marketTrust": {
+          "sample": 10,
+          "predicted": 0.7401,
+          "actual": 0.7,
+          "bias": -0.0401,
+          "adjustmentMultiplier": 1,
+          "trust": "unknown",
+          "suppressed": false,
+          "reason": "neutral_or_insufficient_edge"
+        },
+        "marketSupportFlag": "OK"
+      }
+    ],
+    "status": "PLAYABLE",
+    "removedOffSlateLegs": [],
+    "originalSize": 2,
+    "targetSize": 2,
+    "officialScore": 0.5705
+  }
+]

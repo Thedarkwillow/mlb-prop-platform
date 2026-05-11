@@ -179,20 +179,52 @@ const bayesByKey = new Map(bayesRows.map(x => [bayesKey(x), x]));
 function dynamicConfidence(l) {
   return bayesByKey.get(bayesKey(l)) || null;
 }
+function dynamicFallbackAllowed(l, size) {
+  const label = String(dynamicConfidence(l)?.dynamicConfidence || "UNKNOWN");
+  if (label !== "UNKNOWN") return false;
+
+  const grade = effectiveGrade(l);
+  const edge = Number(l.edge ?? l.sportsbookEdge ?? l.adjustedEdge ?? 0);
+  const books = Number(l.books ?? l.sportsbookBookCount ?? 0);
+  const market = marketKey(l);
+  const side = directionKey(l);
+
+  // Conservative fallback:
+  // Dynamic confidence may be missing for newer/smaller markets.
+  // Do not reject already GREEN, positively priced, sportsbook-supported legs.
+  if (grade !== "GREEN") return false;
+  if (!Number.isFinite(edge) || edge <= 0) return false;
+  if (books < 3) return false;
+
+  // Never use this fallback to sneak HRR MORE back in.
+  if (market === "hrr" && side === "MORE") return false;
+
+  // For 2/3-man slips, require stronger edge because no dynamic label exists.
+  if (size <= 3 && edge < 0.20) return false;
+
+  return true;
+}
+
 function dynamicRejectReasons(slip) {
   const size = Number(slip.size || (slip.legs || []).length || 0);
   const reasons = [];
+
   for (const l of slip.legs || []) {
     const d = dynamicConfidence(l);
     const label = String(d?.dynamicConfidence || "UNKNOWN");
     const leg = `${l.player} ${l.market} ${l.side} ${l.line}`;
-    if (label === "PASS_DYNAMIC") reasons.push(`${leg}: PASS_DYNAMIC`);
-    else if (size <= 3 && !["ELITE_DYNAMIC", "STRONG_DYNAMIC"].includes(label)) {
+
+    if (dynamicFallbackAllowed(l, size)) continue;
+
+    if (label === "PASS_DYNAMIC") {
+      reasons.push(`${leg}: PASS_DYNAMIC`);
+    } else if (size <= 3 && !["ELITE_DYNAMIC", "STRONG_DYNAMIC"].includes(label)) {
       reasons.push(`${leg}: ${label || "UNKNOWN"} not allowed for ${size}-man`);
     } else if (size >= 4 && !["ELITE_DYNAMIC", "STRONG_DYNAMIC", "PLAYABLE_DYNAMIC", "WATCH_DYNAMIC"].includes(label)) {
       reasons.push(`${leg}: ${label || "UNKNOWN"} blocked`);
     }
   }
+
   return reasons;
 }
 function hrrCapForSize(size) {
