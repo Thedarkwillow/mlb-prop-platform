@@ -111,7 +111,8 @@
     "context:pitcher-hands": "node src/research/pull-probable-pitcher-hands.cjs",
     "context:lineup-handedness": "node src/research/build-lineup-handedness-profile.cjs",
     "learn:rolling-roi": "node src/learning/build-rolling-roi-validation.cjs",
-    "savant:velo": "node src/learning/pull-savant-pitcher-velocity-trends.cjs"
+    "savant:velo": "node src/learning/pull-savant-pitcher-velocity-trends.cjs",
+    "savant:pitch-matchups": "node src/learning/build-pitch-type-matchups.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
