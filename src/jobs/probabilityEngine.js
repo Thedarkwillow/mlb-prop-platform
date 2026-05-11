@@ -330,6 +330,146 @@ function applyCalibration(row, prob) {
   };
 }
 
+
+function handednessDeltaFromContext(row) {
+  const h = row.handednessContext;
+  const market = marketKey(row);
+  const side = sideKey(row);
+
+  if (!row.handednessReady || !h?.active) {
+    return {
+      delta: 0,
+      applied: false,
+      reason: 'NO_ACTIVE_HANDEDNESS_SPLIT'
+    };
+  }
+
+  // Start hitter markets only. Pitcher-vs-batter-hand needs lineup handedness first.
+  if (h.playerType !== 'batter') {
+    return {
+      delta: 0,
+      applied: false,
+      reason: 'PITCHER_SPLIT_METADATA_ONLY'
+    };
+  }
+
+  if (!['hits', 'bases', 'hrr', 'runs', 'rbis', 'hr'].includes(market)) {
+    return {
+      delta: 0,
+      applied: false,
+      reason: 'MARKET_NOT_SUPPORTED'
+    };
+  }
+
+  // HRR MORE stays conservative because this market has been unstable.
+  if (market === 'hrr' && side === 'MORE') {
+    return {
+      delta: 0,
+      applied: false,
+      reason: 'HRR_MORE_NO_HANDEDNESS_BOOST'
+    };
+  }
+
+  const active = h.active;
+  const pa = Number(active.pa || 0);
+  const xwoba = Number(active.xwoba);
+  const xslg = Number(active.xslg);
+  const kRate = Number(active.kRate);
+
+  if (pa < 40) {
+    return {
+      delta: 0,
+      applied: false,
+      reason: 'SPLIT_SAMPLE_TOO_THIN',
+      pa
+    };
+  }
+
+  let strength = 0;
+  const flags = [];
+
+  if (Number.isFinite(xwoba)) {
+    if (xwoba >= 0.390) {
+      strength += 2;
+      flags.push('PLUS_SPLIT_XWOBA');
+    } else if (xwoba >= 0.350) {
+      strength += 1;
+      flags.push('GOOD_SPLIT_XWOBA');
+    } else if (xwoba <= 0.285) {
+      strength -= 2;
+      flags.push('WEAK_SPLIT_XWOBA');
+    } else if (xwoba <= 0.310) {
+      strength -= 1;
+      flags.push('BELOW_AVG_SPLIT_XWOBA');
+    }
+  }
+
+  if (Number.isFinite(xslg)) {
+    if (xslg >= 0.500) {
+      strength += 1;
+      flags.push('PLUS_SPLIT_XSLG');
+    } else if (xslg <= 0.340) {
+      strength -= 1;
+      flags.push('WEAK_SPLIT_XSLG');
+    }
+  }
+
+  if (Number.isFinite(kRate) && ['hits', 'bases', 'hrr'].includes(market)) {
+    if (kRate >= 28) {
+      strength -= 1;
+      flags.push('SPLIT_K_RISK');
+    } else if (kRate <= 17) {
+      strength += 1;
+      flags.push('LOW_SPLIT_K_RATE');
+    }
+  }
+
+  let rawDelta = 0;
+  if (strength >= 3) rawDelta = 0.015;
+  else if (strength >= 1) rawDelta = 0.008;
+  else if (strength <= -3) rawDelta = -0.015;
+  else if (strength <= -1) rawDelta = -0.008;
+
+  // Convert to selected side probability.
+  let delta = side === 'MORE' ? rawDelta : -rawDelta;
+
+  // Hard cap.
+  delta = clamp(delta, -0.015, 0.015);
+
+  return {
+    delta,
+    applied: delta !== 0,
+    reason: delta !== 0 ? 'HANDEDNESS_SPLIT_ADJUSTED' : 'NEUTRAL_SPLIT',
+    pa,
+    selectedSplit: h.selectedSplit,
+    pitcherHand: h.pitcherHand ?? null,
+    opposingPitcher: h.opposingPitcher ?? null,
+    strength,
+    flags,
+    active
+  };
+}
+
+function applyHandednessAdjustment(row, prob) {
+  const adj = handednessDeltaFromContext(row);
+  return {
+    prob: clamp(prob + adj.delta, 0.01, 0.99),
+    handednessAdjustment: {
+      applied: adj.applied,
+      delta: round(adj.delta, 4),
+      reason: adj.reason,
+      pa: adj.pa ?? null,
+      selectedSplit: adj.selectedSplit ?? null,
+      pitcherHand: adj.pitcherHand ?? null,
+      opposingPitcher: adj.opposingPitcher ?? null,
+      strength: adj.strength ?? null,
+      flags: adj.flags ?? [],
+      active: adj.active ?? null
+    }
+  };
+}
+
+
 function applyMarketIntelligence(row, prob, ev) {
   const market = marketKey(row);
   const side = sideKey(row);
@@ -406,6 +546,13 @@ const priced = board.map(row => {
 
   recommendedProb = savantFormResult.prob;
 
+  const handednessResult = applyHandednessAdjustment(
+    { ...row, recommendedSide },
+    recommendedProb
+  );
+
+  recommendedProb = handednessResult.prob;
+
   const calibrationResult = applyCalibration(
     { ...row, recommendedSide },
     recommendedProb
@@ -455,6 +602,7 @@ const priced = board.map(row => {
     confidenceBucket: confidenceBucket(recommendedProb),
     contextAdjustment: contextResult.context,
     savantRollingForm: savantFormResult.savantRollingForm,
+    handednessAdjustment: handednessResult.handednessAdjustment,
     calibrationAdjustment: calibrationResult.calibration,
     marketIntelligence: intel.marketIntelligence,
     adaptiveIntelligenceVersion: 'tier_a_v1'
@@ -469,6 +617,7 @@ const summary = {
   pricedRows: priced.filter(r => r.pricingStatus === 'PRICED').length,
   contextAdjustedRows: priced.filter(r => r.contextAdjustment?.flags?.length).length,
   savantFormAdjustedRows: priced.filter(r => r.savantRollingForm?.applied).length,
+  handednessAdjustedRows: priced.filter(r => r.handednessAdjustment?.applied).length,
   calibratedRows: priced.filter(r => r.calibrationAdjustment?.applied).length,
   marketIntelligenceRows: priced.filter(r => r.marketIntelligence?.applied).length,
   elite: priced.filter(r => r.confidenceBucket === 'elite').length,
