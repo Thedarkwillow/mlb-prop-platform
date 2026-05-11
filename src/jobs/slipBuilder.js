@@ -34,6 +34,7 @@ const DIVERSITY_PENALTY = 0.03;
 
 const LEARNING_PATH = 'data/learning/market-learning.json';
 const MARKET_TRUST_PATH = 'data/learning/market-trust.json';
+const ADAPTIVE_CALIBRATION_PATH = 'data/learning/adaptive-calibration.json';
 
 function readJsonSafe(path, fallback = null) {
   try {
@@ -51,6 +52,12 @@ const MARKET_LEARNING = readJsonSafe(LEARNING_PATH, {
 });
 const MARKET_TRUST = readJsonSafe(MARKET_TRUST_PATH, {
   byMarketDirection: {}
+});
+const ADAPTIVE_CALIBRATION = readJsonSafe(ADAPTIVE_CALIBRATION_PATH, {
+  byBucket: {},
+  byMarket: {},
+  byMarketDirection: {},
+  byMarketDirectionBucket: {}
 });
 
 function clampProb(v) {
@@ -371,6 +378,8 @@ function normalizeForOptimizer(r) {
     learningAdjusted: Boolean(learned.learning?.applied),
     learningSuppressed: Boolean(learned.learning?.suppressed),
     learningAdjustment: learned.learning,
+    adaptiveAdjusted: Boolean(adaptive.adaptiveCalibration?.applied),
+    adaptiveCalibration: adaptive.adaptiveCalibration,
     expectedValue: ev,
     confidenceBucket,
     market: r.market || r.stat
@@ -563,6 +572,8 @@ function clean(r) {
     vegasLine: r.vegasLine ?? null,
     vegasPickProb: r.vegasPickProb ?? null,
     probabilitySource: r.probabilitySource ?? null,
+    adaptiveAdjusted: !!r.adaptiveAdjusted,
+    adaptiveCalibration: r.adaptiveCalibration ?? null,
     savantMatched: !!r.savantMatched,
     savantBoost: r.savantBoost ?? 0,
     savant: r.savant ?? null,
