@@ -14,7 +14,9 @@ const CONTEXT_FILES = {
   autoMarkets: 'data/learning/auto-market-adjustments.json',
   savantForm: 'data/savant/rolling-form.json',
   handednessSplits: 'data/savant/handedness-splits.json',
-  probablePitcherHands: 'data/context/probable-pitcher-hands.json'
+  probablePitcherHands: 'data/context/probable-pitcher-hands.json',
+  umpireContext: 'data/context/umpires.json',
+  catcherFraming: 'data/context/catcher-framing.json'
 };
 
 function readJson(path, fallback = {}) {
@@ -617,6 +619,167 @@ function applyHandednessAdjustment(row, prob) {
 }
 
 
+
+function gameTeams(row) {
+  const game = String(row.resolvedGame || row.game || "");
+  const parts = game.split("@").map(x => x.trim().toUpperCase());
+  return { away: parts[0] || null, home: parts[1] || null };
+}
+
+function currentGameUmpire(row) {
+  const umps = CTX.umpireContext || {};
+  const { away, home } = gameTeams(row);
+  const team = String(row.resolvedTeam || row.team || "").toUpperCase();
+
+  const candidates = [];
+
+  if (Array.isArray(umps)) candidates.push(...umps);
+  if (Array.isArray(umps.games)) candidates.push(...umps.games);
+  if (Array.isArray(umps.rows)) candidates.push(...umps.rows);
+  if (umps.byGame && typeof umps.byGame === "object") candidates.push(...Object.values(umps.byGame));
+  if (umps.games && typeof umps.games === "object" && !Array.isArray(umps.games)) candidates.push(...Object.values(umps.games));
+
+  const rec = candidates.find(u => {
+    const h = String(u.home_team || u.homeTeam || u.home || "").toUpperCase();
+    const a = String(u.away_team || u.awayTeam || u.away || "").toUpperCase();
+    const g = String(u.game || u.gameKey || "").toUpperCase();
+    return (
+      (away && home && ((a === away && h === home) || g.includes(away) && g.includes(home))) ||
+      (team && (a === team || h === team))
+    );
+  });
+
+  return rec || null;
+}
+
+function catcherFramingForRow(row) {
+  const c = CTX.catcherFraming || {};
+  const team = String(row.resolvedTeam || row.team || "").toUpperCase();
+
+  const candidates = [];
+
+  if (Array.isArray(c)) candidates.push(...c);
+  if (Array.isArray(c.rows)) candidates.push(...c.rows);
+  if (Array.isArray(c.catchers)) candidates.push(...c.catchers);
+  if (c.byTeam && team && c.byTeam[team]) candidates.push(c.byTeam[team]);
+  if (c.teams && team && c.teams[team]) candidates.push(c.teams[team]);
+
+  const rec = candidates.find(x => {
+    const t = String(x.team || x.teamAbbr || x.resolvedTeam || "").toUpperCase();
+    return team && t === team;
+  });
+
+  return rec || null;
+}
+
+function applyUmpireFramingAdjustment(row, prob) {
+  const m = marketKey(row);
+  const s = sideKey(row);
+
+  let delta = 0;
+  const flags = [];
+  const details = {};
+
+  const ump = currentGameUmpire(row);
+
+  if (ump) {
+    const accuracyAboveX = Number(ump.accuracy_above_x ?? ump.accuracyAboveExpected ?? ump.accuracyAboveX ?? 0);
+    const consistency = Number(ump.consistency ?? 0);
+    const pitcherImpact = Number(ump.pitcher_impact ?? ump.home_pitcher_impact ?? ump.away_pitcher_impact ?? 0);
+    const totalRunImpact = Number(ump.total_run_impact ?? ump.totalRunImpact ?? 0);
+
+    details.umpire = {
+      name: ump.umpire || ump.name || null,
+      accuracyAboveX,
+      consistency,
+      pitcherImpact,
+      totalRunImpact
+    };
+
+    // Tiny capped effects only.
+    if (m.includes("strikeout")) {
+      if (consistency >= 95 || pitcherImpact > 0.5) {
+        delta += s === "MORE" ? 0.005 : -0.005;
+        flags.push("UMP_K_ZONE_TINY_BOOST");
+      }
+      if (accuracyAboveX <= -2.5) {
+        delta += s === "MORE" ? -0.004 : 0.004;
+        flags.push("UMP_VOLATILE_ZONE_TINY_DOWNGRADE");
+      }
+    }
+
+    if (["hits", "bases", "hrr", "runs", "rbis", "hr", "home_runs"].includes(m)) {
+      if (totalRunImpact >= 2.0) {
+        delta += s === "MORE" ? 0.004 : -0.004;
+        flags.push("UMP_RUN_ENV_TINY_BOOST");
+      }
+      if (totalRunImpact <= 0.5) {
+        delta += s === "MORE" ? -0.003 : 0.003;
+        flags.push("UMP_LOW_RUN_ENV_TINY_DOWNGRADE");
+      }
+    }
+  }
+
+  const framing = catcherFramingForRow(row);
+
+  if (framing) {
+    const framingRuns = Number(
+      framing.framingRuns ??
+      framing.catcherFramingRuns ??
+      framing.strikeRuns ??
+      framing.runs ??
+      0
+    );
+
+    const strikeRate = Number(
+      framing.strikeRate ??
+      framing.calledStrikeRate ??
+      framing.csaa ??
+      framing.CSAA ??
+      0
+    );
+
+    details.catcherFraming = {
+      catcher: framing.catcher || framing.name || framing.player || null,
+      team: framing.team || framing.teamAbbr || null,
+      framingRuns,
+      strikeRate
+    };
+
+    if (m.includes("strikeout")) {
+      if (framingRuns >= 3 || strikeRate >= 1) {
+        delta += s === "MORE" ? 0.006 : -0.006;
+        flags.push("CATCHER_FRAMING_K_TINY_BOOST");
+      }
+      if (framingRuns <= -3 || strikeRate <= -1) {
+        delta += s === "MORE" ? -0.006 : 0.006;
+        flags.push("CATCHER_FRAMING_K_TINY_DOWNGRADE");
+      }
+    }
+
+    if (m.includes("walk")) {
+      if (framingRuns >= 3 || strikeRate >= 1) {
+        delta += s === "LESS" ? 0.004 : -0.004;
+        flags.push("CATCHER_FRAMING_WALK_SUPPRESSION_TINY");
+      }
+    }
+  }
+
+  // Hard cap: max 0.8 percentage points total.
+  delta = clamp(delta, -0.008, 0.008);
+
+  return {
+    prob: clamp(prob + delta, 0.01, 0.99),
+    adjustment: {
+      applied: Math.abs(delta) > 0,
+      delta: Number(delta.toFixed(4)),
+      flags,
+      details
+    }
+  };
+}
+
+
 function applyMarketIntelligence(row, prob, ev) {
   const market = marketKey(row);
   const side = sideKey(row);
@@ -709,7 +872,13 @@ const priced = board.map(row => {
 
   recommendedProb = calibrationResult.prob;
 
-  if (recommendedSide === 'MORE') {
+  
+  const umpireFramingResult = applyUmpireFramingAdjustment(
+    { ...row, recommendedSide },
+    recommendedProb
+  );
+  recommendedProb = umpireFramingResult.prob;
+if (recommendedSide === 'MORE') {
     overProb = recommendedProb;
     underProb = 1 - recommendedProb;
   } else {
@@ -757,6 +926,8 @@ const priced = board.map(row => {
     handednessContext: directHandedness.handednessContext,
     handednessAdjustment: handednessResult.handednessAdjustment,
     calibrationAdjustment: calibrationResult.calibration,
+    umpireFramingAdjusted: Boolean(umpireFramingResult.adjustment?.applied),
+    umpireFramingAdjustment: umpireFramingResult.adjustment,
     marketIntelligence: intel.marketIntelligence,
     adaptiveIntelligenceVersion: 'tier_a_v1'
   };
@@ -771,6 +942,7 @@ const summary = {
   contextAdjustedRows: priced.filter(r => r.contextAdjustment?.flags?.length).length,
   savantFormAdjustedRows: priced.filter(r => r.savantRollingForm?.applied).length,
   handednessAdjustedRows: priced.filter(r => r.handednessAdjustment?.applied).length,
+  umpireFramingAdjustedRows: priced.filter(r => r.umpireFramingAdjustment?.applied).length,
   calibratedRows: priced.filter(r => r.calibrationAdjustment?.applied).length,
   marketIntelligenceRows: priced.filter(r => r.marketIntelligence?.applied).length,
   elite: priced.filter(r => r.confidenceBucket === 'elite').length,
