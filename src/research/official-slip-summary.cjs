@@ -321,7 +321,19 @@ if (Array.isArray(strikeoutWatchlist) && strikeoutWatchlist.length) {
 
 printPlayableSlips();
 
-const officialRows = playableSlipRows();
+const officialRows = playableSlipRows()
+  .filter(s => String(s.status || "").toUpperCase() === "PLAYABLE" || s.complete === true)
+  .map(s => {
+    const legs = s.legs || [];
+    const avg = legs.reduce((sum, l) => sum + rankValue(l), 0) / Math.max(1, legs.length);
+    const green = Number(s.green ?? legs.filter(l => effectiveGrade(l) === "GREEN").length);
+    const size = Number(s.size || legs.length || 0);
+    const correlationPenalty = String(s.correlation || "OK") === "OK" ? 0 : 0.05;
+    const sizePreference = size === 3 ? 0.12 : size === 2 ? 0.07 : size === 4 ? -0.015 : size >= 5 ? -0.035 : 0;
+    const officialScore = avg + green * 0.01 + sizePreference - correlationPenalty;
+    return { ...s, officialScore };
+  })
+  .sort((a, b) => b.officialScore - a.officialScore);
 fs.writeFileSync("outputs/official-slip.json", JSON.stringify(officialRows, null, 2) + "\n");
 
 const lines = [];
