@@ -37,7 +37,7 @@ function slipLabel(size) {
 }
 
 const validated = read("outputs/final-slips-validated.json", []);
-const playable = read("outputs/playable-final-slips.json", []);
+const playable = read("outputs/official-slip.json", []);
 const watchlist = read("outputs/watchlist-final-slips.json", []);
 const coverage = read("outputs/distribution-coverage-report.json", {});
 const validationRules = read("data/results/validation-rules.json", null);
@@ -59,7 +59,7 @@ const validatedLegs = validatedRows
   .flatMap(x => Array.isArray(x.legs) ? x.legs : [x])
   .filter(l => l && l.player)
   .filter(l => (l.validationGrade || l.grade || "GREEN") !== "WATCHLIST");
-const sourceSlips = validatedLegs.length ? [{ legs: validatedLegs }] : playable;
+const sourceSlips = playable;
 const allLegs = sourceSlips.flatMap(s => s.legs || [])
   .filter(l => (l.validationGrade || l.grade || "GREEN") !== "WATCHLIST");
 
