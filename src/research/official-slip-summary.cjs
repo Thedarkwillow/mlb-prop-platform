@@ -216,20 +216,19 @@ function printPlayableSlips() {
     return avg + green * 0.01 - sizePenalty - correlationPenalty;
   }
 
-  const ranked = playable
+  const best = playable
     .slice()
-    .sort((a, b) => slipScore(b) - slipScore(a));
+    .sort((a, b) => slipScore(b) - slipScore(a))[0];
 
-  for (const [slipIndex, slip] of ranked.entries()) {
-    const legs = slip.legs || [];
-    const label = slipIndex === 0 ? "BEST" : `ALT ${slipIndex}`;
-    console.log(`${label}: ${slip.name || slip.type || "SLIP"} | score=${n(slipScore(slip))} | legs=${legs.length} | green=${slip.green ?? legs.filter(l => effectiveGrade(l) === "GREEN").length} | correlation=${slip.correlation || "OK"}`);
-    for (const [i, l] of legs.entries()) {
-      console.log(
-        `  ${i + 1}. ${l.player} | ${l.team || ""} | ${l.market} ${l.side} ${l.line} | edge=${n(l.edge)} | grade=${effectiveGrade(l)} | books=${l.books ?? ""}`
-      );
-    }
+  const legs = best.legs || [];
+  console.log(`${best.name || best.type || "SLIP"} | legs=${legs.length} | green=${best.green ?? legs.filter(l => effectiveGrade(l) === "GREEN").length} | correlation=${best.correlation || "OK"}`);
+
+  for (const [i, l] of legs.entries()) {
+    console.log(
+      `  ${i + 1}. ${l.player} | ${l.team || ""} | ${l.market} ${l.side} ${l.line} | edge=${n(l.edge)} | grade=${effectiveGrade(l)} | books=${l.books ?? ""}`
+    );
   }
+}
 
 function rankValue(l) {
   return Number(
