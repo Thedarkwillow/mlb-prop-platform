@@ -43,12 +43,13 @@ async function getBoxscore(gamePk) {
 }
 
 function addPlayer(map, playerName, teamAbbr, game, gamePk) {
-  const key = normName(playerName);
-  if (!key || !teamAbbr) return;
-
+  const nameKey = normName(playerName);
+  const teamKey = normTeam(teamAbbr);
+  const key = `${nameKey}|${teamKey}`;
+  if (!nameKey || !teamKey) return;
   map.set(key, {
     player: playerName,
-    team: normTeam(teamAbbr),
+    team: teamKey,
     game,
     gamePk
   });
@@ -116,7 +117,8 @@ async function main() {
       };
     }
 
-    const hit = playerTeamMap.get(normName(row.player));
+    const sourceTeam = normTeam(row.team);
+    const hit = playerTeamMap.get(`${normName(row.player)}|${sourceTeam}`) || null;
 
     if (!hit) {
       unresolved++;
@@ -132,7 +134,7 @@ async function main() {
 
     resolved++;
 
-    const oldTeam = normTeam(row.team);
+    const oldTeam = sourceTeam;
     const trueTeam = normTeam(hit.team);
     const trueGame = hit.game;
 
