@@ -378,8 +378,6 @@ function normalizeForOptimizer(r) {
     learningAdjusted: Boolean(learned.learning?.applied),
     learningSuppressed: Boolean(learned.learning?.suppressed),
     learningAdjustment: learned.learning,
-    adaptiveAdjusted: Boolean(adaptive.adaptiveCalibration?.applied),
-    adaptiveCalibration: adaptive.adaptiveCalibration,
     expectedValue: ev,
     confidenceBucket,
     market: r.market || r.stat
@@ -397,7 +395,6 @@ function hrrMoreAllowed(r) {
 }
 
 function playable(r) {
-  if (r.teamResolved !== true || r.teamValid !== true) return false;
   if (r.rankEligible === false) return false;
 
   // HARD BLOCK: HRR MORE is historically underperforming.

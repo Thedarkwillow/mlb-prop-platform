@@ -293,6 +293,12 @@ function printPlayableSlips() {
     .filter(Boolean)
     .sort((a, b) => b.officialScore - a.officialScore);
 
+  if (!ranked.length) {
+    console.log("none");
+    console.log("Reason: playable slips existed, but official dynamic/HRR filters rejected them.");
+    return;
+  }
+
   const best = ranked[0];
   const bestLegs = best.legs || [];
 
