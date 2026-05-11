@@ -8,135 +8,86 @@ function norm(s) {
   return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
-function parseCsv(text) {
-  const rows = [];
-  let row = [], cur = "", q = false;
-
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i], n = text[i + 1];
-
-    if (c === '"' && q && n === '"') {
-      cur += '"';
-      i++;
-      continue;
-    }
-
-    if (c === '"') {
-      q = !q;
-      continue;
-    }
-
-    if (c === "," && !q) {
-      row.push(cur);
-      cur = "";
-      continue;
-    }
-
-    if ((c === "\n" || c === "\r") && !q) {
-      if (cur || row.length) {
-        row.push(cur);
-        rows.push(row);
-      }
-      cur = "";
-      row = [];
-      if (c === "\r" && n === "\n") i++;
-      continue;
-    }
-
-    cur += c;
-  }
-
-  if (cur || row.length) {
-    row.push(cur);
-    rows.push(row);
-  }
-
-  return rows;
-}
-
 function num(v) {
-  const n = Number(String(v ?? "").replace("%", "").trim());
+  const n = Number(v);
   return Number.isFinite(n) ? n : null;
 }
 
-function pick(row, names) {
-  for (const name of names) {
-    if (row[name] != null && row[name] !== "") return row[name];
+function rowsFromInput(text) {
+  const t = String(text || "").trim();
+  if (!t) return [];
+
+  if (t.startsWith("[") || t.startsWith("{")) {
+    const parsed = JSON.parse(t);
+    if (Array.isArray(parsed)) return parsed;
+    if (Array.isArray(parsed.rows)) return parsed.rows;
+    if (Array.isArray(parsed.data)) return parsed.data;
+    if (Array.isArray(parsed.umpires)) return parsed.umpires;
+    if (Array.isArray(parsed.results)) return parsed.results;
+    return [];
   }
-  return "";
+
+  const lines = t.split(/\r?\n/).filter(Boolean);
+  const header = lines.shift().split(",");
+  return lines.map(line => {
+    const cols = line.split(",");
+    return Object.fromEntries(header.map((h, i) => [h, cols[i]]));
+  });
 }
 
-function classifyKFactor(raw) {
-  const n = Number(raw);
-  if (!Number.isFinite(n)) return 0;
-  if (Math.abs(n) > 1) return n / 100;
-  return n;
-}
-
-function main() {
+if (!fs.existsSync(INPUT)) {
   fs.mkdirSync(path.dirname(INPUT), { recursive: true });
-
-  if (!fs.existsSync(INPUT)) {
-    fs.writeFileSync(
-      INPUT,
-      [
-        "game,umpire,kFactor,calledStrikeBoost,accuracy,consistency,notes",
-        "New York Yankees @ Baltimore Orioles,Example Umpire,0.04,true,94.2,93.1,wide zone / K friendly"
-      ].join("\n") + "\n"
-    );
-
-    fs.writeFileSync(
-      OUTPUT,
-      JSON.stringify({ games: {}, umpires: {}, source: INPUT }, null, 2) + "\n"
-    );
-
-    console.log(`Missing ${INPUT}; created template and empty ${OUTPUT}`);
-    return;
-  }
-
-  const table = parseCsv(fs.readFileSync(INPUT, "utf8"));
-  const header = table.shift().map(h => norm(h));
-  const games = {};
-  const umpires = {};
-
-  for (const cells of table) {
-    const row = {};
-    header.forEach((h, i) => row[h] = cells[i] || "");
-
-    const game = pick(row, ["game", "matchup"]);
-    const umpire = pick(row, ["umpire", "home plate umpire", "hp umpire", "name"]);
-    if (!game && !umpire) continue;
-
-    const kFactorRaw = pick(row, ["kfactor", "k factor", "calledstrikeboost", "called strike boost", "strikezoneboost"]);
-    const kFactor = classifyKFactor(num(kFactorRaw));
-
-    const payload = {
-      game,
-      umpire,
-      kFactor,
-      kBoost: kFactor > 0.03,
-      kDowngrade: kFactor < -0.03,
-      accuracy: num(pick(row, ["accuracy", "acc"])),
-      consistency: num(pick(row, ["consistency", "con"])),
-      notes: pick(row, ["notes", "note"]),
-      source: INPUT
-    };
-
-    if (game) games[norm(game)] = payload;
-    if (umpire) umpires[norm(umpire)] = payload;
-  }
-
-  fs.writeFileSync(
-    OUTPUT,
-    JSON.stringify({ games, umpires, source: INPUT, updatedAt: new Date().toISOString() }, null, 2) + "\n"
-  );
-
-  console.log("UMPIRE STRIKE-ZONE IMPORT");
-  console.log("=========================");
-  console.log(`Input: ${INPUT}`);
-  console.log(`Games mapped: ${Object.keys(games).length}`);
-  console.log(`Umpires mapped: ${Object.keys(umpires).length}`);
-  console.log(`Wrote ${OUTPUT}`);
+  fs.writeFileSync(INPUT, "umpire,accuracy_above_x_wmean,overall_accuracy_wmean,consistency_wmean,total_run_impact_mean,favor_abs_mean,weighted_score\n");
 }
 
-main();
+const rows = rowsFromInput(fs.readFileSync(INPUT, "utf8"));
+const umpires = {};
+
+for (const r of rows) {
+  const name = r.umpire || r.name || r.Umpire;
+  if (!name) continue;
+
+  const accuracyAboveX = num(r.accuracy_above_x_wmean);
+  const weightedScore = num(r.weighted_score);
+  const runImpact = num(r.total_run_impact_mean);
+
+  let kFactor = 0;
+  if (accuracyAboveX !== null) {
+    if (accuracyAboveX >= 1.0) kFactor = 0.04;
+    else if (accuracyAboveX >= 0.5) kFactor = 0.025;
+    else if (accuracyAboveX <= -1.0) kFactor = -0.04;
+    else if (accuracyAboveX <= -0.5) kFactor = -0.025;
+  }
+
+  umpires[norm(name)] = {
+    umpire: name,
+    kFactor,
+    kBoost: kFactor > 0,
+    kDowngrade: kFactor < 0,
+    accuracyAboveX,
+    overallAccuracy: num(r.overall_accuracy_wmean),
+    consistency: num(r.consistency_wmean),
+    runImpact,
+    favorAbs: num(r.favor_abs_mean),
+    weightedScore,
+    sampleGames: num(r.n),
+    calledPitches: num(r.called_pitches_sum)
+  };
+}
+
+const out = {
+  games: {},
+  umpires,
+  source: INPUT,
+  updatedAt: new Date().toISOString()
+};
+
+fs.mkdirSync(path.dirname(OUTPUT), { recursive: true });
+fs.writeFileSync(OUTPUT, JSON.stringify(out, null, 2) + "\n");
+
+console.log("UMPIRE STRIKE-ZONE IMPORT");
+console.log("=========================");
+console.log(`Input: ${INPUT}`);
+console.log(`Games mapped: ${Object.keys(out.games).length}`);
+console.log(`Umpires mapped: ${Object.keys(out.umpires).length}`);
+console.log(`Wrote ${OUTPUT}`);
