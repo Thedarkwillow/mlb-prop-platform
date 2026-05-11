@@ -351,21 +351,33 @@ console.log("");
 console.log("Wrote outputs/official-slip.json");
 console.log("Wrote outputs/official-slip.txt");
 
-const today = new Date().toISOString().slice(0, 10);
+// HARD STOP: reject stale official slips after generation
+(async () => {
+  const today = process.env.npm_config_date || process.argv[2] || new Date().toISOString().slice(0, 10);
+  const r = await fetch(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${today}&hydrate=team`);
+  const j = await r.json();
 
-if (!fs.existsSync("outputs/history")) {
-  fs.mkdirSync("outputs/history", { recursive: true });
-}
+  const teams = new Set();
+  for (const d of j.dates || []) {
+    for (const g of d.games || []) {
+      teams.add(g.teams?.away?.team?.abbreviation);
+      teams.add(g.teams?.home?.team?.abbreviation);
+    }
+  }
 
-fs.writeFileSync(
-  `outputs/history/${today}-official-slip.json`,
-  JSON.stringify(officialRows, null, 2) + "\n"
-);
+  const official = JSON.parse(fs.readFileSync("outputs/official-slip.json", "utf8"));
 
-fs.writeFileSync(
-  `outputs/history/${today}-official-slip.txt`,
-  lines.join("\n") + "\n"
-);
+  const filtered = official
+    .map(s => ({
+      ...s,
+      originalSize: (s.legs || []).length,
+      legs: (s.legs || []).filter(l => teams.has(String(l.team || "").toUpperCase()))
+    }))
+    .map(s => ({ ...s, size: (s.legs || []).length }))
+    .filter(s => (s.legs || []).length >= 2);
 
-console.log(`Wrote outputs/history/${today}-official-slip.json`);
-console.log(`Wrote outputs/history/${today}-official-slip.txt`);
+  fs.writeFileSync("outputs/official-slip.json", JSON.stringify(filtered, null, 2) + "\n");
+  fs.writeFileSync(`outputs/history/${today}-official-slip.json`, JSON.stringify(filtered, null, 2) + "\n");
+
+  console.log(`POST-FILTER official slips: ${filtered.length}`);
+})();
