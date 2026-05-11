@@ -86,7 +86,8 @@
     "clv:guard": "node src/research/clv-stoploss-guard.cjs",
     "match:diag": "node src/research/sportsbook-match-diagnostics.cjs",
     "ensemble:diag": "node src/research/ensemble-diagnostics.cjs",
-    "steam": "node src/research/steam-report.cjs"
+    "steam": "node src/research/steam-report.cjs",
+    "bayes": "node src/research/bayesian-confidence.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
