@@ -672,6 +672,157 @@ function catcherFramingForRow(row) {
   return rec || null;
 }
 
+
+function batterSavantProfile(row) {
+  const form = row.savantRollingForm || {};
+  const metrics = form.metrics || {};
+  const direct = row.savant || row.savantProfile || {};
+
+  const profile = {
+    xwoba: Number(metrics.xwoba ?? form.xwoba ?? direct.xwoba ?? row.xwoba ?? 0),
+    xslg: Number(metrics.xslg ?? form.xslg ?? direct.xslg ?? row.xslg ?? 0),
+    xba: Number(metrics.xba ?? form.xba ?? direct.xba ?? row.xba ?? 0),
+    hardHitRate: Number(metrics.hardHitRate ?? form.hardHitRate ?? form.hardHit ?? direct.hardHitRate ?? row.hardHitRate ?? 0),
+    barrelRate: Number(metrics.barrelRate ?? form.barrelRate ?? form.barrel ?? direct.barrelRate ?? row.barrelRate ?? 0),
+    sweetSpotRate: Number(metrics.sweetSpotRate ?? form.sweetSpotRate ?? direct.sweetSpotRate ?? row.sweetSpotRate ?? 0),
+    avgExitVelocity: Number(metrics.avgExitVelocity ?? form.avgExitVelocity ?? direct.avgExitVelocity ?? row.avgExitVelocity ?? 0),
+    avgLaunchAngle: Number(metrics.avgLaunchAngle ?? form.avgLaunchAngle ?? direct.avgLaunchAngle ?? row.avgLaunchAngle ?? 0),
+    whiffRate: Number(metrics.whiffRate ?? form.whiffRate ?? direct.whiffRate ?? row.whiffRate ?? 0),
+    kRate: Number(metrics.kRate ?? form.kRate ?? direct.kRate ?? row.kRate ?? 0),
+    pa: Number(metrics.pa ?? form.pa ?? direct.pa ?? row.pa ?? 0)
+  };
+
+  return profile;
+}
+
+function applyContactQualityAdjustment(row, prob) {
+  const m = marketKey(row);
+  const s = sideKey(row);
+
+  const hitterMarkets = new Set([
+    'hits',
+    'bases',
+    'hrr',
+    'runs',
+    'rbis',
+    'hr',
+    'home_runs'
+  ]);
+
+  if (!hitterMarkets.has(m)) {
+    return {
+      prob,
+      adjustment: {
+        applied: false,
+        delta: 0,
+        reason: 'NON_HITTER_MARKET'
+      }
+    };
+  }
+
+  const q = batterSavantProfile(row);
+  const flags = [];
+  let contactScore = 0;
+  let riskScore = 0;
+
+  if (q.pa && q.pa < 25) {
+    return {
+      prob,
+      adjustment: {
+        applied: false,
+        delta: 0,
+        reason: 'SAMPLE_TOO_SMALL',
+        profile: q
+      }
+    };
+  }
+
+  if (q.xwoba >= 0.380) {
+    contactScore += 1;
+    flags.push('PLUS_XWOBA');
+  }
+  if (q.xwoba >= 0.420) {
+    contactScore += 1;
+    flags.push('ELITE_XWOBA');
+  }
+  if (q.xslg >= 0.500) {
+    contactScore += 1;
+    flags.push('PLUS_XSLG');
+  }
+  if (q.hardHitRate >= 48) {
+    contactScore += 1;
+    flags.push('PLUS_HARD_HIT');
+  }
+  if (q.barrelRate >= 12) {
+    contactScore += 1;
+    flags.push('PLUS_BARREL');
+  }
+  if (q.sweetSpotRate >= 35) {
+    contactScore += 0.5;
+    flags.push('PLUS_SWEET_SPOT');
+  }
+  if (q.avgExitVelocity >= 91) {
+    contactScore += 0.5;
+    flags.push('PLUS_EXIT_VELO');
+  }
+
+  if (q.xwoba > 0 && q.xwoba <= 0.285) {
+    riskScore += 1;
+    flags.push('WEAK_XWOBA');
+  }
+  if (q.xslg > 0 && q.xslg <= 0.350) {
+    riskScore += 1;
+    flags.push('WEAK_XSLG');
+  }
+  if (q.hardHitRate > 0 && q.hardHitRate <= 33) {
+    riskScore += 1;
+    flags.push('LOW_HARD_HIT');
+  }
+  if (q.barrelRate >= 0 && q.barrelRate <= 4 && q.xslg > 0) {
+    riskScore += 0.75;
+    flags.push('LOW_BARREL');
+  }
+  if (q.whiffRate >= 32 || q.kRate >= 30) {
+    riskScore += 0.75;
+    flags.push('SWING_MISS_RISK');
+  }
+
+  let rawDelta = 0;
+
+  if (contactScore >= 4) rawDelta += 0.008;
+  else if (contactScore >= 2.5) rawDelta += 0.005;
+  else if (contactScore >= 1.5) rawDelta += 0.003;
+
+  if (riskScore >= 2.5) rawDelta -= 0.007;
+  else if (riskScore >= 1.5) rawDelta -= 0.004;
+  else if (riskScore >= 0.75) rawDelta -= 0.002;
+
+  if (m === 'hr' || m === 'home_runs') {
+    rawDelta *= 1.15;
+  }
+
+  if (m === 'hits') {
+    rawDelta *= 0.75;
+  }
+
+  // Convert hitter contact lean into side probability movement.
+  let delta = s === 'MORE' ? rawDelta : -rawDelta;
+  delta = clamp(delta, -0.009, 0.009);
+
+  return {
+    prob: clamp(prob + delta, 0.01, 0.99),
+    adjustment: {
+      applied: Math.abs(delta) > 0,
+      delta: Number(delta.toFixed(4)),
+      contactScore: Number(contactScore.toFixed(3)),
+      riskScore: Number(riskScore.toFixed(3)),
+      flags,
+      profile: q
+    }
+  };
+}
+
+
 function applyUmpireFramingAdjustment(row, prob) {
   const m = marketKey(row);
   const s = sideKey(row);
@@ -856,7 +1007,13 @@ const priced = board.map(row => {
 
   recommendedProb = savantFormResult.prob;
 
-  const directHandedness = buildDirectHandednessContext({ ...row, recommendedSide });
+  
+  const contactQualityResult = applyContactQualityAdjustment(
+    { ...row, recommendedSide, savantRollingForm: savantFormResult.savantRollingForm },
+    recommendedProb
+  );
+  recommendedProb = contactQualityResult.prob;
+const directHandedness = buildDirectHandednessContext({ ...row, recommendedSide });
 
   const handednessResult = applyHandednessAdjustment(
     { ...row, ...directHandedness, recommendedSide },
@@ -920,6 +1077,8 @@ if (recommendedSide === 'MORE') {
     confidenceBucket: confidenceBucket(recommendedProb),
     contextAdjustment: contextResult.context,
     savantRollingForm: savantFormResult.savantRollingForm,
+    contactQualityAdjusted: Boolean(contactQualityResult.adjustment?.applied),
+    contactQualityAdjustment: contactQualityResult.adjustment,
     handednessMatched: directHandedness.handednessMatched,
     handednessReady: directHandedness.handednessReady,
     handednessMatchType: directHandedness.handednessMatchType,
@@ -941,6 +1100,7 @@ const summary = {
   pricedRows: priced.filter(r => r.pricingStatus === 'PRICED').length,
   contextAdjustedRows: priced.filter(r => r.contextAdjustment?.flags?.length).length,
   savantFormAdjustedRows: priced.filter(r => r.savantRollingForm?.applied).length,
+  contactQualityAdjustedRows: priced.filter(r => r.contactQualityAdjustment?.applied).length,
   handednessAdjustedRows: priced.filter(r => r.handednessAdjustment?.applied).length,
   umpireFramingAdjustedRows: priced.filter(r => r.umpireFramingAdjustment?.applied).length,
   calibratedRows: priced.filter(r => r.calibrationAdjustment?.applied).length,
