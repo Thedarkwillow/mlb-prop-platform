@@ -41,6 +41,7 @@ const pitchMatchups = read("data/savant/pitch-type-matchups.json", {});
 const teamForm = read("data/context/team-form-context.json", {});
 const bullpenDepth = read("data/context/bullpen-depth.json", {});
 const lineupDepth = read("data/context/lineup-depth.json", {});
+const confirmedLineups = read("data/context/confirmed-lineups-depth.json", {});
 const gameOdds = read("data/context/game-odds-context.json", {});
 const oddsBoard = read("outputs/priced-board.json", []);
 
@@ -194,6 +195,7 @@ for (const [team, rec] of Object.entries(teams)) {
     teamContext: {
       ...rec.teamContext,
       ...(lineupDepth.teams?.[team] || {}),
+      ...(confirmedLineups.teams?.[team] || {}),
       ...teamMarketContext(team),
       winRate: teamForm.teams?.[team]?.winRate ?? rec.teamContext?.winRate ?? null,
       homeWinRate: teamForm.teams?.[team]?.homeWinRate ?? rec.teamContext?.homeWinRate ?? null,
