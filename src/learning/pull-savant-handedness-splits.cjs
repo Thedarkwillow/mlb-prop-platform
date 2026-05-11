@@ -10,8 +10,17 @@ function mkdirp(p) {
   fs.mkdirSync(p, { recursive: true });
 }
 
+function displayName(v) {
+  const raw = String(v || "").trim();
+  if (raw.includes(",")) {
+    const [last, first] = raw.split(",").map(x => x.trim());
+    if (first && last) return `${first} ${last}`;
+  }
+  return raw;
+}
+
 function norm(v) {
-  return String(v || "")
+  return displayName(v)
     .toLowerCase()
     .replace(/jr\.?|sr\.?|ii|iii|iv/g, "")
     .replace(/[^a-z0-9]+/g, "")
@@ -136,7 +145,7 @@ function getAny(row, names) {
 }
 
 function playerName(row) {
-  return getAny(row, ["player_name", "last_name, first_name", "Player", "player", "name"]);
+  return displayName(getAny(row, ["player_name", "last_name, first_name", "Player", "player", "name"]));
 }
 
 function standardize(row) {
