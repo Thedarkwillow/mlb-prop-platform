@@ -118,9 +118,14 @@
     "context:pitching-staffs": "node src/research/build-pitching-staffs.cjs",
     "context:pitcher-stats": "node src/research/build-pitcher-stat-table.cjs",
     "context:pitcher-advanced": "node src/research/build-pitcher-context-advanced.cjs",
-    "refresh:full": "npm run context:refresh && npm run context:depth && node src/jobs/probabilityEngine.js && node src/jobs/slipBuilder.js && npm run picks && npm run official && npm run audit:final",
+    "refresh:full": "npm run context:refresh && npm run context:depth-pack && node src/jobs/probabilityEngine.js && node src/jobs/slipBuilder.js && npm run picks && npm run official && npm run audit:final",
     "phase55": "node src/jobs/phase55RiskCalibration.js",
-    "context:depth": "node src/research/build-context-depth-pack.cjs"
+    "context:depth": "node src/research/build-context-depth-pack.cjs",
+    "context:team-form": "node src/research/build-team-form-context.cjs ${npm_config_date:-$(date +%F)}",
+    "context:bullpen-depth": "node src/research/build-bullpen-depth.cjs ${npm_config_date:-$(date +%F)}",
+    "context:lineup-depth": "node src/research/build-lineup-depth.cjs",
+    "context:game-odds": "node src/research/build-game-odds-context.cjs",
+    "context:depth-pack": "npm run context:team-form && npm run context:bullpen-depth && npm run context:lineup-depth && npm run context:game-odds && npm run context:depth"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

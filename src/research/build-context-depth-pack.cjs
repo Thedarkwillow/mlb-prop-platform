@@ -17,6 +17,7 @@ function write(path, data) {
 }
 
 function n(v, fallback = null) {
+  if (v === null || v === undefined || v === "") return fallback;
   const x = Number(v);
   return Number.isFinite(x) ? x : fallback;
 }
@@ -37,6 +38,10 @@ const pitcherAdvanced = read("data/context/pitcher-context-advanced.json", {});
 const lineups = read("data/context/lineups.json", {});
 const handedness = read("data/savant/handedness-splits.json", {});
 const pitchMatchups = read("data/savant/pitch-type-matchups.json", {});
+const teamForm = read("data/context/team-form-context.json", {});
+const bullpenDepth = read("data/context/bullpen-depth.json", {});
+const lineupDepth = read("data/context/lineup-depth.json", {});
+const gameOdds = read("data/context/game-odds-context.json", {});
 const oddsBoard = read("outputs/priced-board.json", []);
 
 const games = gameModel.games || {};
@@ -94,21 +99,25 @@ function enrichPitcher(sp) {
 function bullpenForTeam(team) {
   const fat = bullpenFatigue.teams?.[team] || bullpenFatigue[team] || {};
   const base = teams[team]?.bullpen || {};
+  const depth = bullpenDepth.teams?.[team] || {};
 
   return {
     team,
     seasonRanks: {
-      eraRank: n(base.seasonRanks?.eraRank ?? base.bullpenEraRank ?? base.eraRank),
-      whipRank: n(base.seasonRanks?.whipRank ?? base.bullpenWhipRank ?? base.whipRank)
+      eraRank: n(depth.bullpenEraRank ?? base.seasonRanks?.eraRank ?? base.bullpenEraRank ?? base.eraRank),
+      whipRank: n(depth.bullpenWhipRank ?? base.seasonRanks?.whipRank ?? base.bullpenWhipRank ?? base.whipRank)
     },
+    bullpenEra: n(depth.bullpenEra ?? base.bullpenEra),
+    bullpenWhip: n(depth.bullpenWhip ?? base.bullpenWhip),
     fatigue: fat.fatigue || base.fatigue || null,
     pitchCountLast2Days: n(fat.pitchCountLast2Days ?? base.pitchCountLast2Days),
     last3DaysReliefPitches: n(fat.last3DaysReliefPitches ?? base.last3DaysReliefPitches),
     backToBackRelievers: n(fat.backToBackRelievers ?? base.backToBackRelievers),
-    relieverAppearances: n(fat.relieverAppearances ?? base.relieverAppearances),
-    relievers: base.relievers || [],
+    relieverAppearances: n(depth.relieverAppearances ?? fat.relieverAppearances ?? base.relieverAppearances),
+    recentPitches: n(depth.recentPitches),
+    relievers: depth.relievers || base.relievers || [],
     riskScore: (() => {
-      const pitches = n(fat.pitchCountLast2Days ?? fat.last3DaysReliefPitches, 0);
+      const pitches = n(fat.pitchCountLast2Days ?? fat.last3DaysReliefPitches ?? depth.recentPitches, 0);
       const b2b = n(fat.backToBackRelievers, 0);
       return Math.max(0, Math.min(1, pitches / 220 + b2b / 12));
     })()
@@ -145,12 +154,13 @@ function boardTeamRows(team) {
 
 function teamMarketContext(team) {
   const rows = boardTeamRows(team);
+  const odds = gameOdds.teams?.[team] || {};
   const moneylines = rows.map(r => n(r.moneyline ?? r.ml ?? r.consensusMoneyline)).filter(Number.isFinite);
   const totals = rows.map(r => n(r.total ?? r.gameTotal ?? r.consensusTotal)).filter(Number.isFinite);
 
   return {
-    moneyline: avg(moneylines),
-    total: avg(totals),
+    moneyline: n(odds.moneyline ?? avg(moneylines), null),
+    total: n(odds.total ?? avg(totals), null),
     marketRows: rows.length
   };
 }
@@ -169,19 +179,20 @@ for (const [team, rec] of Object.entries(teams)) {
     gamePk: rec.teamContext?.gamePk || rec.startingPitcher?.gamePk || null,
     teamContext: {
       ...rec.teamContext,
+      ...(lineupDepth.teams?.[team] || {}),
       ...teamMarketContext(team),
-      winRate: rec.teamContext?.winRate ?? null,
-      homeWinRate: rec.teamContext?.homeWinRate ?? null,
-      awayWinRate: rec.teamContext?.awayWinRate ?? null,
-      last3WinRate: rec.teamContext?.last3WinRate ?? null,
-      runsPerGame: rec.teamContext?.runsPerGame ?? null,
-      homeRunsPerGame: rec.teamContext?.homeRunsPerGame ?? null,
-      awayRunsPerGame: rec.teamContext?.awayRunsPerGame ?? null,
-      last3RunsPerGame: rec.teamContext?.last3RunsPerGame ?? null,
-      f5RunsPerGame: rec.teamContext?.f5RunsPerGame ?? null,
-      homeF5RunsPerGame: rec.teamContext?.homeF5RunsPerGame ?? null,
-      awayF5RunsPerGame: rec.teamContext?.awayF5RunsPerGame ?? null,
-      last3F5RunsPerGame: rec.teamContext?.last3F5RunsPerGame ?? null
+      winRate: teamForm.teams?.[team]?.winRate ?? rec.teamContext?.winRate ?? null,
+      homeWinRate: teamForm.teams?.[team]?.homeWinRate ?? rec.teamContext?.homeWinRate ?? null,
+      awayWinRate: teamForm.teams?.[team]?.awayWinRate ?? rec.teamContext?.awayWinRate ?? null,
+      last3WinRate: teamForm.teams?.[team]?.last3WinRate ?? rec.teamContext?.last3WinRate ?? null,
+      runsPerGame: teamForm.teams?.[team]?.runsPerGame ?? rec.teamContext?.runsPerGame ?? null,
+      homeRunsPerGame: teamForm.teams?.[team]?.homeRunsPerGame ?? rec.teamContext?.homeRunsPerGame ?? null,
+      awayRunsPerGame: teamForm.teams?.[team]?.awayRunsPerGame ?? rec.teamContext?.awayRunsPerGame ?? null,
+      last3RunsPerGame: teamForm.teams?.[team]?.last3RunsPerGame ?? rec.teamContext?.last3RunsPerGame ?? null,
+      f5RunsPerGame: teamForm.teams?.[team]?.f5RunsPerGame ?? rec.teamContext?.f5RunsPerGame ?? null,
+      homeF5RunsPerGame: teamForm.teams?.[team]?.homeF5RunsPerGame ?? rec.teamContext?.homeF5RunsPerGame ?? null,
+      awayF5RunsPerGame: teamForm.teams?.[team]?.awayF5RunsPerGame ?? rec.teamContext?.awayF5RunsPerGame ?? null,
+      last3F5RunsPerGame: teamForm.teams?.[team]?.last3F5RunsPerGame ?? rec.teamContext?.last3F5RunsPerGame ?? null
     },
     startingPitcher: enrichPitcher(rec.startingPitcher),
     bullpen: bullpenForTeam(team)
