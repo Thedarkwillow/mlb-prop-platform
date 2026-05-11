@@ -79,24 +79,25 @@
         "side": "MORE",
         "line": 0.5,
         "edge": 0.3722,
-        "adjustedEdge": 0.3722,
-        "finalScore": 0.4764,
-        "distributionProb": 0.8153,
-        "calibratedDistributionProb": 0.6734,
+        "adjustedEdge": 0.3782,
+        "finalScore": 0.5034,
+        "distributionProb": 0.8457,
+        "calibratedDistributionProb": 0.6901,
         "distributionConfidence": "HIGH",
         "grade": "GREEN",
         "books": 3,
-        "savant": "UNKNOWN",
+        "savant": "BOOST",
         "eliteContext": {
-          "contextScore": 0.025,
+          "contextScore": 0.037,
           "contextNotes": [
+            "savant boost",
             "strong book support",
             "large raw edge"
           ]
         },
         "marketModel": {
           "marketModel": "bases",
-          "marketModelScore": 0.038,
+          "marketModelScore": 0.044,
           "marketModelNotes": [
             "solid calibrated probability",
             "strong adjusted edge",
@@ -121,7 +122,7 @@
     "removedOffSlateLegs": [],
     "originalSize": 2,
     "targetSize": 2,
-    "officialScore": 0.5908500000000001
+    "officialScore": 0.6043499999999999
   },
   {
     "name": "3-MAN FLEX",
@@ -203,24 +204,25 @@
         "side": "MORE",
         "line": 0.5,
         "edge": 0.3722,
-        "adjustedEdge": 0.3722,
-        "finalScore": 0.4764,
-        "distributionProb": 0.8153,
-        "calibratedDistributionProb": 0.6734,
+        "adjustedEdge": 0.3782,
+        "finalScore": 0.5034,
+        "distributionProb": 0.8457,
+        "calibratedDistributionProb": 0.6901,
         "distributionConfidence": "HIGH",
         "grade": "GREEN",
         "books": 3,
-        "savant": "UNKNOWN",
+        "savant": "BOOST",
         "eliteContext": {
-          "contextScore": 0.025,
+          "contextScore": 0.037,
           "contextNotes": [
+            "savant boost",
             "strong book support",
             "large raw edge"
           ]
         },
         "marketModel": {
           "marketModel": "bases",
-          "marketModelScore": 0.038,
+          "marketModelScore": 0.044,
           "marketModelNotes": [
             "solid calibrated probability",
             "strong adjusted edge",
@@ -256,23 +258,24 @@
         "side": "LESS",
         "line": 1.5,
         "edge": 0.1374,
-        "adjustedEdge": 0.1374,
-        "finalScore": 0.1574,
-        "distributionProb": 0.4197,
-        "calibratedDistributionProb": 0.4558,
+        "adjustedEdge": 0.1434,
+        "finalScore": 0.1767,
+        "distributionProb": 0.372,
+        "calibratedDistributionProb": 0.4296,
         "distributionConfidence": "MEDIUM",
         "grade": "GREEN",
         "books": 3,
-        "savant": "UNKNOWN",
+        "savant": "BOOST",
         "eliteContext": {
-          "contextScore": 0.015,
+          "contextScore": 0.027,
           "contextNotes": [
+            "savant boost",
             "strong book support"
           ]
         },
         "marketModel": {
           "marketModel": "bases",
-          "marketModelScore": 0.013,
+          "marketModelScore": 0.019,
           "marketModelNotes": [
             "thin calibrated probability",
             "strong adjusted edge",
@@ -288,7 +291,7 @@
     "removedOffSlateLegs": [],
     "originalSize": 3,
     "targetSize": 3,
-    "officialScore": 0.5363666666666667
+    "officialScore": 0.5518
   },
   {
     "name": "4-MAN FLEX",
@@ -370,24 +373,25 @@
         "side": "MORE",
         "line": 0.5,
         "edge": 0.3722,
-        "adjustedEdge": 0.3722,
-        "finalScore": 0.4764,
-        "distributionProb": 0.8153,
-        "calibratedDistributionProb": 0.6734,
+        "adjustedEdge": 0.3782,
+        "finalScore": 0.5034,
+        "distributionProb": 0.8457,
+        "calibratedDistributionProb": 0.6901,
         "distributionConfidence": "HIGH",
         "grade": "GREEN",
         "books": 3,
-        "savant": "UNKNOWN",
+        "savant": "BOOST",
         "eliteContext": {
-          "contextScore": 0.025,
+          "contextScore": 0.037,
           "contextNotes": [
+            "savant boost",
             "strong book support",
             "large raw edge"
           ]
         },
         "marketModel": {
           "marketModel": "bases",
-          "marketModelScore": 0.038,
+          "marketModelScore": 0.044,
           "marketModelNotes": [
             "solid calibrated probability",
             "strong adjusted edge",
@@ -423,23 +427,24 @@
         "side": "LESS",
         "line": 1.5,
         "edge": 0.1374,
-        "adjustedEdge": 0.1374,
-        "finalScore": 0.1574,
-        "distributionProb": 0.4197,
-        "calibratedDistributionProb": 0.4558,
+        "adjustedEdge": 0.1434,
+        "finalScore": 0.1767,
+        "distributionProb": 0.372,
+        "calibratedDistributionProb": 0.4296,
         "distributionConfidence": "MEDIUM",
         "grade": "GREEN",
         "books": 3,
-        "savant": "UNKNOWN",
+        "savant": "BOOST",
         "eliteContext": {
-          "contextScore": 0.015,
+          "contextScore": 0.027,
           "contextNotes": [
+            "savant boost",
             "strong book support"
           ]
         },
         "marketModel": {
           "marketModel": "bases",
-          "marketModelScore": 0.013,
+          "marketModelScore": 0.019,
           "marketModelNotes": [
             "thin calibrated probability",
             "strong adjusted edge",
@@ -454,7 +459,7 @@
         "player": "Brandon Valenzuela",
         "team": "TOR",
         "game": "Tampa Bay Rays @ Toronto Blue Jays",
-        "gamePk": 822818,
+        "gamePk": 822986,
         "teamResolved": true,
         "teamValid": true,
         "teamResolverStatus": "corrected",
@@ -466,23 +471,24 @@
         "side": "LESS",
         "line": 0.5,
         "edge": 0.1025,
-        "adjustedEdge": 0.1025,
-        "finalScore": 0.1073,
-        "distributionProb": 0.4274,
-        "calibratedDistributionProb": 0.4601,
+        "adjustedEdge": 0.0905,
+        "finalScore": 0.0778,
+        "distributionProb": 0.4724,
+        "calibratedDistributionProb": 0.4848,
         "distributionConfidence": "LOW",
         "grade": "GREEN",
         "books": 3,
-        "savant": "UNKNOWN",
+        "savant": "DOWNGRADE",
         "eliteContext": {
-          "contextScore": 0.015,
+          "contextScore": 0.003,
           "contextNotes": [
+            "savant downgrade",
             "strong book support"
           ]
         },
         "marketModel": {
           "marketModel": "hits",
-          "marketModelScore": 0.012,
+          "marketModelScore": 0.002,
           "marketModelNotes": [
             "thin calibrated probability",
             "strong adjusted edge",
@@ -498,7 +504,7 @@
     "removedOffSlateLegs": [],
     "originalSize": 4,
     "targetSize": 4,
-    "officialScore": 0.34159999999999996
+    "officialScore": 0.3458
   },
   {
     "name": "5-MAN FLEX",
@@ -580,24 +586,25 @@
         "side": "MORE",
         "line": 0.5,
         "edge": 0.3722,
-        "adjustedEdge": 0.3722,
-        "finalScore": 0.4764,
-        "distributionProb": 0.8153,
-        "calibratedDistributionProb": 0.6734,
+        "adjustedEdge": 0.3782,
+        "finalScore": 0.5034,
+        "distributionProb": 0.8457,
+        "calibratedDistributionProb": 0.6901,
         "distributionConfidence": "HIGH",
         "grade": "GREEN",
         "books": 3,
-        "savant": "UNKNOWN",
+        "savant": "BOOST",
         "eliteContext": {
-          "contextScore": 0.025,
+          "contextScore": 0.037,
           "contextNotes": [
+            "savant boost",
             "strong book support",
             "large raw edge"
           ]
         },
         "marketModel": {
           "marketModel": "bases",
-          "marketModelScore": 0.038,
+          "marketModelScore": 0.044,
           "marketModelNotes": [
             "solid calibrated probability",
             "strong adjusted edge",
@@ -633,23 +640,24 @@
         "side": "LESS",
         "line": 1.5,
         "edge": 0.1374,
-        "adjustedEdge": 0.1374,
-        "finalScore": 0.1574,
-        "distributionProb": 0.4197,
-        "calibratedDistributionProb": 0.4558,
+        "adjustedEdge": 0.1434,
+        "finalScore": 0.1767,
+        "distributionProb": 0.372,
+        "calibratedDistributionProb": 0.4296,
         "distributionConfidence": "MEDIUM",
         "grade": "GREEN",
         "books": 3,
-        "savant": "UNKNOWN",
+        "savant": "BOOST",
         "eliteContext": {
-          "contextScore": 0.015,
+          "contextScore": 0.027,
           "contextNotes": [
+            "savant boost",
             "strong book support"
           ]
         },
         "marketModel": {
           "marketModel": "bases",
-          "marketModelScore": 0.013,
+          "marketModelScore": 0.019,
           "marketModelNotes": [
             "thin calibrated probability",
             "strong adjusted edge",
@@ -676,23 +684,24 @@
         "side": "LESS",
         "line": 1.5,
         "edge": 0.1306,
-        "adjustedEdge": 0.1306,
-        "finalScore": 0.1506,
-        "distributionProb": 0.4197,
-        "calibratedDistributionProb": 0.4558,
+        "adjustedEdge": 0.1366,
+        "finalScore": 0.1699,
+        "distributionProb": 0.372,
+        "calibratedDistributionProb": 0.4296,
         "distributionConfidence": "MEDIUM",
         "grade": "GREEN",
         "books": 3,
-        "savant": "UNKNOWN",
+        "savant": "BOOST",
         "eliteContext": {
-          "contextScore": 0.015,
+          "contextScore": 0.027,
           "contextNotes": [
+            "savant boost",
             "strong book support"
           ]
         },
         "marketModel": {
           "marketModel": "bases",
-          "marketModelScore": 0.013,
+          "marketModelScore": 0.019,
           "marketModelNotes": [
             "thin calibrated probability",
             "strong adjusted edge",
@@ -707,7 +716,7 @@
         "player": "Brandon Valenzuela",
         "team": "TOR",
         "game": "Tampa Bay Rays @ Toronto Blue Jays",
-        "gamePk": 822818,
+        "gamePk": 822986,
         "teamResolved": true,
         "teamValid": true,
         "teamResolverStatus": "corrected",
@@ -719,23 +728,24 @@
         "side": "LESS",
         "line": 0.5,
         "edge": 0.1025,
-        "adjustedEdge": 0.1025,
-        "finalScore": 0.1073,
-        "distributionProb": 0.4274,
-        "calibratedDistributionProb": 0.4601,
+        "adjustedEdge": 0.0905,
+        "finalScore": 0.0778,
+        "distributionProb": 0.4724,
+        "calibratedDistributionProb": 0.4848,
         "distributionConfidence": "LOW",
         "grade": "GREEN",
         "books": 3,
-        "savant": "UNKNOWN",
+        "savant": "DOWNGRADE",
         "eliteContext": {
-          "contextScore": 0.015,
+          "contextScore": 0.003,
           "contextNotes": [
+            "savant downgrade",
             "strong book support"
           ]
         },
         "marketModel": {
           "marketModel": "hits",
-          "marketModelScore": 0.012,
+          "marketModelScore": 0.002,
           "marketModelNotes": [
             "thin calibrated probability",
             "strong adjusted edge",
@@ -751,6 +761,6 @@
     "removedOffSlateLegs": [],
     "originalSize": 5,
     "targetSize": 5,
-    "officialScore": 0.2984
+    "officialScore": 0.30562
   }
 ]
