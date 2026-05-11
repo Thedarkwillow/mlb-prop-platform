@@ -48,8 +48,10 @@ function first(...xs) {
 const board = read("outputs/priced-board.json", []);
 const handedness = read("data/savant/handedness-splits.json", {});
 const pitchMatchups = read("data/savant/pitch-type-matchups.json", {});
+const pitchRunValues = read("data/savant/pitch-type-run-values.json", {});
 const ballpark = read("data/ballpark-latest.json", []);
 const confirmed = read("data/context/confirmed-lineups-depth.json", {});
+const freeLineups = read("data/context/free-lineup-source.json", {});
 const lineupDepth = read("data/context/lineup-depth.json", {});
 const depth = read("data/context/context-depth-pack.json", {});
 
@@ -112,18 +114,19 @@ for (const r of collectHandRows()) {
 }
 
 const pitchTypeByName = {};
-for (const r of collectPitchRows()) {
+for (const r of [...collectPitchRows(), ...Object.values(pitchRunValues.byBatter || {})]) {
   const name = first(r.player, r.hitter, r.name);
   const k = keyName(name);
   if (!k) continue;
   const rv = normalizePitchTypes(r);
 
+  const directRunValues = r.pitchTypeRunValues || null;
   pitchTypeByName[k] = {
     name,
     pitcher: first(r.pitcher, r.opposingPitcher),
     matchupScore: n(first(r.matchupScore, r.edgeScore, r.pitchTypeEdge)),
-    pitchTypeRunValues: rv,
-    availablePitchTypes: Object.entries(rv).filter(([, v]) => v !== null).map(([k]) => k),
+    pitchTypeRunValues: directRunValues || rv,
+    availablePitchTypes: Object.entries(directRunValues || rv).filter(([, v]) => v !== null && v !== undefined).map(([k]) => k),
     source: "pitch_type_matchup_normalized"
   };
 }
@@ -162,6 +165,17 @@ for (const [team, rec] of Object.entries(lineupDepth.teams || {})) {
     starters: rec.starters || [],
     source: "lineup_depth_inferred"
   };
+}
+
+for (const [team, rec] of Object.entries(freeLineups.teams || {})) {
+  if ((rec.starters || []).length >= 8 && !lineupByTeam[team]) {
+    lineupByTeam[team] = {
+      team,
+      status: rec.lineupStatus || "free_source_projected",
+      starters: rec.starters,
+      source: "free_lineup_source"
+    };
+  }
 }
 
 for (const [team, rec] of Object.entries(confirmed.teams || {})) {
