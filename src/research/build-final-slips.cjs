@@ -118,7 +118,6 @@ function finalScore(x) {
   score += marketModel.marketModelScore;
   score += elite.contextScore;
   score += trustScoreAdjustment(x);
-  score += trustScoreAdjustment(x);
 
   return Number(score.toFixed(4));
 }
@@ -188,7 +187,6 @@ function cleanLeg(x) {
       edge: x.sportsbookEdge
     }),
     marketModel: marketModelScore(x),
-    marketTrust: marketTrust(x),
     marketTrust: marketTrust(x),
     marketSupportFlag: x.marketSupportFlag || null
   };
