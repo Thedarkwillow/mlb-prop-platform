@@ -20,6 +20,8 @@ const SINGLE_BOOK_EDGE_PENALTY = 0.035;
 const MIN_GREEN_BOOKS = 2;
 const SINGLE_BOOK_GREEN_EDGE_MIN = 0.12;
 const SINGLE_BOOK_NEUTRAL_EDGE_MIN = 0.06;
+const MAX_NEAREST_LINE_DELTA = 1.5;
+const LINE_DISTANCE_PENALTY = 0.015;
 
 function readJson(path, fallback) {
   try {
@@ -46,10 +48,10 @@ function bookTrustAdjustment(books) {
   return Number(rec?.adjustment || 0);
 }
 
-
 function normName(s) {
   return String(s || "")
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[.'’\-]/g, "")
     .replace(/\b(jr|sr|ii|iii|iv)\b/gi, "")
     .replace(/\s+/g, " ")
@@ -58,15 +60,23 @@ function normName(s) {
 }
 
 function normMarket(s) {
-  s = String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
-  if (s.includes("strikeout")) return "strikeouts";
-  if (s.includes("hits + runs + rbis") || s.includes("hits+runs+rbis") || s.includes("hrr")) return "hrr";
+  s = String(s || "").toLowerCase().replace(/_/g, " ").replace(/\s+/g, " ").trim();
+
+  if (s.includes("pitcher strikeout") || s === "strikeouts") return "strikeouts";
+  if (s.includes("pitching outs") || s.includes("pitcher outs")) return "pitching_outs";
+  if (s.includes("hits allowed")) return "hits_allowed";
+  if (s.includes("earned runs")) return "earned_runs_allowed";
+  if (s.includes("walks allowed") || s.includes("pitcher walks")) return "walks_allowed";
+
+  if (s.includes("hits runs rbis") || s.includes("hits + runs + rbis") || s.includes("hrr")) return "hrr";
   if (s.includes("home runs") || s.includes("home run")) return "home_runs";
-  if (s.includes("total bases")) return "bases";
+  if (s.includes("total bases") || s === "bases") return "bases";
   if (s.includes("rbi")) return "rbis";
-  if (s.includes("runs")) return "runs";
+  if (s.includes("runs scored") || s === "runs") return "runs";
+  if (s.includes("batter strikeout") || s.includes("hitter strikeout")) return "hitter_strikeouts";
   if (s.includes("hits")) return "hits";
-  return s;
+
+  return s.replace(/\s+/g, "_");
 }
 
 function normSide(s) {
@@ -84,7 +94,12 @@ function impliedProbFromAmerican(odds) {
 }
 
 function key(player, market, side, line) {
-  return [normName(player), normMarket(market), normSide(side), String(Number(line))].join("|");
+  return [
+    normName(player),
+    normMarket(market),
+    normSide(side),
+    String(Number(line))
+  ].join("|");
 }
 
 function lineDeltaEdge(side, ppLine, bookLine) {
@@ -127,20 +142,44 @@ function getQualityGrade({ edge, adjustedEdge, books }) {
 
 function bestPriceForLeg(priceMap, player, market, side, ppLine) {
   const exact = priceMap.get(key(player, market, side, ppLine));
-  let best = exact ? { ...exact, lineDelta: 0, lineDeltaBonus: 0, exactLine: true } : null;
+
+  let best = exact
+    ? {
+        ...exact,
+        lineDelta: 0,
+        lineDeltaBonus: 0,
+        lineDistancePenalty: 0,
+        matchType: "EXACT_LINE",
+        exactLine: true,
+        matchScore: 0
+      }
+    : null;
 
   for (const [, p] of priceMap) {
     if (normName(p.player) !== normName(player)) continue;
     if (normMarket(p.market) !== normMarket(market)) continue;
     if (normSide(p.side) !== normSide(side)) continue;
 
-    const d = lineDeltaEdge(side, ppLine, p.line);
-    if (d <= 0) continue;
+    const absDelta = Math.abs(Number(p.line) - Number(ppLine));
+    if (!Number.isFinite(absDelta)) continue;
+    if (absDelta > MAX_NEAREST_LINE_DELTA) continue;
 
-    const bonus = Math.min(0.12, d * 0.06);
-    const candidate = { ...p, lineDelta: d, lineDeltaBonus: bonus, exactLine: false };
+    const favorableDelta = lineDeltaEdge(side, ppLine, p.line);
+    const lineDeltaBonus = favorableDelta > 0 ? Math.min(0.12, favorableDelta * 0.06) : 0;
+    const lineDistancePenalty = absDelta * LINE_DISTANCE_PENALTY;
+    const matchScore = lineDeltaBonus - lineDistancePenalty;
 
-    if (!best || candidate.lineDeltaBonus > best.lineDeltaBonus) {
+    const candidate = {
+      ...p,
+      lineDelta: favorableDelta,
+      lineDeltaBonus,
+      lineDistancePenalty,
+      matchType: absDelta === 0 ? "EXACT_LINE" : "NEAREST_LINE",
+      exactLine: absDelta === 0,
+      matchScore
+    };
+
+    if (!best || candidate.matchScore > best.matchScore) {
       best = candidate;
     }
   }
@@ -152,17 +191,31 @@ const priceMap = new Map();
 
 for (const r of vegasRaw) {
   const player = r.player || r.participant;
-  const market = normMarket(r.market);
+  const market = normMarket(r.market || r.rawMarket);
   const side = normSide(r.side);
   const line = Number(r.line);
 
-  let prob = Number(r.noVigProb ?? r.weightedImpliedProb ?? r.avgImpliedProb ?? r.impliedProb);
-  if (!Number.isFinite(prob) && r.odds != null) prob = impliedProbFromAmerican(r.odds);
+  let prob = Number(
+    r.noVigProb ??
+    r.weightedImpliedProb ??
+    r.avgImpliedProb ??
+    r.impliedProb
+  );
 
-  if (!player || !market || !side || !Number.isFinite(line) || !Number.isFinite(prob)) continue;
+  if (!Number.isFinite(prob) && r.odds != null) {
+    prob = impliedProbFromAmerican(r.odds);
+  }
 
-  const books = Number(r.books ?? r.bookCount ?? (Array.isArray(r.sportsbooks) ? r.sportsbooks.length : 1));
-  // Keep 1-book prices for matching. Quality grading handles LOW_BOOK_SUPPORT later.
+  if (!player || !market || !side || !Number.isFinite(line) || !Number.isFinite(prob)) {
+    continue;
+  }
+
+  const books = Number(
+    r.books ??
+    r.bookCount ??
+    (Array.isArray(r.sportsbooks) ? r.sportsbooks.length : 1)
+  );
+
   const k = key(player, market, side, line);
 
   priceMap.set(k, {
@@ -173,6 +226,7 @@ for (const r of vegasRaw) {
     avgImpliedProb: prob,
     bookCount: books,
     game: r.game || r.event || null,
+    commenceTime: r.commenceTime || null,
     sportsbooks: r.sportsbooks || (r.sportsbook ? [r.sportsbook] : []),
     disagreement: r.disagreement ?? null,
     sharpSoftGap: r.sharpSoftGap ?? null
@@ -185,6 +239,7 @@ const savantRows = Array.isArray(savantRaw)
   : (savantRaw.savantMatchedReport || savantRaw.rows || savantRaw.legs || []);
 
 const savantMap = new Map();
+
 for (const s of savantRows) {
   savantMap.set(normName(s.player), s);
 }
@@ -195,23 +250,24 @@ const out = legs.map(l => {
   const side = normSide(l.side || l.recommendedSide);
   const line = Number(l.line);
   const p = bestPriceForLeg(priceMap, player, market, side, line);
-
   const sav = savantMap.get(normName(player));
+
   const modelProb = Number(l.recommendedProb);
   const marketProb = p ? Number(p.avgImpliedProb) : null;
 
-  const baseEdge = Number.isFinite(modelProb) && Number.isFinite(marketProb)
-    ? Number((modelProb - marketProb).toFixed(4))
-    : null;
+  const baseEdge =
+    Number.isFinite(modelProb) && Number.isFinite(marketProb)
+      ? Number((modelProb - marketProb).toFixed(4))
+      : null;
 
-  const edge = baseEdge == null
-    ? null
-    : Number((baseEdge + Number(p?.lineDeltaBonus || 0)).toFixed(4));
+  const edge =
+    baseEdge == null
+      ? null
+      : Number((baseEdge + Number(p?.lineDeltaBonus || 0) - Number(p?.lineDistancePenalty || 0)).toFixed(4));
 
   const books = p ? Number(p.bookCount || 0) : 0;
   const savantGrade = sav?.savantGradeReport || sav?.grade || "UNKNOWN";
   const adjustedEdge = edge == null ? null : qualityScore(edge, books, savantGrade);
-
   const qualityGrade = getQualityGrade({ edge, adjustedEdge, books });
 
   return {
@@ -225,7 +281,6 @@ const out = legs.map(l => {
     sportsbookImpliedProb: marketProb,
     sportsbookBookCount: books,
     sportsbookGame: p?.game || null,
-    // If sportsbook pricing matched, use that current event as the canonical game.
     game: p?.game || l.game,
     resolvedGame: p?.game || l.resolvedGame || l.game,
     staleInputGame: l.game && p?.game && l.game !== p.game ? l.game : null,
@@ -233,13 +288,23 @@ const out = legs.map(l => {
     sportsbooks: p?.sportsbooks || [],
     sportsbookDisagreement: p?.disagreement ?? null,
     sportsbookSharpSoftGap: p?.sharpSoftGap ?? null,
+    sportsbookMatchType: p?.matchType || null,
+    sportsbookExactLine: p?.exactLine ?? false,
+    sportsbookLineDelta: p?.lineDelta ?? null,
+    sportsbookLineDeltaBonus: p?.lineDeltaBonus ?? null,
+    sportsbookLineDistancePenalty: p?.lineDistancePenalty ?? null,
+    sportsbookMatchedLine: p?.line ?? null,
     savantReportGrade: savantGrade,
     qualityGrade,
     marketSupportFlag: books < MIN_GREEN_BOOKS ? "LOW_BOOK_SUPPORT" : "OK"
   };
 });
 
-const kept = out.filter(x => x.sportsbookMatch && x.sportsbookEdge > 0 && x.qualityGrade !== "FADE");
+const kept = out.filter(x =>
+  x.sportsbookMatch &&
+  x.sportsbookEdge > 0 &&
+  x.qualityGrade !== "FADE"
+);
 
 fs.writeFileSync("outputs/slips-priced.json", JSON.stringify(out, null, 2));
 
@@ -259,7 +324,9 @@ console.table(kept.slice(0, 25).map(x => ({
   player: x.player,
   market: x.market,
   side: x.side,
-  line: x.line,
+  ppLine: x.line,
+  bookLine: x.sportsbookMatchedLine,
+  match: x.sportsbookMatchType,
   edge: x.sportsbookEdge,
   adjEdge: x.sportsbookAdjustedEdge,
   books: x.sportsbookBookCount,
