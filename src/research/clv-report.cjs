@@ -2,7 +2,7 @@ const fs = require("fs");
 
 const DATE = process.argv[2] || process.env.npm_config_date || new Date().toISOString().slice(0,10);
 const DIR = `data/odds-history/${DATE}`;
-const PICKS = "outputs/playable-final-slips.json";
+const PICKS = "outputs/official-slip.json";
 
 function read(path, fallback) {
   try { return JSON.parse(fs.readFileSync(path, "utf8")); } catch { return fallback; }
