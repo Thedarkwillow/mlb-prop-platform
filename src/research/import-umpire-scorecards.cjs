@@ -40,7 +40,9 @@ if (!fs.existsSync(INPUT)) {
   fs.writeFileSync(INPUT, "umpire,accuracy_above_x_wmean,overall_accuracy_wmean,consistency_wmean,total_run_impact_mean,favor_abs_mean,weighted_score\n");
 }
 
-const rows = rowsFromInput(fs.readFileSync(INPUT, "utf8"));
+const SEASON_START = `${new Date().getFullYear()}-03-01`;
+const rows = rowsFromInput(fs.readFileSync(INPUT, "utf8"))
+  .filter(r => !r.date || String(r.date) >= SEASON_START);
 const umpires = {};
 
 for (const r of rows) {
