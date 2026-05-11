@@ -80,7 +80,8 @@
     "board:rebuild": "node src/jobs/mergeBoard.js && node src/jobs/probabilityEngine.js && node src/jobs/playerTeamResolver.js && node src/jobs/mergeSavantIntoBoard.js && npm run guard:board",
     "grade:official": "node src/research/grade-official-slips.cjs ${npm_config_date:-$(date +%F)}",
     "audit:official": "node src/research/official-slip-audit.cjs",
-    "pregame": "npm run snap && npm run clv && npm run mobile && npm run decision && npm run audit:official"
+    "pregame": "npm run snap && npm run clv && npm run mobile && npm run decision && npm run audit:official",
+    "postgame:official": "npm run grade:official --date=${npm_config_date:-$(date +%F)} && npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run roi --date=${npm_config_date:-$(date +%F)} && npm run mobile --date=${npm_config_date:-$(date +%F)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
