@@ -225,7 +225,9 @@ const out = legs.map(l => {
     sportsbookImpliedProb: marketProb,
     sportsbookBookCount: books,
     sportsbookGame: p?.game || null,
-    game: p?.game || l.game,
+    // Never let sportsbook event matching overwrite PrizePicks/resolved game.
+    // Book game is only reference metadata.
+    game: l.game,
     commenceTime: p?.commenceTime || l.commenceTime || null,
     sportsbooks: p?.sportsbooks || [],
     sportsbookDisagreement: p?.disagreement ?? null,
