@@ -232,15 +232,23 @@ function propKey(r) {
     sideKey(r)
   ].join('|');
 }
+function canonicalTeam(r) {
+  return String(r.resolvedTeam || r.team || '').trim();
+}
+
+function canonicalGame(r) {
+  return String(r.resolvedGame || r.game || '').trim();
+}
+
 function gameKey(r) {
-  const g = String(r.game || '').trim();
+  const g = canonicalGame(r);
 
   if (g.includes('@')) {
     const parts = g.split('@').map(s => s.trim());
     if (parts.length === 2) return parts.sort().join('-').toLowerCase();
   }
 
-  const t = String(r.team || '').trim();
+  const t = canonicalTeam(r);
   const o = String(r.opponent || '').trim();
 
   if (t && o) return [t, o].sort().join('-').toLowerCase();
@@ -272,7 +280,7 @@ function modeAllowed(r) {
 function legKey(r) {
   return [
     String(r.player || '').toLowerCase().trim(),
-    String(r.team || '').toUpperCase().trim(),
+    canonicalTeam(r).toUpperCase().trim(),
     String(market(r) || '').toLowerCase().trim(),
     String(sideKey(r) || '').toUpperCase().trim(),
     String(r.line ?? '').trim()
@@ -446,7 +454,7 @@ function exposureCount(map, key) {
 }
 function canUse(legs, r, exposure, size) {
   const p = k(r.player);
-  const t = k(r.team);
+  const t = k(canonicalTeam(r));
   const g = gameKey(r);
   const m = market(r);
   const pk = propKey(r);
@@ -508,7 +516,7 @@ function adjustedScore(r, exposure, legs = []) {
 }
 function addExposure(r, exposure) {
   const p = k(r.player);
-  const t = k(r.team);
+  const t = k(canonicalTeam(r));
   const g = gameKey(r);
   const pk = propKey(r);
 
@@ -529,8 +537,10 @@ function addExposure(r, exposure) {
 function clean(r) {
   return {
     player: r.player,
-    team: r.team,
-    game: r.game,
+    team: canonicalTeam(r),
+    game: canonicalGame(r),
+    rawTeam: r.team ?? null,
+    rawGame: r.game ?? null,
     gamePk: r.gamePk ?? null,
     teamResolved: r.teamResolved,
     teamValid: r.teamValid,
