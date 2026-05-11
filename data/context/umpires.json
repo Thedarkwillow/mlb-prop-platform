@@ -2,5 +2,17 @@
   "date": "2026-05-11",
   "source": "manual_plate_umpire_or_umpire_scorecards",
   "note": "Key by normalized game string. Add kFactor, kBoost/kDowngrade, umpire name.",
-  "games": {}
+  "games": {
+    "new york yankees baltimore orioles": {
+      "game": "New York Yankees @ Baltimore Orioles",
+      "umpire": "Example Umpire",
+      "kFactor": 0.04,
+      "kBoost": true,
+      "kDowngrade": false,
+      "accuracy": 94.2,
+      "consistency": 93.1,
+      "notes": "wide zone / K friendly",
+      "source": "data/context/imports/umpire-scorecards.csv"
+    }
+  }
 }
