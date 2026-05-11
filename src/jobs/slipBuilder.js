@@ -380,6 +380,7 @@ function hrrMoreAllowed(r) {
 }
 
 function playable(r) {
+  if (r.teamResolved !== true || r.teamValid !== true) return false;
   if (r.rankEligible === false) return false;
 
   // HARD BLOCK: HRR MORE is historically underperforming.
