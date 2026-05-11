@@ -211,9 +211,20 @@ function printPlayableSlips() {
     const legs = s.legs || [];
     const avg = legs.reduce((sum, l) => sum + rankValue(l), 0) / Math.max(1, legs.length);
     const green = Number(s.green ?? legs.filter(l => effectiveGrade(l) === "GREEN").length);
-    const sizePenalty = legs.length >= 5 ? 0.035 : legs.length === 4 ? 0.015 : 0;
+    const size = Number(s.size || legs.length || 0);
     const correlationPenalty = String(s.correlation || "OK") === "OK" ? 0 : 0.05;
-    return avg + green * 0.01 - sizePenalty - correlationPenalty;
+
+    // Official preference:
+    // 3-man is the default sweet spot when 3+ GREEN legs exist.
+    // 2-man is fallback safety only when the board cannot support 3.
+    const sizeBonus =
+      size === 3 ? 0.08 :
+      size === 4 ? 0.025 :
+      size === 2 ? -0.03 :
+      size >= 5 ? -0.04 :
+      0;
+
+    return avg + green * 0.01 + sizeBonus - correlationPenalty;
   }
 
   const best = playable
