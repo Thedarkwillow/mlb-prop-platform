@@ -11,7 +11,8 @@ const CONTEXT_FILES = {
   catchers: 'data/context/catcher-framing.json',
   calibration: 'data/learning/confidence-calibration.json',
   volatility: 'data/learning/market-volatility.json',
-  autoMarkets: 'data/learning/auto-market-adjustments.json'
+  autoMarkets: 'data/learning/auto-market-adjustments.json',
+  savantForm: 'data/savant/rolling-form.json'
 };
 
 function readJson(path, fallback = {}) {
@@ -57,6 +58,104 @@ function opponentKey(row) {
 
 function gameKey(row) {
   return norm(row.resolvedGame || row.game || '');
+}
+
+function playerKey(row) {
+  return String(row.player || '')
+    .toLowerCase()
+    .replace(/jr\.?|sr\.?|ii|iii|iv/g, '')
+    .replace(/[^a-z0-9]+/g, '')
+    .trim();
+}
+
+function isPitcherMarket(row) {
+  const m = marketKey(row);
+  return (
+    m.includes('strikeout') ||
+    m.includes('pitching') ||
+    m.includes('outs') ||
+    m.includes('earned_runs_allowed') ||
+    m.includes('hits_allowed')
+  );
+}
+
+function applySavantRollingForm(row, prob) {
+  const key = playerKey(row);
+  const market = marketKey(row);
+  const side = sideKey(row);
+  const pitcherMarket = isPitcherMarket(row);
+
+  const form = pitcherMarket
+    ? CTX.savantForm.pitchers?.[key]
+    : CTX.savantForm.hitters?.[key];
+
+  if (!form) {
+    return {
+      prob,
+      savantRollingForm: {
+        applied: false,
+        reason: 'NO_FORM_MATCH'
+      }
+    };
+  }
+
+  let delta = 0;
+  const flags = [];
+
+  if (!pitcherMarket) {
+    if (['hits', 'bases', 'hrr', 'runs', 'rbis', 'hr'].includes(market)) {
+      if (form.formTier === 'hot') {
+        delta += side === 'MORE' ? 0.018 : -0.018;
+        flags.push('HOT_HITTER_FORM');
+      } else if (form.formTier === 'positive') {
+        delta += side === 'MORE' ? 0.010 : -0.010;
+        flags.push('POSITIVE_HITTER_FORM');
+      } else if (form.formTier === 'cold') {
+        delta += side === 'MORE' ? -0.018 : 0.018;
+        flags.push('COLD_HITTER_FORM');
+      } else if (form.formTier === 'negative') {
+        delta += side === 'MORE' ? -0.010 : 0.010;
+        flags.push('NEGATIVE_HITTER_FORM');
+      }
+    }
+
+    if (form.flags?.includes('K_RISK') && ['hits', 'bases', 'hrr'].includes(market)) {
+      delta += side === 'MORE' ? -0.006 : 0.006;
+      flags.push('HITTER_K_RISK');
+    }
+  }
+
+  if (pitcherMarket && market.includes('strikeout')) {
+    if (form.formTier === 'hot') {
+      delta += side === 'MORE' ? 0.018 : -0.018;
+      flags.push('HOT_PITCHER_K_FORM');
+    } else if (form.formTier === 'positive') {
+      delta += side === 'MORE' ? 0.010 : -0.010;
+      flags.push('POSITIVE_PITCHER_K_FORM');
+    } else if (form.formTier === 'cold') {
+      delta += side === 'MORE' ? -0.018 : 0.018;
+      flags.push('COLD_PITCHER_K_FORM');
+    } else if (form.formTier === 'negative') {
+      delta += side === 'MORE' ? -0.010 : 0.010;
+      flags.push('NEGATIVE_PITCHER_K_FORM');
+    }
+  }
+
+  // Hard cap: Savant rolling form is a modifier only.
+  delta = clamp(delta, -0.02, 0.02);
+
+  return {
+    prob: clamp(prob + delta, 0.01, 0.99),
+    savantRollingForm: {
+      applied: delta !== 0,
+      playerType: form.playerType,
+      formTier: form.formTier,
+      formScore: form.formScore,
+      delta: round(delta, 4),
+      flags,
+      metrics: form.metrics || null
+    }
+  };
 }
 
 function probBucket(prob) {
@@ -300,6 +399,13 @@ const priced = board.map(row => {
   let recommendedSide = overProb >= 0.5 ? 'MORE' : 'LESS';
   let recommendedProb = Math.max(overProb, underProb);
 
+  const savantFormResult = applySavantRollingForm(
+    { ...row, recommendedSide },
+    recommendedProb
+  );
+
+  recommendedProb = savantFormResult.prob;
+
   const calibrationResult = applyCalibration(
     { ...row, recommendedSide },
     recommendedProb
@@ -348,6 +454,7 @@ const priced = board.map(row => {
     expectedValue: round(expectedValue),
     confidenceBucket: confidenceBucket(recommendedProb),
     contextAdjustment: contextResult.context,
+    savantRollingForm: savantFormResult.savantRollingForm,
     calibrationAdjustment: calibrationResult.calibration,
     marketIntelligence: intel.marketIntelligence,
     adaptiveIntelligenceVersion: 'tier_a_v1'
@@ -361,6 +468,7 @@ const summary = {
   totalRows: priced.length,
   pricedRows: priced.filter(r => r.pricingStatus === 'PRICED').length,
   contextAdjustedRows: priced.filter(r => r.contextAdjustment?.flags?.length).length,
+  savantFormAdjustedRows: priced.filter(r => r.savantRollingForm?.applied).length,
   calibratedRows: priced.filter(r => r.calibrationAdjustment?.applied).length,
   marketIntelligenceRows: priced.filter(r => r.marketIntelligence?.applied).length,
   elite: priced.filter(r => r.confidenceBucket === 'elite').length,
