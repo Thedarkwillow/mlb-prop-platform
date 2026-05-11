@@ -143,8 +143,13 @@ function finalScore(x) {
   if (Number.isFinite(cal)) score += (cal - 0.5) * 0.18;
   else if (Number.isFinite(raw)) score += (raw - 0.5) * 0.08;
 
-  if (x.distributionModel?.confidence === "HIGH") score += 0.01;
-  if (x.distributionModel?.confidence === "LOW") score -= 0.015;
+  const distProb = Number(x.calibratedDistributionProb ?? x.prob ?? x.recommendedProb ?? 0);
+  const distConf = String(x.distributionModel?.confidence || "").toUpperCase();
+
+  // Do not reward fake HIGH confidence unless probability is truly strong.
+  if (distConf === "HIGH" && distProb >= 0.60) score += 0.01;
+  if (distConf === "HIGH" && distProb < 0.55) score -= 0.02;
+  if (distConf === "LOW") score -= 0.015;
 
   score += marketModel.marketModelScore;
   score += elite.contextScore;
