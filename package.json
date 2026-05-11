@@ -91,7 +91,7 @@
     "pricing:unmatched": "node src/research/unmatched-pricing-diagnostics.cjs",
     "pregame:local": "npm run snap && npm run context:refresh && npm run picks && npm run pricing:unmatched && npm run steam && npm run bayes && npm run official && npm run context:guards && npm run clv && npm run clv:guard && npm run mobile && npm run decision && npm run audit:official",
     "context:guards": "node src/research/context-guards.cjs",
-    "context:refresh": "npm run context:lineups && npm run context:savant-catchers && npm run context:catchers && npm run context:umpscorecards && npm run context:umpire-scorecards && npm run context:pull-today-umpires && npm run context:today-umpires && node src/research/refresh-context.cjs",
+    "context:refresh": "npm run context:lineups && npm run context:savant-catchers && npm run context:catchers && npm run context:umpscorecards && npm run context:umpire-scorecards && npm run context:pull-today-umpires && npm run context:today-umpires && node src/research/refresh-context.cjs && npm run context:pitcher-hands",
     "context:lineups": "node src/research/refresh-lineups.cjs",
     "context:catchers": "node src/research/import-catcher-framing.cjs",
     "context:umpires": "node src/research/import-umpires.cjs",
@@ -107,7 +107,8 @@
     "savant:form": "node src/learning/build-savant-rolling-form.cjs",
     "savant:handedness": "node src/learning/pull-savant-handedness-splits.cjs",
     "board:handedness": "node src/jobs/mergeHandednessIntoBoard.js",
-    "handedness:readiness": "node src/research/handedness-readiness.cjs"
+    "handedness:readiness": "node src/research/handedness-readiness.cjs",
+    "context:pitcher-hands": "node src/research/pull-probable-pitcher-hands.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

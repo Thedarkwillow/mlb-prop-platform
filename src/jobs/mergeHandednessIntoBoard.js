@@ -2,6 +2,7 @@ import fs from 'fs';
 
 const BOARD_IN = 'outputs/priced-board.json';
 const SPLITS_IN = 'data/savant/handedness-splits.json';
+const PROBABLES_IN = 'data/context/probable-pitcher-hands.json';
 const BOARD_OUT = 'outputs/priced-board.json';
 const REPORT_OUT = 'outputs/handedness-merge-report.txt';
 
@@ -54,7 +55,11 @@ function playerKey(row) {
   return norm(row.player);
 }
 
-function inferPitcherHand(row) {
+function teamKey(row) {
+  return String(row.resolvedTeam || row.team || '').toUpperCase().trim();
+}
+
+function inferPitcherHand(row, probables) {
   const raw = String(
     row.pitcherThrows ||
     row.opponentPitcherThrows ||
@@ -65,9 +70,23 @@ function inferPitcherHand(row) {
     ''
   ).toUpperCase();
 
-  if (raw.startsWith('L')) return 'L';
-  if (raw.startsWith('R')) return 'R';
-  return null;
+  if (raw.startsWith('L')) return { hand: 'L', source: 'row' };
+  if (raw.startsWith('R')) return { hand: 'R', source: 'row' };
+
+  const team = teamKey(row);
+  const opp = probables.opponentPitcherByTeam?.[team];
+
+  if (opp?.hand) {
+    return {
+      hand: opp.hand,
+      source: 'probable_pitcher_context',
+      pitcher: opp.pitcher,
+      opponent: opp.opponent,
+      gamePk: opp.gamePk
+    };
+  }
+
+  return { hand: null, source: 'unknown' };
 }
 
 function inferBatterStand(row) {
@@ -112,16 +131,18 @@ function splitSummary(split) {
   };
 }
 
-function attachHandedness(row, splits) {
+function attachHandedness(row, splits, probables) {
   const key = playerKey(row);
   const pitcherMarket = isPitcherMarket(row);
 
   if (pitcherMarket) {
     const rec = splits.pitchers?.[key];
+
     if (!rec) {
       return {
         ...row,
         handednessMatched: false,
+        handednessReady: false,
         handednessMatchType: 'NO_PITCHER_SPLIT'
       };
     }
@@ -135,7 +156,8 @@ function attachHandedness(row, splits) {
     return {
       ...row,
       handednessMatched: true,
-      handednessMatchType: vsKey ? 'PITCHER_VS_BATTER_HAND' : 'PITCHER_SPLIT_AVAILABLE_HAND_UNKNOWN',
+      handednessReady: Boolean(vsKey),
+      handednessMatchType: vsKey ? 'PITCHER_VS_BATTER_HAND' : 'PITCHER_SPLIT_AVAILABLE_BATTER_HAND_UNKNOWN',
       handednessContext: {
         playerType: 'pitcher',
         batterStand,
@@ -148,15 +170,19 @@ function attachHandedness(row, splits) {
   }
 
   const rec = splits.batters?.[key];
+
   if (!rec) {
     return {
       ...row,
       handednessMatched: false,
+      handednessReady: false,
       handednessMatchType: 'NO_BATTER_SPLIT'
     };
   }
 
-  const pitcherHand = inferPitcherHand(row);
+  const pitcherHandInfo = inferPitcherHand(row, probables);
+  const pitcherHand = pitcherHandInfo.hand;
+
   const vsKey =
     pitcherHand === 'L' ? 'vsLHP' :
     pitcherHand === 'R' ? 'vsRHP' :
@@ -165,10 +191,14 @@ function attachHandedness(row, splits) {
   return {
     ...row,
     handednessMatched: true,
-    handednessMatchType: vsKey ? 'BATTER_VS_PITCHER_HAND' : 'BATTER_SPLIT_AVAILABLE_HAND_UNKNOWN',
+    handednessReady: Boolean(vsKey),
+    handednessMatchType: vsKey ? 'BATTER_VS_PITCHER_HAND' : 'BATTER_SPLIT_AVAILABLE_PITCHER_HAND_UNKNOWN',
     handednessContext: {
       playerType: 'batter',
       pitcherHand,
+      pitcherHandSource: pitcherHandInfo.source,
+      opposingPitcher: pitcherHandInfo.pitcher ?? null,
+      opponent: pitcherHandInfo.opponent ?? null,
       selectedSplit: vsKey,
       vsLHP: splitSummary(rec.vsLHP),
       vsRHP: splitSummary(rec.vsRHP),
@@ -179,19 +209,21 @@ function attachHandedness(row, splits) {
 
 const board = read(BOARD_IN, []);
 const splits = read(SPLITS_IN, { batters: {}, pitchers: {} });
+const probables = read(PROBABLES_IN, { opponentPitcherByTeam: {} });
 
 let props = 0;
 let matched = 0;
 let activeKnown = 0;
 let batterMatched = 0;
 let pitcherMatched = 0;
+let probableHandUsed = 0;
 
 const out = board.map(row => {
   if (row.recordType !== 'merged_prop') return row;
 
   props += 1;
 
-  const next = attachHandedness(row, splits);
+  const next = attachHandedness(row, splits, probables);
 
   if (next.handednessMatched) {
     matched += 1;
@@ -200,6 +232,7 @@ const out = board.map(row => {
   }
 
   if (next.handednessContext?.active) activeKnown += 1;
+  if (next.handednessContext?.pitcherHandSource === 'probable_pitcher_context') probableHandUsed += 1;
 
   return next;
 });
@@ -215,6 +248,7 @@ const report = [
   `Active matchup split known: ${activeKnown}`,
   `Batter matched: ${batterMatched}`,
   `Pitcher matched: ${pitcherMatched}`,
+  `Probable pitcher hand used: ${probableHandUsed}`,
   `Batter split cache count: ${Object.keys(splits.batters || {}).length}`,
   `Pitcher split cache count: ${Object.keys(splits.pitchers || {}).length}`,
   '',
