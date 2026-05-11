@@ -136,8 +136,24 @@ async function main() {
     const trueTeam = normTeam(hit.team);
     const trueGame = hit.game;
 
+    // Safety: never silently move a player to a different team.
+    // If source team conflicts with resolver team, block the row.
+    if (oldTeam && trueTeam && oldTeam !== trueTeam) {
+      unresolved++;
+      return {
+        ...row,
+        resolvedTeam: trueTeam,
+        resolvedGame: trueGame,
+        resolvedGamePk: hit.gamePk,
+        teamResolved: false,
+        teamResolverStatus: 'team_conflict',
+        teamValid: false,
+        rankEligible: false,
+        disabledReason: `source team ${oldTeam} conflicts with resolver team ${trueTeam}`
+      };
+    }
+
     const needsCorrection =
-      oldTeam !== trueTeam ||
       String(row.game || '') !== trueGame ||
       row.gamePk !== hit.gamePk;
 
