@@ -1,0 +1,86 @@
+{
+  "generatedAt": "2026-05-11T15:15:23.582Z",
+  "sampleSize": 931,
+  "marketTrust": {
+    "hrr": 1
+  },
+  "marketSuppression": {
+    "hrr": "healthy"
+  },
+  "marketSideSuppression": {
+    "hrr:LESS": "healthy",
+    "hrr:MORE": "watch"
+  },
+  "confidenceRemap": {
+    "75-79": {
+      "sample": 68,
+      "expected": 0.77,
+      "observedHitRate": 0.7647,
+      "multiplier": 0.9931
+    },
+    "65-69": {
+      "sample": 143,
+      "expected": 0.67,
+      "observedHitRate": 0.8182,
+      "multiplier": 1.04
+    },
+    "70-74": {
+      "sample": 85,
+      "expected": 0.72,
+      "observedHitRate": 0.8471,
+      "multiplier": 1.04
+    },
+    "60-64": {
+      "sample": 148,
+      "expected": 0.62,
+      "observedHitRate": 0.6892,
+      "multiplier": 1.04
+    },
+    "80+": {
+      "sample": 98,
+      "expected": 0.82,
+      "observedHitRate": 0.8265,
+      "multiplier": 1.0079
+    },
+    "<60": {
+      "sample": 389,
+      "expected": 0.58,
+      "observedHitRate": 0.599,
+      "multiplier": 1.0328
+    }
+  },
+  "volatilityRules": {
+    "hrr": {
+      "basePenalty": 0.08,
+      "suppressIfHitRateBelow": 0.5
+    },
+    "home_runs": {
+      "basePenalty": 0.1,
+      "suppressIfHitRateBelow": 0.5
+    },
+    "hitter_fantasy_score": {
+      "basePenalty": 0.12,
+      "suppressIfHitRateBelow": 0.52
+    },
+    "pitcher_fantasy_score": {
+      "basePenalty": 0.12,
+      "suppressIfHitRateBelow": 0.52
+    },
+    "bases": {
+      "basePenalty": 0.05,
+      "suppressIfHitRateBelow": 0.5
+    },
+    "hits": {
+      "basePenalty": 0.04,
+      "suppressIfHitRateBelow": 0.5
+    },
+    "strikeouts": {
+      "basePenalty": 0.02,
+      "suppressIfHitRateBelow": 0.49
+    },
+    "pitching_outs": {
+      "basePenalty": 0.03,
+      "suppressIfHitRateBelow": 0.49
+    }
+  }
+}
