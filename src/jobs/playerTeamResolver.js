@@ -4,7 +4,17 @@ const BOARD_IN = 'outputs/priced-board.json';
 const BOARD_OUT = 'outputs/priced-board.json';
 const REPORT_OUT = 'outputs/player-team-resolver-report.txt';
 
-const DATE = process.argv[2] || new Date().toISOString().slice(0, 10);
+function inferSlateDate(board) {
+  const dates = new Map();
+  for (const r of board) {
+    const raw = r.gameStart || r.game_start || r.startTime || r.commenceTime || r.start_time;
+    if (!raw) continue;
+    const d = String(raw).slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) dates.set(d, (dates.get(d) || 0) + 1);
+  }
+  return [...dates.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || new Date().toISOString().slice(0, 10);
+}
+let DATE = process.argv[2] || null;
 
 function read(path, fallback = []) {
   if (!fs.existsSync(path)) return fallback;
@@ -92,6 +102,7 @@ function mainGameIncludesTeam(row, team) {
 
 async function main() {
   const board = read(BOARD_IN, []);
+  DATE = DATE || inferSlateDate(board);
   const playerTeamMap = await buildPlayerTeamMap(DATE);
 
   let props = 0;
