@@ -350,3 +350,22 @@ fs.writeFileSync("outputs/official-slip.txt", lines.join("\n") + "\n");
 console.log("");
 console.log("Wrote outputs/official-slip.json");
 console.log("Wrote outputs/official-slip.txt");
+
+const today = new Date().toISOString().slice(0, 10);
+
+if (!fs.existsSync("outputs/history")) {
+  fs.mkdirSync("outputs/history", { recursive: true });
+}
+
+fs.writeFileSync(
+  `outputs/history/${today}-official-slip.json`,
+  JSON.stringify(officialRows, null, 2) + "\n"
+);
+
+fs.writeFileSync(
+  `outputs/history/${today}-official-slip.txt`,
+  lines.join("\n") + "\n"
+);
+
+console.log(`Wrote outputs/history/${today}-official-slip.json`);
+console.log(`Wrote outputs/history/${today}-official-slip.txt`);
