@@ -123,10 +123,10 @@ async function main() {
       return {
         ...row,
         teamResolved: false,
-        teamResolverStatus: 'unresolved',
+        teamResolverStatus: 'unresolved_or_team_mismatch',
         teamValid: false,
         rankEligible: false,
-        disabledReason: 'player team unresolved'
+        disabledReason: `player/team unresolved or mismatch: ${row.player} ${sourceTeam}`
       };
     }
 
