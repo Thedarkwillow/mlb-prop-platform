@@ -1,0 +1,51 @@
+{
+  "date": "2026-05-11",
+  "refreshedAt": "2026-05-11T10:00:07.839Z",
+  "source": "MLB Stats API schedule + game feed/live boxscore",
+  "players": {},
+  "teams": {},
+  "games": {
+    "los angeles angels cleveland guardians": {
+      "gamePk": 824441,
+      "game": "Los Angeles Angels @ Cleveland Guardians",
+      "status": "Scheduled",
+      "lineupStatus": "UNAVAILABLE",
+      "note": "404 Not Found: https://statsapi.mlb.com/api/v1/game/824441/feed/live"
+    },
+    "new york yankees baltimore orioles": {
+      "gamePk": 824844,
+      "game": "New York Yankees @ Baltimore Orioles",
+      "status": "Scheduled",
+      "lineupStatus": "UNAVAILABLE",
+      "note": "404 Not Found: https://statsapi.mlb.com/api/v1/game/824844/feed/live"
+    },
+    "tampa bay rays toronto blue jays": {
+      "gamePk": 822818,
+      "game": "Tampa Bay Rays @ Toronto Blue Jays",
+      "status": "Scheduled",
+      "lineupStatus": "UNAVAILABLE",
+      "note": "404 Not Found: https://statsapi.mlb.com/api/v1/game/822818/feed/live"
+    },
+    "arizona diamondbacks texas rangers": {
+      "gamePk": 822901,
+      "game": "Arizona Diamondbacks @ Texas Rangers",
+      "status": "Scheduled",
+      "lineupStatus": "UNAVAILABLE",
+      "note": "404 Not Found: https://statsapi.mlb.com/api/v1/game/822901/feed/live"
+    },
+    "seattle mariners houston astros": {
+      "gamePk": 824199,
+      "game": "Seattle Mariners @ Houston Astros",
+      "status": "Scheduled",
+      "lineupStatus": "UNAVAILABLE",
+      "note": "404 Not Found: https://statsapi.mlb.com/api/v1/game/824199/feed/live"
+    },
+    "san francisco giants los angeles dodgers": {
+      "gamePk": 823953,
+      "game": "San Francisco Giants @ Los Angeles Dodgers",
+      "status": "Scheduled",
+      "lineupStatus": "UNAVAILABLE",
+      "note": "404 Not Found: https://statsapi.mlb.com/api/v1/game/823953/feed/live"
+    }
+  }
+}

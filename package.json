@@ -91,7 +91,8 @@
     "pricing:unmatched": "node src/research/unmatched-pricing-diagnostics.cjs",
     "pregame:local": "npm run snap && npm run context:refresh && npm run picks && npm run pricing:unmatched && npm run steam && npm run bayes && npm run official && npm run context:guards && npm run clv && npm run clv:guard && npm run mobile && npm run decision && npm run audit:official",
     "context:guards": "node src/research/context-guards.cjs",
-    "context:refresh": "node src/research/refresh-context.cjs"
+    "context:refresh": "npm run context:lineups && node src/research/refresh-context.cjs",
+    "context:lineups": "node src/research/refresh-lineups.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
