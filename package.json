@@ -73,7 +73,7 @@
     "fantasy:learn": "node src/learning/report-fantasy-learning.js",
     "ks:watchlist": "node src/research/strikeout-watchlist.cjs",
     "trust:markets": "node src/learning/build-market-trust.js",
-    "learn:all": "npm run learn:markets && npm run trust:markets && npm run savant:form && npm run learn:roi && npm run learn:calibration && npm run learn:volatility && npm run learn:auto-markets && npm run learn:adaptive && npm run learn:report && npm run fantasy:learn && npm run trust:books",
+    "learn:all": "npm run learn:markets && npm run trust:markets && npm run savant:handedness && npm run savant:form && npm run learn:roi && npm run learn:calibration && npm run learn:volatility && npm run learn:auto-markets && npm run learn:adaptive && npm run learn:report && npm run fantasy:learn && npm run trust:books",
     "audit:final": "node src/research/final-audit.cjs",
     "trust:books": "node src/learning/build-book-support-trust.js",
     "guard:board": "node src/research/current-board-guard.cjs",
@@ -104,7 +104,8 @@
     "learn:calibration": "node src/learning/build-confidence-calibration.cjs",
     "learn:volatility": "node src/learning/build-market-volatility.cjs",
     "learn:auto-markets": "node src/learning/build-auto-market-adjustments.cjs",
-    "savant:form": "node src/learning/build-savant-rolling-form.cjs"
+    "savant:form": "node src/learning/build-savant-rolling-form.cjs",
+    "savant:handedness": "node src/learning/pull-savant-handedness-splits.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
