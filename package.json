@@ -88,7 +88,8 @@
     "ensemble:diag": "node src/research/ensemble-diagnostics.cjs",
     "steam": "node src/research/steam-report.cjs",
     "bayes": "node src/research/bayesian-confidence.cjs",
-    "pricing:unmatched": "node src/research/unmatched-pricing-diagnostics.cjs"
+    "pricing:unmatched": "node src/research/unmatched-pricing-diagnostics.cjs",
+    "pregame:local": "npm run snap && npm run picks && npm run pricing:unmatched && npm run steam && npm run bayes && npm run official && npm run clv && npm run clv:guard && npm run mobile && npm run decision && npm run audit:official"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
