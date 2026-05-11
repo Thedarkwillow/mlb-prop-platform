@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { applyPhase55RiskAdjustments } from '../lib/phase55Adjustments.js';
+import { applyPhase5ContextAdjustments } from '../lib/phase5ContextEngine.js';
 
 const rows = JSON.parse(fs.readFileSync('outputs/priced-board.json', 'utf8'));
 
@@ -642,7 +643,7 @@ function applyPhase55ToOptimizerRow(r) {
   };
 }
 
-const normalizedRows = rows.map(normalizeForOptimizer).map(applyPhase55ToOptimizerRow);
+const normalizedRows = rows.map(normalizeForOptimizer).map(applyPhase55ToOptimizerRow).map(applyPhase5ContextAdjustments);
 const baseCandidates = dedupeRows(normalizedRows.filter(playable));
 
 const standardKWatchlist = normalizedRows
