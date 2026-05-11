@@ -1,3 +1,6 @@
 {
+  "date": "2026-05-11",
+  "source": "manual_plate_umpire_or_umpire_scorecards",
+  "note": "Key by normalized game string. Add kFactor, kBoost/kDowngrade, umpire name.",
   "games": {}
 }

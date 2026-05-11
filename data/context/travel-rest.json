@@ -1,3 +1,1141 @@
 {
-  "teams": {}
+  "date": "2026-05-11",
+  "teams": {
+    "TB": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "HOME",
+          "opponent": "TOR",
+          "venue": "Tropicana Field"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "AWAY",
+          "opponent": "BOS",
+          "venue": "Fenway Park"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "AWAY",
+          "opponent": "BOS",
+          "venue": "Fenway Park"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "AWAY",
+          "opponent": "BOS",
+          "venue": "Fenway Park"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "AWAY",
+          "opponent": "BOS",
+          "venue": "Fenway Park"
+        },
+        {
+          "date": "2026-05-11",
+          "homeAway": "AWAY",
+          "opponent": "TOR",
+          "venue": "Rogers Centre"
+        }
+      ],
+      "restDisadvantage": true,
+      "travelSpot": "BAD",
+      "notes": [
+        "road city change from previous day"
+      ]
+    },
+    "TOR": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "AWAY",
+          "opponent": "TB",
+          "venue": "Tropicana Field"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "HOME",
+          "opponent": "LAA",
+          "venue": "Rogers Centre"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "HOME",
+          "opponent": "LAA",
+          "venue": "Rogers Centre"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "HOME",
+          "opponent": "LAA",
+          "venue": "Rogers Centre"
+        },
+        {
+          "date": "2026-05-11",
+          "homeAway": "HOME",
+          "opponent": "TB",
+          "venue": "Rogers Centre"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "STL": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "HOME",
+          "opponent": "MIL",
+          "venue": "Busch Stadium"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "AWAY",
+          "opponent": "SD",
+          "venue": "Petco Park"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "AWAY",
+          "opponent": "SD",
+          "venue": "Petco Park"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "AWAY",
+          "opponent": "SD",
+          "venue": "Petco Park"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "AWAY",
+          "opponent": "SD",
+          "venue": "Petco Park"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "MIL": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "AWAY",
+          "opponent": "STL",
+          "venue": "Busch Stadium"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "HOME",
+          "opponent": "NYY",
+          "venue": "American Family Field"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "HOME",
+          "opponent": "NYY",
+          "venue": "American Family Field"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "HOME",
+          "opponent": "NYY",
+          "venue": "American Family Field"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "HOU": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "HOME",
+          "opponent": "LAD",
+          "venue": "Daikin Park"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "AWAY",
+          "opponent": "CIN",
+          "venue": "Great American Ball Park"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "AWAY",
+          "opponent": "CIN",
+          "venue": "Great American Ball Park"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "AWAY",
+          "opponent": "CIN",
+          "venue": "Great American Ball Park"
+        },
+        {
+          "date": "2026-05-11",
+          "homeAway": "HOME",
+          "opponent": "SEA",
+          "venue": "Daikin Park"
+        }
+      ],
+      "restDisadvantage": true,
+      "travelSpot": "BAD",
+      "notes": [
+        "home/away change from previous day"
+      ]
+    },
+    "LAD": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "AWAY",
+          "opponent": "HOU",
+          "venue": "Daikin Park"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "HOME",
+          "opponent": "ATL",
+          "venue": "UNIQLO Field at Dodger Stadium"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "HOME",
+          "opponent": "ATL",
+          "venue": "UNIQLO Field at Dodger Stadium"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "HOME",
+          "opponent": "ATL",
+          "venue": "UNIQLO Field at Dodger Stadium"
+        },
+        {
+          "date": "2026-05-11",
+          "homeAway": "HOME",
+          "opponent": "SF",
+          "venue": "UNIQLO Field at Dodger Stadium"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "SF": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "HOME",
+          "opponent": "SD",
+          "venue": "Oracle Park"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "HOME",
+          "opponent": "PIT",
+          "venue": "Oracle Park"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "HOME",
+          "opponent": "PIT",
+          "venue": "Oracle Park"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "HOME",
+          "opponent": "PIT",
+          "venue": "Oracle Park"
+        },
+        {
+          "date": "2026-05-11",
+          "homeAway": "AWAY",
+          "opponent": "LAD",
+          "venue": "UNIQLO Field at Dodger Stadium"
+        }
+      ],
+      "restDisadvantage": true,
+      "travelSpot": "BAD",
+      "notes": [
+        "home/away change from previous day"
+      ]
+    },
+    "SD": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "AWAY",
+          "opponent": "SF",
+          "venue": "Oracle Park"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "HOME",
+          "opponent": "STL",
+          "venue": "Petco Park"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "HOME",
+          "opponent": "STL",
+          "venue": "Petco Park"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "HOME",
+          "opponent": "STL",
+          "venue": "Petco Park"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "HOME",
+          "opponent": "STL",
+          "venue": "Petco Park"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "LAA": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "HOME",
+          "opponent": "CWS",
+          "venue": "Angel Stadium"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "AWAY",
+          "opponent": "TOR",
+          "venue": "Rogers Centre"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "AWAY",
+          "opponent": "TOR",
+          "venue": "Rogers Centre"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "AWAY",
+          "opponent": "TOR",
+          "venue": "Rogers Centre"
+        },
+        {
+          "date": "2026-05-11",
+          "homeAway": "AWAY",
+          "opponent": "CLE",
+          "venue": "Progressive Field"
+        }
+      ],
+      "restDisadvantage": true,
+      "travelSpot": "BAD",
+      "notes": [
+        "road city change from previous day"
+      ]
+    },
+    "CWS": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "AWAY",
+          "opponent": "LAA",
+          "venue": "Angel Stadium"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "HOME",
+          "opponent": "SEA",
+          "venue": "Rate Field"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "HOME",
+          "opponent": "SEA",
+          "venue": "Rate Field"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "HOME",
+          "opponent": "SEA",
+          "venue": "Rate Field"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "SEA": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "HOME",
+          "opponent": "ATL",
+          "venue": "T-Mobile Park"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "AWAY",
+          "opponent": "CWS",
+          "venue": "Rate Field"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "AWAY",
+          "opponent": "CWS",
+          "venue": "Rate Field"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "AWAY",
+          "opponent": "CWS",
+          "venue": "Rate Field"
+        },
+        {
+          "date": "2026-05-11",
+          "homeAway": "AWAY",
+          "opponent": "HOU",
+          "venue": "Daikin Park"
+        }
+      ],
+      "restDisadvantage": true,
+      "travelSpot": "BAD",
+      "notes": [
+        "road city change from previous day"
+      ]
+    },
+    "ATL": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "AWAY",
+          "opponent": "SEA",
+          "venue": "T-Mobile Park"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "AWAY",
+          "opponent": "LAD",
+          "venue": "UNIQLO Field at Dodger Stadium"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "AWAY",
+          "opponent": "LAD",
+          "venue": "UNIQLO Field at Dodger Stadium"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "AWAY",
+          "opponent": "LAD",
+          "venue": "UNIQLO Field at Dodger Stadium"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "DET": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "HOME",
+          "opponent": "BOS",
+          "venue": "Comerica Park"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "AWAY",
+          "opponent": "KC",
+          "venue": "Kauffman Stadium"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "AWAY",
+          "opponent": "KC",
+          "venue": "Kauffman Stadium"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "AWAY",
+          "opponent": "KC",
+          "venue": "Kauffman Stadium"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "BOS": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "AWAY",
+          "opponent": "DET",
+          "venue": "Comerica Park"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "HOME",
+          "opponent": "TB",
+          "venue": "Fenway Park"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "HOME",
+          "opponent": "TB",
+          "venue": "Fenway Park"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "HOME",
+          "opponent": "TB",
+          "venue": "Fenway Park"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "HOME",
+          "opponent": "TB",
+          "venue": "Fenway Park"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "PHI": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "HOME",
+          "opponent": "ATH",
+          "venue": "Citizens Bank Park"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "HOME",
+          "opponent": "ATH",
+          "venue": "Citizens Bank Park"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "HOME",
+          "opponent": "COL",
+          "venue": "Citizens Bank Park"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "HOME",
+          "opponent": "COL",
+          "venue": "Citizens Bank Park"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "HOME",
+          "opponent": "COL",
+          "venue": "Citizens Bank Park"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "ATH": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "AWAY",
+          "opponent": "PHI",
+          "venue": "Citizens Bank Park"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "AWAY",
+          "opponent": "PHI",
+          "venue": "Citizens Bank Park"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "AWAY",
+          "opponent": "BAL",
+          "venue": "Oriole Park at Camden Yards"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "AWAY",
+          "opponent": "BAL",
+          "venue": "Oriole Park at Camden Yards"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "AWAY",
+          "opponent": "BAL",
+          "venue": "Oriole Park at Camden Yards"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "MIA": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "HOME",
+          "opponent": "BAL",
+          "venue": "loanDepot park"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "HOME",
+          "opponent": "BAL",
+          "venue": "loanDepot park"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "HOME",
+          "opponent": "WSH",
+          "venue": "loanDepot park"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "HOME",
+          "opponent": "WSH",
+          "venue": "loanDepot park"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "HOME",
+          "opponent": "WSH",
+          "venue": "loanDepot park"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "BAL": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "AWAY",
+          "opponent": "MIA",
+          "venue": "loanDepot park"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "AWAY",
+          "opponent": "MIA",
+          "venue": "loanDepot park"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "HOME",
+          "opponent": "ATH",
+          "venue": "Oriole Park at Camden Yards"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "HOME",
+          "opponent": "ATH",
+          "venue": "Oriole Park at Camden Yards"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "HOME",
+          "opponent": "ATH",
+          "venue": "Oriole Park at Camden Yards"
+        },
+        {
+          "date": "2026-05-11",
+          "homeAway": "HOME",
+          "opponent": "NYY",
+          "venue": "Oriole Park at Camden Yards"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "WSH": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "HOME",
+          "opponent": "MIN",
+          "venue": "Nationals Park"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "HOME",
+          "opponent": "MIN",
+          "venue": "Nationals Park"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "AWAY",
+          "opponent": "MIA",
+          "venue": "loanDepot park"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "AWAY",
+          "opponent": "MIA",
+          "venue": "loanDepot park"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "AWAY",
+          "opponent": "MIA",
+          "venue": "loanDepot park"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "MIN": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "AWAY",
+          "opponent": "WSH",
+          "venue": "Nationals Park"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "AWAY",
+          "opponent": "WSH",
+          "venue": "Nationals Park"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "AWAY",
+          "opponent": "CLE",
+          "venue": "Progressive Field"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "AWAY",
+          "opponent": "CLE",
+          "venue": "Progressive Field"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "AWAY",
+          "opponent": "CLE",
+          "venue": "Progressive Field"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "NYY": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "HOME",
+          "opponent": "TEX",
+          "venue": "Yankee Stadium"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "HOME",
+          "opponent": "TEX",
+          "venue": "Yankee Stadium"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "AWAY",
+          "opponent": "MIL",
+          "venue": "American Family Field"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "AWAY",
+          "opponent": "MIL",
+          "venue": "American Family Field"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "AWAY",
+          "opponent": "MIL",
+          "venue": "American Family Field"
+        },
+        {
+          "date": "2026-05-11",
+          "homeAway": "AWAY",
+          "opponent": "BAL",
+          "venue": "Oriole Park at Camden Yards"
+        }
+      ],
+      "restDisadvantage": true,
+      "travelSpot": "BAD",
+      "notes": [
+        "road city change from previous day"
+      ]
+    },
+    "TEX": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "AWAY",
+          "opponent": "NYY",
+          "venue": "Yankee Stadium"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "AWAY",
+          "opponent": "NYY",
+          "venue": "Yankee Stadium"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "HOME",
+          "opponent": "CHC",
+          "venue": "Globe Life Field"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "HOME",
+          "opponent": "CHC",
+          "venue": "Globe Life Field"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "HOME",
+          "opponent": "CHC",
+          "venue": "Globe Life Field"
+        },
+        {
+          "date": "2026-05-11",
+          "homeAway": "HOME",
+          "opponent": "AZ",
+          "venue": "Globe Life Field"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "CHC": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "HOME",
+          "opponent": "CIN",
+          "venue": "Wrigley Field"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "HOME",
+          "opponent": "CIN",
+          "venue": "Wrigley Field"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "AWAY",
+          "opponent": "TEX",
+          "venue": "Globe Life Field"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "AWAY",
+          "opponent": "TEX",
+          "venue": "Globe Life Field"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "AWAY",
+          "opponent": "TEX",
+          "venue": "Globe Life Field"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "CIN": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "AWAY",
+          "opponent": "CHC",
+          "venue": "Wrigley Field"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "AWAY",
+          "opponent": "CHC",
+          "venue": "Wrigley Field"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "HOME",
+          "opponent": "HOU",
+          "venue": "Great American Ball Park"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "HOME",
+          "opponent": "HOU",
+          "venue": "Great American Ball Park"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "HOME",
+          "opponent": "HOU",
+          "venue": "Great American Ball Park"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "KC": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "HOME",
+          "opponent": "CLE",
+          "venue": "Kauffman Stadium"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "HOME",
+          "opponent": "CLE",
+          "venue": "Kauffman Stadium"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "HOME",
+          "opponent": "DET",
+          "venue": "Kauffman Stadium"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "HOME",
+          "opponent": "DET",
+          "venue": "Kauffman Stadium"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "HOME",
+          "opponent": "DET",
+          "venue": "Kauffman Stadium"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "CLE": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "AWAY",
+          "opponent": "KC",
+          "venue": "Kauffman Stadium"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "AWAY",
+          "opponent": "KC",
+          "venue": "Kauffman Stadium"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "HOME",
+          "opponent": "MIN",
+          "venue": "Progressive Field"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "HOME",
+          "opponent": "MIN",
+          "venue": "Progressive Field"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "HOME",
+          "opponent": "MIN",
+          "venue": "Progressive Field"
+        },
+        {
+          "date": "2026-05-11",
+          "homeAway": "HOME",
+          "opponent": "LAA",
+          "venue": "Progressive Field"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "COL": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "HOME",
+          "opponent": "NYM",
+          "venue": "Coors Field"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "HOME",
+          "opponent": "NYM",
+          "venue": "Coors Field"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "AWAY",
+          "opponent": "PHI",
+          "venue": "Citizens Bank Park"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "AWAY",
+          "opponent": "PHI",
+          "venue": "Citizens Bank Park"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "AWAY",
+          "opponent": "PHI",
+          "venue": "Citizens Bank Park"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "NYM": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "AWAY",
+          "opponent": "COL",
+          "venue": "Coors Field"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "AWAY",
+          "opponent": "COL",
+          "venue": "Coors Field"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "AWAY",
+          "opponent": "AZ",
+          "venue": "Chase Field"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "AWAY",
+          "opponent": "AZ",
+          "venue": "Chase Field"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "AWAY",
+          "opponent": "AZ",
+          "venue": "Chase Field"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    },
+    "AZ": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "HOME",
+          "opponent": "PIT",
+          "venue": "Chase Field"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "HOME",
+          "opponent": "PIT",
+          "venue": "Chase Field"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "HOME",
+          "opponent": "NYM",
+          "venue": "Chase Field"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "HOME",
+          "opponent": "NYM",
+          "venue": "Chase Field"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "HOME",
+          "opponent": "NYM",
+          "venue": "Chase Field"
+        },
+        {
+          "date": "2026-05-11",
+          "homeAway": "AWAY",
+          "opponent": "TEX",
+          "venue": "Globe Life Field"
+        }
+      ],
+      "restDisadvantage": true,
+      "travelSpot": "BAD",
+      "notes": [
+        "home/away change from previous day"
+      ]
+    },
+    "PIT": {
+      "games": [
+        {
+          "date": "2026-05-06",
+          "homeAway": "AWAY",
+          "opponent": "AZ",
+          "venue": "Chase Field"
+        },
+        {
+          "date": "2026-05-07",
+          "homeAway": "AWAY",
+          "opponent": "AZ",
+          "venue": "Chase Field"
+        },
+        {
+          "date": "2026-05-08",
+          "homeAway": "AWAY",
+          "opponent": "SF",
+          "venue": "Oracle Park"
+        },
+        {
+          "date": "2026-05-09",
+          "homeAway": "AWAY",
+          "opponent": "SF",
+          "venue": "Oracle Park"
+        },
+        {
+          "date": "2026-05-10",
+          "homeAway": "AWAY",
+          "opponent": "SF",
+          "venue": "Oracle Park"
+        }
+      ],
+      "restDisadvantage": false,
+      "travelSpot": "OK",
+      "notes": []
+    }
+  }
 }

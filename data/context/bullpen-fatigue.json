@@ -1,3 +1,305 @@
 {
-  "teams": {}
+  "date": "2026-05-11",
+  "teams": {
+    "CIN": {
+      "last3DaysReliefPitches": 144,
+      "backToBackRelievers": 1,
+      "relieverAppearances": 10,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=144"
+      ],
+      "pitchCountLast2Days": 144
+    },
+    "HOU": {
+      "last3DaysReliefPitches": 155,
+      "backToBackRelievers": 4,
+      "relieverAppearances": 9,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=155"
+      ],
+      "pitchCountLast2Days": 155
+    },
+    "PHI": {
+      "last3DaysReliefPitches": 189,
+      "backToBackRelievers": 4,
+      "relieverAppearances": 12,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=189"
+      ],
+      "pitchCountLast2Days": 189
+    },
+    "COL": {
+      "last3DaysReliefPitches": 190,
+      "backToBackRelievers": 5,
+      "relieverAppearances": 8,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=190"
+      ],
+      "pitchCountLast2Days": 190
+    },
+    "BAL": {
+      "last3DaysReliefPitches": 231,
+      "backToBackRelievers": 5,
+      "relieverAppearances": 7,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=231"
+      ],
+      "pitchCountLast2Days": 231
+    },
+    "ATH": {
+      "last3DaysReliefPitches": 164,
+      "backToBackRelievers": 2,
+      "relieverAppearances": 11,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=164"
+      ],
+      "pitchCountLast2Days": 164
+    },
+    "TOR": {
+      "last3DaysReliefPitches": 180,
+      "backToBackRelievers": 2,
+      "relieverAppearances": 9,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=180"
+      ],
+      "pitchCountLast2Days": 180
+    },
+    "LAA": {
+      "last3DaysReliefPitches": 176,
+      "backToBackRelievers": 3,
+      "relieverAppearances": 8,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=176"
+      ],
+      "pitchCountLast2Days": 176
+    },
+    "BOS": {
+      "last3DaysReliefPitches": 90,
+      "backToBackRelievers": 0,
+      "relieverAppearances": 7,
+      "fatigue": "MEDIUM",
+      "notes": [
+        "relief pitches last 3 days=90"
+      ],
+      "pitchCountLast2Days": 90
+    },
+    "TB": {
+      "last3DaysReliefPitches": 106,
+      "backToBackRelievers": 3,
+      "relieverAppearances": 4,
+      "fatigue": "MEDIUM",
+      "notes": [
+        "relief pitches last 3 days=106"
+      ],
+      "pitchCountLast2Days": 106
+    },
+    "MIA": {
+      "last3DaysReliefPitches": 139,
+      "backToBackRelievers": 2,
+      "relieverAppearances": 10,
+      "fatigue": "MEDIUM",
+      "notes": [
+        "relief pitches last 3 days=139"
+      ],
+      "pitchCountLast2Days": 139
+    },
+    "WSH": {
+      "last3DaysReliefPitches": 217,
+      "backToBackRelievers": 4,
+      "relieverAppearances": 9,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=217"
+      ],
+      "pitchCountLast2Days": 217
+    },
+    "CLE": {
+      "last3DaysReliefPitches": 179,
+      "backToBackRelievers": 2,
+      "relieverAppearances": 10,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=179"
+      ],
+      "pitchCountLast2Days": 179
+    },
+    "MIN": {
+      "last3DaysReliefPitches": 285,
+      "backToBackRelievers": 5,
+      "relieverAppearances": 15,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=285"
+      ],
+      "pitchCountLast2Days": 285
+    },
+    "KC": {
+      "last3DaysReliefPitches": 179,
+      "backToBackRelievers": 3,
+      "relieverAppearances": 11,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=179"
+      ],
+      "pitchCountLast2Days": 179
+    },
+    "DET": {
+      "last3DaysReliefPitches": 266,
+      "backToBackRelievers": 4,
+      "relieverAppearances": 10,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=266"
+      ],
+      "pitchCountLast2Days": 266
+    },
+    "CWS": {
+      "last3DaysReliefPitches": 191,
+      "backToBackRelievers": 5,
+      "relieverAppearances": 10,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=191"
+      ],
+      "pitchCountLast2Days": 191
+    },
+    "SEA": {
+      "last3DaysReliefPitches": 163,
+      "backToBackRelievers": 3,
+      "relieverAppearances": 8,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=163"
+      ],
+      "pitchCountLast2Days": 163
+    },
+    "MIL": {
+      "last3DaysReliefPitches": 196,
+      "backToBackRelievers": 4,
+      "relieverAppearances": 8,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=196"
+      ],
+      "pitchCountLast2Days": 196
+    },
+    "NYY": {
+      "last3DaysReliefPitches": 157,
+      "backToBackRelievers": 3,
+      "relieverAppearances": 11,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=157"
+      ],
+      "pitchCountLast2Days": 157
+    },
+    "TEX": {
+      "last3DaysReliefPitches": 179,
+      "backToBackRelievers": 4,
+      "relieverAppearances": 7,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=179"
+      ],
+      "pitchCountLast2Days": 179
+    },
+    "CHC": {
+      "last3DaysReliefPitches": 164,
+      "backToBackRelievers": 3,
+      "relieverAppearances": 8,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=164"
+      ],
+      "pitchCountLast2Days": 164
+    },
+    "AZ": {
+      "last3DaysReliefPitches": 75,
+      "backToBackRelievers": 0,
+      "relieverAppearances": 7,
+      "fatigue": "LOW",
+      "notes": [
+        "relief pitches last 3 days=75"
+      ],
+      "pitchCountLast2Days": 75
+    },
+    "NYM": {
+      "last3DaysReliefPitches": 198,
+      "backToBackRelievers": 3,
+      "relieverAppearances": 9,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=198"
+      ],
+      "pitchCountLast2Days": 198
+    },
+    "SD": {
+      "last3DaysReliefPitches": 183,
+      "backToBackRelievers": 3,
+      "relieverAppearances": 11,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=183"
+      ],
+      "pitchCountLast2Days": 183
+    },
+    "STL": {
+      "last3DaysReliefPitches": 141,
+      "backToBackRelievers": 2,
+      "relieverAppearances": 9,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=141"
+      ],
+      "pitchCountLast2Days": 141
+    },
+    "LAD": {
+      "last3DaysReliefPitches": 182,
+      "backToBackRelievers": 3,
+      "relieverAppearances": 9,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=182"
+      ],
+      "pitchCountLast2Days": 182
+    },
+    "ATL": {
+      "last3DaysReliefPitches": 124,
+      "backToBackRelievers": 2,
+      "relieverAppearances": 6,
+      "fatigue": "MEDIUM",
+      "notes": [
+        "relief pitches last 3 days=124"
+      ],
+      "pitchCountLast2Days": 124
+    },
+    "SF": {
+      "last3DaysReliefPitches": 295,
+      "backToBackRelievers": 6,
+      "relieverAppearances": 15,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=295"
+      ],
+      "pitchCountLast2Days": 295
+    },
+    "PIT": {
+      "last3DaysReliefPitches": 204,
+      "backToBackRelievers": 2,
+      "relieverAppearances": 11,
+      "fatigue": "HIGH",
+      "notes": [
+        "relief pitches last 3 days=204"
+      ],
+      "pitchCountLast2Days": 204
+    }
+  }
 }

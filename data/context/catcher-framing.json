@@ -1,3 +1,7 @@
 {
-  "catchers": {}
+  "date": "2026-05-11",
+  "source": "manual_or_savant_csv",
+  "note": "Fill catchers or teams with framing=PLUS/MINUS/OK and optional framingRuns.",
+  "catchers": {},
+  "teams": {}
 }
