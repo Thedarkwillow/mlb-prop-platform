@@ -113,7 +113,9 @@
     "learn:rolling-roi": "node src/learning/build-rolling-roi-validation.cjs",
     "savant:velo": "node src/learning/pull-savant-pitcher-velocity-trends.cjs",
     "savant:pitch-matchups": "node src/learning/build-pitch-type-matchups.cjs",
-    "learn:weak-env": "node src/learning/build-weak-environment-downgrades.cjs"
+    "learn:weak-env": "node src/learning/build-weak-environment-downgrades.cjs",
+    "context:game-model": "node src/research/build-game-model-context.cjs",
+    "context:pitching-staffs": "node src/research/build-pitching-staffs.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
