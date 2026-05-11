@@ -18,7 +18,24 @@ function read(path) {
 }
 
 function normMarket(x) {
-  return String(x.market || x.stat || x.prop || "").toLowerCase().trim();
+  const raw = String(x.market || x.stat || x.prop || "")
+    .toLowerCase()
+    .trim()
+    .replace(/_/g, " ")
+    .replace(/\s+/g, " ");
+
+  if (raw === "hitter fantasy score") return "hitter_fantasy_score";
+  if (raw === "pitcher fantasy score") return "pitcher_fantasy_score";
+  if (raw === "total bases") return "bases";
+  if (raw === "pitcher strikeouts") return "strikeouts";
+  if (raw === "earned runs allowed") return "earned_runs_allowed";
+  if (raw === "hits allowed") return "hits_allowed";
+  if (raw === "home runs") return "home_runs";
+  if (raw === "rbis") return "rbis";
+  if (raw === "runs") return "runs";
+  if (raw === "hits+runs+rbis") return "hrr";
+
+  return raw.replace(/\s+/g, "_");
 }
 
 function normSide(x) {
