@@ -1,0 +1,153 @@
+{
+  "generatedAt": "2026-05-11T15:15:23.582Z",
+  "sampleSize": 931,
+  "byMarket": {
+    "hrr": {
+      "plays": 931,
+      "wins": 657,
+      "losses": 274,
+      "hitRate": 0.7057,
+      "roiProxy": 0.4114
+    }
+  },
+  "byMarketSide": {
+    "hrr:LESS": {
+      "plays": 537,
+      "wins": 459,
+      "losses": 78,
+      "hitRate": 0.8547,
+      "roiProxy": 0.7094
+    },
+    "hrr:MORE": {
+      "plays": 394,
+      "wins": 198,
+      "losses": 196,
+      "hitRate": 0.5025,
+      "roiProxy": 0.005
+    }
+  },
+  "byProbBucket": {
+    "75-79": {
+      "plays": 68,
+      "wins": 52,
+      "losses": 16,
+      "hitRate": 0.7647,
+      "roiProxy": 0.5294
+    },
+    "65-69": {
+      "plays": 143,
+      "wins": 117,
+      "losses": 26,
+      "hitRate": 0.8182,
+      "roiProxy": 0.6364
+    },
+    "70-74": {
+      "plays": 85,
+      "wins": 72,
+      "losses": 13,
+      "hitRate": 0.8471,
+      "roiProxy": 0.6942
+    },
+    "60-64": {
+      "plays": 148,
+      "wins": 102,
+      "losses": 46,
+      "hitRate": 0.6892,
+      "roiProxy": 0.3784
+    },
+    "80+": {
+      "plays": 98,
+      "wins": 81,
+      "losses": 17,
+      "hitRate": 0.8265,
+      "roiProxy": 0.653
+    },
+    "<60": {
+      "plays": 389,
+      "wins": 233,
+      "losses": 156,
+      "hitRate": 0.599,
+      "roiProxy": 0.198
+    }
+  },
+  "byEdgeBucket": {
+    "2.0+": {
+      "plays": 544,
+      "wins": 453,
+      "losses": 91,
+      "hitRate": 0.8327,
+      "roiProxy": 0.6654
+    },
+    "1.5-1.99": {
+      "plays": 189,
+      "wins": 88,
+      "losses": 101,
+      "hitRate": 0.4656,
+      "roiProxy": -0.0688
+    },
+    "0.5-0.99": {
+      "plays": 198,
+      "wins": 116,
+      "losses": 82,
+      "hitRate": 0.5859,
+      "roiProxy": 0.1718
+    }
+  },
+  "byConfidence": {
+    "unknown": {
+      "plays": 931,
+      "wins": 657,
+      "losses": 274,
+      "hitRate": 0.7057,
+      "roiProxy": 0.4114
+    }
+  },
+  "marketTrust": {
+    "hrr": 1
+  },
+  "marketSuppression": {
+    "hrr": "healthy"
+  },
+  "marketSideSuppression": {
+    "hrr:LESS": "healthy",
+    "hrr:MORE": "watch"
+  },
+  "confidenceRemap": {
+    "75-79": {
+      "sample": 68,
+      "expected": 0.77,
+      "observedHitRate": 0.7647,
+      "multiplier": 0.9931
+    },
+    "65-69": {
+      "sample": 143,
+      "expected": 0.67,
+      "observedHitRate": 0.8182,
+      "multiplier": 1.04
+    },
+    "70-74": {
+      "sample": 85,
+      "expected": 0.72,
+      "observedHitRate": 0.8471,
+      "multiplier": 1.04
+    },
+    "60-64": {
+      "sample": 148,
+      "expected": 0.62,
+      "observedHitRate": 0.6892,
+      "multiplier": 1.04
+    },
+    "80+": {
+      "sample": 98,
+      "expected": 0.82,
+      "observedHitRate": 0.8265,
+      "multiplier": 1.0079
+    },
+    "<60": {
+      "sample": 389,
+      "expected": 0.58,
+      "observedHitRate": 0.599,
+      "multiplier": 1.0328
+    }
+  }
+}

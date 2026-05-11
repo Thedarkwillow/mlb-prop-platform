@@ -118,7 +118,8 @@
     "context:pitching-staffs": "node src/research/build-pitching-staffs.cjs",
     "context:pitcher-stats": "node src/research/build-pitcher-stat-table.cjs",
     "context:pitcher-advanced": "node src/research/build-pitcher-context-advanced.cjs",
-    "refresh:full": "npm run context:refresh && node src/jobs/probabilityEngine.js && node src/jobs/slipBuilder.js && npm run picks && npm run official && npm run audit:final"
+    "refresh:full": "npm run context:refresh && node src/jobs/probabilityEngine.js && node src/jobs/slipBuilder.js && npm run picks && npm run official && npm run audit:final",
+    "phase55": "node src/jobs/phase55RiskCalibration.js"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
