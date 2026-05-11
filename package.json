@@ -73,7 +73,7 @@
     "fantasy:learn": "node src/learning/report-fantasy-learning.js",
     "ks:watchlist": "node src/research/strikeout-watchlist.cjs",
     "trust:markets": "node src/learning/build-market-trust.js",
-    "learn:all": "npm run learn:markets && npm run trust:markets && npm run learn:report && npm run fantasy:learn && npm run trust:books",
+    "learn:all": "npm run learn:markets && npm run trust:markets && npm run learn:adaptive && npm run learn:report && npm run fantasy:learn && npm run trust:books",
     "audit:final": "node src/research/final-audit.cjs",
     "trust:books": "node src/learning/build-book-support-trust.js",
     "guard:board": "node src/research/current-board-guard.cjs",
@@ -81,7 +81,8 @@
     "grade:official": "node src/research/grade-official-slips.cjs ${npm_config_date:-$(date +%F)}",
     "audit:official": "node src/research/official-slip-audit.cjs",
     "pregame": "npm run snap && npm run clv && npm run mobile && npm run decision && npm run audit:official",
-    "postgame:official": "npm run grade:official --date=${npm_config_date:-$(date +%F)} && npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run roi --date=${npm_config_date:-$(date +%F)} && npm run mobile --date=${npm_config_date:-$(date +%F)}"
+    "postgame:official": "npm run grade:official --date=${npm_config_date:-$(date +%F)} && npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run roi --date=${npm_config_date:-$(date +%F)} && npm run mobile --date=${npm_config_date:-$(date +%F)}",
+    "learn:adaptive": "node src/learning/build-adaptive-calibration.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
