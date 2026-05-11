@@ -179,16 +179,24 @@ const bayesByKey = new Map(bayesRows.map(x => [bayesKey(x), x]));
 function dynamicConfidence(l) {
   return bayesByKey.get(bayesKey(l)) || null;
 }
-function dynamicAllowedForSlip(slip) {
+function dynamicRejectReasons(slip) {
   const size = Number(slip.size || (slip.legs || []).length || 0);
+  const reasons = [];
   for (const l of slip.legs || []) {
     const d = dynamicConfidence(l);
     const label = String(d?.dynamicConfidence || "UNKNOWN");
-    if (label === "PASS_DYNAMIC") return false;
-    if (size <= 3 && !["ELITE_DYNAMIC", "STRONG_DYNAMIC"].includes(label)) return false;
-    if (size >= 4 && !["ELITE_DYNAMIC", "STRONG_DYNAMIC", "PLAYABLE_DYNAMIC", "WATCH_DYNAMIC"].includes(label)) return false;
+    const leg = `${l.player} ${l.market} ${l.side} ${l.line}`;
+    if (label === "PASS_DYNAMIC") reasons.push(`${leg}: PASS_DYNAMIC`);
+    else if (size <= 3 && !["ELITE_DYNAMIC", "STRONG_DYNAMIC"].includes(label)) {
+      reasons.push(`${leg}: ${label || "UNKNOWN"} not allowed for ${size}-man`);
+    } else if (size >= 4 && !["ELITE_DYNAMIC", "STRONG_DYNAMIC", "PLAYABLE_DYNAMIC", "WATCH_DYNAMIC"].includes(label)) {
+      reasons.push(`${leg}: ${label || "UNKNOWN"} blocked`);
+    }
   }
-  return true;
+  return reasons;
+}
+function dynamicAllowedForSlip(slip) {
+  return dynamicRejectReasons(slip).length === 0;
 }
 
 const rows =
@@ -349,6 +357,21 @@ if (Array.isArray(strikeoutWatchlist) && strikeoutWatchlist.length) {
 
 
 printPlayableSlips();
+
+const rejectedByDynamic = playableSlipRows()
+  .filter(s => String(s.status || "").toUpperCase() === "PLAYABLE" || s.complete === true)
+  .map(s => ({ slip: s, reasons: dynamicRejectReasons(s) }))
+  .filter(x => x.reasons.length);
+
+if (rejectedByDynamic.length) {
+  console.log("");
+  console.log("BAYESIAN DYNAMIC REJECTIONS");
+  console.log("---------------------------");
+  for (const x of rejectedByDynamic) {
+    console.log(`${x.slip.name || x.slip.type || "SLIP"} rejected:`);
+    for (const r of x.reasons) console.log(`  - ${r}`);
+  }
+}
 
 const officialRows = playableSlipRows()
   .filter(s => String(s.status || "").toUpperCase() === "PLAYABLE" || s.complete === true)
