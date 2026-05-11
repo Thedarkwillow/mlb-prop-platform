@@ -318,4 +318,23 @@ if (Array.isArray(strikeoutWatchlist) && strikeoutWatchlist.length) {
   });
 }
 
+
 printPlayableSlips();
+
+const officialRows = playableSlipRows();
+fs.writeFileSync("outputs/official-slip.json", JSON.stringify(officialRows, null, 2) + "\n");
+
+const lines = [];
+lines.push("OFFICIAL PLAYABLE SLIPS");
+lines.push("=======================");
+for (const slip of officialRows) {
+  lines.push("");
+  lines.push(`${slip.name || "SLIP"} | status=${slip.status || ""} | green=${slip.green ?? ""} | correlation=${slip.correlation || "OK"}`);
+  for (const [i, l] of (slip.legs || []).entries()) {
+    lines.push(`${i + 1}. ${l.player} | ${l.team || ""} | ${l.market} ${l.side} ${l.line} | edge=${n(l.edge)} | grade=${effectiveGrade(l)} | books=${l.books ?? ""}`);
+  }
+}
+fs.writeFileSync("outputs/official-slip.txt", lines.join("\n") + "\n");
+console.log("");
+console.log("Wrote outputs/official-slip.json");
+console.log("Wrote outputs/official-slip.txt");
