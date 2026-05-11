@@ -191,6 +191,7 @@ const DATE = process.env.npm_config_date || process.argv[2] || new Date().toISOS
 const official = read("outputs/official-slip.json", []);
 const priced = read("outputs/slips-priced.json", []);
 const steamRows = read(`outputs/steam-report-${DATE}.json`, []);
+const bayesRows = read(`outputs/bayesian-confidence-${DATE}.json`, []);
 
 function steamKey(l) {
   return [
@@ -202,10 +203,17 @@ function steamKey(l) {
 }
 
 const steamByKey = new Map(steamRows.map(x => [steamKey(x), x]));
+const bayesByKey = new Map(bayesRows.map(x => [steamKey(x), x]));
 
 function steamLabel(l) {
   const row = steamByKey.get(steamKey(l));
   return row ? `${row.label} (${row.openOdds} -> ${row.closeOdds})` : "UNKNOWN";
+}
+
+function dynamicConfidenceLabel(l) {
+  const row = bayesByKey.get(steamKey(l));
+  if (!row) return "UNKNOWN";
+  return `${row.dynamicConfidence} (${Number(row.dynamicProb).toFixed(4)})`;
 }
 
 console.log("OFFICIAL SLIP AUDIT");
@@ -240,7 +248,7 @@ for (const [i, l] of (best.legs || []).entries()) {
   console.log(`${i + 1}. ${l.player} | ${l.team || ""} | ${l.game || l.resolvedGame || ""}`);
   console.log(`   Pick: ${l.market} ${l.side || l.recommendedSide} ${l.line}`);
   console.log(`   Grade: ${gradeOf(l)} | Prob: ${n(probOf(l))} | Edge: ${n(edgeOf(l))} | Books: ${booksOf(l)}`);
-  console.log(`   Match: ${matchTypeOf(l)} | Book line: ${l.sportsbookMatchedLine ?? "n/a"} | Risk: ${riskLabel(l)} | Ensemble: ${ensembleAgreement(l)} | Steam: ${steamLabel(l)}`);
+  console.log(`   Match: ${matchTypeOf(l)} | Book line: ${l.sportsbookMatchedLine ?? "n/a"} | Risk: ${riskLabel(l)} | Ensemble: ${ensembleAgreement(l)} | Steam: ${steamLabel(l)} | Dynamic: ${dynamicConfidenceLabel(l)}`);
   console.log(`   Why included: ${whyLegIncluded(l)}`);
   console.log(`   Attribution: ${featureAttribution(l)}`);
   if (l.staleInputGame) console.log(`   Fixed stale game: ${l.staleInputGame} -> ${l.game}`);
