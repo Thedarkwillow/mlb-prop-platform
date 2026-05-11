@@ -54,6 +54,27 @@ function riskNotes(l) {
   return notes;
 }
 
+
+function ensembleAgreement(l) {
+  const grade = gradeOf(l);
+  const prob = Number(probOf(l));
+  const edge = Number(edgeOf(l));
+  const sav = String(l.savantReportGrade || l.savantGradeReport || l.savantGrade || "").toUpperCase();
+
+  const modelStrong = Number.isFinite(prob) && prob >= 0.60;
+  const modelPlayable = Number.isFinite(prob) && prob >= 0.52;
+  const marketStrong = Number.isFinite(edge) && edge >= 0.05;
+  const marketPlayable = Number.isFinite(edge) && edge > 0;
+  const savantNegative = sav.includes("DOWNGRADE");
+
+  if (grade === "GREEN" && modelStrong && marketStrong && !savantNegative) return "MODEL_AGREEMENT";
+  if (grade === "GREEN" && marketStrong && !modelPlayable) return "MARKET_ONLY";
+  if (modelStrong && !marketPlayable) return "MODEL_ONLY";
+  if (modelPlayable && marketPlayable && savantNegative) return "DISAGREEMENT";
+  if (grade === "GREEN" || marketPlayable || modelPlayable) return "LOW_CONFIDENCE";
+  return "PASS";
+}
+
 function riskLabel(l) {
   const notes = riskNotes(l);
   return notes.length ? notes.join("; ") : "clean";
@@ -170,7 +191,7 @@ for (const [i, l] of (best.legs || []).entries()) {
   console.log(`${i + 1}. ${l.player} | ${l.team || ""} | ${l.game || l.resolvedGame || ""}`);
   console.log(`   Pick: ${l.market} ${l.side || l.recommendedSide} ${l.line}`);
   console.log(`   Grade: ${gradeOf(l)} | Prob: ${n(probOf(l))} | Edge: ${n(edgeOf(l))} | Books: ${booksOf(l)}`);
-  console.log(`   Match: ${matchTypeOf(l)} | Book line: ${l.sportsbookMatchedLine ?? "n/a"} | Risk: ${riskLabel(l)}`);
+  console.log(`   Match: ${matchTypeOf(l)} | Book line: ${l.sportsbookMatchedLine ?? "n/a"} | Risk: ${riskLabel(l)} | Ensemble: ${ensembleAgreement(l)}`);
   console.log(`   Why included: ${whyLegIncluded(l)}`);
   if (l.staleInputGame) console.log(`   Fixed stale game: ${l.staleInputGame} -> ${l.game}`);
 }
