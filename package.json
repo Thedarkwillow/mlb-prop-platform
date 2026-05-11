@@ -85,7 +85,8 @@
     "learn:adaptive": "node src/learning/build-adaptive-calibration.cjs",
     "clv:guard": "node src/research/clv-stoploss-guard.cjs",
     "match:diag": "node src/research/sportsbook-match-diagnostics.cjs",
-    "ensemble:diag": "node src/research/ensemble-diagnostics.cjs"
+    "ensemble:diag": "node src/research/ensemble-diagnostics.cjs",
+    "steam": "node src/research/steam-report.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
