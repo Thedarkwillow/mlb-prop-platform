@@ -214,30 +214,38 @@ function printPlayableSlips() {
     const size = Number(s.size || legs.length || 0);
     const correlationPenalty = String(s.correlation || "OK") === "OK" ? 0 : 0.05;
 
-    // Official preference:
-    // 3-man is the default sweet spot when 3+ GREEN legs exist.
-    // 2-man is fallback safety only when the board cannot support 3.
-    const sizeBonus =
-      size === 3 ? 0.08 :
-      size === 4 ? 0.025 :
-      size === 2 ? -0.03 :
-      size >= 5 ? -0.04 :
-      0;
+    let sizePreference = 0;
+    if (size === 3) sizePreference = 0.04;
+    else if (size === 2) sizePreference = 0.015;
+    else if (size === 4) sizePreference = -0.005;
+    else if (size >= 5) sizePreference = -0.035;
 
-    return avg + green * 0.01 + sizeBonus - correlationPenalty;
+    return avg + green * 0.01 + sizePreference - correlationPenalty;
   }
 
-  const best = playable
+  const ranked = playable
     .slice()
-    .sort((a, b) => slipScore(b) - slipScore(a))[0];
+    .map(s => ({ ...s, officialScore: slipScore(s) }))
+    .sort((a, b) => b.officialScore - a.officialScore);
 
-  const legs = best.legs || [];
-  console.log(`${best.name || best.type || "SLIP"} | legs=${legs.length} | green=${best.green ?? legs.filter(l => effectiveGrade(l) === "GREEN").length} | correlation=${best.correlation || "OK"}`);
+  const best = ranked[0];
+  const bestLegs = best.legs || [];
 
-  for (const [i, l] of legs.entries()) {
-    console.log(
-      `  ${i + 1}. ${l.player} | ${l.team || ""} | ${l.market} ${l.side} ${l.line} | edge=${n(l.edge)} | grade=${effectiveGrade(l)} | books=${l.books ?? ""}`
-    );
+  console.log(`${best.name || best.type || "SLIP"} | legs=${bestLegs.length} | green=${best.green ?? bestLegs.filter(l => effectiveGrade(l) === "GREEN").length} | correlation=${best.correlation || "OK"} | score=${n(best.officialScore)}`);
+  for (const [i, l] of bestLegs.entries()) {
+    console.log(`  ${i + 1}. ${l.player} | ${l.team || ""} | ${l.market} ${l.side} ${l.line} | edge=${n(l.edge)} | grade=${effectiveGrade(l)} | books=${l.books ?? ""}`);
+  }
+
+  console.log("");
+  console.log("ALL PLAYABLE SLIPS RANKED");
+  console.log("-------------------------");
+
+  for (const [idx, slip] of ranked.entries()) {
+    const slipLegs = slip.legs || [];
+    console.log(`${idx + 1}. ${slip.name || slip.type || "SLIP"} | legs=${slipLegs.length} | green=${slip.green ?? slipLegs.filter(l => effectiveGrade(l) === "GREEN").length} | correlation=${slip.correlation || "OK"} | score=${n(slip.officialScore)}`);
+    for (const [i, l] of slipLegs.entries()) {
+      console.log(`   ${i + 1}. ${l.player} | ${l.team || ""} | ${l.market} ${l.side} ${l.line} | edge=${n(l.edge)} | grade=${effectiveGrade(l)} | books=${l.books ?? ""}`);
+    }
   }
 }
 
