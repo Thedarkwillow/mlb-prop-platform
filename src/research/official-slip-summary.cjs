@@ -288,9 +288,10 @@ function printPlayableSlips() {
 
   const ranked = playable
     .slice()
+    .filter(dynamicAllowedForSlip)
     .map(s => ({ ...s, officialScore: slipScore(s) }))
     .filter(Boolean)
-  .sort((a, b) => b.officialScore - a.officialScore);
+    .sort((a, b) => b.officialScore - a.officialScore);
 
   const best = ranked[0];
   const bestLegs = best.legs || [];
