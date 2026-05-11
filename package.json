@@ -124,7 +124,7 @@
     "context:team-form": "node src/research/build-team-form-context.cjs ${npm_config_date:-$(date +%F)}",
     "context:bullpen-depth": "node src/research/build-bullpen-depth.cjs ${npm_config_date:-$(date +%F)}",
     "context:lineup-depth": "node src/research/build-lineup-depth.cjs",
-    "context:game-odds": "node src/research/build-game-odds-context.cjs",
+    "context:game-odds": "node src/research/oddsapi-game-markets.cjs",
     "context:depth-pack": "npm run context:team-form && npm run context:bullpen-depth && npm run context:lineup-depth && npm run context:game-odds && npm run context:depth"
   },
   "dependencies": {
