@@ -12,7 +12,9 @@ const CONTEXT_FILES = {
   calibration: 'data/learning/confidence-calibration.json',
   volatility: 'data/learning/market-volatility.json',
   autoMarkets: 'data/learning/auto-market-adjustments.json',
-  savantForm: 'data/savant/rolling-form.json'
+  savantForm: 'data/savant/rolling-form.json',
+  handednessSplits: 'data/savant/handedness-splits.json',
+  probablePitcherHands: 'data/context/probable-pitcher-hands.json'
 };
 
 function readJson(path, fallback = {}) {
@@ -331,12 +333,157 @@ function applyCalibration(row, prob) {
 }
 
 
+
+function displayName(v) {
+  const raw = String(v || '').trim();
+  if (raw.includes(',')) {
+    const [last, first] = raw.split(',').map(x => x.trim());
+    if (first && last) return `${first} ${last}`;
+  }
+  return raw;
+}
+
+function directHandednessPlayerKey(row) {
+  return displayName(row.player)
+    .toLowerCase()
+    .replace(/jr\.?|sr\.?|ii|iii|iv/g, '')
+    .replace(/[^a-z0-9]+/g, '')
+    .trim();
+}
+
+function directTeamKey(row) {
+  return String(row.resolvedTeam || row.team || '').toUpperCase().trim();
+}
+
+function splitQuality(split) {
+  const pa = Number(split?.pa ?? 0);
+  if (pa >= 75) return 'strong';
+  if (pa >= 40) return 'usable';
+  if (pa >= 20) return 'thin';
+  if (pa > 0) return 'tiny';
+  return 'none';
+}
+
+function splitSummary(split) {
+  if (!split) return null;
+
+  return {
+    pa: split.pa ?? null,
+    pitches: split.pitches ?? null,
+    xwoba: split.xwoba ?? null,
+    xslg: split.xslg ?? null,
+    xba: split.xba ?? null,
+    kRate: split.kRate ?? null,
+    bbRate: split.bbRate ?? null,
+    whiffRate: split.whiffRate ?? null,
+    hardHitRate: split.hardHitRate ?? null,
+    barrelRate: split.barrelRate ?? null,
+    quality: splitQuality(split)
+  };
+}
+
+function directOpponentPitcherHand(row) {
+  const raw = String(
+    row.pitcherThrows ||
+    row.opponentPitcherThrows ||
+    row.probablePitcherThrows ||
+    row.p_throws ||
+    row.pitcherHand ||
+    row.opposingPitcherHand ||
+    ''
+  ).toUpperCase();
+
+  if (raw.startsWith('L')) return { hand: 'L', source: 'row' };
+  if (raw.startsWith('R')) return { hand: 'R', source: 'row' };
+
+  const team = directTeamKey(row);
+  const opp = CTX.probablePitcherHands.opponentPitcherByTeam?.[team];
+
+  if (opp?.hand) {
+    return {
+      hand: opp.hand,
+      source: 'probable_pitcher_context',
+      pitcher: opp.pitcher ?? null,
+      opponent: opp.opponent ?? null,
+      gamePk: opp.gamePk ?? null
+    };
+  }
+
+  return { hand: null, source: 'unknown' };
+}
+
+function buildDirectHandednessContext(row) {
+  const key = directHandednessPlayerKey(row);
+  const pitcherMarket = isPitcherMarket(row);
+
+  if (pitcherMarket) {
+    // Keep pitcher handedness splits metadata-only until batter handedness / lineup mix exists.
+    const rec = CTX.handednessSplits.pitchers?.[key];
+    if (!rec) {
+      return {
+        handednessMatched: false,
+        handednessReady: false,
+        handednessMatchType: 'NO_PITCHER_SPLIT',
+        handednessContext: null
+      };
+    }
+
+    return {
+      handednessMatched: true,
+      handednessReady: false,
+      handednessMatchType: 'PITCHER_SPLIT_AVAILABLE_BATTER_HAND_UNKNOWN',
+      handednessContext: {
+        playerType: 'pitcher',
+        selectedSplit: null,
+        vsLHB: splitSummary(rec.vsLHB),
+        vsRHB: splitSummary(rec.vsRHB),
+        active: null
+      }
+    };
+  }
+
+  const rec = CTX.handednessSplits.batters?.[key];
+  if (!rec) {
+    return {
+      handednessMatched: false,
+      handednessReady: false,
+      handednessMatchType: 'NO_BATTER_SPLIT',
+      handednessContext: null
+    };
+  }
+
+  const handInfo = directOpponentPitcherHand(row);
+  const vsKey =
+    handInfo.hand === 'L' ? 'vsLHP' :
+    handInfo.hand === 'R' ? 'vsRHP' :
+    null;
+
+  return {
+    handednessMatched: true,
+    handednessReady: Boolean(vsKey),
+    handednessMatchType: vsKey ? 'BATTER_VS_PITCHER_HAND' : 'BATTER_SPLIT_AVAILABLE_PITCHER_HAND_UNKNOWN',
+    handednessContext: {
+      playerType: 'batter',
+      pitcherHand: handInfo.hand,
+      pitcherHandSource: handInfo.source,
+      opposingPitcher: handInfo.pitcher ?? null,
+      opponent: handInfo.opponent ?? null,
+      selectedSplit: vsKey,
+      vsLHP: splitSummary(rec.vsLHP),
+      vsRHP: splitSummary(rec.vsRHP),
+      active: vsKey ? splitSummary(rec[vsKey]) : null
+    }
+  };
+}
+
 function handednessDeltaFromContext(row) {
-  const h = row.handednessContext;
+  const direct = buildDirectHandednessContext(row);
+  const h = row.handednessContext || direct.handednessContext;
+  const ready = row.handednessReady === true || direct.handednessReady === true;
   const market = marketKey(row);
   const side = sideKey(row);
 
-  if (!row.handednessReady || !h?.active) {
+  if (!ready || !h?.active) {
     return {
       delta: 0,
       applied: false,
@@ -546,8 +693,10 @@ const priced = board.map(row => {
 
   recommendedProb = savantFormResult.prob;
 
+  const directHandedness = buildDirectHandednessContext({ ...row, recommendedSide });
+
   const handednessResult = applyHandednessAdjustment(
-    { ...row, recommendedSide },
+    { ...row, ...directHandedness, recommendedSide },
     recommendedProb
   );
 
@@ -602,6 +751,10 @@ const priced = board.map(row => {
     confidenceBucket: confidenceBucket(recommendedProb),
     contextAdjustment: contextResult.context,
     savantRollingForm: savantFormResult.savantRollingForm,
+    handednessMatched: directHandedness.handednessMatched,
+    handednessReady: directHandedness.handednessReady,
+    handednessMatchType: directHandedness.handednessMatchType,
+    handednessContext: directHandedness.handednessContext,
     handednessAdjustment: handednessResult.handednessAdjustment,
     calibrationAdjustment: calibrationResult.calibration,
     marketIntelligence: intel.marketIntelligence,
