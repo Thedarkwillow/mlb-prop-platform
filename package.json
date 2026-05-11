@@ -108,7 +108,9 @@
     "savant:handedness": "node src/learning/pull-savant-handedness-splits.cjs",
     "board:handedness": "node src/jobs/mergeHandednessIntoBoard.js",
     "handedness:readiness": "node src/research/handedness-readiness.cjs",
-    "context:pitcher-hands": "node src/research/pull-probable-pitcher-hands.cjs"
+    "context:pitcher-hands": "node src/research/pull-probable-pitcher-hands.cjs",
+    "context:lineup-handedness": "node src/research/build-lineup-handedness-profile.cjs",
+    "learn:rolling-roi": "node src/learning/build-rolling-roi-validation.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
