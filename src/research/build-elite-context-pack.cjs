@@ -51,6 +51,7 @@ const weakEnv = read("data/learning/weak-environment-downgrades.json", {});
 const bullpenDepth = read("data/context/bullpen-depth.json", {});
 const gameOdds = read("data/context/game-odds-context.json", {});
 const ballpark = read("data/ballpark-latest.json", []);
+const phase5Polish = read("data/context/phase5-polish-pack.json", {});
 
 function formMap() {
   const m = new Map();
@@ -114,8 +115,9 @@ function findOpp(row) {
 
 function scoreBatter(row) {
   const name = keyName(row.player || row.playerName || row.name);
-  const f = forms.get(name) || {};
-  const m = matchups.get(name) || {};
+  const polish = phase5Polish.byPlayer?.[name] || {};
+  const f = forms.get(name) || polish.batter || {};
+  const m = matchups.get(name) || polish.pitchTypes || {};
   const reasons = [];
 
   let score = 0;
@@ -151,6 +153,13 @@ function scoreBatter(row) {
   }
 
   const pitchEdge = n(m.matchupScore ?? m.edgeScore ?? m.pitchTypeEdge);
+  const polishPitchValues = m.pitchTypeRunValues || {};
+  const polishPitchAvg = Object.values(polishPitchValues).map(Number).filter(Number.isFinite);
+  if (polishPitchAvg.length) {
+    const avgPitchValue = polishPitchAvg.reduce((a,b)=>a+b,0) / polishPitchAvg.length;
+    score += clamp(avgPitchValue, -1, 1) * 0.15;
+    reasons.push(`pitch_run_value_${avgPitchValue.toFixed(3)}`);
+  }
   if (pitchEdge != null) {
     score += clamp(pitchEdge, -1, 1) * 0.25;
     reasons.push(`pitch_type_edge_${pitchEdge}`);
@@ -234,7 +243,7 @@ function scoreEnvironment(row) {
   const td = findTeamDepth(t);
   const opp = findOpp(row);
   const od = findTeamDepth(opp);
-  const bp = row.ballpark || {};
+  const bp = row.ballpark || phase5Polish.weatherByGame?.[gameKey(row)] || {};
   const g = gameOdds.teams?.[t] || {};
   const pen = od?.bullpen || bullpenDepth.teams?.[opp] || {};
   const reasons = [];

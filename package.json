@@ -125,10 +125,11 @@
     "context:bullpen-depth": "node src/research/build-bullpen-depth.cjs ${npm_config_date:-$(date +%F)}",
     "context:lineup-depth": "node src/research/build-lineup-depth.cjs",
     "context:game-odds": "node src/research/oddsapi-game-markets.cjs",
-    "context:depth-pack": "npm run context:team-form && npm run context:bullpen-depth && npm run context:confirmed-lineups && npm run context:lineup-depth && npm run context:game-odds && npm run context:pitcher-fip && npm run context:depth && npm run context:elite",
+    "context:depth-pack": "npm run context:team-form && npm run context:bullpen-depth && npm run context:confirmed-lineups && npm run context:lineup-depth && npm run context:game-odds && npm run context:pitcher-fip && npm run context:depth && npm run context:polish && npm run context:elite",
     "context:pitcher-fip": "node src/research/build-pitcher-fip-lite.cjs",
     "context:confirmed-lineups": "node src/research/build-confirmed-lineups-depth.cjs ${npm_config_date:-$(date +%F)}",
-    "context:elite": "node src/research/build-elite-context-pack.cjs"
+    "context:elite": "node src/research/build-elite-context-pack.cjs",
+    "context:polish": "node src/research/build-phase5-polish-pack.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
