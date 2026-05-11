@@ -54,12 +54,24 @@ function values(x) {
   return [];
 }
 
-const pitcherStatRows = values(pitcherStats.pitchers || pitcherStats.players || pitcherStats.rows || pitcherStats);
+const pitcherStatRows = values(
+  pitcherStats.pitchers ||
+  pitcherStats.players ||
+  pitcherStats.byName ||
+  pitcherStats.byId ||
+  (Array.isArray(pitcherStats.rows) ? pitcherStats.rows : null) ||
+  pitcherStats
+);
 const pitcherAdvRows = values(pitcherAdvanced.pitchers || pitcherAdvanced.players || pitcherAdvanced.rows || pitcherAdvanced);
 const matchupRows = values(pitchMatchups.matchups || pitchMatchups.rows || pitchMatchups);
 
 const pitcherStatByName = new Map();
-for (const r of pitcherStatRows) pitcherStatByName.set(keyName(r.name || r.player), r);
+const pitcherStatById = new Map();
+
+for (const r of pitcherStatRows) {
+  pitcherStatByName.set(keyName(r.name || r.player), r);
+  if (r.id) pitcherStatById.set(String(r.id), r);
+}
 
 const pitcherAdvByName = new Map();
 for (const r of pitcherAdvRows) pitcherAdvByName.set(keyName(r.name || r.player), r);
@@ -67,7 +79,7 @@ for (const r of pitcherAdvRows) pitcherAdvByName.set(keyName(r.name || r.player)
 function enrichPitcher(sp) {
   if (!sp?.name) return sp || null;
   const k = keyName(sp.name);
-  const stat = pitcherStatByName.get(k) || {};
+  const stat = pitcherStatById.get(String(sp.id || sp.playerId || "")) || pitcherStatByName.get(k) || {};
   const adv = pitcherAdvByName.get(k) || {};
 
   return {
