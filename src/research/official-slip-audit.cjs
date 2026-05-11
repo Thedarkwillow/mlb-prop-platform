@@ -120,6 +120,37 @@ function slipScore(slip) {
   return avgEdge + avgProb * 0.25 + green * 0.01 - riskPenalty;
 }
 
+
+function featureAttribution(l) {
+  const parts = [];
+  const prob = Number(probOf(l));
+  const edge = Number(edgeOf(l));
+  const books = Number(booksOf(l));
+  const grade = String(gradeOf(l)).toUpperCase();
+  const ensemble = ensembleAgreement(l);
+  const risk = riskNotes(l);
+
+  if (grade === "GREEN") parts.push("+green-grade");
+  if (ensemble === "MODEL_AGREEMENT") parts.push("+model-market-agreement");
+  if (Number.isFinite(edge) && edge >= 0.15) parts.push("+elite-edge");
+  else if (Number.isFinite(edge) && edge >= 0.08) parts.push("+strong-edge");
+  if (Number.isFinite(prob) && prob >= 0.65) parts.push("+strong-prob");
+  if (books >= 3) parts.push("+3book-support");
+  else if (books === 2) parts.push("+2book-support");
+
+  if (String(l.savantReportGrade || l.savant || "").toUpperCase().includes("BOOST")) {
+    parts.push("+savant-boost");
+  }
+
+  if (ensemble === "DISAGREEMENT") parts.push("-model-disagreement");
+  if (risk.includes("nearest-line price")) parts.push("-nearest-line");
+  if (risk.includes("low book support")) parts.push("-low-books");
+  if (risk.includes("low model probability")) parts.push("-low-model-prob");
+  if (risk.includes("LESS leg")) parts.push("-less-volatility");
+
+  return parts.length ? parts.join(" ") : "neutral";
+}
+
 function whyLegIncluded(l) {
   const reasons = [];
   const grade = String(gradeOf(l)).toUpperCase();
@@ -193,6 +224,7 @@ for (const [i, l] of (best.legs || []).entries()) {
   console.log(`   Grade: ${gradeOf(l)} | Prob: ${n(probOf(l))} | Edge: ${n(edgeOf(l))} | Books: ${booksOf(l)}`);
   console.log(`   Match: ${matchTypeOf(l)} | Book line: ${l.sportsbookMatchedLine ?? "n/a"} | Risk: ${riskLabel(l)} | Ensemble: ${ensembleAgreement(l)}`);
   console.log(`   Why included: ${whyLegIncluded(l)}`);
+  console.log(`   Attribution: ${featureAttribution(l)}`);
   if (l.staleInputGame) console.log(`   Fixed stale game: ${l.staleInputGame} -> ${l.game}`);
 }
 
