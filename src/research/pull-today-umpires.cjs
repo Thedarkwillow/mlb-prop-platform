@@ -202,6 +202,7 @@ async function main() {
   fs.mkdirSync(path.dirname(OUTPUT), { recursive: true });
 
   const ref = await scrapeSource("refmetrics", [
+    "https://www.refmetrics.com/baseball/mlb/game-calendar",
     "https://www.refmetrics.com/baseball/mlb/umpire-assignments",
     "https://www.refmetrics.com/baseball/mlb/todays-umpire-assignments"
   ]);
@@ -211,6 +212,13 @@ async function main() {
   ]);
 
   const merged = dedupe([...ref, ...action]);
+
+  if (ref.length === 0) {
+    console.log("RefMetrics slate found, but HP assignments may not be posted yet.");
+  }
+  if (action.length === 0) {
+    console.log("Action Network produced no usable same-day umpire rows.");
+  }
 
   const lines = [
     "date,away,home,umpire,status",
