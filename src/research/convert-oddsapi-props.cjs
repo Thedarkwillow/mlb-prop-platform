@@ -8,12 +8,17 @@ const clvFile = "data/oddsapi/clv-snapshots.jsonl";
 const marketMap = {
   batter_hits: "hits",
   batter_total_bases: "bases",
+  batter_home_runs: "home_runs",
   batter_rbis: "rbis",
   batter_runs_scored: "runs",
+  batter_hits_runs_rbis: "hrr",
+  batter_strikeouts: "hitter_strikeouts",
+  batter_walks: "walks",
   pitcher_strikeouts: "strikeouts",
   pitcher_hits_allowed: "hits_allowed",
   pitcher_earned_runs: "earned_runs_allowed",
-  pitcher_outs: "pitching_outs"
+  pitcher_outs: "pitching_outs",
+  pitcher_walks: "walks_allowed"
 };
 
 const bookTier = {

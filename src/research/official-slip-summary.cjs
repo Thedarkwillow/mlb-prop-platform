@@ -195,8 +195,35 @@ function dynamicRejectReasons(slip) {
   }
   return reasons;
 }
+function hrrCapForSize(size) {
+  if (size <= 2) return 0;
+  if (size <= 4) return 1;
+  return 2;
+}
+function hrrRejectReasons(slip) {
+  const size = Number(slip.size || (slip.legs || []).length || 0);
+  const cap = hrrCapForSize(size);
+  const hrrLegs = (slip.legs || []).filter(l =>
+    String(l.market || l.stat || "").toLowerCase().replace(/\s+/g, "_") === "hrr"
+  );
+  const reasons = [];
+  if (hrrLegs.length > cap) reasons.push(`HRR count ${hrrLegs.length} exceeds cap ${cap} for ${size}-man`);
+  for (const l of hrrLegs) {
+    const books = Number(l.books ?? l.sportsbookBookCount ?? 0);
+    const edge = Number(l.edge ?? l.sportsbookEdge ?? l.sportsbookAdjustedEdge ?? 0);
+    const match = String(l.sportsbookMatchType || (l.sportsbookExactLine ? "EXACT_LINE" : "UNKNOWN"));
+    const leg = `${l.player} ${l.market} ${l.side} ${l.line}`;
+    if (books < 2) reasons.push(`${leg}: HRR books ${books} < 2`);
+    if (!Number.isFinite(edge) || edge < 0.10) reasons.push(`${leg}: HRR edge ${edge.toFixed ? edge.toFixed(4) : edge} < 0.10`);
+    if (match !== "EXACT_LINE") reasons.push(`${leg}: HRR not exact-line priced`);
+  }
+  return reasons;
+}
+function officialRejectReasons(slip) {
+  return [...dynamicRejectReasons(slip), ...hrrRejectReasons(slip)];
+}
 function dynamicAllowedForSlip(slip) {
-  return dynamicRejectReasons(slip).length === 0;
+  return officialRejectReasons(slip).length === 0;
 }
 
 const rows =
@@ -365,7 +392,7 @@ const rejectedByDynamic = playableSlipRows()
 
 if (rejectedByDynamic.length) {
   console.log("");
-  console.log("BAYESIAN DYNAMIC REJECTIONS");
+  console.log("OFFICIAL SLIP REJECTIONS");
   console.log("---------------------------");
   for (const x of rejectedByDynamic) {
     console.log(`${x.slip.name || x.slip.type || "SLIP"} rejected:`);

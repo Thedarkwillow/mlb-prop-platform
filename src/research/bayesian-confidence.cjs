@@ -105,7 +105,7 @@ function clamp(x) {
   return Math.max(0.01, Math.min(0.99, x));
 }
 
-const official = read("outputs/official-slip.json", []);
+const official = read("outputs/playable-final-slips.json", []);
 const steamRows = read(`outputs/steam-report-${DATE}.json`, []);
 const trust = read("data/learning/market-trust.json", { byMarketDirection: {} });
 
