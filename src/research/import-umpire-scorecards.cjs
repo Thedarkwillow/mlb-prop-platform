@@ -47,9 +47,9 @@ for (const r of rows) {
   const name = r.umpire || r.name || r.Umpire;
   if (!name) continue;
 
-  const accuracyAboveX = num(r.accuracy_above_x_wmean);
+  const accuracyAboveX = num(r.accuracy_above_x_wmean ?? r.accuracy_above_x);
   const weightedScore = num(r.weighted_score);
-  const runImpact = num(r.total_run_impact_mean);
+  const runImpact = num(r.total_run_impact_mean ?? r.total_run_impact);
 
   let kFactor = 0;
   if (accuracyAboveX !== null) {
@@ -65,13 +65,13 @@ for (const r of rows) {
     kBoost: kFactor > 0,
     kDowngrade: kFactor < 0,
     accuracyAboveX,
-    overallAccuracy: num(r.overall_accuracy_wmean),
-    consistency: num(r.consistency_wmean),
+    overallAccuracy: num(r.overall_accuracy_wmean ?? r.overall_accuracy),
+    consistency: num(r.consistency_wmean ?? r.consistency),
     runImpact,
-    favorAbs: num(r.favor_abs_mean),
+    favorAbs: num(r.favor_abs_mean ?? (r.favor != null ? Math.abs(Number(r.favor)) : null)),
     weightedScore,
-    sampleGames: num(r.n),
-    calledPitches: num(r.called_pitches_sum)
+    sampleGames: num(r.n ?? 1),
+    calledPitches: num(r.called_pitches_sum ?? r.called_pitches)
   };
 }
 
