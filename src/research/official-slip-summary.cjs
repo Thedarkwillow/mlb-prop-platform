@@ -158,11 +158,38 @@ function countByReason(legs) {
   return out;
 }
 
+const DATE = process.env.npm_config_date || process.argv[2] || new Date().toISOString().slice(0, 10);
+
 const learning = read("data/learning/market-learning.json", {
   byMarketDirectionBucket: {},
   byMarketDirection: {},
   byBucket: {}
 });
+
+const bayesRows = read(`outputs/bayesian-confidence-${DATE}.json`, []);
+function bayesKey(l) {
+  return [
+    String(l.player || "").toLowerCase().trim(),
+    String(l.market || l.stat || "").toLowerCase().replace(/\s+/g, "_").trim(),
+    String(l.side || l.recommendedSide || "").toUpperCase().trim(),
+    String(Number(l.line))
+  ].join("|");
+}
+const bayesByKey = new Map(bayesRows.map(x => [bayesKey(x), x]));
+function dynamicConfidence(l) {
+  return bayesByKey.get(bayesKey(l)) || null;
+}
+function dynamicAllowedForSlip(slip) {
+  const size = Number(slip.size || (slip.legs || []).length || 0);
+  for (const l of slip.legs || []) {
+    const d = dynamicConfidence(l);
+    const label = String(d?.dynamicConfidence || "UNKNOWN");
+    if (label === "PASS_DYNAMIC") return false;
+    if (size <= 3 && !["ELITE_DYNAMIC", "STRONG_DYNAMIC"].includes(label)) return false;
+    if (size >= 4 && !["ELITE_DYNAMIC", "STRONG_DYNAMIC", "PLAYABLE_DYNAMIC", "WATCH_DYNAMIC"].includes(label)) return false;
+  }
+  return true;
+}
 
 const rows =
   read("outputs/playable-final-slips.json", null) ||
@@ -209,6 +236,7 @@ function printPlayableSlips() {
 
   function slipScore(s) {
     const legs = s.legs || [];
+    if (!dynamicAllowedForSlip(s)) return null;
     const avg = legs.reduce((sum, l) => sum + rankValue(l), 0) / Math.max(1, legs.length);
     const green = Number(s.green ?? legs.filter(l => effectiveGrade(l) === "GREEN").length);
     const size = Number(s.size || legs.length || 0);
@@ -226,7 +254,8 @@ function printPlayableSlips() {
   const ranked = playable
     .slice()
     .map(s => ({ ...s, officialScore: slipScore(s) }))
-    .sort((a, b) => b.officialScore - a.officialScore);
+    .filter(Boolean)
+  .sort((a, b) => b.officialScore - a.officialScore);
 
   const best = ranked[0];
   const bestLegs = best.legs || [];
@@ -323,6 +352,7 @@ printPlayableSlips();
 
 const officialRows = playableSlipRows()
   .filter(s => String(s.status || "").toUpperCase() === "PLAYABLE" || s.complete === true)
+  .filter(dynamicAllowedForSlip)
   .map(s => {
     const legs = s.legs || [];
     const avg = legs.reduce((sum, l) => sum + rankValue(l), 0) / Math.max(1, legs.length);
