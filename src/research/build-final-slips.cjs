@@ -96,6 +96,37 @@ function marketFamily(x) {
   return m;
 }
 
+
+function ensembleAgreement(x) {
+  const grade = displayGrade(x);
+  const prob = Number(x.calibratedDistributionProb ?? x.recommendedProb ?? x.probability ?? x.prob);
+  const edge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? x.edge);
+  const sav = String(x.savantReportGrade || x.savantGradeReport || x.savantGrade || "").toUpperCase();
+
+  const modelStrong = Number.isFinite(prob) && prob >= 0.60;
+  const modelPlayable = Number.isFinite(prob) && prob >= 0.52;
+  const marketStrong = Number.isFinite(edge) && edge >= 0.05;
+  const marketPlayable = Number.isFinite(edge) && edge > 0;
+  const savantNegative = sav.includes("DOWNGRADE");
+
+  if (grade === "GREEN" && modelStrong && marketStrong && !savantNegative) return "MODEL_AGREEMENT";
+  if (grade === "GREEN" && marketStrong && !modelPlayable) return "MARKET_ONLY";
+  if (modelStrong && !marketPlayable) return "MODEL_ONLY";
+  if (modelPlayable && marketPlayable && savantNegative) return "DISAGREEMENT";
+  if (grade === "GREEN" || marketPlayable || modelPlayable) return "LOW_CONFIDENCE";
+  return "PASS";
+}
+
+function ensembleScoreAdjustment(x) {
+  const a = ensembleAgreement(x);
+  if (a === "MODEL_AGREEMENT") return 0.045;
+  if (a === "MARKET_ONLY") return -0.015;
+  if (a === "MODEL_ONLY") return -0.08;
+  if (a === "DISAGREEMENT") return -0.075;
+  if (a === "LOW_CONFIDENCE") return -0.025;
+  return -0.10;
+}
+
 function finalScore(x) {
   const edge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? -999);
   const cal = Number(x.calibratedDistributionProb);
