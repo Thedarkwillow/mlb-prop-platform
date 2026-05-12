@@ -207,6 +207,32 @@ function projectionFromBallpark(row, market) {
     return NaN;
   }
 
+  if (
+    [
+      'pitching_outs',
+      'walks_allowed',
+      'pitcher_fantasy_score',
+      'pitches_thrown',
+      'hits_allowed',
+      'earned_runs_allowed'
+    ].includes(market)
+  ) {
+    return NaN;
+  }
+
+  if (
+    [
+      'pitching_outs',
+      'walks_allowed',
+      'pitcher_fantasy_score',
+      'pitches_thrown',
+      'hits_allowed',
+      'earned_runs_allowed'
+    ].includes(market)
+  ) {
+    return NaN;
+  }
+
   return Number(row.projection);
 }
 
@@ -1023,7 +1049,18 @@ const priced = board.map(row => {
     row.line === null ||
     !market
   ) {
-    return { ...row, market, pricingStatus: 'UNPRICED' };
+    return {
+      ...row,
+      market,
+      projection: null,
+      rawProjection: null,
+      contextAdjustedProjection: null,
+      recommendedSide: null,
+      recommendedProb: null,
+      expectedValue: null,
+      pricingStatus: 'UNPRICED',
+      unpricedReason: 'NO_VALID_PROJECTION'
+    };
   }
 
   row = {

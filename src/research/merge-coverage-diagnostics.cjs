@@ -14,7 +14,7 @@ for (const r of rows) {
   const market = canonicalMarket(r);
   const inferred = inferSourceType(r);
   const priced = r.pricingStatus === "PRICED";
-  const hasProjection = Number.isFinite(Number(r.projection));
+  const hasProjection = r.projection !== null && r.projection !== undefined && Number.isFinite(Number(r.projection));
   const hasBallpark = Boolean(r.ballpark);
   const key = market;
 
