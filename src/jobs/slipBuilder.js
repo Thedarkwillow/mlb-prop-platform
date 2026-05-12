@@ -457,6 +457,44 @@ function baseScore(r) {
   return score;
 }
 
+
+function readJsonSafePhase5(path, fallback = {}) {
+  try {
+    if (!fs.existsSync(path)) return fallback;
+    return JSON.parse(fs.readFileSync(path, "utf8"));
+  } catch {
+    return fallback;
+  }
+}
+
+const PHASE5_LEARNING = readJsonSafePhase5("data/learning/phase5-market-trust.json", { rows: {} });
+const PHASE5_AUTO = readJsonSafePhase5("data/learning/auto-market-adjustments.json", { rows: {} });
+const PHASE5_EDGE = readJsonSafePhase5("data/learning/roi-edge-confidence.json", { rows: {} });
+
+function phase5Key(r) {
+  return `${market(r)}_${sideKey(r)}`;
+}
+
+function phase5MarketRule(r) {
+  return PHASE5_LEARNING.rows?.[phase5Key(r)] || PHASE5_AUTO.rows?.[phase5Key(r)] || null;
+}
+
+function phase5HardAllowed(r) {
+  const rule = phase5MarketRule(r);
+  if (!rule) return true;
+  if (rule.action === "SUPPRESS" && Number(rule.sample || 0) >= 30) return false;
+  return true;
+}
+
+function phase5Weight(r) {
+  const rule = phase5MarketRule(r);
+  if (!rule) return 1;
+  if (rule.action === "BOOST") return 1.08;
+  if (rule.action === "DOWNWEIGHT") return 0.75;
+  if (rule.action === "SUPPRESS") return 0.55;
+  return 1;
+}
+
 function exposureCount(map, key) {
   return map.get(key) || 0;
 }
@@ -528,7 +566,7 @@ function adjustedScore(r, exposure, legs = []) {
 
   const sidePenalty = sideKey(r) === 'MORE' ? 0.08 : 0;
   const sideBoost = sideKey(r) === 'LESS' ? 0.10 : 0;
-  return baseScore(r) - playerPenalty - marketPenalty - sidePenalty + sideBoost;
+  return (baseScore(r) - playerPenalty - marketPenalty - sidePenalty + sideBoost) * phase5Weight(r);
 }
 function addExposure(r, exposure) {
   const p = k(r.player);
@@ -652,7 +690,7 @@ function applyPhase55ToOptimizerRow(r) {
 }
 
 const normalizedRows = rows.map(normalizeForOptimizer).map(applyPhase55ToOptimizerRow).map(applyPhase5ContextAdjustments);
-const baseCandidates = dedupeRows(normalizedRows.filter(playable));
+const baseCandidates = dedupeRows(normalizedRows.filter(r => playable(r) && phase5HardAllowed(r)));
 
 const standardKWatchlist = normalizedRows
   .filter(r =>
