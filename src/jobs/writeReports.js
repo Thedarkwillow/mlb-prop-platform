@@ -31,6 +31,104 @@ function sideOf(row) {
   return row.recommendedSide || row.side || row.pick || row.direction || 'NA';
 }
 
+function norm(v) {
+  return String(v || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[.'’]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function marketOf(row) {
+  const raw = String(row.market || row.stat || row.statType || '').toLowerCase();
+
+  if (raw.includes('total bases') || raw === 'bases') return 'bases';
+  if (raw.includes('hits+runs+rbis') || raw.includes('hrr')) return 'hrr';
+  if (raw === 'hits' || raw.includes('hits')) return 'hits';
+  if (raw.includes('strikeouts')) return 'strikeouts';
+  if (raw.includes('pitching outs')) return 'pitching_outs';
+  if (raw.includes('earned runs')) return 'earned_runs_allowed';
+  if (raw.includes('hits allowed')) return 'hits_allowed';
+  if (raw.includes('walks allowed')) return 'walks_allowed';
+
+  return raw;
+}
+
+function lineOf(row) {
+  const n = Number(row.line);
+  return Number.isFinite(n) ? String(n) : '';
+}
+
+function keyOf(row) {
+  return [
+    norm(row.player || row.playerName || row.name),
+    norm(row.team || row.playerTeam),
+    norm(marketOf(row)),
+    norm(sideOf(row)),
+    lineOf(row)
+  ].join('|');
+}
+
+function buildPricedIndex(rows) {
+  const idx = new Map();
+
+  for (const r of rows) {
+    if (!r) continue;
+    if (r.recordType && r.recordType !== 'merged_prop') continue;
+
+    const keys = new Set([keyOf(r)]);
+
+    const side = sideOf(r);
+    const recSide = r.recommendedSide;
+    if (recSide && recSide !== side) {
+      keys.add([
+        norm(r.player || r.playerName || r.name),
+        norm(r.team || r.playerTeam),
+        norm(marketOf(r)),
+        norm(recSide),
+        lineOf(r)
+      ].join('|'));
+    }
+
+    for (const k of keys) {
+      if (!k) continue;
+
+      const existing = idx.get(k);
+      const existingBooks = Number(existing?.books ?? existing?.sportsbookBookCount ?? 0);
+      const nextBooks = Number(r.books ?? r.sportsbookBookCount ?? 0);
+
+      if (!existing || nextBooks > existingBooks) {
+        idx.set(k, r);
+      }
+    }
+  }
+
+  return idx;
+}
+
+function enrichLeg(row, pricedIndex) {
+  const match = pricedIndex.get(keyOf(row));
+  if (!match) return row;
+
+  return {
+    ...match,
+    ...row,
+    sportsbookBookCount: row.sportsbookBookCount ?? row.books ?? match.sportsbookBookCount ?? match.books,
+    books: row.books ?? row.sportsbookBookCount ?? match.books ?? match.sportsbookBookCount,
+    vegasDriven: row.vegasDriven ?? match.vegasDriven,
+    vegasLine: row.vegasLine ?? match.vegasLine,
+    vegasPickProb: row.vegasPickProb ?? match.vegasPickProb,
+    probabilitySource: row.probabilitySource ?? match.probabilitySource,
+    sportsbookEdge: row.sportsbookEdge ?? match.sportsbookEdge,
+    sportsbookAdjustedEdge: row.sportsbookAdjustedEdge ?? match.sportsbookAdjustedEdge,
+    expectedValue: row.expectedValue ?? match.expectedValue,
+    recommendedProb: row.recommendedProb ?? match.recommendedProb,
+    projection: row.projection ?? match.projection
+  };
+}
+
 function rowDate(row) {
   return String(
     row.slateDate ||
@@ -124,7 +222,7 @@ function formatPlay(row, i) {
     `   GamePk: ${row.resolvedGamePk || row.gamePk || 'NA'} | Row Date: ${rowDate(row) || 'NA'}`,
     `   Projection: ${num(row.projection)} | Prob: ${pct(row.recommendedProb)} | EV: ${num(row.expectedValue)}`,
     `   Bucket: ${row.confidenceBucket || 'NA'} | Market: ${row.market || 'NA'} | Tier: ${row.oddsTier || 'NA'}`,
-    `   Vegas: ${row.vegasDriven ? 'YES' : 'NO'} | Vegas Line: ${row.vegasLine ?? 'NA'} | Vegas Prob: ${row.vegasPickProb ?? 'NA'} | Source: ${row.probabilitySource || 'NA'}`,
+    `   Books: ${row.books ?? row.sportsbookBookCount ?? 'NA'} | Vegas: ${row.vegasDriven ? 'YES' : 'NO'} | Vegas Line: ${row.vegasLine ?? 'NA'} | Vegas Prob: ${row.vegasPickProb ?? 'NA'} | Source: ${row.probabilitySource || 'NA'}`,
   ].join('\n');
 }
 
@@ -147,7 +245,7 @@ function formatSlip(slip) {
       `   GamePk: ${leg.resolvedGamePk || leg.gamePk || 'NA'} | Row Date: ${rowDate(leg) || 'NA'}`,
       `   Projection: ${num(leg.projection)} | Prob: ${pct(leg.recommendedProb)} | EV: ${num(leg.expectedValue)}`,
       `   Bucket: ${leg.confidenceBucket || 'NA'} | Market: ${leg.market || 'NA'} | Tier: ${leg.oddsTier || 'NA'}`,
-      `   Vegas: ${leg.vegasDriven ? 'YES' : 'NO'} | Vegas Line: ${leg.vegasLine ?? 'NA'} | Vegas Prob: ${leg.vegasPickProb ?? 'NA'} | Source: ${leg.probabilitySource || 'NA'}`
+      `   Books: ${leg.books ?? leg.sportsbookBookCount ?? 'NA'} | Vegas: ${leg.vegasDriven ? 'YES' : 'NO'} | Vegas Line: ${leg.vegasLine ?? 'NA'} | Vegas Prob: ${leg.vegasPickProb ?? 'NA'} | Source: ${leg.probabilitySource || 'NA'}`
     );
   });
 
@@ -156,6 +254,11 @@ function formatSlip(slip) {
 }
 
 const priced = readJson(pricedPath, []);
+const validatedRaw = readJson("outputs/final-slips-validated.json", []);
+const validatedRows = Array.isArray(validatedRaw)
+  ? validatedRaw.flatMap(x => Array.isArray(x.legs) ? x.legs : [x])
+  : [];
+const pricedIndex = buildPricedIndex([...priced, ...validatedRows]);
 const slipsRaw = readJson(slipsPath, []);
 
 const top = priced
@@ -169,7 +272,9 @@ const slips = (Array.isArray(slipsRaw)
 ).map(slip => ({
   ...slip,
   slateDate: SLATE_DATE,
-  legs: Array.isArray(slip.legs) ? slip.legs.filter(isSlateRow) : [],
+  legs: Array.isArray(slip.legs)
+    ? slip.legs.map(x => enrichLeg(x, pricedIndex)).filter(isSlateRow)
+    : [],
   removedStaleOrInvalidLegs: Array.isArray(slip.legs)
     ? slip.legs.filter(x => !isSlateRow(x)).length
     : 0
