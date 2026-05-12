@@ -328,6 +328,19 @@ function printPlayableSlips() {
   if (!ranked.length) {
     console.log("none");
     console.log("Reason: playable slips existed, but official dynamic/HRR filters rejected them.");
+    const rejected = playable
+      .filter(s => !dynamicAllowedForSlip(s))
+      .map(s => {
+        const reasons = dynamicRejectReasons(s);
+        return {
+          slip: s,
+          reasons: reasons.length ? reasons : ["failed dynamicAllowedForSlip with no specific reason"]
+        };
+      });
+    console.log(`Rejected playable slips: ${rejected.length}`);
+    for (const x of rejected.slice(0, 5)) {
+      console.log(`- ${x.slip.name || x.slip.type || "SLIP"}: ${x.reasons.join("; ")}`);
+    }
     return;
   }
 

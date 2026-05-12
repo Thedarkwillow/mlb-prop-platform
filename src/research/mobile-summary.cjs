@@ -21,6 +21,25 @@ function num(x, d = 4) {
   return Number(x).toFixed(d);
 }
 
+function legKey(l) {
+  return [
+    String(l.player || "").toLowerCase().trim(),
+    String(l.market || l.stat || "").toLowerCase().trim(),
+    String(l.side || l.recommendedSide || "").toUpperCase().trim(),
+    String(l.line ?? "").trim()
+  ].join("|");
+}
+
+function dedupeLegs(legs = []) {
+  const seen = new Set();
+  return legs.filter(l => {
+    const k = legKey(l);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
 function legLine(l, i) {
   const intel = l.intelAdjustedEdge != null ? ` | intelEdge=${num(l.intelAdjustedEdge)}` : "";
   const notes = Array.isArray(l.intelNotes) && l.intelNotes.length ? ` | intel=${l.intelNotes.join("; ")}` : "";
@@ -118,12 +137,13 @@ console.log("-------------------");
 if (!bestValidated) {
   console.log("None.");
 } else {
-  const size = (bestValidated.legs || []).length;
-  const green = (bestValidated.legs || []).filter(l => (l.validationGrade || l.grade) === "GREEN").length;
-  const neutral = (bestValidated.legs || []).filter(l => (l.validationGrade || l.grade) === "NEUTRAL").length;
+  const bestLegs = dedupeLegs(bestValidated.legs || []);
+  const size = bestLegs.length;
+  const green = bestLegs.filter(l => (l.validationGrade || l.grade) === "GREEN").length;
+  const neutral = bestLegs.filter(l => (l.validationGrade || l.grade) === "NEUTRAL").length;
   const status = green === size ? "PLAYABLE" : green > 0 ? "MIXED" : "PASS";
   console.log(`${slipLabel(size)} | status=${status} | green=${green} | neutral=${neutral}`);
-  (bestValidated.legs || []).forEach((l, i) => console.log(legLine(l, i)));
+  bestLegs.forEach((l, i) => console.log(legLine(l, i)));
 }
 
 console.log("");
