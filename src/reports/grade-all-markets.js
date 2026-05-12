@@ -188,6 +188,30 @@ async function buildActuals(date) {
   return { playerMap, teamGameMap };
 }
 
+function teamsFromGameKey(game) {
+  return String(game || "")
+    .replace(/\s+/g, " ")
+    .split("@")
+    .map(x => x.trim())
+    .filter(Boolean);
+}
+
+function sameGameTeams(a, b) {
+  const aa = teamsFromGameKey(a).sort().join("|");
+  const bb = teamsFromGameKey(b).sort().join("|");
+  return aa && bb && aa === bb;
+}
+
+function safeCanonicalGameKey(row, teamGameMap) {
+  const rowGame = row.resolvedGame || row.game || row.rawGame || "";
+  const byRow = canonicalGameKey({ ...row, game: rowGame });
+  const byTeam = teamGameMap.get(normTeam(row.resolvedTeam || row.team || row.rawTeam));
+
+  if (byTeam && rowGame && sameGameTeams(byTeam, rowGame)) return byTeam;
+  if (byRow) return byRow;
+  return byTeam || "unknown";
+}
+
 function addStat(map, key, result) {
   if (!map[key]) map[key] = { hits: 0, misses: 0, pushes: 0, ungraded: 0 };
   if (result === "HIT") map[key].hits++;
@@ -278,7 +302,7 @@ async function main() {
       line,
       prob,
       ev,
-      canonicalGameKey: teamGameMap.get(team) || canonicalGameKey(row),
+      canonicalGameKey: safeCanonicalGameKey(row, teamGameMap),
       actual,
       result
     });
