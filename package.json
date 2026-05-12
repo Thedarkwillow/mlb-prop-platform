@@ -138,7 +138,7 @@
     "learn:fantasy-all": "npm run learn:fantasy && npm run learn:fantasy-less && npm run audit:fantasy-policy",
     "watchlist:fantasy-less": "node src/learning/export-fantasy-less-watchlist.cjs",
     "export:results": "bash scripts/export-results-bundle.sh",
-    "watchlist:fantasy-less-top": "node src/learning/export-fantasy-less-top.cjs"
+    "watchlist:fantasy-less-top": "node src/learning/export-fantasy-less-top.cjs ${npm_config_date:-$(date +%F)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

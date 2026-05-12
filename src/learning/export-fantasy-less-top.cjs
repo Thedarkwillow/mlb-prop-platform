@@ -1,6 +1,8 @@
 const fs = require("fs");
 const { fantasyPolicy } = require("../policy/fantasyPolicy.cjs");
 
+const slateDate = process.argv[2] || process.env.SLATE_DATE || new Date().toISOString().slice(0, 10);
+
 function readJson(p, fallback = []) {
   if (!fs.existsSync(p)) return fallback;
   return JSON.parse(fs.readFileSync(p, "utf8"));
@@ -35,6 +37,10 @@ const seen = new Set();
 
 const rows = board
   .filter(r => r.recordType === "merged_prop")
+  .filter(r => {
+    const d = String(r.gameStart || r.startTime || r.date || "").slice(0, 10);
+    return d === slateDate;
+  })
   .filter(r => {
     const key = [
       r.player,
@@ -92,6 +98,7 @@ fs.writeFileSync(
 
 let text = "";
 text += "FANTASY LESS TOP CANDIDATES\n";
+text += `Slate Date: ${slateDate}\n`;
 text += "=================================\n";
 text += `Rows: ${rows.length}\n\n`;
 
