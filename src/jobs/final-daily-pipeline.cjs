@@ -19,6 +19,7 @@ if (process.env.ODDS_API_KEY) {
 }
 run("node src/research/price-current-slips.cjs");
 run("node src/research/enrich-slips-distributions.cjs");
+run("npm run price:board");
 run("node src/research/build-final-slips.cjs");
 run("node src/research/final-slip-summary.cjs");
 run("node src/research/playable-final-slips.cjs");
