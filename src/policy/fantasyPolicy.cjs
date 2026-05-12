@@ -92,10 +92,37 @@ function fantasyPolicy(row) {
   }
 
   if (side === "LESS" && isPitcherFantasy(row)) {
+    if (Number.isFinite(line) && line >= 30) {
+      return {
+        ...base,
+        fantasyEligible: true,
+        fantasyPolicy: "elite_watchlist",
+        fantasyReason: "pitcher_fantasy_less_30_plus_elite_watchlist"
+      };
+    }
+
+    if (Number.isFinite(line) && line >= 25) {
+      return {
+        ...base,
+        fantasyEligible: true,
+        fantasyPolicy: "strong_watchlist",
+        fantasyReason: "pitcher_fantasy_less_25_plus_strong_watchlist"
+      };
+    }
+
+    if (Number.isFinite(line) && line >= 20) {
+      return {
+        ...base,
+        fantasyEligible: true,
+        fantasyPolicy: "watchlist",
+        fantasyReason: "pitcher_fantasy_less_20_plus_watchlist"
+      };
+    }
+
     return {
       ...base,
-      fantasyPolicy: "watchlist",
-      fantasyReason: "pitcher_fantasy_less_watchlist_sample_not_ready"
+      fantasyPolicy: "banned",
+      fantasyReason: "pitcher_fantasy_less_below_20_banned"
     };
   }
 

@@ -37,12 +37,26 @@ const rows = board
     r.fantasyWatchlist &&
     r.inferredSide === "LESS" &&
     !BAD_TEAMS.has(String(r.team || "").toUpperCase()) &&
-    Number(r.line) >= 6.5 &&
+    (
+      (
+        String(r.market || r.stat || "").toLowerCase().includes("hitter") &&
+        Number(r.line) >= 6.5
+      ) ||
+      (
+        String(r.market || r.stat || "").toLowerCase().includes("pitcher") &&
+        Number(r.line) >= 20
+      )
+    ) &&
     !["goblin", "demon"].includes(String(r.oddsTier || r.tier || "").toLowerCase())
   )
   .sort((a, b) => {
-    const ap = a.fantasyPolicy === "strong_watchlist" ? 1 : 0;
-    const bp = b.fantasyPolicy === "strong_watchlist" ? 1 : 0;
+    const score = x =>
+      x.fantasyPolicy === "elite_watchlist" ? 3 :
+      x.fantasyPolicy === "strong_watchlist" ? 2 :
+      x.fantasyPolicy === "watchlist" ? 1 :
+      0;
+    const ap = score(a);
+    const bp = score(b);
     return bp - ap || Number(b.line || 0) - Number(a.line || 0);
   })
   .slice(0, 25);
