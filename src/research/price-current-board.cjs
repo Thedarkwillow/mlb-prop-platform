@@ -245,11 +245,25 @@ for (const s of savantRows) {
   savantMap.set(normName(s.player), s);
 }
 
+let skippedNoSide = 0;
 const out = legs.map(l => {
   const player = l.player;
   const market = normMarket(l.market || l.stat);
   const side = normSide(l.side || l.recommendedSide);
   const line = Number(l.line);
+
+  if (!side) {
+    skippedNoSide++;
+    return {
+      ...l,
+      market,
+      side,
+      line,
+      sportsbookMatch: false,
+      sportsbookSkippedReason: "missing_side"
+    };
+  }
+
   const p = bestPriceForLeg(priceMap, player, market, side, line);
   const sav = savantMap.get(normName(player));
 
@@ -315,6 +329,7 @@ console.log("price keys:", priceMap.size);
 console.log("board legs:", legs.length);
 console.log("matched:", out.filter(x => x.sportsbookMatch).length);
 console.log("unmatched:", out.filter(x => !x.sportsbookMatch).length);
+console.log("skipped missing side:", skippedNoSide);
 console.log("dk playable:", out.filter(x => x.sportsbookMatch && x.sportsbookEdge > 0).length);
 console.log("one per player:", kept.length);
 console.log("kept:", kept.length);
