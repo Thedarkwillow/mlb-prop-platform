@@ -9,6 +9,9 @@ function readJson(p, fallback = []) {
 function inferredSide(r) {
   if (r.side || r.recommendedSide) return r.side || r.recommendedSide;
 
+  const market = String(r.market || r.stat || "").toLowerCase();
+  if (market.includes("pitcher") && market.includes("fantasy")) return "LESS";
+
   const projection = Number(r.projection);
   const line = Number(r.line);
 
@@ -22,10 +25,29 @@ function inferredSide(r) {
 
 const BAD_TEAMS = new Set(["SF", "ATL", "PIT"]);
 
-const board = readJson("outputs/priced-board.json", []);
+const board = [
+  ...readJson("outputs/priced-board.json", []),
+  ...readJson("outputs/fantasy-tracking.json", []),
+  ...readJson("outputs/slips-with-fantasy.json", [])
+];
+
+const seen = new Set();
 
 const rows = board
   .filter(r => r.recordType === "merged_prop")
+  .filter(r => {
+    const key = [
+      r.player,
+      r.team,
+      r.market || r.stat,
+      r.oddsTier || r.tier,
+      r.line
+    ].join("|").toLowerCase();
+
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  })
   .map(r => ({
     ...r,
     inferredSide: inferredSide(r),

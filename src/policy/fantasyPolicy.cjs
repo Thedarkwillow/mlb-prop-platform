@@ -45,7 +45,7 @@ function fantasyPolicy(row) {
     };
   }
 
-  const side = sideOf(row);
+  let side = sideOf(row);
   const tier = tierOf(row);
   const line = Number(row.line);
 
@@ -56,6 +56,10 @@ function fantasyPolicy(row) {
     fantasyPolicy: "blocked",
     fantasyReason: "fantasy_default_tracking_only"
   };
+
+  if (!side && isPitcherFantasy(row)) {
+    side = "LESS";
+  }
 
   if (!side) {
     return {
