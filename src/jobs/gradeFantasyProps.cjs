@@ -254,8 +254,8 @@ async function main() {
   if (!fantasyRows.length) {
     lines.push("No fantasy rows found.");
     fs.writeFileSync(OUT_JSON, JSON.stringify([], null, 2));
-    fs.writeFileSync(OUT_TXT, lines.join("\n"));
-    console.log(lines.join("\n"));
+    fs.writeFileSync(OUT_TXT, lines.filter(line => !line.includes(" | EXCLUDED | ")).join("\n"));
+    console.log(lines.filter(line => !line.includes(" | EXCLUDED | ")).join("\n"));
     return;
   }
 
@@ -373,9 +373,9 @@ async function main() {
   }
 
   fs.writeFileSync(OUT_JSON, JSON.stringify(grades, null, 2));
-  fs.writeFileSync(OUT_TXT, lines.join("\n"));
+  fs.writeFileSync(OUT_TXT, lines.filter(line => !line.includes(" | EXCLUDED | ")).join("\n"));
 
-  console.log(lines.join("\n"));
+  console.log(lines.filter(line => !line.includes(" | EXCLUDED | ")).join("\n"));
   console.log("");
   console.log(`Saved JSON: ${OUT_JSON}`);
   console.log(`Saved TXT: ${OUT_TXT}`);
