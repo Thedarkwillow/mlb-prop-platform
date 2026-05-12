@@ -201,35 +201,47 @@ function projectionFromBallpark(row, market) {
   }
 
   if (market === 'walks_allowed') {
-    if (!isPitcher) return NaN;
-    const walks = Number(bp.walks ?? raw.Walks ?? bp.baseOnBalls ?? raw.BaseOnBalls);
-    if (Number.isFinite(walks) && walks >= 0) return walks;
+    const bp = row.ballpark || {};
+    const v = Number(bp.walksAllowed ?? bp.walks ?? bp.raw?.Walks ?? bp.raw?.BaseOnBalls ?? row.projection);
+    if (Number.isFinite(v) && v >= 0) return v;
     return NaN;
   }
 
-  if (
-    [
-      'pitching_outs',
-      'walks_allowed',
-      'pitcher_fantasy_score',
-      'pitches_thrown',
-      'hits_allowed',
-      'earned_runs_allowed'
-    ].includes(market)
-  ) {
+  if (market === 'hits_allowed') {
+    const bp = row.ballpark || {};
+    const v = Number(row.projection ?? bp.hitsAllowed ?? bp.raw?.HitsAllowed);
+    return Number.isFinite(v) && v > 0 ? v : NaN;
+  }
+
+  if (market === 'earned_runs_allowed') {
+    const bp = row.ballpark || {};
+    const v = Number(row.projection ?? bp.earnedRunsAllowed ?? bp.runsAllowed ?? bp.raw?.EarnedRunsAllowed ?? bp.raw?.RunsAllowed);
+    return Number.isFinite(v) && v >= 0 ? v : NaN;
+  }
+
+  if (market === 'walks_allowed') {
+    const bp = row.ballpark || {};
+    const v = Number(bp.walksAllowed ?? bp.walks ?? bp.raw?.Walks ?? bp.raw?.BaseOnBalls ?? row.projection);
+    if (Number.isFinite(v) && v >= 0) return v;
     return NaN;
   }
 
-  if (
-    [
-      'pitching_outs',
-      'walks_allowed',
-      'pitcher_fantasy_score',
-      'pitches_thrown',
-      'hits_allowed',
-      'earned_runs_allowed'
-    ].includes(market)
-  ) {
+  if (market === 'hits_allowed') {
+    const bp = row.ballpark || {};
+    const v = Number(row.projection ?? bp.hitsAllowed ?? bp.raw?.HitsAllowed);
+    return Number.isFinite(v) && v > 0 ? v : NaN;
+  }
+
+  if (market === 'earned_runs_allowed') {
+    const bp = row.ballpark || {};
+    const v = Number(row.projection ?? bp.earnedRunsAllowed ?? bp.runsAllowed ?? bp.raw?.EarnedRunsAllowed ?? bp.raw?.RunsAllowed);
+    return Number.isFinite(v) && v >= 0 ? v : NaN;
+  }
+
+  if (market === 'walks_allowed') {
+    const bp = row.ballpark || {};
+    const v = Number(bp.walksAllowed ?? bp.walks ?? bp.raw?.Walks ?? bp.raw?.BaseOnBalls ?? row.projection);
+    if (Number.isFinite(v) && v >= 0) return v;
     return NaN;
   }
 
