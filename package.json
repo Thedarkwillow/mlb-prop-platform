@@ -140,7 +140,8 @@
     "export:results": "bash scripts/export-results-bundle.sh",
     "watchlist:fantasy-less-top": "node src/learning/export-fantasy-less-top.cjs ${npm_config_date:-$(date +%F)}",
     "price:board": "node src/research/price-current-board.cjs",
-    "diag:merge-coverage": "node src/research/merge-coverage-diagnostics.cjs"
+    "diag:merge-coverage": "node src/research/merge-coverage-diagnostics.cjs",
+    "proj:pitchers:fallback": "node src/research/build-pitcher-fallback-projections.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

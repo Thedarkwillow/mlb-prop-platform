@@ -3,6 +3,17 @@ import fs from 'fs';
 const prizepicks = JSON.parse(fs.readFileSync('data/prizepicks-latest.json', 'utf8'));
 const ballpark = JSON.parse(fs.readFileSync('data/ballpark-latest.json', 'utf8'));
 
+function readJson(path, fallback) {
+  try {
+    if (!fs.existsSync(path)) return fallback;
+    return JSON.parse(fs.readFileSync(path, 'utf8'));
+  } catch {
+    return fallback;
+  }
+}
+
+const pitcherFallback = readJson('data/projections/pitcher-fallback-projections.json', { rows: {} });
+
 function clean(v) {
   return String(v ?? '').trim();
 }
@@ -65,16 +76,28 @@ function projection(row, market) {
 
   if (market === 'pitching_outs') {
     const innings = Number(row.innings ?? row.raw?.Innings);
+    const outs = Number(row.pitchingOuts);
+    if (Number.isFinite(outs)) return outs;
     return Number.isFinite(innings) ? innings * 3 : null;
   }
 
   if (market === 'walks_allowed') {
-    const walks = Number(row.walks ?? row.raw?.Walks);
+    const walks = Number(row.walks ?? row.raw?.Walks ?? row.walksAllowed);
     return Number.isFinite(walks) ? walks : null;
   }
 
+  if (market === 'hits_allowed') {
+    const hits = Number(row.hitsAllowed ?? row.raw?.HitsAllowed);
+    return Number.isFinite(hits) ? hits : null;
+  }
+
+  if (market === 'earned_runs_allowed') {
+    const er = Number(row.earnedRunsAllowed ?? row.runsAllowed ?? row.raw?.EarnedRunsAllowed ?? row.raw?.RunsAllowed);
+    return Number.isFinite(er) ? er : null;
+  }
+
   if (market === 'pitcher_fantasy_score') {
-    const v = Number(row.pointsDK ?? row.pointsFD);
+    const v = Number(row.pointsDK ?? row.pointsFD ?? row.pitcherFantasyProxy);
     return Number.isFinite(v) && v > 0 ? v : null;
   }
 
@@ -118,6 +141,29 @@ for (const r of ballpark) {
   bpByNameType.get(nameTypeKey).push(r);
 }
 
+function findFallback(player, market) {
+  const rec = pitcherFallback.rows?.[normName(player)];
+  if (!rec) return null;
+  if (rec.trustedFor && rec.trustedFor[market] === false) return null;
+  return {
+    source: 'PitcherFallback',
+    exportName: 'MLB Stats API recent game logs',
+    recordType: 'pitcher',
+    fullName: rec.fullName,
+    team: null,
+    opponent: null,
+    gamePk: null,
+    innings: rec.innings,
+    pitchingOuts: rec.pitchingOuts,
+    walksAllowed: rec.walksAllowed,
+    hitsAllowed: rec.hitsAllowed,
+    earnedRunsAllowed: rec.earnedRunsAllowed,
+    strikeouts: rec.strikeouts,
+    pitcherFantasyProxy: rec.pitcherFantasyProxy,
+    fallbackProjection: rec
+  };
+}
+
 function findBallpark(player, team, desiredType) {
   const name = normName(player);
   const t = normTeam(team);
@@ -140,7 +186,9 @@ const merged = prizepicks.map(p => {
   const market = normalizeMarket(p.stat || p.stat_short);
   const desiredType = inferSourceType(market);
   const found = findBallpark(player, team, desiredType);
-  const bp = found.row;
+  const fallback = found.row ? null : findFallback(player, market);
+  const bp = found.row || fallback;
+  const ballparkMatchType = found.row ? found.matchType : fallback ? 'pitcher_fallback_recent_game_logs' : found.matchType;
   const proj = projection(bp, market);
   const line = Number(p.line);
 
@@ -165,7 +213,7 @@ const merged = prizepicks.map(p => {
     edge,
     confidence: Number(confidence.toFixed(3)),
     sourceType: desiredType,
-    ballparkMatchType: found.matchType,
+    ballparkMatchType,
     game: bp
       ? `${clean(bp.team)} @ ${clean(bp.opponent)}`
       : `${p.away_team} @ ${p.home_team}`,
