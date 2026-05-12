@@ -70,11 +70,11 @@ function normMarket(s) {
   if (s.includes("walks allowed") || s.includes("pitcher walks")) return "walks_allowed";
 
   if (s.includes("hits runs rbis") || s.includes("hits + runs + rbis") || s.includes("hrr")) return "hrr";
-  if (s.includes("home runs") || s.includes("home run")) return "home_runs";
+  if (s === "hr" || s.includes("home runs") || s.includes("home run")) return "home_runs";
   if (s.includes("total bases") || s === "bases") return "bases";
   if (s.includes("rbi")) return "rbis";
   if (s.includes("runs scored") || s === "runs") return "runs";
-  if (s.includes("batter strikeout") || s.includes("hitter strikeout")) return "hitter_strikeouts";
+  if (s.includes("batter strikeout") || s.includes("hitter strikeout")) return "strikeouts";
   if (s.includes("hits")) return "hits";
 
   return s.replace(/\s+/g, "_");
