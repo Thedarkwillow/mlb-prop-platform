@@ -41,6 +41,24 @@ const MARKETS = [
   "pitcher_walks"
 ];
 
+
+function localDateKey(value, timeZone = "America/Los_Angeles") {
+  const d = value ? new Date(value) : new Date();
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(d);
+  const get = type => parts.find(p => p.type === type)?.value;
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}
+
+function eventIsToday(event) {
+  const target = process.env.ODDS_API_DATE || localDateKey();
+  return localDateKey(event.commence_time) === target;
+}
+
 async function fetchJson(url) {
   const r = await fetch(url);
   const text = await r.text();
@@ -82,11 +100,14 @@ function countOutcomes(event) {
     `?apiKey=${API_KEY}` +
     `&dateFormat=${DATE_FORMAT}`;
 
-  const events = await fetchJson(eventsUrl);
+  const allEvents = await fetchJson(eventsUrl);
+  const events = allEvents.filter(eventIsToday);
 
+  fs.writeFileSync("data/oddsapi/events-all.json", JSON.stringify(allEvents, null, 2));
   fs.writeFileSync("data/oddsapi/events.json", JSON.stringify(events, null, 2));
 
-  console.log("events:", events.length);
+  console.log("events total:", allEvents.length);
+  console.log("events today:", events.length);
   console.table(events.map(e => ({
     id: e.id,
     commence: e.commence_time,

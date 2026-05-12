@@ -503,8 +503,16 @@ function canUse(legs, r, exposure, size) {
   const sameMarket = legs.filter(x => market(x) === m).length;
   if (sameMarket >= 3) return false;
 
-  const maxSameSide = size <= 3 ? size : Math.ceil(size * 0.85);
   const sameSide = legs.filter(x => sideKey(x) === sk).length;
+
+  // Prevent all-MORE slips. Specials are already MORE-only, so this keeps
+  // standard legs from crowding every slip into one direction.
+  if (size >= 3 && sk === 'MORE') {
+    const maxMorePerSlip = size - 1;
+    if (sameSide >= maxMorePerSlip) return false;
+  }
+
+  const maxSameSide = size <= 2 ? size : size - 1;
   if (sameSide >= maxSameSide) return false;
 
   return true;
