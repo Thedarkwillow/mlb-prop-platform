@@ -162,6 +162,41 @@ function findGameForTeam(games, teamAbbr) {
   });
 }
 
+function teamIdsFromGameString(game) {
+  const parts = String(game || "")
+    .replace(/\s+/g, " ")
+    .split("@")
+    .map(x => String(x || "").trim().toUpperCase())
+    .filter(Boolean);
+
+  if (parts.length !== 2) return [];
+
+  return parts.map(t => TEAM_IDS[t]).filter(Boolean);
+}
+
+function findGameForRow(games, row, teamAbbr) {
+  const directPk = row.resolvedGamePk || row.gamePk || row.mlbGamePk;
+
+  if (directPk) {
+    const byPk = games.find(g => String(g.gamePk) === String(directPk));
+    if (byPk) return byPk;
+  }
+
+  const ids = teamIdsFromGameString(row.resolvedGame || row.game || row.rawGame);
+
+  if (ids.length === 2) {
+    const byTeams = games.find(g => {
+      const awayId = g.teams?.away?.team?.id;
+      const homeId = g.teams?.home?.team?.id;
+      return ids.includes(awayId) && ids.includes(homeId);
+    });
+
+    if (byTeams) return byTeams;
+  }
+
+  return findGameForTeam(games, teamAbbr);
+}
+
 function normalizeName(v) {
   return String(v || "")
     .toLowerCase()
@@ -235,7 +270,7 @@ async function main() {
     const side = sideOf(row);
     const line = Number(row.line);
 
-    const game = findGameForTeam(games, t);
+    const game = findGameForRow(games, row, t);
 
     if (!game) {
       grades.push({
@@ -245,8 +280,8 @@ async function main() {
         line,
         side,
         actual: null,
-        result: "PENDING",
-        reason: "game_not_found",
+        result: "EXCLUDED",
+        reason: "off_slate_team_not_scheduled",
       });
       continue;
     }
