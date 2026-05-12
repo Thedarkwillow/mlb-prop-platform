@@ -4,8 +4,18 @@ function marketOf(row) {
 
 function sideOf(row) {
   const raw = String(row.side || row.recommendedSide || row.pick || row.direction || "").toUpperCase();
+
   if (raw.includes("LESS") || raw.includes("UNDER")) return "LESS";
   if (raw.includes("MORE") || raw.includes("OVER")) return "MORE";
+
+  const projection = Number(row.projection);
+  const line = Number(row.line);
+
+  if (Number.isFinite(projection) && Number.isFinite(line)) {
+    if (projection > line) return "MORE";
+    if (projection < line) return "LESS";
+  }
+
   return raw;
 }
 
@@ -46,6 +56,22 @@ function fantasyPolicy(row) {
     fantasyPolicy: "blocked",
     fantasyReason: "fantasy_default_tracking_only"
   };
+
+  if (!side) {
+    return {
+      ...base,
+      fantasyPolicy: "blocked",
+      fantasyReason: "fantasy_missing_side"
+    };
+  }
+
+  if (!Number.isFinite(line)) {
+    return {
+      ...base,
+      fantasyPolicy: "blocked",
+      fantasyReason: "fantasy_missing_line"
+    };
+  }
 
   if (side === "MORE") {
     return {
@@ -101,7 +127,17 @@ function fantasyPolicy(row) {
     }
   }
 
-  return base;
+  return {
+    ...base,
+    fantasyPolicy: "blocked",
+    fantasyReason: [
+      isHitterFantasy(row) ? "hitter" : isPitcherFantasy(row) ? "pitcher" : "unknown",
+      "fantasy",
+      side ? side.toLowerCase() : "missing_side",
+      Number.isFinite(line) ? `line_${line}` : "missing_line",
+      "no_matching_policy"
+    ].join("_")
+  };
 }
 
 module.exports = {

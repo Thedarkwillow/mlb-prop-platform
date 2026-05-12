@@ -16,7 +16,11 @@ const audited = rows.map(r => ({
   player: r.player,
   team: r.team,
   market: r.market || r.stat,
-  side: r.side || r.recommendedSide,
+  side: r.side || r.recommendedSide || (
+    Number(r.projection) > Number(r.line) ? "MORE" :
+    Number(r.projection) < Number(r.line) ? "LESS" :
+    ""
+  ),
   line: r.line,
   oddsTier: r.oddsTier || r.tier,
   ...fantasyPolicy(r)
