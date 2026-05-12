@@ -495,6 +495,58 @@ function phase5Weight(r) {
   return 1;
 }
 
+
+const PHASE6_CAL = readJsonSafePhase5("data/learning/phase6-calibration-shrinkage.json", {
+  calibration: {},
+  shrinkage: {},
+  confidence: {}
+});
+
+function phase6ProbBucketValue(p) {
+  const v = Number(p);
+  if (!Number.isFinite(v)) return "unknown";
+  const low = Math.floor(v * 20) / 20;
+  return `${low.toFixed(2)}-${(low + 0.05).toFixed(2)}`;
+}
+
+function phase6EdgeBucketValue(e) {
+  const v = Math.abs(Number(e));
+  if (!Number.isFinite(v)) return "unknown";
+  if (v < 0.03) return "0.00-0.03";
+  if (v < 0.06) return "0.03-0.06";
+  if (v < 0.10) return "0.06-0.10";
+  if (v < 0.20) return "0.10-0.20";
+  if (v < 0.35) return "0.20-0.35";
+  return "0.35+";
+}
+
+function phase6BaseKey(r) {
+  return `${market(r)}_${sideKey(r)}`;
+}
+
+function phase6CalibratedProb(r) {
+  const raw = Number(r.calibratedProb ?? r.recommendedProb ?? r.prob);
+  if (!Number.isFinite(raw)) return raw;
+  const key = `${phase6BaseKey(r)}_${phase6ProbBucketValue(raw)}`;
+  const rule = PHASE6_CAL.calibration?.[key] || PHASE6_CAL.confidence?.[phase6BaseKey(r)];
+  const mult = Number(rule?.probMultiplier ?? 1);
+  return Math.max(0.01, Math.min(0.99, raw * mult));
+}
+
+function phase6EdgeMultiplier(r) {
+  const edge = Number(r.adjEdge ?? r.edge ?? 0);
+  const key = `${phase6BaseKey(r)}_${phase6EdgeBucketValue(edge)}`;
+  const rule = PHASE6_CAL.shrinkage?.[key] || PHASE6_CAL.confidence?.[phase6BaseKey(r)];
+  return Number(rule?.edgeMultiplier ?? 1);
+}
+
+function phase6AdjustedScore(r, score) {
+  const prob = phase6CalibratedProb(r);
+  const edgeMult = phase6EdgeMultiplier(r);
+  const probBoost = Number.isFinite(prob) ? (prob - 0.5) * 0.15 : 0;
+  return (score * edgeMult) + probBoost;
+}
+
 function exposureCount(map, key) {
   return map.get(key) || 0;
 }
@@ -566,7 +618,7 @@ function adjustedScore(r, exposure, legs = []) {
 
   const sidePenalty = sideKey(r) === 'MORE' ? 0.08 : 0;
   const sideBoost = sideKey(r) === 'LESS' ? 0.10 : 0;
-  return (baseScore(r) - playerPenalty - marketPenalty - sidePenalty + sideBoost) * phase5Weight(r);
+  return phase6AdjustedScore(r, (baseScore(r) - playerPenalty - marketPenalty - sidePenalty + sideBoost) * phase5Weight(r));
 }
 function addExposure(r, exposure) {
   const p = k(r.player);
