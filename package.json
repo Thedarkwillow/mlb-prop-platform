@@ -132,7 +132,8 @@
     "context:polish": "node src/research/build-phase5-polish-pack.cjs",
     "context:free-lineups": "node src/research/build-free-lineup-source.cjs ${npm_config_date:-$(date +%F)}",
     "savant:pitch-run-values": "node src/research/build-savant-pitch-run-values.cjs",
-    "learn:fantasy": "node src/learning/report-fantasy-learning.cjs"
+    "learn:fantasy": "node src/learning/report-fantasy-learning.cjs",
+    "learn:fantasy-less": "node src/learning/report-fantasy-less-learning.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
