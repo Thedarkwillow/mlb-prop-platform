@@ -85,7 +85,7 @@ function isPitcherMarket(row) {
 
 function applySavantRollingForm(row, prob) {
   const key = playerKey(row);
-  const market = marketKey(row);
+  const market = canonicalMarket(row);
   const side = sideKey(row);
   const pitcherMarket = isPitcherMarket(row);
 
@@ -184,6 +184,41 @@ function sigmoid(x) {
   return 1 / (1 + Math.exp(-x));
 }
 
+
+function projectionFromBallpark(row, market) {
+  const bp = row.ballpark || {};
+  const raw = bp.raw || {};
+  const isPitcher =
+    row.sourceType === 'pitcher' ||
+    bp.recordType === 'pitcher' ||
+    String(bp.exportName || '').toLowerCase().includes('pitcher');
+
+  if (market === 'pitching_outs') {
+    if (!isPitcher) return NaN;
+    const innings = Number(bp.innings ?? raw.Innings);
+    if (Number.isFinite(innings) && innings > 0) return innings * 3;
+    return NaN;
+  }
+
+  if (market === 'walks_allowed') {
+    if (!isPitcher) return NaN;
+    const walks = Number(bp.walks ?? raw.Walks ?? bp.baseOnBalls ?? raw.BaseOnBalls);
+    if (Number.isFinite(walks) && walks >= 0) return walks;
+    return NaN;
+  }
+
+  return Number(row.projection);
+}
+
+function canonicalMarket(row) {
+  const raw = String(row.market || row.stat || '').toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+
+  if (raw === 'pitching outs' || raw === 'pitcher outs' || raw === 'outs recorded') return 'pitching_outs';
+  if (raw === 'walks allowed' || raw === 'pitcher walks' || raw === 'pitcher walks allowed') return 'walks_allowed';
+
+  return marketKey(row);
+}
+
 function probabilityOver(projection, line, market) {
   const sigma = marketSigma(market, line);
   return clamp(sigmoid((projection - line) / sigma), 0.01, 0.99);
@@ -213,7 +248,7 @@ function applyContextToProjection(row) {
   const opp = opponentKey(row);
   const game = gameKey(row);
 
-  let projection = Number(row.projection);
+  let projection = projectionFromBallpark(row, market);
   let contextProjectionDelta = 0;
   let contextProbDelta = 0;
   const flags = [];
@@ -979,16 +1014,24 @@ function applyMarketIntelligence(row, prob, ev) {
 const board = JSON.parse(fs.readFileSync(IN_FILE, 'utf8'));
 
 const priced = board.map(row => {
+  const market = canonicalMarket(row);
+  const repairedProjection = projectionFromBallpark(row, market);
+
   if (
     row.recordType !== 'merged_prop' ||
-    row.projection === null ||
+    !Number.isFinite(Number(repairedProjection)) ||
     row.line === null ||
-    !row.market
+    !market
   ) {
-    return { ...row, pricingStatus: 'UNPRICED' };
+    return { ...row, market, pricingStatus: 'UNPRICED' };
   }
 
-  const market = marketKey(row);
+  row = {
+    ...row,
+    market,
+    projection: repairedProjection
+  };
+
   const contextResult = applyContextToProjection(row);
   const contextProjection = contextResult.projection;
 
@@ -1065,7 +1108,7 @@ if (recommendedSide === 'MORE') {
   return {
     ...row,
     pricingStatus: 'PRICED',
-    rawProjection: round(row.projection),
+    rawProjection: round(repairedProjection),
     contextAdjustedProjection: round(contextProjection),
     projection: round(contextProjection),
     overProb: round(overProb),
