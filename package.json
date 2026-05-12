@@ -135,7 +135,9 @@
     "learn:fantasy": "node src/learning/report-fantasy-learning.cjs",
     "learn:fantasy-less": "node src/learning/report-fantasy-less-learning.cjs",
     "audit:fantasy-policy": "node src/learning/audit-fantasy-policy.cjs",
-    "learn:fantasy-all": "npm run learn:fantasy && npm run learn:fantasy-less && npm run audit:fantasy-policy"
+    "learn:fantasy-all": "npm run learn:fantasy && npm run learn:fantasy-less && npm run audit:fantasy-policy",
+    "watchlist:fantasy-less": "node src/learning/export-fantasy-less-watchlist.cjs",
+    "export:results": "bash scripts/export-results-bundle.sh"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
