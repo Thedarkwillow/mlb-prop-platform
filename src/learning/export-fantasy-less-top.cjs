@@ -38,7 +38,7 @@ const rows = board
     r.inferredSide === "LESS" &&
     !BAD_TEAMS.has(String(r.team || "").toUpperCase()) &&
     Number(r.line) >= 6.5 &&
-    String(r.oddsTier || r.tier || "").toLowerCase() !== "goblin"
+    !["goblin", "demon"].includes(String(r.oddsTier || r.tier || "").toLowerCase())
   )
   .sort((a, b) => {
     const ap = a.fantasyPolicy === "strong_watchlist" ? 1 : 0;

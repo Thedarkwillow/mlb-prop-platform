@@ -83,11 +83,11 @@ function fantasyPolicy(row) {
     };
   }
 
-  if (tier === "goblin") {
+  if (tier === "goblin" || tier === "demon") {
     return {
       ...base,
       fantasyPolicy: "banned",
-      fantasyReason: "fantasy_goblin_banned"
+      fantasyReason: `fantasy_${tier}_less_banned`
     };
   }
 
