@@ -135,6 +135,26 @@ function ensembleScoreAdjustment(x) {
   return -0.10;
 }
 
+function bookSupportMultiplier(x) {
+  const books = Number(x.sportsbookBookCount ?? x.books ?? 0);
+  if (books >= 8) return 1.10;
+  if (books >= 5) return 1.05;
+  if (books >= 3) return 1.00;
+  if (books >= 2) return 0.92;
+  return 0.82;
+}
+
+function hasDistributionModel(x) {
+  return Number.isFinite(Number(x.calibratedDistributionProb)) || Number.isFinite(Number(x.distributionProb));
+}
+
+function minEdgeForSlipSize(size) {
+  if (size <= 2) return 0.18;
+  if (size === 3) return 0.15;
+  if (size === 4) return 0.12;
+  return 0.10;
+}
+
 function finalScore(x) {
   const edge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? -999);
   const cal = Number(x.calibratedDistributionProb);
@@ -251,6 +271,10 @@ function counts(legs, x) {
 
 function canAddStrict(legs, x) {
   const player = normName(x.player);
+  const moreCount = legs.filter(l => String(l.side || l.recommendedSide || "").toUpperCase() === "MORE").length;
+  const nextMore = String(x.side || x.recommendedSide || "").toUpperCase() === "MORE" ? 1 : 0;
+  const nextMorePct = (moreCount + nextMore) / Math.max(1, legs.length + 1);
+  if (legs.length >= 2 && nextMorePct > 0.75) return false;
   if (legs.some(l => normName(l.player) === player)) return false;
   const c = counts(legs, x);
   const fam = marketFamily(x);
@@ -259,12 +283,16 @@ function canAddStrict(legs, x) {
   if (isCheapHrrHalf(x) && cheapHrrHalfCount(legs) >= 1) return false;
   if (fam === "hitter_counting" && c.sameFamily >= 4) return false;
   if (fam === "pitcher_k" && c.sameFamily >= 1) return false;
-  if (c.sameMarket >= 3) return false;
+  if (c.sameMarket >= 2) return false;
   return true;
 }
 
 function canAddBalanced(legs, x) {
   const player = normName(x.player);
+  const moreCount = legs.filter(l => String(l.side || l.recommendedSide || "").toUpperCase() === "MORE").length;
+  const nextMore = String(x.side || x.recommendedSide || "").toUpperCase() === "MORE" ? 1 : 0;
+  const nextMorePct = (moreCount + nextMore) / Math.max(1, legs.length + 1);
+  if (legs.length >= 3 && nextMorePct > 0.80) return false;
   if (legs.some(l => normName(l.player) === player)) return false;
   const c = counts(legs, x);
   const fam = marketFamily(x);
@@ -300,6 +328,7 @@ function correlationLabel(legs) {
 
 function isFinalCandidate(x) {
   if (trustSuppressed(x)) return false;
+  if (!hasDistributionModel(x)) return false;
   if (!x.sportsbookMatch) return false;
   if (typeof x.sportsbookEdge !== "number") return false;
   if (x.sportsbookEdge <= 0) return false;
@@ -331,6 +360,8 @@ const slips = slipDefs.map(def => {
   const legs = [];
   for (const x of top) {
     if (legs.length >= def.size) break;
+    const edge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? 0);
+    if (edge < minEdgeForSlipSize(def.size)) continue;
     const ok = def.size <= 4 ? canAddStrict(legs, x) : canAddBalanced(legs, x);
     if (ok) legs.push(x);
   }
