@@ -30,12 +30,6 @@ cd /root/mlb-prop-platform
   echo "ALL MARKET FILES"
   echo "=============================="
   ls -lah outputs | grep -E "all-markets|graded|summary"
-
-  echo
-  echo "=============================="
-  echo "ALL MARKETS SUMMARY"
-  echo "=============================="
-  cat outputs/all-markets-summary.txt
 } | tee "$REPORT_FILE"
 
 echo
