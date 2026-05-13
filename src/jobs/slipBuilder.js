@@ -583,6 +583,16 @@ function phase6DirectionalBlocked(r) {
   const m = market(r);
   const side = String(r.side || r.recommendedSide || r.pickSide || "").toUpperCase();
 
+  // Hits MORE is allowed only with stronger confirmation.
+  if (
+    side === "MORE" &&
+    m === "hits"
+  ) {
+    const prob = Number(r.calibratedDistributionProb ?? r.recommendedProb ?? r.prob ?? 0);
+    const books = Number(r.sportsbookBookCount ?? r.books ?? 0);
+    if (!(prob >= 0.60 && books >= 5)) return true;
+  }
+
   // Hard block the worst observed MORE pitcher outcome markets.
   if (
     side === "MORE" &&
