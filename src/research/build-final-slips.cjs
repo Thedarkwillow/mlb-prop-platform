@@ -1,4 +1,12 @@
 const fs = require("fs");
+
+function readJsonSafe(path, fallback = {}) {
+  try { return fs.existsSync(path) ? JSON.parse(fs.readFileSync(path, "utf8")) : fallback; }
+  catch { return fallback; }
+}
+
+const EXPOSURE_GOVERNOR = readJsonSafe("data/learning/phase6-exposure-governor.json", {});
+const MAX_FINAL_SLIP_SIZE = Number(EXPOSURE_GOVERNOR.governor?.maxSlipSize || EXPOSURE_GOVERNOR.maxSlipSize || 6);
 const { scoreEliteContext } = require("./elite-context-score.cjs");
 const { marketModelScore } = require("./market-model-router.cjs");
 
@@ -317,7 +325,7 @@ const slipDefs = [
   { name: "4-MAN FLEX", size: 4 },
   { name: "5-MAN FLEX", size: 5 },
   { name: "6-MAN FLEX", size: 6 }
-];
+].filter(x => x.size <= MAX_FINAL_SLIP_SIZE);
 
 const slips = slipDefs.map(def => {
   const legs = [];
