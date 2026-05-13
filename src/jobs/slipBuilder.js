@@ -397,6 +397,7 @@ function hrrMoreAllowed(r) {
 }
 
 function playable(r) {
+  if (phase6DirectionalBlocked(r)) return false;
   if (r.rankEligible === false) return false;
 
   // HARD BLOCK: HRR MORE is historically underperforming.
@@ -454,6 +455,7 @@ function baseScore(r) {
   // In mixed mode, prevent special props from crowding out standard props.
   if (MODE === 'mixed' && isSpecialTier(r)) score -= 0.08;
 
+  score *= phase6DirectionalMultiplier(r);
   return score;
 }
 
@@ -561,6 +563,53 @@ function phase6RegimeAllowed(r) {
   if (!rule) return true;
   if (rule.action === "SUPPRESS_RECENT") return false;
   return true;
+}
+
+
+function phase6DirectionalMultiplier(r) {
+  const m = market(r);
+  const side = pickSide(r);
+
+  // Global MORE leak control.
+  if (side === "MORE") return 0.75;
+
+  // LESS is currently the stronger direction, but do not overboost.
+  if (side === "LESS") return 1.05;
+
+  return 1;
+}
+
+function phase6DirectionalBlocked(r) {
+  const m = market(r);
+  const side = pickSide(r);
+
+  // Hard block the worst observed MORE pitcher outcome markets.
+  if (
+    side === "MORE" &&
+    [
+      "hits_allowed",
+      "earned_runs_allowed",
+      "walks_allowed",
+      "pitcher_fantasy_score"
+    ].includes(m)
+  ) {
+    return true;
+  }
+
+  // Existing known bad MORE markets from Phase 6.
+  if (
+    side === "MORE" &&
+    [
+      "strikeouts",
+      "rbis",
+      "runs",
+      "hitter_fantasy_score"
+    ].includes(m)
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 function phase6RegimeScoreMultiplier(r) {
