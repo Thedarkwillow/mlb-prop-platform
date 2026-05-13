@@ -568,7 +568,7 @@ function phase6RegimeAllowed(r) {
 
 function phase6DirectionalMultiplier(r) {
   const m = market(r);
-  const side = pickSide(r);
+  const side = String(r.side || r.recommendedSide || r.pickSide || "").toUpperCase();
 
   // Global MORE leak control.
   if (side === "MORE") return 0.75;
@@ -581,7 +581,7 @@ function phase6DirectionalMultiplier(r) {
 
 function phase6DirectionalBlocked(r) {
   const m = market(r);
-  const side = pickSide(r);
+  const side = String(r.side || r.recommendedSide || r.pickSide || "").toUpperCase();
 
   // Hard block the worst observed MORE pitcher outcome markets.
   if (
