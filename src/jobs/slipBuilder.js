@@ -547,6 +547,27 @@ function phase6AdjustedScore(r, score) {
   return (score * edgeMult) + probBoost;
 }
 
+
+const PHASE6_REGIME = readJsonSafePhase5("data/learning/phase6-regime-detection.json", {
+  combined: {}
+});
+
+function phase6RegimeRule(r) {
+  return PHASE6_REGIME.combined?.[`${market(r)}_${sideKey(r)}`] || null;
+}
+
+function phase6RegimeAllowed(r) {
+  const rule = phase6RegimeRule(r);
+  if (!rule) return true;
+  if (rule.action === "SUPPRESS_RECENT") return false;
+  return true;
+}
+
+function phase6RegimeScoreMultiplier(r) {
+  const rule = phase6RegimeRule(r);
+  return Number(rule?.scoreMultiplier ?? 1);
+}
+
 function exposureCount(map, key) {
   return map.get(key) || 0;
 }
@@ -618,7 +639,7 @@ function adjustedScore(r, exposure, legs = []) {
 
   const sidePenalty = sideKey(r) === 'MORE' ? 0.08 : 0;
   const sideBoost = sideKey(r) === 'LESS' ? 0.10 : 0;
-  return phase6AdjustedScore(r, (baseScore(r) - playerPenalty - marketPenalty - sidePenalty + sideBoost) * phase5Weight(r));
+  return phase6AdjustedScore(r, (baseScore(r) - playerPenalty - marketPenalty - sidePenalty + sideBoost) * phase5Weight(r) * phase6RegimeScoreMultiplier(r));
 }
 function addExposure(r, exposure) {
   const p = k(r.player);
@@ -742,7 +763,7 @@ function applyPhase55ToOptimizerRow(r) {
 }
 
 const normalizedRows = rows.map(normalizeForOptimizer).map(applyPhase55ToOptimizerRow).map(applyPhase5ContextAdjustments);
-const baseCandidates = dedupeRows(normalizedRows.filter(r => playable(r) && phase5HardAllowed(r)));
+const baseCandidates = dedupeRows(normalizedRows.filter(r => playable(r) && phase5HardAllowed(r) && phase6RegimeAllowed(r)));
 
 const standardKWatchlist = normalizedRows
   .filter(r =>

@@ -37,7 +37,7 @@
     "refresh": "npm run odds && npm run snap && npm run picks && npm run mobile && npm run decision",
     "save:history": "node src/research/save-graded-history.cjs ${npm_config_date:-$(date +%F)}",
     "history:roi": "node src/research/history-roi.cjs",
-    "validate:final": "npm run grade && npm run roi && npm run save:history && npm run history:roi && npm run calibration:report && npm run clv:buckets && npm run learn:phase5 && npm run learn:phase6 && npm run mobile",
+    "validate:final": "npm run grade && npm run roi && npm run save:history && npm run history:roi && npm run calibration:report && npm run clv:buckets && npm run learn:phase5 && npm run learn:phase6 && npm run learn:phase6:regime && npm run mobile",
     "history:intel": "node src/research/history-intelligence.cjs",
     "daily-cycle": "npm run odds && npm run snap && npm run picks && npm run mobile && npm run decision",
     "postgame-cycle": "npm run warehouse:cycle $npm_config_date",
@@ -64,7 +64,7 @@
     "safe-mobile": "npm run freshness && npm run sharp-mobile",
     "live": "npm run prizepicks && npm run board:rebuild && node src/jobs/slipBuilder.js && npm run picks && npm run sharp-mobile",
     "official": "node src/research/official-slip-summary.cjs && npm run audit:final",
-    "nightly": "npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run official && npm run learn:phase5 && npm run learn:phase6",
+    "nightly": "npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run official && npm run learn:phase5 && npm run learn:phase6 && npm run learn:phase6:regime",
     "learn:markets": "node src/reports/grade-all-markets.js && node src/learning/build-market-learning.js",
     "learn:report": "node src/learning/report-market-learning.js",
     "grade:all-markets": "node src/reports/grade-all-markets.js",
@@ -143,7 +143,8 @@
     "diag:merge-coverage": "node src/research/merge-coverage-diagnostics.cjs",
     "proj:pitchers:fallback": "node src/research/build-pitcher-fallback-projections.cjs",
     "learn:phase5": "node src/research/phase5-learning-engine.cjs",
-    "learn:phase6": "node src/research/phase6-calibration-engine.cjs"
+    "learn:phase6": "node src/research/phase6-calibration-engine.cjs",
+    "learn:phase6:regime": "node src/research/phase6-regime-engine.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
