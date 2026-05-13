@@ -568,6 +568,41 @@ function phase6RegimeScoreMultiplier(r) {
   return Number(rule?.scoreMultiplier ?? 1);
 }
 
+
+const PHASE6_EXPOSURE = readJsonSafePhase5("data/learning/phase6-exposure-governor.json", {
+  governor: {
+    maxSlipSize: 6,
+    scoreMultiplier: 1,
+    maxSameMarket: 3,
+    maxSameSidePct: 0.85
+  }
+});
+
+function phase6Governor() {
+  return PHASE6_EXPOSURE.governor || {
+    maxSlipSize: 6,
+    scoreMultiplier: 1,
+    maxSameMarket: 3,
+    maxSameSidePct: 0.85
+  };
+}
+
+function phase6SlipSizeAllowed(size) {
+  return size <= Number(phase6Governor().maxSlipSize || 6);
+}
+
+function phase6GlobalScoreMultiplier() {
+  return Number(phase6Governor().scoreMultiplier || 1);
+}
+
+function phase6MaxSameMarket() {
+  return Number(phase6Governor().maxSameMarket || 3);
+}
+
+function phase6MaxSameSidePct() {
+  return Number(phase6Governor().maxSameSidePct || 0.85);
+}
+
 function exposureCount(map, key) {
   return map.get(key) || 0;
 }
@@ -612,7 +647,7 @@ function canUse(legs, r, exposure, size) {
   if (pitcher(r) && legs.some(pitcher)) return false;
 
   const sameMarket = legs.filter(x => market(x) === m).length;
-  if (sameMarket >= 3) return false;
+  if (sameMarket >= phase6MaxSameMarket()) return false;
 
   const sameSide = legs.filter(x => sideKey(x) === sk).length;
 
@@ -639,7 +674,7 @@ function adjustedScore(r, exposure, legs = []) {
 
   const sidePenalty = sideKey(r) === 'MORE' ? 0.08 : 0;
   const sideBoost = sideKey(r) === 'LESS' ? 0.10 : 0;
-  return phase6AdjustedScore(r, (baseScore(r) - playerPenalty - marketPenalty - sidePenalty + sideBoost) * phase5Weight(r) * phase6RegimeScoreMultiplier(r));
+  return phase6AdjustedScore(r, (baseScore(r) - playerPenalty - marketPenalty - sidePenalty + sideBoost) * phase5Weight(r) * phase6RegimeScoreMultiplier(r) * phase6GlobalScoreMultiplier());
 }
 function addExposure(r, exposure) {
   const p = k(r.player);
@@ -805,7 +840,7 @@ const exposure = {
 
 const slips = [];
 
-for (const size of SIZES) {
+for (const size of SIZES.filter(phase6SlipSizeAllowed)) {
   for (let i = 0; i < SLIPS_PER_SIZE; i++) {
     slips.push(buildSlip(candidates, size, i, exposure));
   }
