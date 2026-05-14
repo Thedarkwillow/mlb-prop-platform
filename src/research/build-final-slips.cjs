@@ -12,6 +12,7 @@ const { marketModelScore } = require("./market-model-router.cjs");
 const { applyHistoricalEdgeShrinkage } = require("./edge-shrinkage.cjs");
 const { remapConfidence } = require("./confidence-remap.cjs");
 const { autoMarketDecision } = require("./auto-market-suppression.cjs");
+const { volatilityAdjustment } = require("./volatility-adjustment.cjs");
 
 function readJson(path, fallback) {
   try {
@@ -417,6 +418,7 @@ function cleanLeg(x) {
     validationRule: validationTag(x),
     finalMarketSupported: !unsupportedFinalMarket(x),
     finalMarketGatePassed: marketSpecificFinalGate(x),
+    finalExecutionGate: finalExecutionGate(x),
     calibratedConfidence: remapConfidence({
       ...x,
       validationRule: validationTag(x),
@@ -427,6 +429,7 @@ function cleanLeg(x) {
       finalMarketGatePassed: marketSpecificFinalGate(x)
     }),
     autoMarketDecision: autoMarketDecision(x),
+    volatilityAdjustment: volatilityAdjustment(x),
     marketSupportFlag: x.marketSupportFlag || null
   };
 }
@@ -514,6 +517,46 @@ function autoMarketScoreAdjustment(x) {
   return 0;
 }
 
+
+function finalExecutionGate(x) {
+  const confidence = remapConfidence({
+    ...x,
+    validationRule: validationTag(x),
+    historicalEdgeShrinkage: applyHistoricalEdgeShrinkage(
+      Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge),
+      x
+    ),
+    volatilityAdjustment: volatilityAdjustment(x),
+    finalMarketGatePassed: marketSpecificFinalGate(x)
+  });
+
+  const score = finalScore(x);
+  const auto = autoMarketDecision(x);
+  const vol = volatilityAdjustment(x);
+
+  const reasons = [];
+
+  if (auto.suppressed) reasons.push("auto_market_suppressed");
+  if (confidence.confidence === "weak") reasons.push("weak_confidence");
+  if (confidence.confidence === "unmodeled") reasons.push("unmodeled_confidence");
+  if (score < 0.10) reasons.push("score_below_minimum");
+  if (confidence.confidence !== "elite" && score < 0.15) reasons.push("non_elite_score_too_low");
+  if (vol.volatility === "high" && confidence.confidence !== "elite") reasons.push("high_volatility_non_elite");
+  if (!marketSpecificFinalGate(x)) reasons.push("failed_market_gate");
+
+  return {
+    passed: reasons.length === 0,
+    reasons,
+    score,
+    confidence: confidence.confidence,
+    confidenceScore: confidence.score,
+    autoMarketAction: auto.action,
+    volatility: vol.volatility,
+    volatilityPenalty: vol.penalty
+  };
+}
+
+
 function isFinalCandidate(x) {
   if (trustSuppressed(x)) return false;
   if (validationSuppressed(x)) return false;
@@ -535,6 +578,8 @@ function getBlockReason(x) {
   if (trustSuppressed(x)) return "trust_suppressed";
   if (validationSuppressed(x)) return "validation_suppressed";
   if (autoMarketSuppressed(x)) return "auto_market_suppressed";
+  const gate = finalExecutionGate(x);
+  if (!gate.passed) return gate.reasons[0] || "failed_final_execution_gate";
   if (unsupportedFinalMarket(x)) return "unsupported_market";
   if (!hasDistributionModel(x)) return "no_distribution_model";
   if (!marketSpecificFinalGate(x)) return "failed_market_gate";
@@ -566,6 +611,7 @@ const top = priced
 
 const finalTop = [];
 for (const x of top) {
+  if (!finalExecutionGate(x).passed) continue;
   if (canAddStrict(finalTop, x)) finalTop.push(x);
 }
 

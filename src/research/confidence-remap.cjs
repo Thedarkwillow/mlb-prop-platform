@@ -19,6 +19,7 @@ function remapConfidence(leg = {}) {
 
   const validation = leg.validationRule || {};
   const edgeShrink = leg.historicalEdgeShrinkage || {};
+  const volatility = leg.volatilityAdjustment || {};
   const marketRule = validation.marketRule || null;
   const probRule = validation.probabilityRule || null;
 
@@ -76,6 +77,11 @@ function remapConfidence(leg = {}) {
   if (edgeMultiplier < 0.90) {
     score -= 1;
     notes.push("edge shrunk by history");
+  }
+
+  if (Number(volatility.penalty || 0) < 0) {
+    score -= 1;
+    notes.push(`${volatility.volatility || "volatile"} volatility`);
   }
 
   if (market === "runs" || market === "rbis" || market === "home_runs") {
