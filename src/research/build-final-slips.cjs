@@ -189,6 +189,19 @@ function cheapHrrHalfCount(legs) {
   return legs.filter(isCheapHrrHalf).length;
 }
 
+
+function syntheticPricingPenalty(x) {
+  const market = String(x.market || x.stat || "").toLowerCase();
+  if (!x.sportsbookSynthetic) return 0;
+  if (market === "singles") return -0.18;
+  return -0.08;
+}
+
+function isSyntheticSingles(x) {
+  return Boolean(x.sportsbookSynthetic) &&
+    String(x.market || x.stat || "").toLowerCase() === "singles";
+}
+
 function marketFamily(x) {
   const m = String(x.market || x.stat || "").toLowerCase();
   if (["hits", "bases", "hrr", "runs", "rbis", "home_runs"].includes(m)) return "hitter_counting";
@@ -626,7 +639,8 @@ const slipDefs = [
 
 const slips = slipDefs.map(def => {
   const legs = [];
-  for (const x of top) {
+  const slipPool = top.filter(x => finalExecutionGate(x).passed === true);
+  for (const x of slipPool) {
     if (legs.length >= def.size) break;
     const edge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? 0);
     if (edge < minEdgeForSlipSize(def.size)) continue;
@@ -634,7 +648,7 @@ const slips = slipDefs.map(def => {
     if (ok) legs.push(x);
   }
   if (def.size === 6 && legs.length < 6) {
-    for (const x of top) {
+    for (const x of slipPool) {
       if (legs.length >= 6) break;
       if (legs.some(l => normName(l.player) === normName(x.player))) continue;
       if (gameKey(x) && counts(legs, x).sameGame >= 1) continue;

@@ -117,6 +117,56 @@ function lineDeltaEdge(side, ppLine, bookLine) {
   return 0;
 }
 
+
+function clampProb(x) {
+  const n = Number(x);
+  if (!Number.isFinite(n)) return null;
+  return Math.max(0.02, Math.min(0.98, n));
+}
+
+function addSyntheticSinglesPrices(priceMap) {
+  const values = Array.from(priceMap.values());
+  let added = 0;
+
+  for (const p of values) {
+    if (normMarket(p.market) !== "hits") continue;
+    if (normSide(p.side) !== "MORE") continue;
+    if (Number(p.line) !== 0.5) continue;
+
+    const hitMoreProb = Number(p.avgImpliedProb);
+    if (!Number.isFinite(hitMoreProb)) continue;
+
+    // Conservative estimate:
+    // singles >= 1 is materially less likely than hits >= 1.
+    // This creates an anchor only; final gate still must approve.
+    const singleMoreProb = clampProb(hitMoreProb * 0.62);
+    const singleLessProb = clampProb(1 - singleMoreProb);
+
+    const books = Math.max(1, Math.min(Number(p.bookCount || 1), 2));
+
+    for (const [side, prob] of [["MORE", singleMoreProb], ["LESS", singleLessProb]]) {
+      const k = key(p.player, "singles", side, 0.5);
+      if (priceMap.has(k)) continue;
+
+      priceMap.set(k, {
+        player: p.player,
+        market: "singles",
+        side,
+        line: 0.5,
+        avgImpliedProb: prob,
+        bookCount: books,
+        game: p.game || null,
+        synthetic: true,
+        syntheticSource: "hits_0.5",
+        syntheticNote: "conservative singles price derived from hits"
+      });
+      added++;
+    }
+  }
+
+  if (added) console.log("synthetic singles prices:", added);
+}
+
 function qualityScore(edge, books, savantGrade) {
   let score = Number(edge ?? -999);
 
@@ -245,6 +295,7 @@ const savantRows = Array.isArray(savantRaw)
   ? savantRaw
   : (savantRaw.savantMatchedReport || savantRaw.rows || savantRaw.legs || []);
 
+addSyntheticSinglesPrices(priceMap);
 const savantMap = new Map();
 
 for (const s of savantRows) {
@@ -296,6 +347,9 @@ const out = legs.map(l => {
     sportsbookDisagreement: p?.disagreement ?? null,
     sportsbookSharpSoftGap: p?.sharpSoftGap ?? null,
     sportsbookMatchType: p?.matchType || null,
+    sportsbookSynthetic: Boolean(p?.synthetic),
+    sportsbookSyntheticSource: p?.syntheticSource || null,
+    sportsbookSyntheticNote: p?.syntheticNote || null,
     sportsbookExactLine: p?.exactLine ?? false,
     sportsbookLineDelta: p?.lineDelta ?? null,
     sportsbookLineDeltaBonus: p?.lineDeltaBonus ?? null,
