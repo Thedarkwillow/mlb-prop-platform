@@ -13,7 +13,8 @@ run("node src/jobs/slipBuilder.js");
 run("node src/research/savant-slip-report.cjs");
 run("node src/research/lineups-simple.cjs");
 if (process.env.ODDS_API_KEY) {
-  run("node src/research/oddsapi-dk-mlb-props.cjs");
+  // API pull disabled here. Scheduled npm run odds handles fresh odds.
+  // run("node src/research/oddsapi-dk-mlb-props.cjs");
 } else {
   console.log("Skipping Odds API fetch; using existing data/vegas-raw.json");
 }
