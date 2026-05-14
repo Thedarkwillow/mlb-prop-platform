@@ -495,8 +495,38 @@ function isFinalCandidate(x) {
 }
 
 
+
+const blockedCandidates = [];
+
+function getBlockReason(x) {
+  if (trustSuppressed(x)) return "trust_suppressed";
+  if (validationSuppressed(x)) return "validation_suppressed";
+  if (unsupportedFinalMarket(x)) return "unsupported_market";
+  if (!hasDistributionModel(x)) return "no_distribution_model";
+  if (!marketSpecificFinalGate(x)) return "failed_market_gate";
+  if (!x.sportsbookMatch) return "no_sportsbook_match";
+  if (typeof x.sportsbookEdge !== "number") return "no_edge";
+  if (x.sportsbookEdge <= 0) return "negative_edge";
+  return "unknown";
+}
+
+
 const top = priced
-  .filter(isFinalCandidate)
+  .filter(x => {
+    const ok = isFinalCandidate(x);
+    if (!ok) {
+      blockedCandidates.push({
+        player: x.player,
+        market: x.market,
+        side: x.side,
+        line: x.line,
+        reason: getBlockReason(x),
+        prob: x.calibratedDistributionProb ?? null,
+        edge: x.sportsbookAdjustedEdge ?? x.adjustedEdge ?? x.edge ?? null
+      });
+    }
+    return ok;
+  })
   .map(x => ({ ...x, finalScore: finalScore(x) }))
   .sort((a, b) => b.finalScore - a.finalScore);
 
@@ -586,3 +616,10 @@ console.table(slips.map(s => ({
   neutral: s.neutral,
   correlation: s.correlation
 })));
+
+
+fs.writeFileSync(
+  "outputs/blocked-final-candidates.json",
+  JSON.stringify(blockedCandidates, null, 2)
+);
+console.log("Blocked candidates:", blockedCandidates.length);
