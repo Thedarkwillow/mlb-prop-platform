@@ -11,6 +11,7 @@ const { scoreEliteContext } = require("./elite-context-score.cjs");
 const { marketModelScore } = require("./market-model-router.cjs");
 const { applyHistoricalEdgeShrinkage } = require("./edge-shrinkage.cjs");
 const { remapConfidence } = require("./confidence-remap.cjs");
+const { autoMarketDecision } = require("./auto-market-suppression.cjs");
 
 function readJson(path, fallback) {
   try {
@@ -425,6 +426,7 @@ function cleanLeg(x) {
       ),
       finalMarketGatePassed: marketSpecificFinalGate(x)
     }),
+    autoMarketDecision: autoMarketDecision(x),
     marketSupportFlag: x.marketSupportFlag || null
   };
 }
@@ -499,9 +501,23 @@ function correlationLabel(legs) {
   return "OK";
 }
 
+
+function autoMarketSuppressed(x) {
+  return autoMarketDecision(x).suppressed;
+}
+
+function autoMarketScoreAdjustment(x) {
+  const d = autoMarketDecision(x);
+  if (d.action === "SUPPRESS") return -0.30;
+  if (d.action === "DOWNGRADE") return -0.08;
+  if (d.action === "BOOST_OK") return 0.015;
+  return 0;
+}
+
 function isFinalCandidate(x) {
   if (trustSuppressed(x)) return false;
   if (validationSuppressed(x)) return false;
+  if (autoMarketSuppressed(x)) return false;
   if (!hasDistributionModel(x)) return false;
   if (!x.sportsbookMatch) return false;
   if (typeof x.sportsbookEdge !== "number") return false;
@@ -518,6 +534,7 @@ const blockedCandidates = [];
 function getBlockReason(x) {
   if (trustSuppressed(x)) return "trust_suppressed";
   if (validationSuppressed(x)) return "validation_suppressed";
+  if (autoMarketSuppressed(x)) return "auto_market_suppressed";
   if (unsupportedFinalMarket(x)) return "unsupported_market";
   if (!hasDistributionModel(x)) return "no_distribution_model";
   if (!marketSpecificFinalGate(x)) return "failed_market_gate";
