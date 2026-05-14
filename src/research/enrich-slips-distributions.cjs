@@ -11,6 +11,7 @@ const { modelRbis } = require("../models/markets/rbis.cjs");
 const { modelBases } = require("../models/markets/bases.cjs");
 const { modelSingles } = require("../models/markets/singles.cjs");
 const { modelHitterStrikeouts } = require("../models/markets/hitter-strikeouts.cjs");
+const { modelWalks } = require("../models/markets/walks.cjs");
 const { applyContextToProbability } = require("./elite-context-score.cjs");
 const { applyHistoricalCalibration } = require("./probability-calibration.cjs");
 
@@ -35,6 +36,7 @@ function normMarket(s, stat = "") {
   if (s.includes("rbi")) return "rbis";
   if (s.includes("home_runs") || s.includes("home runs") || s.includes("homer")) return "home_runs";
   if (s.includes("singles") || s === "single") return "singles";
+  if (s.includes("walks") || s === "walk") return "walks";
   if (s.includes("hits")) return "hits";
   return s;
 }
@@ -55,6 +57,7 @@ function enrichLeg(leg) {
   if (market === "rbis") distribution = modelRbis(leg);
   if (market === "bases") distribution = modelBases(leg);
   if (market === "singles") distribution = modelSingles(leg);
+  if (market === "walks") distribution = modelWalks(leg);
 
   let distributionProb = null;
   const side = String(leg.side || "").toUpperCase();
