@@ -9,6 +9,7 @@ const { modelHomeRuns } = require("../models/markets/home-runs.cjs");
 const { modelRuns } = require("../models/markets/runs.cjs");
 const { modelRbis } = require("../models/markets/rbis.cjs");
 const { modelBases } = require("../models/markets/bases.cjs");
+const { applyContextToProbability } = require("./elite-context-score.cjs");
 
 function readJson(path, fallback) {
   try {
@@ -56,27 +57,45 @@ function enrichLeg(leg) {
   }
 
   let calibratedDistributionProb = distributionProb;
+
   if (Number.isFinite(distributionProb)) {
     calibratedDistributionProb = 0.5 + ((distributionProb - 0.5) * 0.55);
     calibratedDistributionProb = Math.max(0.02, Math.min(0.98, calibratedDistributionProb));
     calibratedDistributionProb = Number(calibratedDistributionProb.toFixed(4));
   }
 
+  const contextApplied = applyContextToProbability(calibratedDistributionProb, {
+    ...leg,
+    market,
+    side
+  });
+
+  const contextAdjustedDistributionProb = contextApplied.probability;
+  const contextProbabilityAdjustment = contextApplied.contextAdjustment;
+  const eliteContext = contextApplied.eliteContext;
+
   const isStrikeouts = market === "strikeouts";
   const poissonStrikeoutsProb =
-    isStrikeouts && Number.isFinite(calibratedDistributionProb)
-      ? calibratedDistributionProb
+    isStrikeouts && Number.isFinite(contextAdjustedDistributionProb)
+      ? contextAdjustedDistributionProb
       : null;
+
+  const finalRecommendedProb = Number.isFinite(contextAdjustedDistributionProb)
+    ? contextAdjustedDistributionProb
+    : leg.recommendedProb;
 
   return {
     ...leg,
     distributionModel: distribution,
     distributionProb,
-    calibratedDistributionProb,
+    preContextCalibratedDistributionProb: calibratedDistributionProb,
+    calibratedDistributionProb: contextAdjustedDistributionProb,
+    contextProbabilityAdjustment,
+    eliteContext,
     poissonStrikeoutsProb,
-    probabilityModel: poissonStrikeoutsProb != null ? "poisson_strikeouts_v1" : leg.probabilityModel,
-    recommendedProb: poissonStrikeoutsProb != null ? poissonStrikeoutsProb : leg.recommendedProb,
-    prob: poissonStrikeoutsProb != null ? poissonStrikeoutsProb : leg.prob
+    probabilityModel: poissonStrikeoutsProb != null ? "poisson_strikeouts_context_v2" : leg.probabilityModel,
+    recommendedProb: finalRecommendedProb,
+    prob: finalRecommendedProb
   };
 }
 
