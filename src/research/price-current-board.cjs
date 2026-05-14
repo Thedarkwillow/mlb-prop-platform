@@ -60,9 +60,10 @@ function normName(s) {
     .toLowerCase();
 }
 
-function normMarket(s) {
-  s = String(s || "").toLowerCase().replace(/_/g, " ").replace(/\s+/g, " ").trim();
+function normMarket(s, stat = "") {
+  s = `${s || ""} ${stat || ""}`.toLowerCase().replace(/_/g, " ").replace(/\s+/g, " ").trim();
 
+  if (s.includes("hitter strikeout") || s.includes("batter strikeout")) return "hitter_strikeouts";
   if (s.includes("pitcher strikeout") || s === "strikeouts") return "strikeouts";
   if (s.includes("pitching outs") || s.includes("pitcher outs")) return "pitching_outs";
   if (s.includes("hits allowed")) return "hits_allowed";
@@ -74,7 +75,7 @@ function normMarket(s) {
   if (s.includes("total bases") || s === "bases") return "bases";
   if (s.includes("rbi")) return "rbis";
   if (s.includes("runs scored") || s === "runs") return "runs";
-  if (s.includes("batter strikeout") || s.includes("hitter strikeout")) return "strikeouts";
+  if (s.includes("batter strikeout") || s.includes("hitter strikeout")) return "hitter_strikeouts";
   if (s.includes("hits")) return "hits";
 
   return s.replace(/\s+/g, "_");
@@ -192,7 +193,7 @@ const priceMap = new Map();
 
 for (const r of vegasRaw) {
   const player = r.player || r.participant;
-  const market = normMarket(r.market || r.rawMarket);
+  const market = normMarket(r.market || r.rawMarket, r.stat || r.projectionType);
   const side = normSide(r.side);
   const line = Number(r.line);
 
@@ -248,7 +249,7 @@ for (const s of savantRows) {
 let skippedNoSide = 0;
 const out = legs.map(l => {
   const player = l.player;
-  const market = normMarket(l.market || l.stat);
+  const market = normMarket(l.market || l.stat, l.stat || l.projectionType);
   const side = normSide(l.side || l.recommendedSide);
   const line = Number(l.line);
 

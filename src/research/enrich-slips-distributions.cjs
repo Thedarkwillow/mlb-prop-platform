@@ -23,8 +23,9 @@ function readJson(path, fallback) {
   }
 }
 
-function normMarket(s) {
-  s = String(s || "").toLowerCase().trim();
+function normMarket(s, stat = "") {
+  const raw = `${s || ""} ${stat || ""}`.toLowerCase().trim();
+  s = raw;
   if (s.includes("hitter_strikeouts") || s.includes("hitter strikeouts")) return "hitter_strikeouts";
   if (s.includes("pitcher_strikeouts") || s.includes("pitcher strikeouts") || s.includes("strikeout")) return "strikeouts";
   if (s.includes("pitching_outs") || s.includes("pitching outs") || s.includes("outs")) return "pitching_outs";
@@ -39,7 +40,7 @@ function normMarket(s) {
 }
 
 function enrichLeg(leg) {
-  const market = normMarket(leg.market || leg.stat);
+  const market = normMarket(leg.market || leg.stat, leg.stat || leg.projectionType);
   let distribution = null;
 
   if (market === "strikeouts") distribution = modelStrikeouts(leg);
