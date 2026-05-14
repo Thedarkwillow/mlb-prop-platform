@@ -1,0 +1,1635 @@
+MLB PROP PLATFORM DAILY REPORT
+Date: 2026-05-12
+Generated: Wed May 13 11:31:27 UTC 2026
+
+==============================
+GRADING + NIGHTLY
+==============================
+Wrote outputs/playable-final-slips-graded-2026-05-12.json
+
+SLIP RESULTS
+┌─────────┬───────────────┬──────┬────────┬──────┬────────┬────────┬─────────┐
+│ (index) │ slip          │ size │ result │ hits │ misses │ pushes │ unknown │
+├─────────┼───────────────┼──────┼────────┼──────┼────────┼────────┼─────────┤
+│ 0       │ '2-MAN POWER' │ 2    │ 'HIT'  │ 2    │ 0      │ 0      │ 0       │
+└─────────┴───────────────┴──────┴────────┴──────┴────────┴────────┴─────────┘
+
+LEG RESULTS
+┌─────────┬───────────────┬─────────────────────┬──────────────────────────────────────────┬────────┬────────┬────────┬──────┬────────┬────────┬──────┐
+│ (index) │ slip          │ player              │ game                                     │ gamePk │ market │ side   │ line │ actual │ result │ note │
+├─────────┼───────────────┼─────────────────────┼──────────────────────────────────────────┼────────┼────────┼────────┼──────┼────────┼────────┼──────┤
+│ 0       │ '2-MAN POWER' │ 'Munetaka Murakami' │ 'Kansas City Royals @ Chicago White Sox' │ 824604 │ 'runs' │ 'LESS' │ 0.5  │ 0      │ 'HIT'  │ ''   │
+│ 1       │ '2-MAN POWER' │ 'Julio Rodríguez'   │ 'Seattle Mariners @ Houston Astros'      │ 824197 │ 'runs' │ 'LESS' │ 0.5  │ 0      │ 'HIT'  │ ''   │
+└─────────┴───────────────┴─────────────────────┴──────────────────────────────────────────┴────────┴────────┴────────┴──────┴────────┴────────┴──────┘
+
+> mlb-prop-platform@1.0.0 nightly
+> npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run official && npm run learn:phase6:all
+
+
+> mlb-prop-platform@1.0.0 postgame
+> npm run warehouse:date-guard $npm_config_date && npm run validation $npm_config_date && npm run fantasy:grade $npm_config_date && npm run save:history $npm_config_date && npm run warehouse:export $npm_config_date && npm run clean:warehouse && npm run warehouse:calibration && npm run validation:rules && npm run history:intel && npm run market:intel && npm run mobile $npm_config_date
+
+
+> mlb-prop-platform@1.0.0 warehouse:date-guard
+> node src/research/warehouse-date-guard.cjs 2026-05-12
+
+WAREHOUSE DATE GUARD
+--------------------
+date: 2026-05-12
+found: outputs/final-slips-2026-05-12.json
+found: outputs/playable-final-slips-graded-2026-05-12.json
+status: OK
+
+> mlb-prop-platform@1.0.0 validation
+> npm run grade $npm_config_date && npm run roi $npm_config_date && npm run save:history $npm_config_date && npm run calibration:report $npm_config_date && npm run clv $npm_config_date && npm run clv:buckets $npm_config_date 2026-05-12
+
+
+> mlb-prop-platform@1.0.0 grade
+> node src/research/repair-slip-gamepks.cjs ${npm_config_date:-$(date +%F)} && node src/research/grade-final-slips.cjs ${npm_config_date:-$(date +%F)} 2026-05-12
+
+schedule games: 15
+fixed legs: 15
+missing legs: 0
+wrote outputs/slips.gamepk-fixed.json and updated outputs/slips.json
+Wrote outputs/playable-final-slips-graded-2026-05-12.json
+
+SLIP RESULTS
+┌─────────┬───────────────┬──────┬────────┬──────┬────────┬────────┬─────────┐
+│ (index) │ slip          │ size │ result │ hits │ misses │ pushes │ unknown │
+├─────────┼───────────────┼──────┼────────┼──────┼────────┼────────┼─────────┤
+│ 0       │ '2-MAN POWER' │ 2    │ 'HIT'  │ 2    │ 0      │ 0      │ 0       │
+└─────────┴───────────────┴──────┴────────┴──────┴────────┴────────┴─────────┘
+
+LEG RESULTS
+┌─────────┬───────────────┬─────────────────────┬──────────────────────────────────────────┬────────┬────────┬────────┬──────┬────────┬────────┬──────┐
+│ (index) │ slip          │ player              │ game                                     │ gamePk │ market │ side   │ line │ actual │ result │ note │
+├─────────┼───────────────┼─────────────────────┼──────────────────────────────────────────┼────────┼────────┼────────┼──────┼────────┼────────┼──────┤
+│ 0       │ '2-MAN POWER' │ 'Munetaka Murakami' │ 'Kansas City Royals @ Chicago White Sox' │ 824604 │ 'runs' │ 'LESS' │ 0.5  │ 0      │ 'HIT'  │ ''   │
+│ 1       │ '2-MAN POWER' │ 'Julio Rodríguez'   │ 'Seattle Mariners @ Houston Astros'      │ 824197 │ 'runs' │ 'LESS' │ 0.5  │ 0      │ 'HIT'  │ ''   │
+└─────────┴───────────────┴─────────────────────┴──────────────────────────────────────────┴────────┴────────┴────────┴──────┴────────┴────────┴──────┘
+
+> mlb-prop-platform@1.0.0 roi
+> node src/research/roi-summary.cjs 2026-05-12
+
+ROI SUMMARY 2026-05-12
+graded legs: 2
+BY MARKET
+┌─────────┬────────┬───────┬──────┬────────┬────────┬─────────┬─────┐
+│ (index) │ bucket │ picks │ hits │ misses │ pushes │ hitRate │ roi │
+├─────────┼────────┼───────┼──────┼────────┼────────┼─────────┼─────┤
+│ 0       │ 'runs' │ 2     │ 2    │ 0      │ 0      │ 1       │ 1   │
+└─────────┴────────┴───────┴──────┴────────┴────────┴─────────┴─────┘
+BY PROB BUCKET
+┌─────────┬─────────┬───────┬──────┬────────┬────────┬─────────┬─────┐
+│ (index) │ bucket  │ picks │ hits │ misses │ pushes │ hitRate │ roi │
+├─────────┼─────────┼───────┼──────┼────────┼────────┼─────────┼─────┤
+│ 0       │ '45-49' │ 2     │ 2    │ 0      │ 0      │ 1       │ 1   │
+└─────────┴─────────┴───────┴──────┴────────┴────────┴─────────┴─────┘
+BY BOOK SUPPORT
+┌─────────┬────────────┬───────┬──────┬────────┬────────┬─────────┬─────┐
+│ (index) │ bucket     │ picks │ hits │ misses │ pushes │ hitRate │ roi │
+├─────────┼────────────┼───────┼──────┼────────┼────────┼─────────┼─────┤
+│ 0       │ '4+ books' │ 2     │ 2    │ 0      │ 0      │ 1       │ 1   │
+└─────────┴────────────┴───────┴──────┴────────┴────────┴─────────┴─────┘
+BY SLIP SIZE
+┌─────────┬─────────┬───────┬──────┬────────┬────────┬─────────┬─────┐
+│ (index) │ bucket  │ picks │ hits │ misses │ pushes │ hitRate │ roi │
+├─────────┼─────────┼───────┼──────┼────────┼────────┼─────────┼─────┤
+│ 0       │ '2-man' │ 2     │ 2    │ 0      │ 0      │ 1       │ 1   │
+└─────────┴─────────┴───────┴──────┴────────┴────────┴─────────┴─────┘
+Wrote outputs/roi-summary-2026-05-12.json
+Wrote outputs/roi-summary.json
+
+> mlb-prop-platform@1.0.0 save:history
+> node src/research/save-graded-history.cjs ${npm_config_date:-$(date +%F)} 2026-05-12
+
+saved graded history: data/results/graded-leg-history.json
+new rows: 2
+total rows: 64
+
+> mlb-prop-platform@1.0.0 calibration:report
+> node src/research/calibration-report.cjs ${npm_config_date:-$(date +%F)} 2026-05-12
+
+CALIBRATION REPORT 2026-05-12
+graded legs: 2
+┌─────────┬─────────────┬───────┬─────────┬───────────────┬──────┬────────┐
+│ (index) │ bucket      │ count │ avgProb │ actualHitRate │ hits │ pushes │
+├─────────┼─────────────┼───────┼─────────┼───────────────┼──────┼────────┤
+│ 0       │ '0.45-0.50' │ 2     │ 0.4721  │ 1             │ 2    │ 0      │
+└─────────┴─────────────┴───────┴─────────┴───────────────┴──────┴────────┘
+
+> mlb-prop-platform@1.0.0 clv
+> node src/research/clv-report.cjs 2026-05-12
+
+CLV REPORT 2026-05-12
+tracked legs: 2
+Average CLV: 115.50 cents
+Beat close: 100.0%
+┌─────────┬─────────────────────┬────────┬────────┬──────┬───────┬──────┬───────┬─────┬───────────┐
+│ (index) │ player              │ market │ side   │ line │ books │ open │ close │ clv │ beatClose │
+├─────────┼─────────────────────┼────────┼────────┼──────┼───────┼──────┼───────┼─────┼───────────┤
+│ 0       │ 'Munetaka Murakami' │ 'runs' │ 'LESS' │ 0.5  │ 6     │ -110 │ 100   │ 210 │ true      │
+│ 1       │ 'Julio Rodríguez'   │ 'runs' │ 'LESS' │ 0.5  │ 6     │ -146 │ -125  │ 21  │ true      │
+└─────────┴─────────────────────┴────────┴────────┴──────┴───────┴──────┴───────┴─────┴───────────┘
+
+> mlb-prop-platform@1.0.0 clv:buckets
+> node src/research/clv-buckets.cjs ${npm_config_date:-$(date +%F)} 2026-05-12 2026-05-12
+
+CLV BUCKET REPORT 2026-05-12
+┌─────────┬──────────┬───────┬────────┬───────────────┐
+│ (index) │ bucket   │ count │ avgClv │ beatCloseRate │
+├─────────┼──────────┼───────┼────────┼───────────────┤
+│ 0       │ '>= +20' │ 2     │ 115.5  │ 1             │
+└─────────┴──────────┴───────┴────────┴───────────────┘
+
+> mlb-prop-platform@1.0.0 fantasy:grade
+> node src/jobs/gradeFantasyProps.cjs ${npm_config_date:-$(date +%F)} 2026-05-12
+
+FANTASY PROP GRADER
+Date: 2026-05-12
+Fantasy rows: 840
+
+Graded: 789
+Hits: 347
+Misses: 434
+Pushes: 8
+Pending: 21
+Hit Rate: 44.4%
+
+DETAILS
+-------
+Trey Yesavage | TOR | pitcher_fantasy_score MORE 35.5 | Actual: 0 | MISS
+Jack Kochanowicz | LAA | pitcher_fantasy_score MORE 30.5 | Actual: 0 | MISS
+Trey Yesavage | TOR | pitcher_fantasy_score MORE 27.5 | Actual: 0 | MISS
+Jack Kochanowicz | LAA | pitcher_fantasy_score MORE 22.5 | Actual: 0 | MISS
+Trey Yesavage | TOR | pitcher_fantasy_score MORE 20.5 | Actual: 0 | MISS
+Jack Kochanowicz | LAA | pitcher_fantasy_score MORE 14.5 | Actual: 0 | MISS
+Zach Neto | LAA | hitter_fantasy_score MORE 12.5 | Actual: 3 | MISS
+George Springer | TOR | hitter_fantasy_score MORE 10.5 | Actual: 12 | HIT
+Vladimir Guerrero Jr. | TOR | hitter_fantasy_score MORE 10.5 | Actual: 7 | MISS
+Mike Trout | LAA | hitter_fantasy_score MORE 10.5 | Actual: 12 | HIT
+Jo Adell | LAA | hitter_fantasy_score MORE 10.5 | Actual: 5 | MISS
+Daulton Varsho | TOR | hitter_fantasy_score MORE 9.5 | Actual: 5 | MISS
+Jesús Sánchez | TOR | hitter_fantasy_score MORE 9.5 | Actual: 10 | HIT
+Jorge Soler | LAA | hitter_fantasy_score MORE 9.5 | Actual: 6 | MISS
+Ernie Clement | TOR | hitter_fantasy_score MORE 8.5 | Actual: 8 | MISS
+Josh Lowe | LAA | hitter_fantasy_score MORE 8.5 | Actual: 3 | MISS
+Kazuma Okamoto | TOR | hitter_fantasy_score MORE 8.5 | Actual: 3 | MISS
+Nolan Schanuel | LAA | hitter_fantasy_score MORE 8.5 | Actual: 6 | MISS
+Brandon Valenzuela | TOR | hitter_fantasy_score MORE 7.5 | Actual: 5 | MISS
+Vaughn Grissom | LAA | hitter_fantasy_score MORE 7.5 | Actual: 14 | HIT
+Andrés Giménez | TOR | hitter_fantasy_score MORE 7.5 | Actual: 0 | MISS
+George Springer | TOR | hitter_fantasy_score MORE 6.5 | Actual: 12 | HIT
+Vladimir Guerrero Jr. | TOR | hitter_fantasy_score MORE 6.5 | Actual: 7 | HIT
+Zach Neto | LAA | hitter_fantasy_score MORE 6.5 | Actual: 3 | MISS
+Kazuma Okamoto | TOR | hitter_fantasy_score MORE 5.5 | Actual: 3 | MISS
+Mike Trout | LAA | hitter_fantasy_score MORE 5.5 | Actual: 12 | HIT
+Jesús Sánchez | TOR | hitter_fantasy_score MORE 5.5 | Actual: 10 | HIT
+Jo Adell | LAA | hitter_fantasy_score MORE 5.5 | Actual: 5 | MISS
+Nolan Schanuel | LAA | hitter_fantasy_score MORE 5.5 | Actual: 6 | HIT
+Daulton Varsho | TOR | hitter_fantasy_score MORE 5 | Actual: 5 | PUSH
+Ernie Clement | TOR | hitter_fantasy_score MORE 5 | Actual: 8 | HIT
+Jorge Soler | LAA | hitter_fantasy_score MORE 5 | Actual: 6 | HIT
+Josh Lowe | LAA | hitter_fantasy_score MORE 4.5 | Actual: 3 | MISS
+Vaughn Grissom | LAA | hitter_fantasy_score MORE 4.5 | Actual: 14 | HIT
+Brandon Valenzuela | TOR | hitter_fantasy_score MORE 3.5 | Actual: 5 | HIT
+George Springer | TOR | hitter_fantasy_score MORE 3.5 | Actual: 12 | HIT
+Vladimir Guerrero Jr. | TOR | hitter_fantasy_score MORE 3.5 | Actual: 7 | HIT
+Zach Neto | LAA | hitter_fantasy_score MORE 3.5 | Actual: 3 | MISS
+Mike Trout | LAA | hitter_fantasy_score MORE 3.5 | Actual: 12 | HIT
+Andrés Giménez | TOR | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Daulton Varsho | TOR | hitter_fantasy_score MORE 2.5 | Actual: 5 | HIT
+Ernie Clement | TOR | hitter_fantasy_score MORE 2.5 | Actual: 8 | HIT
+Josh Lowe | LAA | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Kazuma Okamoto | TOR | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Jesús Sánchez | TOR | hitter_fantasy_score MORE 2.5 | Actual: 10 | HIT
+Vaughn Grissom | LAA | hitter_fantasy_score MORE 2.5 | Actual: 14 | HIT
+Jo Adell | LAA | hitter_fantasy_score MORE 2.5 | Actual: 5 | HIT
+Jorge Soler | LAA | hitter_fantasy_score MORE 2.5 | Actual: 6 | HIT
+Nolan Schanuel | LAA | hitter_fantasy_score MORE 2.5 | Actual: 6 | HIT
+Brandon Valenzuela | TOR | hitter_fantasy_score MORE 1.5 | Actual: 5 | HIT
+Andrés Giménez | TOR | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Tyler Soderstrom | ATH | hitter_fantasy_score MORE 12.5 | Actual: 0 | MISS
+Gunnar Henderson | BAL | hitter_fantasy_score MORE 12.5 | Actual: 0 | MISS
+Shea Langeliers | ATH | hitter_fantasy_score MORE 11.5 | Actual: 24 | HIT
+Pete Alonso | BAL | hitter_fantasy_score MORE 10.5 | Actual: 3 | MISS
+Taylor Ward | BAL | hitter_fantasy_score MORE 9.5 | Actual: 11 | HIT
+Dylan Beavers | BAL | hitter_fantasy_score MORE 9.5 | Actual: 0 | MISS
+Brent Rooker | ATH | hitter_fantasy_score MORE 9.5 | Actual: 6 | MISS
+Nick Kurtz | ATH | hitter_fantasy_score MORE 9.5 | Actual: 10 | HIT
+Leody Taveras | BAL | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Jeff McNeil | ATH | hitter_fantasy_score MORE 7.5 | Actual: 5 | MISS
+Carlos Cortes | ATH | hitter_fantasy_score MORE 7.5 | Actual: 9 | HIT
+Lawrence Butler | ATH | hitter_fantasy_score MORE 7.5 | Actual: 3 | MISS
+Samuel Basallo | BAL | hitter_fantasy_score MORE 7.5 | Actual: 13 | HIT
+Jacob Wilson | ATH | hitter_fantasy_score MORE 7.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Zack Gelof | ATH | hitter_fantasy_score MORE 7.5 | Actual: 0 | MISS
+Gunnar Henderson | BAL | hitter_fantasy_score MORE 7 | Actual: 0 | MISS
+Shea Langeliers | ATH | hitter_fantasy_score MORE 6.5 | Actual: 24 | HIT
+Coby Mayo | BAL | hitter_fantasy_score MORE 6.5 | Actual: 3 | MISS
+Taylor Ward | BAL | hitter_fantasy_score MORE 6 | Actual: 11 | HIT
+Pete Alonso | BAL | hitter_fantasy_score MORE 6 | Actual: 3 | MISS
+Tyler Soderstrom | ATH | hitter_fantasy_score MORE 5.5 | Actual: 0 | MISS
+Nick Kurtz | ATH | hitter_fantasy_score MORE 5.5 | Actual: 10 | HIT
+Jacob Wilson | ATH | hitter_fantasy_score MORE 5.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Leody Taveras | BAL | hitter_fantasy_score MORE 5 | Actual: 0 | MISS
+Carlos Cortes | ATH | hitter_fantasy_score MORE 5 | Actual: 9 | HIT
+Brent Rooker | ATH | hitter_fantasy_score MORE 5 | Actual: 6 | HIT
+Lawrence Butler | ATH | hitter_fantasy_score MORE 4.5 | Actual: 3 | MISS
+Dylan Beavers | BAL | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Samuel Basallo | BAL | hitter_fantasy_score MORE 4.5 | Actual: 13 | HIT
+Taylor Ward | BAL | hitter_fantasy_score MORE 3.5 | Actual: 11 | HIT
+Jeff McNeil | ATH | hitter_fantasy_score MORE 3.5 | Actual: 5 | HIT
+Shea Langeliers | ATH | hitter_fantasy_score MORE 3.5 | Actual: 24 | HIT
+Gunnar Henderson | BAL | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Zack Gelof | ATH | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Coby Mayo | BAL | hitter_fantasy_score MORE 3.5 | Actual: 3 | MISS
+Leody Taveras | BAL | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Tyler Soderstrom | ATH | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Carlos Cortes | ATH | hitter_fantasy_score MORE 2.5 | Actual: 9 | HIT
+Dylan Beavers | BAL | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Pete Alonso | BAL | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Brent Rooker | ATH | hitter_fantasy_score MORE 2.5 | Actual: 6 | HIT
+Nick Kurtz | ATH | hitter_fantasy_score MORE 2.5 | Actual: 10 | HIT
+Jacob Wilson | ATH | hitter_fantasy_score MORE 2.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Jeff McNeil | ATH | hitter_fantasy_score MORE 1.5 | Actual: 5 | HIT
+Lawrence Butler | ATH | hitter_fantasy_score MORE 1.5 | Actual: 3 | HIT
+Samuel Basallo | BAL | hitter_fantasy_score MORE 1.5 | Actual: 13 | HIT
+Zack Gelof | ATH | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Coby Mayo | BAL | hitter_fantasy_score MORE 1.5 | Actual: 3 | HIT
+Janson Junk | MIA | pitcher_fantasy_score MORE 32.5 | Actual: 0 | MISS
+Janson Junk | MIA | pitcher_fantasy_score MORE 24.5 | Actual: 0 | MISS
+Janson Junk | MIA | pitcher_fantasy_score MORE 16.5 | Actual: 0 | MISS
+James Wood | WSH | hitter_fantasy_score MORE 12.5 | Actual: 17 | HIT
+Daylen Lile | WSH | hitter_fantasy_score MORE 10.5 | Actual: 35 | HIT
+Jakob Marsee | MIA | hitter_fantasy_score MORE 10.5 | Actual: 3 | MISS
+Otto Lopez | MIA | hitter_fantasy_score MORE 10.5 | Actual: 0 | MISS
+CJ Abrams | WSH | hitter_fantasy_score MORE 10.5 | Actual: 9 | MISS
+Xavier Edwards | MIA | hitter_fantasy_score MORE 9.5 | Actual: 0 | MISS
+Jacob Young | WSH | hitter_fantasy_score MORE 9.5 | Actual: 10 | HIT
+Nasim Nuñez | WSH | hitter_fantasy_score MORE 9.5 | Actual: 8 | MISS
+José Tena | WSH | hitter_fantasy_score MORE 8.5 | Actual: 8 | MISS
+Kyle Stowers | MIA | hitter_fantasy_score MORE 8.5 | Actual: 3 | MISS
+Liam Hicks | MIA | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Brady House | WSH | hitter_fantasy_score MORE 7.5 | Actual: 21 | HIT
+Owen Caissie | MIA | hitter_fantasy_score MORE 7.5 | Actual: 0 | MISS
+Javier Sanoja | MIA | hitter_fantasy_score MORE 7.5 | Actual: 0 | MISS
+James Wood | WSH | hitter_fantasy_score MORE 7.5 | Actual: 17 | HIT
+Drew Millas | WSH | hitter_fantasy_score MORE 7.5 | Actual: 0 | MISS
+Joe Mack | MIA | hitter_fantasy_score MORE 7.5 | Actual: 0 | MISS
+Jakob Marsee | MIA | hitter_fantasy_score MORE 6.5 | Actual: 3 | MISS
+Otto Lopez | MIA | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Daylen Lile | WSH | hitter_fantasy_score MORE 5.5 | Actual: 35 | HIT
+Xavier Edwards | MIA | hitter_fantasy_score MORE 5.5 | Actual: 0 | MISS
+Kyle Stowers | MIA | hitter_fantasy_score MORE 5.5 | Actual: 3 | MISS
+CJ Abrams | WSH | hitter_fantasy_score MORE 5.5 | Actual: 9 | HIT
+Jacob Young | WSH | hitter_fantasy_score MORE 5 | Actual: 10 | HIT
+Liam Hicks | MIA | hitter_fantasy_score MORE 5 | Actual: 0 | MISS
+José Tena | WSH | hitter_fantasy_score MORE 4.5 | Actual: 8 | HIT
+Brady House | WSH | hitter_fantasy_score MORE 4.5 | Actual: 21 | HIT
+Owen Caissie | MIA | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Nasim Nuñez | WSH | hitter_fantasy_score MORE 4.5 | Actual: 8 | HIT
+Jakob Marsee | MIA | hitter_fantasy_score MORE 3.5 | Actual: 3 | MISS
+Otto Lopez | MIA | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Javier Sanoja | MIA | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+James Wood | WSH | hitter_fantasy_score MORE 3.5 | Actual: 17 | HIT
+Drew Millas | WSH | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Joe Mack | MIA | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+José Tena | WSH | hitter_fantasy_score MORE 2.5 | Actual: 8 | HIT
+Daylen Lile | WSH | hitter_fantasy_score MORE 2.5 | Actual: 35 | HIT
+Xavier Edwards | MIA | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Kyle Stowers | MIA | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+CJ Abrams | WSH | hitter_fantasy_score MORE 2.5 | Actual: 9 | HIT
+Jacob Young | WSH | hitter_fantasy_score MORE 2.5 | Actual: 10 | HIT
+Liam Hicks | MIA | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Brady House | WSH | hitter_fantasy_score MORE 1.5 | Actual: 21 | HIT
+Owen Caissie | MIA | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Drew Millas | WSH | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Christopher Morel | MIA | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Nasim Nuñez | WSH | hitter_fantasy_score MORE 1.5 | Actual: 8 | HIT
+Joe Mack | MIA | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Chase Burns | CIN | pitcher_fantasy_score MORE 42.5 | Actual: 0 | MISS
+Spencer Arrighetti | HOU | pitcher_fantasy_score MORE 36.5 | Actual: 0 | MISS
+Chase Burns | CIN | pitcher_fantasy_score MORE 34.5 | Actual: 0 | MISS
+Chase Burns | CIN | pitcher_fantasy_score MORE 26.5 | Actual: 0 | MISS
+Spencer Arrighetti | HOU | pitcher_fantasy_score MORE 26.5 | Actual: 0 | MISS
+Spencer Arrighetti | HOU | pitcher_fantasy_score MORE 19.5 | Actual: 0 | MISS
+Yordan Alvarez | HOU | hitter_fantasy_score MORE 13.5 | Actual: 3 | MISS
+Elly De La Cruz | CIN | hitter_fantasy_score MORE 12.5 | Actual: 8 | MISS
+Brice Matthews | HOU | hitter_fantasy_score MORE 10.5 | Actual: 0 | MISS
+Christian Walker | HOU | hitter_fantasy_score MORE 9.5 | Actual: 8 | MISS
+Cam Smith | HOU | hitter_fantasy_score MORE 9.5 | Actual: 0 | MISS
+Isaac Paredes | HOU | hitter_fantasy_score MORE 9.5 | Actual: 0 | MISS
+Sal Stewart | CIN | hitter_fantasy_score MORE 8.5 | Actual: 16 | HIT
+Zach Cole | HOU | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Spencer Steer | CIN | hitter_fantasy_score MORE 8.5 | Actual: 5 | MISS
+TJ Friedl | CIN | hitter_fantasy_score MORE 8.5 | Actual: 8 | MISS
+JJ Bleday | CIN | hitter_fantasy_score MORE 8.5 | Actual: 16 | HIT
+Nathaniel Lowe | CIN | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Braden Shewmake | HOU | hitter_fantasy_score MORE 7.5 | Actual: 8 | HIT
+Yordan Alvarez | HOU | hitter_fantasy_score MORE 7.5 | Actual: 3 | MISS
+Matt McLain | CIN | hitter_fantasy_score MORE 7.5 | Actual: 5 | MISS
+Elly De La Cruz | CIN | hitter_fantasy_score MORE 7 | Actual: 8 | HIT
+Sal Stewart | CIN | hitter_fantasy_score MORE 5.5 | Actual: 16 | HIT
+Isaac Paredes | HOU | hitter_fantasy_score MORE 5.5 | Actual: 0 | MISS
+Christian Walker | HOU | hitter_fantasy_score MORE 5 | Actual: 8 | HIT
+TJ Friedl | CIN | hitter_fantasy_score MORE 5 | Actual: 8 | HIT
+Cam Smith | HOU | hitter_fantasy_score MORE 5 | Actual: 0 | MISS
+Zach Cole | HOU | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Spencer Steer | CIN | hitter_fantasy_score MORE 4.5 | Actual: 5 | HIT
+Brice Matthews | HOU | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+JJ Bleday | CIN | hitter_fantasy_score MORE 4.5 | Actual: 16 | HIT
+Nathaniel Lowe | CIN | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Braden Shewmake | HOU | hitter_fantasy_score MORE 3.5 | Actual: 8 | HIT
+Yordan Alvarez | HOU | hitter_fantasy_score MORE 3.5 | Actual: 3 | MISS
+Elly De La Cruz | CIN | hitter_fantasy_score MORE 3.5 | Actual: 8 | HIT
+Matt McLain | CIN | hitter_fantasy_score MORE 3.5 | Actual: 5 | HIT
+Christian Walker | HOU | hitter_fantasy_score MORE 2.5 | Actual: 8 | HIT
+Sal Stewart | CIN | hitter_fantasy_score MORE 2.5 | Actual: 16 | HIT
+TJ Friedl | CIN | hitter_fantasy_score MORE 2.5 | Actual: 8 | HIT
+Cam Smith | HOU | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Brice Matthews | HOU | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+JJ Bleday | CIN | hitter_fantasy_score MORE 2.5 | Actual: 16 | HIT
+Isaac Paredes | HOU | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Nathaniel Lowe | CIN | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Zach Cole | HOU | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Braden Shewmake | HOU | hitter_fantasy_score MORE 1.5 | Actual: 8 | HIT
+Spencer Steer | CIN | hitter_fantasy_score MORE 1.5 | Actual: 5 | HIT
+Matt McLain | CIN | hitter_fantasy_score MORE 1.5 | Actual: 5 | HIT
+Chandler Simpson | TB | hitter_fantasy_score MORE 12.5 | Actual: 0 | MISS
+Junior Caminero | TB | hitter_fantasy_score MORE 11.5 | Actual: 8 | MISS
+Jarren Duran | BOS | hitter_fantasy_score MORE 11.5 | Actual: 5 | MISS
+Yandy Díaz | TB | hitter_fantasy_score MORE 10.5 | Actual: 3 | MISS
+Jake Fraley | TB | hitter_fantasy_score MORE 10.5 | Actual: 0 | MISS
+Trevor Story | BOS | hitter_fantasy_score MORE 10.5 | Actual: 6 | MISS
+Jonathan Aranda | TB | hitter_fantasy_score MORE 9.5 | Actual: 13 | HIT
+Cedric Mullins | TB | hitter_fantasy_score MORE 9.5 | Actual: 14 | HIT
+Wilyer Abreu | BOS | hitter_fantasy_score MORE 9.5 | Actual: 3 | MISS
+Willson Contreras | BOS | hitter_fantasy_score MORE 9.5 | Actual: 0 | MISS
+Ben Williamson | TB | hitter_fantasy_score MORE 9.5 | Actual: 11 | HIT
+Taylor Walls | TB | hitter_fantasy_score MORE 8.5 | Actual: 20 | HIT
+Masataka Yoshida | BOS | hitter_fantasy_score MORE 8.5 | Actual: 6 | MISS
+Chandler Simpson | TB | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Marcelo Mayer | BOS | hitter_fantasy_score MORE 7.5 | Actual: 3 | MISS
+Ceddanne Rafaela | BOS | hitter_fantasy_score MORE 7.5 | Actual: 5 | MISS
+Carlos Narváez | BOS | hitter_fantasy_score MORE 6.5 | Actual: 3 | MISS
+Caleb Durbin | BOS | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Junior Caminero | TB | hitter_fantasy_score MORE 6.5 | Actual: 8 | HIT
+Jarren Duran | BOS | hitter_fantasy_score MORE 6.5 | Actual: 5 | MISS
+Yandy Díaz | TB | hitter_fantasy_score MORE 6.5 | Actual: 3 | MISS
+Hunter Feduccia | TB | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Jonathan Aranda | TB | hitter_fantasy_score MORE 5.5 | Actual: 13 | HIT
+Masataka Yoshida | BOS | hitter_fantasy_score MORE 5.5 | Actual: 6 | HIT
+Cedric Mullins | TB | hitter_fantasy_score MORE 5.5 | Actual: 14 | HIT
+Wilyer Abreu | BOS | hitter_fantasy_score MORE 5.5 | Actual: 3 | MISS
+Willson Contreras | BOS | hitter_fantasy_score MORE 5.5 | Actual: 0 | MISS
+Jake Fraley | TB | hitter_fantasy_score MORE 5.5 | Actual: 0 | MISS
+Trevor Story | BOS | hitter_fantasy_score MORE 5.5 | Actual: 6 | HIT
+Ben Williamson | TB | hitter_fantasy_score MORE 5.5 | Actual: 11 | HIT
+Marcelo Mayer | BOS | hitter_fantasy_score MORE 4.5 | Actual: 3 | MISS
+Chandler Simpson | TB | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Ceddanne Rafaela | BOS | hitter_fantasy_score MORE 4.5 | Actual: 5 | HIT
+Taylor Walls | TB | hitter_fantasy_score MORE 3.5 | Actual: 20 | HIT
+Caleb Durbin | BOS | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Junior Caminero | TB | hitter_fantasy_score MORE 3.5 | Actual: 8 | HIT
+Yandy Díaz | TB | hitter_fantasy_score MORE 3.5 | Actual: 3 | MISS
+Hunter Feduccia | TB | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Carlos Narváez | BOS | hitter_fantasy_score MORE 3 | Actual: 3 | PUSH
+Taylor Walls | TB | hitter_fantasy_score MORE 2.5 | Actual: 20 | HIT
+Marcelo Mayer | BOS | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Jonathan Aranda | TB | hitter_fantasy_score MORE 2.5 | Actual: 13 | HIT
+Masataka Yoshida | BOS | hitter_fantasy_score MORE 2.5 | Actual: 6 | HIT
+Jarren Duran | BOS | hitter_fantasy_score MORE 2.5 | Actual: 5 | HIT
+Cedric Mullins | TB | hitter_fantasy_score MORE 2.5 | Actual: 14 | HIT
+Wilyer Abreu | BOS | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Willson Contreras | BOS | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Jake Fraley | TB | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Trevor Story | BOS | hitter_fantasy_score MORE 2.5 | Actual: 6 | HIT
+Ben Williamson | TB | hitter_fantasy_score MORE 2.5 | Actual: 11 | HIT
+Carlos Narváez | BOS | hitter_fantasy_score MORE 1.5 | Actual: 3 | HIT
+Caleb Durbin | BOS | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Ceddanne Rafaela | BOS | hitter_fantasy_score MORE 1.5 | Actual: 5 | HIT
+Hunter Feduccia | TB | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Aaron Nola | PHI | pitcher_fantasy_score MORE 42.5 | Actual: 0 | MISS
+Kyle Freeland | COL | pitcher_fantasy_score MORE 35.5 | Actual: 0 | MISS
+Aaron Nola | PHI | pitcher_fantasy_score MORE 34.5 | Actual: 0 | MISS
+Kyle Freeland | COL | pitcher_fantasy_score MORE 26.5 | Actual: 0 | MISS
+Aaron Nola | PHI | pitcher_fantasy_score MORE 25.5 | Actual: 0 | MISS
+Kyle Freeland | COL | pitcher_fantasy_score MORE 18.5 | Actual: 0 | MISS
+Trea Turner | PHI | hitter_fantasy_score MORE 10.5 | Actual: 0 | MISS
+Kyle Schwarber | PHI | hitter_fantasy_score MORE 10.5 | Actual: 17 | HIT
+Mickey Moniak | COL | hitter_fantasy_score MORE 9.5 | Actual: 3 | MISS
+Tyler Freeman | COL | hitter_fantasy_score MORE 9.5 | Actual: 0 | MISS
+Adolis García | PHI | hitter_fantasy_score MORE 9.5 | Actual: 0 | MISS
+Edouard Julien | COL | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Felix Reyes | PHI | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Alec Bohm | PHI | hitter_fantasy_score MORE 8.5 | Actual: 3 | MISS
+Bryce Harper | PHI | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Jake McCarthy | COL | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+TJ Rumfield | COL | hitter_fantasy_score MORE 7.5 | Actual: 0 | MISS
+Willi Castro | COL | hitter_fantasy_score MORE 7.5 | Actual: 0 | MISS
+Brandon Marsh | PHI | hitter_fantasy_score MORE 7.5 | Actual: 5 | MISS
+Troy Johnston | COL | hitter_fantasy_score MORE 7.5 | Actual: 9 | HIT
+Edmundo Sosa | PHI | hitter_fantasy_score MORE 7.5 | Actual: 0 | MISS
+Trea Turner | PHI | hitter_fantasy_score MORE 7 | Actual: 0 | MISS
+Kyle Schwarber | PHI | hitter_fantasy_score MORE 6.5 | Actual: 17 | HIT
+Bryce Harper | PHI | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Rafael Marchán | PHI | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Ezequiel Tovar | COL | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Brett Sullivan | COL | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Tyler Freeman | COL | hitter_fantasy_score MORE 5.5 | Actual: 0 | MISS
+Edouard Julien | COL | hitter_fantasy_score MORE 5 | Actual: 0 | MISS
+TJ Rumfield | COL | hitter_fantasy_score MORE 5 | Actual: 0 | MISS
+Alec Bohm | PHI | hitter_fantasy_score MORE 5 | Actual: 3 | MISS
+Mickey Moniak | COL | hitter_fantasy_score MORE 5 | Actual: 3 | MISS
+Adolis García | PHI | hitter_fantasy_score MORE 5 | Actual: 0 | MISS
+Felix Reyes | PHI | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Willi Castro | COL | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Brandon Marsh | PHI | hitter_fantasy_score MORE 4.5 | Actual: 5 | HIT
+Troy Johnston | COL | hitter_fantasy_score MORE 4.5 | Actual: 9 | HIT
+Jake McCarthy | COL | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Edmundo Sosa | PHI | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Trea Turner | PHI | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Rafael Marchán | PHI | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Ezequiel Tovar | COL | hitter_fantasy_score MORE 3 | Actual: 0 | MISS
+Brett Sullivan | COL | hitter_fantasy_score MORE 3 | Actual: 0 | MISS
+Edouard Julien | COL | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Felix Reyes | PHI | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+TJ Rumfield | COL | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Alec Bohm | PHI | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Troy Johnston | COL | hitter_fantasy_score MORE 2.5 | Actual: 9 | HIT
+Kyle Schwarber | PHI | hitter_fantasy_score MORE 2.5 | Actual: 17 | HIT
+Bryce Harper | PHI | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Jake McCarthy | COL | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Mickey Moniak | COL | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Tyler Freeman | COL | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Adolis García | PHI | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Willi Castro | COL | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Brandon Marsh | PHI | hitter_fantasy_score MORE 1.5 | Actual: 5 | HIT
+Rafael Marchán | PHI | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Edmundo Sosa | PHI | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Ezequiel Tovar | COL | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Brett Sullivan | COL | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Byron Buxton | MIN | hitter_fantasy_score MORE 11.5 | Actual: 10 | MISS
+José Ramírez | CLE | hitter_fantasy_score MORE 10.5 | Actual: 0 | MISS
+Austin Martin | MIN | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Trevor Larnach | MIN | hitter_fantasy_score MORE 8.5 | Actual: 16 | HIT
+Ryan Jeffers | MIN | hitter_fantasy_score MORE 8.5 | Actual: 19 | HIT
+Steven Kwan | CLE | hitter_fantasy_score MORE 8.5 | Actual: 6 | MISS
+Travis Bazzana | CLE | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Luke Keaschall | MIN | hitter_fantasy_score MORE 8.5 | Actual: 11 | HIT
+Matt Wallner | MIN | hitter_fantasy_score MORE 7.5 | Actual: 0 | MISS
+Kyle Manzardo | CLE | hitter_fantasy_score MORE 7.5 | Actual: 0 | MISS
+Chase DeLauter | CLE | hitter_fantasy_score MORE 7.5 | Actual: 3 | MISS
+Kody Clemens | MIN | hitter_fantasy_score MORE 7.5 | Actual: 3 | MISS
+Daniel Schneemann | CLE | hitter_fantasy_score MORE 7.5 | Actual: 5 | MISS
+Brayan Rocchio | CLE | hitter_fantasy_score MORE 6.5 | Actual: 5 | MISS
+José Ramírez | CLE | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Byron Buxton | MIN | hitter_fantasy_score MORE 6.5 | Actual: 10 | HIT
+Petey Halpin | CLE | hitter_fantasy_score MORE 6.5 | Actual: 2 | MISS
+Steven Kwan | CLE | hitter_fantasy_score MORE 5.5 | Actual: 6 | HIT
+Bo Naylor | CLE | hitter_fantasy_score MORE 5.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Tristan Gray | MIN | hitter_fantasy_score MORE 5.5 | Actual: 0 | MISS
+Brooks Lee | MIN | hitter_fantasy_score MORE 5.5 | Actual: 3 | MISS
+Austin Martin | MIN | hitter_fantasy_score MORE 5 | Actual: 0 | MISS
+Ryan Jeffers | MIN | hitter_fantasy_score MORE 5 | Actual: 19 | HIT
+Luke Keaschall | MIN | hitter_fantasy_score MORE 5 | Actual: 11 | HIT
+Trevor Larnach | MIN | hitter_fantasy_score MORE 4.5 | Actual: 16 | HIT
+Travis Bazzana | CLE | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Kyle Manzardo | CLE | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Chase DeLauter | CLE | hitter_fantasy_score MORE 4.5 | Actual: 3 | MISS
+Kody Clemens | MIN | hitter_fantasy_score MORE 4.5 | Actual: 3 | MISS
+Brayan Rocchio | CLE | hitter_fantasy_score MORE 3.5 | Actual: 5 | HIT
+Matt Wallner | MIN | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Daniel Schneemann | CLE | hitter_fantasy_score MORE 3.5 | Actual: 5 | HIT
+Bo Naylor | CLE | hitter_fantasy_score MORE 3 | Actual: NA | PENDING | player_not_found_in_boxscore
+Petey Halpin | CLE | hitter_fantasy_score MORE 3 | Actual: 2 | MISS
+Tristan Gray | MIN | hitter_fantasy_score MORE 3 | Actual: 0 | MISS
+Brooks Lee | MIN | hitter_fantasy_score MORE 3 | Actual: 3 | PUSH
+Austin Martin | MIN | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+José Ramírez | CLE | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Trevor Larnach | MIN | hitter_fantasy_score MORE 2.5 | Actual: 16 | HIT
+Ryan Jeffers | MIN | hitter_fantasy_score MORE 2.5 | Actual: 19 | HIT
+Steven Kwan | CLE | hitter_fantasy_score MORE 2.5 | Actual: 6 | HIT
+Chase DeLauter | CLE | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Luke Keaschall | MIN | hitter_fantasy_score MORE 2.5 | Actual: 11 | HIT
+Byron Buxton | MIN | hitter_fantasy_score MORE 2.5 | Actual: 10 | HIT
+Brayan Rocchio | CLE | hitter_fantasy_score MORE 1.5 | Actual: 5 | HIT
+Matt Wallner | MIN | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Travis Bazzana | CLE | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Kyle Manzardo | CLE | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Bo Naylor | CLE | hitter_fantasy_score MORE 1.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Kody Clemens | MIN | hitter_fantasy_score MORE 1.5 | Actual: 3 | HIT
+Petey Halpin | CLE | hitter_fantasy_score MORE 1.5 | Actual: 2 | HIT
+Tristan Gray | MIN | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Daniel Schneemann | CLE | hitter_fantasy_score MORE 1.5 | Actual: 5 | HIT
+Brooks Lee | MIN | hitter_fantasy_score MORE 1.5 | Actual: 3 | HIT
+Edward Cabrera | CHC | pitcher_fantasy_score MORE 38.5 | Actual: 0 | MISS
+Jack Leiter | TEX | pitcher_fantasy_score MORE 34.5 | Actual: 0 | MISS
+Edward Cabrera | CHC | pitcher_fantasy_score MORE 30.5 | Actual: 0 | MISS
+Jack Leiter | TEX | pitcher_fantasy_score MORE 26.5 | Actual: 0 | MISS
+Edward Cabrera | CHC | pitcher_fantasy_score MORE 22.5 | Actual: 0 | MISS
+Jack Leiter | TEX | pitcher_fantasy_score MORE 18.5 | Actual: 0 | MISS
+Ian Happ | CHC | hitter_fantasy_score MORE 10.5 | Actual: 5 | MISS
+Brandon Nimmo | TEX | hitter_fantasy_score MORE 10.5 | Actual: 16 | HIT
+Seiya Suzuki | CHC | hitter_fantasy_score MORE 10.5 | Actual: 3 | MISS
+Nico Hoerner | CHC | hitter_fantasy_score MORE 10.5 | Actual: 3 | MISS
+Alex Bregman | CHC | hitter_fantasy_score MORE 9.5 | Actual: 14 | HIT
+Pete Crow-Armstrong | CHC | hitter_fantasy_score MORE 9.5 | Actual: 0 | MISS
+Moisés Ballesteros | CHC | hitter_fantasy_score MORE 8.5 | Actual: 2 | MISS
+Ezequiel Duran | TEX | hitter_fantasy_score MORE 8.5 | Actual: 26 | HIT
+Michael Busch | CHC | hitter_fantasy_score MORE 8.5 | Actual: 6 | MISS
+Josh Jung | TEX | hitter_fantasy_score MORE 7.5 | Actual: 5 | MISS
+Jake Burger | TEX | hitter_fantasy_score MORE 7.5 | Actual: 16 | HIT
+Carson Kelly | CHC | hitter_fantasy_score MORE 7.5 | Actual: 0 | MISS
+Corey Seager | TEX | hitter_fantasy_score MORE 7.5 | Actual: 4 | MISS
+Alejandro Osuna | TEX | hitter_fantasy_score MORE 7.5 | Actual: 13 | HIT
+Justin Foscue | TEX | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Brandon Nimmo | TEX | hitter_fantasy_score MORE 6.5 | Actual: 16 | HIT
+Dansby Swanson | CHC | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Nico Hoerner | CHC | hitter_fantasy_score MORE 6.5 | Actual: 3 | MISS
+Joc Pederson | TEX | hitter_fantasy_score MORE 6.5 | Actual: 14 | HIT
+Ian Happ | CHC | hitter_fantasy_score MORE 5.5 | Actual: 5 | MISS
+Moisés Ballesteros | CHC | hitter_fantasy_score MORE 5.5 | Actual: 2 | MISS
+Alex Bregman | CHC | hitter_fantasy_score MORE 5.5 | Actual: 14 | HIT
+Seiya Suzuki | CHC | hitter_fantasy_score MORE 5.5 | Actual: 3 | MISS
+Danny Jansen | TEX | hitter_fantasy_score MORE 5.5 | Actual: 0 | MISS
+Corey Seager | TEX | hitter_fantasy_score MORE 5.5 | Actual: 4 | MISS
+Josh Jung | TEX | hitter_fantasy_score MORE 5 | Actual: 5 | PUSH
+Ezequiel Duran | TEX | hitter_fantasy_score MORE 4.5 | Actual: 26 | HIT
+Pete Crow-Armstrong | CHC | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Alejandro Osuna | TEX | hitter_fantasy_score MORE 4.5 | Actual: 13 | HIT
+Michael Busch | CHC | hitter_fantasy_score MORE 4.5 | Actual: 6 | HIT
+Jake Burger | TEX | hitter_fantasy_score MORE 3.5 | Actual: 16 | HIT
+Nico Hoerner | CHC | hitter_fantasy_score MORE 3.5 | Actual: 3 | MISS
+Carson Kelly | CHC | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Joc Pederson | TEX | hitter_fantasy_score MORE 3.5 | Actual: 14 | HIT
+Justin Foscue | TEX | hitter_fantasy_score MORE 3 | Actual: 0 | MISS
+Dansby Swanson | CHC | hitter_fantasy_score MORE 3 | Actual: 0 | MISS
+Josh Jung | TEX | hitter_fantasy_score MORE 2.5 | Actual: 5 | HIT
+Ian Happ | CHC | hitter_fantasy_score MORE 2.5 | Actual: 5 | HIT
+Brandon Nimmo | TEX | hitter_fantasy_score MORE 2.5 | Actual: 16 | HIT
+Moisés Ballesteros | CHC | hitter_fantasy_score MORE 2.5 | Actual: 2 | MISS
+Alex Bregman | CHC | hitter_fantasy_score MORE 2.5 | Actual: 14 | HIT
+Seiya Suzuki | CHC | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Danny Jansen | TEX | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Corey Seager | TEX | hitter_fantasy_score MORE 2.5 | Actual: 4 | HIT
+Michael Busch | CHC | hitter_fantasy_score MORE 2.5 | Actual: 6 | HIT
+Justin Foscue | TEX | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Dansby Swanson | CHC | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Danny Jansen | TEX | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Jake Burger | TEX | hitter_fantasy_score MORE 1.5 | Actual: 16 | HIT
+Carson Kelly | CHC | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Ezequiel Duran | TEX | hitter_fantasy_score MORE 1.5 | Actual: 26 | HIT
+Pete Crow-Armstrong | CHC | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Joc Pederson | TEX | hitter_fantasy_score MORE 1.5 | Actual: 14 | HIT
+Alejandro Osuna | TEX | hitter_fantasy_score MORE 1.5 | Actual: 13 | HIT
+Cam Schlittler | NYY | pitcher_fantasy_score MORE 40.5 | Actual: 0 | MISS
+Kyle Harrison | MIL | pitcher_fantasy_score MORE 35.5 | Actual: 0 | MISS
+Cam Schlittler | NYY | pitcher_fantasy_score MORE 32.5 | Actual: 0 | MISS
+Kyle Harrison | MIL | pitcher_fantasy_score MORE 26.5 | Actual: 0 | MISS
+Cam Schlittler | NYY | pitcher_fantasy_score MORE 23.5 | Actual: 0 | MISS
+Kyle Harrison | MIL | pitcher_fantasy_score MORE 19.5 | Actual: 0 | MISS
+Brice Turang | MIL | hitter_fantasy_score MORE 11.5 | Actual: 13 | HIT
+Jackson Chourio | MIL | hitter_fantasy_score MORE 11.5 | Actual: 3 | MISS
+Garrett Mitchell | MIL | hitter_fantasy_score MORE 10.5 | Actual: 5 | MISS
+Cody Bellinger | NYY | hitter_fantasy_score MORE 9.5 | Actual: 4 | MISS
+Aaron Judge | NYY | hitter_fantasy_score MORE 9.5 | Actual: 14 | HIT
+Paul Goldschmidt | NYY | hitter_fantasy_score MORE 9.5 | Actual: 20 | HIT
+Jake Bauers | MIL | hitter_fantasy_score MORE 9.5 | Actual: 14 | HIT
+Ben Rice | NYY | hitter_fantasy_score MORE 9.5 | Actual: 6 | MISS
+Amed Rosario | NYY | hitter_fantasy_score MORE 9.5 | Actual: 7 | MISS
+William Contreras | MIL | hitter_fantasy_score MORE 9.5 | Actual: 11 | HIT
+David Hamilton | MIL | hitter_fantasy_score MORE 8.5 | Actual: 5 | MISS
+Andrew Vaughn | MIL | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Jazz Chisholm Jr. | NYY | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Sal Frelick | MIL | hitter_fantasy_score MORE 7.5 | Actual: 9 | HIT
+Luis Rengifo | MIL | hitter_fantasy_score MORE 7.5 | Actual: 0 | MISS
+Garrett Mitchell | MIL | hitter_fantasy_score MORE 6.5 | Actual: 5 | MISS
+Aaron Judge | NYY | hitter_fantasy_score MORE 6.5 | Actual: 14 | HIT
+Max Schuemann | NYY | hitter_fantasy_score MORE 6.5 | Actual: 6 | MISS
+Brice Turang | MIL | hitter_fantasy_score MORE 6.5 | Actual: 13 | HIT
+Jackson Chourio | MIL | hitter_fantasy_score MORE 6.5 | Actual: 3 | MISS
+Trent Grisham | NYY | hitter_fantasy_score MORE 6.5 | Actual: 21 | HIT
+Cody Bellinger | NYY | hitter_fantasy_score MORE 5.5 | Actual: 4 | MISS
+Paul Goldschmidt | NYY | hitter_fantasy_score MORE 5.5 | Actual: 20 | HIT
+Ben Rice | NYY | hitter_fantasy_score MORE 5.5 | Actual: 6 | HIT
+J.C. Escarra | NYY | hitter_fantasy_score MORE 5.5 | Actual: 0 | MISS
+Andrew Vaughn | MIL | hitter_fantasy_score MORE 5 | Actual: 0 | MISS
+Sal Frelick | MIL | hitter_fantasy_score MORE 5 | Actual: 9 | HIT
+Jake Bauers | MIL | hitter_fantasy_score MORE 5 | Actual: 14 | HIT
+Amed Rosario | NYY | hitter_fantasy_score MORE 5 | Actual: 7 | HIT
+William Contreras | MIL | hitter_fantasy_score MORE 5 | Actual: 11 | HIT
+Luis Rengifo | MIL | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Jazz Chisholm Jr. | NYY | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+David Hamilton | MIL | hitter_fantasy_score MORE 3.5 | Actual: 5 | HIT
+Max Schuemann | NYY | hitter_fantasy_score MORE 3.5 | Actual: 6 | HIT
+Brice Turang | MIL | hitter_fantasy_score MORE 3.5 | Actual: 13 | HIT
+Trent Grisham | NYY | hitter_fantasy_score MORE 3.5 | Actual: 21 | HIT
+J.C. Escarra | NYY | hitter_fantasy_score MORE 3 | Actual: 0 | MISS
+Garrett Mitchell | MIL | hitter_fantasy_score MORE 2.5 | Actual: 5 | HIT
+Andrew Vaughn | MIL | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Cody Bellinger | NYY | hitter_fantasy_score MORE 2.5 | Actual: 4 | HIT
+Aaron Judge | NYY | hitter_fantasy_score MORE 2.5 | Actual: 14 | HIT
+Sal Frelick | MIL | hitter_fantasy_score MORE 2.5 | Actual: 9 | HIT
+Paul Goldschmidt | NYY | hitter_fantasy_score MORE 2.5 | Actual: 20 | HIT
+Jake Bauers | MIL | hitter_fantasy_score MORE 2.5 | Actual: 14 | HIT
+Ben Rice | NYY | hitter_fantasy_score MORE 2.5 | Actual: 6 | HIT
+Amed Rosario | NYY | hitter_fantasy_score MORE 2.5 | Actual: 7 | HIT
+William Contreras | MIL | hitter_fantasy_score MORE 2.5 | Actual: 11 | HIT
+Jackson Chourio | MIL | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+David Hamilton | MIL | hitter_fantasy_score MORE 1.5 | Actual: 5 | HIT
+Luis Rengifo | MIL | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Max Schuemann | NYY | hitter_fantasy_score MORE 1.5 | Actual: 6 | HIT
+Jazz Chisholm Jr. | NYY | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+J.C. Escarra | NYY | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Trent Grisham | NYY | hitter_fantasy_score MORE 1.5 | Actual: 21 | HIT
+Luis Castillo | SEA | pitcher_fantasy_score MORE 31.5 | Actual: 0 | MISS
+Anthony Kay | CWS | pitcher_fantasy_score MORE 28.5 | Actual: 0 | MISS
+Luis Castillo | SEA | pitcher_fantasy_score MORE 23.5 | Actual: 0 | MISS
+Anthony Kay | CWS | pitcher_fantasy_score MORE 21.5 | Actual: 0 | MISS
+Anthony Kay | CWS | pitcher_fantasy_score MORE 15.5 | Actual: 0 | MISS
+Luis Castillo | SEA | pitcher_fantasy_score MORE 15.5 | Actual: 0 | MISS
+Julio Rodríguez | SEA | hitter_fantasy_score MORE 11.5 | Actual: 0 | MISS
+Randy Arozarena | SEA | hitter_fantasy_score MORE 10.5 | Actual: 47 | HIT
+Rob Refsnyder | SEA | hitter_fantasy_score MORE 9.5 | Actual: 0 | MISS
+Cal Raleigh | SEA | hitter_fantasy_score MORE 9.5 | Actual: 15 | HIT
+Josh Naylor | SEA | hitter_fantasy_score MORE 8.5 | Actual: 8 | MISS
+Sam Antonacci | CWS | hitter_fantasy_score MORE 8.5 | Actual: 16 | HIT
+Miguel Vargas | CWS | hitter_fantasy_score MORE 8.5 | Actual: 13 | HIT
+Colson Montgomery | CWS | hitter_fantasy_score MORE 7.5 | Actual: 5 | MISS
+Chase Meidroth | CWS | hitter_fantasy_score MORE 7.5 | Actual: 18 | HIT
+Munetaka Murakami | CWS | hitter_fantasy_score MORE 7.5 | Actual: 3 | MISS
+Leo Rivas | SEA | hitter_fantasy_score MORE 7.5 | Actual: 0 | MISS
+J.P. Crawford | SEA | hitter_fantasy_score MORE 7.5 | Actual: 15 | HIT
+Mitch Garver | SEA | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Julio Rodríguez | SEA | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Cole Young | SEA | hitter_fantasy_score MORE 6.5 | Actual: 3 | MISS
+Tristan Peters | CWS | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Andrew Benintendi | CWS | hitter_fantasy_score MORE 6.5 | Actual: 3 | MISS
+Jarred Kelenic | CWS | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Munetaka Murakami | CWS | hitter_fantasy_score MORE 6 | Actual: 3 | MISS
+Drew Romo | CWS | hitter_fantasy_score MORE 5.5 | Actual: 14 | HIT
+Randy Arozarena | SEA | hitter_fantasy_score MORE 5.5 | Actual: 47 | HIT
+Rob Refsnyder | SEA | hitter_fantasy_score MORE 5.5 | Actual: 0 | MISS
+Cal Raleigh | SEA | hitter_fantasy_score MORE 5.5 | Actual: 15 | HIT
+Josh Naylor | SEA | hitter_fantasy_score MORE 5 | Actual: 8 | HIT
+Colson Montgomery | CWS | hitter_fantasy_score MORE 5 | Actual: 5 | PUSH
+Sam Antonacci | CWS | hitter_fantasy_score MORE 5 | Actual: 16 | HIT
+Miguel Vargas | CWS | hitter_fantasy_score MORE 5 | Actual: 13 | HIT
+Chase Meidroth | CWS | hitter_fantasy_score MORE 4.5 | Actual: 18 | HIT
+J.P. Crawford | SEA | hitter_fantasy_score MORE 4.5 | Actual: 15 | HIT
+Mitch Garver | SEA | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Andrew Benintendi | CWS | hitter_fantasy_score MORE 3.5 | Actual: 3 | MISS
+Jarred Kelenic | CWS | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Leo Rivas | SEA | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Drew Romo | CWS | hitter_fantasy_score MORE 3 | Actual: 14 | HIT
+Cole Young | SEA | hitter_fantasy_score MORE 3 | Actual: 3 | PUSH
+Tristan Peters | CWS | hitter_fantasy_score MORE 3 | Actual: 0 | MISS
+Julio Rodríguez | SEA | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Josh Naylor | SEA | hitter_fantasy_score MORE 2.5 | Actual: 8 | HIT
+Chase Meidroth | CWS | hitter_fantasy_score MORE 2.5 | Actual: 18 | HIT
+Randy Arozarena | SEA | hitter_fantasy_score MORE 2.5 | Actual: 47 | HIT
+Rob Refsnyder | SEA | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Munetaka Murakami | CWS | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Sam Antonacci | CWS | hitter_fantasy_score MORE 2.5 | Actual: 16 | HIT
+Cal Raleigh | SEA | hitter_fantasy_score MORE 2.5 | Actual: 15 | HIT
+Miguel Vargas | CWS | hitter_fantasy_score MORE 2.5 | Actual: 13 | HIT
+Mitch Garver | SEA | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Drew Romo | CWS | hitter_fantasy_score MORE 1.5 | Actual: 14 | HIT
+Colson Montgomery | CWS | hitter_fantasy_score MORE 1.5 | Actual: 5 | HIT
+Cole Young | SEA | hitter_fantasy_score MORE 1.5 | Actual: 3 | HIT
+Tristan Peters | CWS | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Andrew Benintendi | CWS | hitter_fantasy_score MORE 1.5 | Actual: 3 | HIT
+Jarred Kelenic | CWS | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Leo Rivas | SEA | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+J.P. Crawford | SEA | hitter_fantasy_score MORE 1.5 | Actual: 15 | HIT
+Michael Wacha | KC | pitcher_fantasy_score MORE 35.5 | Actual: 0 | MISS
+Michael Wacha | KC | pitcher_fantasy_score MORE 27.5 | Actual: 0 | MISS
+Michael Wacha | KC | pitcher_fantasy_score MORE 17.5 | Actual: 0 | MISS
+Bobby Witt Jr. | KC | hitter_fantasy_score MORE 12.5 | Actual: 17 | HIT
+Maikel Garcia | KC | hitter_fantasy_score MORE 10.5 | Actual: 5 | MISS
+Riley Greene | DET | hitter_fantasy_score MORE 9.5 | Actual: 3 | MISS
+Vinnie Pasquantino | KC | hitter_fantasy_score MORE 9.5 | Actual: 9 | MISS
+Colt Keith | DET | hitter_fantasy_score MORE 8.5 | Actual: 9 | HIT
+Matt Vierling | DET | hitter_fantasy_score MORE 8.5 | Actual: 3 | MISS
+Salvador Perez | KC | hitter_fantasy_score MORE 8.5 | Actual: 17 | HIT
+Kevin McGonigle | DET | hitter_fantasy_score MORE 8.5 | Actual: 17 | HIT
+Isaac Collins | KC | hitter_fantasy_score MORE 8.5 | Actual: 8 | MISS
+Jac Caglianone | KC | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Kerry Carpenter | DET | hitter_fantasy_score MORE 8.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Wenceel Pérez | DET | hitter_fantasy_score MORE 7.5 | Actual: 5 | MISS
+Michael Massey | KC | hitter_fantasy_score MORE 7.5 | Actual: 0 | MISS
+Kyle Isbel | KC | hitter_fantasy_score MORE 7.5 | Actual: 3 | MISS
+Carter Jensen | KC | hitter_fantasy_score MORE 7.5 | Actual: 8 | HIT
+Spencer Torkelson | DET | hitter_fantasy_score MORE 7.5 | Actual: 2 | MISS
+Bobby Witt Jr. | KC | hitter_fantasy_score MORE 6.5 | Actual: 17 | HIT
+Maikel Garcia | KC | hitter_fantasy_score MORE 6.5 | Actual: 5 | MISS
+Riley Greene | DET | hitter_fantasy_score MORE 5.5 | Actual: 3 | MISS
+Vinnie Pasquantino | KC | hitter_fantasy_score MORE 5.5 | Actual: 9 | HIT
+Hao-Yu Lee | DET | hitter_fantasy_score MORE 5.5 | Actual: 6 | HIT
+Kevin McGonigle | DET | hitter_fantasy_score MORE 5.5 | Actual: 17 | HIT
+Jake Rogers | DET | hitter_fantasy_score MORE 5.5 | Actual: 0 | MISS
+Colt Keith | DET | hitter_fantasy_score MORE 5 | Actual: 9 | HIT
+Matt Vierling | DET | hitter_fantasy_score MORE 5 | Actual: 3 | MISS
+Salvador Perez | KC | hitter_fantasy_score MORE 5 | Actual: 17 | HIT
+Jac Caglianone | KC | hitter_fantasy_score MORE 5 | Actual: 0 | MISS
+Carter Jensen | KC | hitter_fantasy_score MORE 4.5 | Actual: 8 | HIT
+Spencer Torkelson | DET | hitter_fantasy_score MORE 4.5 | Actual: 2 | MISS
+Isaac Collins | KC | hitter_fantasy_score MORE 4.5 | Actual: 8 | HIT
+Kerry Carpenter | DET | hitter_fantasy_score MORE 4.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Wenceel Pérez | DET | hitter_fantasy_score MORE 3.5 | Actual: 5 | HIT
+Bobby Witt Jr. | KC | hitter_fantasy_score MORE 3.5 | Actual: 17 | HIT
+Michael Massey | KC | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Kyle Isbel | KC | hitter_fantasy_score MORE 3.5 | Actual: 3 | MISS
+Maikel Garcia | KC | hitter_fantasy_score MORE 3.5 | Actual: 5 | HIT
+Hao-Yu Lee | DET | hitter_fantasy_score MORE 3 | Actual: 6 | HIT
+Jake Rogers | DET | hitter_fantasy_score MORE 3 | Actual: 0 | MISS
+Riley Greene | DET | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Colt Keith | DET | hitter_fantasy_score MORE 2.5 | Actual: 9 | HIT
+Vinnie Pasquantino | KC | hitter_fantasy_score MORE 2.5 | Actual: 9 | HIT
+Carter Jensen | KC | hitter_fantasy_score MORE 2.5 | Actual: 8 | HIT
+Matt Vierling | DET | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Salvador Perez | KC | hitter_fantasy_score MORE 2.5 | Actual: 17 | HIT
+Kevin McGonigle | DET | hitter_fantasy_score MORE 2.5 | Actual: 17 | HIT
+Isaac Collins | KC | hitter_fantasy_score MORE 2.5 | Actual: 8 | HIT
+Jac Caglianone | KC | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Wenceel Pérez | DET | hitter_fantasy_score MORE 1.5 | Actual: 5 | HIT
+Michael Massey | KC | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Kyle Isbel | KC | hitter_fantasy_score MORE 1.5 | Actual: 3 | HIT
+Hao-Yu Lee | DET | hitter_fantasy_score MORE 1.5 | Actual: 6 | HIT
+Spencer Torkelson | DET | hitter_fantasy_score MORE 1.5 | Actual: 2 | HIT
+Jake Rogers | DET | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Kerry Carpenter | DET | hitter_fantasy_score MORE 1.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Dustin May | STL | pitcher_fantasy_score MORE 33.5 | Actual: 0 | MISS
+Randy Vásquez | SD | pitcher_fantasy_score MORE 32.5 | Actual: 0 | MISS
+Dustin May | STL | pitcher_fantasy_score MORE 26.5 | Actual: 0 | MISS
+Randy Vásquez | SD | pitcher_fantasy_score MORE 24.5 | Actual: 0 | MISS
+Dustin May | STL | pitcher_fantasy_score MORE 18.5 | Actual: 0 | MISS
+Randy Vásquez | SD | pitcher_fantasy_score MORE 17.5 | Actual: 0 | MISS
+Fernando Tatis Jr. | SD | hitter_fantasy_score MORE 10.5 | Actual: 8 | MISS
+Ivan Herrera | STL | hitter_fantasy_score MORE 9.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Jordan Walker | STL | hitter_fantasy_score MORE 9.5 | Actual: 10 | HIT
+Jackson Merrill | SD | hitter_fantasy_score MORE 9.5 | Actual: 0 | MISS
+Alec Burleson | STL | hitter_fantasy_score MORE 9.5 | Actual: 3 | MISS
+JJ Wetherholt | STL | hitter_fantasy_score MORE 9.5 | Actual: 24 | HIT
+Manny Machado | SD | hitter_fantasy_score MORE 9.5 | Actual: 3 | MISS
+Nathan Church | STL | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Gavin Sheets | SD | hitter_fantasy_score MORE 7.5 | Actual: 8 | HIT
+Xander Bogaerts | SD | hitter_fantasy_score MORE 7.5 | Actual: 5 | MISS
+Masyn Winn | STL | hitter_fantasy_score MORE 7.5 | Actual: 3 | MISS
+Nolan Gorman | STL | hitter_fantasy_score MORE 7.5 | Actual: 8 | HIT
+Ramón Laureano | SD | hitter_fantasy_score MORE 6.5 | Actual: 3 | MISS
+Victor Scott II | STL | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Pedro Pagés | STL | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Miguel Andujar | SD | hitter_fantasy_score MORE 6.5 | Actual: 22 | HIT
+Sung-Mun Song | SD | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Ivan Herrera | STL | hitter_fantasy_score MORE 5.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Jordan Walker | STL | hitter_fantasy_score MORE 5.5 | Actual: 10 | HIT
+Jackson Merrill | SD | hitter_fantasy_score MORE 5.5 | Actual: 0 | MISS
+Alec Burleson | STL | hitter_fantasy_score MORE 5.5 | Actual: 3 | MISS
+JJ Wetherholt | STL | hitter_fantasy_score MORE 5.5 | Actual: 24 | HIT
+Fernando Tatis Jr. | SD | hitter_fantasy_score MORE 5.5 | Actual: 8 | HIT
+Manny Machado | SD | hitter_fantasy_score MORE 5.5 | Actual: 3 | MISS
+Freddy Fermin | SD | hitter_fantasy_score MORE 5.5 | Actual: 3 | MISS
+Gavin Sheets | SD | hitter_fantasy_score MORE 5 | Actual: 8 | HIT
+Nathan Church | STL | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Xander Bogaerts | SD | hitter_fantasy_score MORE 4.5 | Actual: 5 | HIT
+Masyn Winn | STL | hitter_fantasy_score MORE 4.5 | Actual: 3 | MISS
+Nolan Gorman | STL | hitter_fantasy_score MORE 4.5 | Actual: 8 | HIT
+Ramón Laureano | SD | hitter_fantasy_score MORE 3.5 | Actual: 3 | MISS
+Pedro Pagés | STL | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Miguel Andujar | SD | hitter_fantasy_score MORE 3.5 | Actual: 22 | HIT
+Victor Scott II | STL | hitter_fantasy_score MORE 3 | Actual: 0 | MISS
+Sung-Mun Song | SD | hitter_fantasy_score MORE 3 | Actual: 0 | MISS
+Freddy Fermin | SD | hitter_fantasy_score MORE 3 | Actual: 3 | PUSH
+Gavin Sheets | SD | hitter_fantasy_score MORE 2.5 | Actual: 8 | HIT
+Ivan Herrera | STL | hitter_fantasy_score MORE 2.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Jordan Walker | STL | hitter_fantasy_score MORE 2.5 | Actual: 10 | HIT
+Jackson Merrill | SD | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Alec Burleson | STL | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+JJ Wetherholt | STL | hitter_fantasy_score MORE 2.5 | Actual: 24 | HIT
+Masyn Winn | STL | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Fernando Tatis Jr. | SD | hitter_fantasy_score MORE 2.5 | Actual: 8 | HIT
+Manny Machado | SD | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Nathan Church | STL | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Ramón Laureano | SD | hitter_fantasy_score MORE 1.5 | Actual: 3 | HIT
+Xander Bogaerts | SD | hitter_fantasy_score MORE 1.5 | Actual: 5 | HIT
+Victor Scott II | STL | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Pedro Pagés | STL | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Miguel Andujar | SD | hitter_fantasy_score MORE 1.5 | Actual: 22 | HIT
+Sung-Mun Song | SD | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Freddy Fermin | SD | hitter_fantasy_score MORE 1.5 | Actual: 3 | HIT
+Nolan Gorman | STL | hitter_fantasy_score MORE 1.5 | Actual: 8 | HIT
+Clay Holmes | NYM | pitcher_fantasy_score MORE 31.5 | Actual: 0 | MISS
+Clay Holmes | NYM | pitcher_fantasy_score MORE 23.5 | Actual: 0 | MISS
+Clay Holmes | NYM | pitcher_fantasy_score MORE 15.5 | Actual: 0 | MISS
+Juan Soto | NYM | hitter_fantasy_score MORE 13.5 | Actual: 10 | MISS
+Bo Bichette | NYM | hitter_fantasy_score MORE 9.5 | Actual: 10 | HIT
+Brett Baty | NYM | hitter_fantasy_score MORE 9.5 | Actual: 8 | MISS
+Carson Benge | NYM | hitter_fantasy_score MORE 9.5 | Actual: 10 | HIT
+Juan Soto | NYM | hitter_fantasy_score MORE 8.5 | Actual: 10 | HIT
+Mark Vientos | NYM | hitter_fantasy_score MORE 8.5 | Actual: 10 | HIT
+Marcus Semien | NYM | hitter_fantasy_score MORE 8.5 | Actual: 3 | MISS
+MJ Melendez | NYM | hitter_fantasy_score MORE 8.5 | Actual: 5 | MISS
+Francisco Alvarez | NYM | hitter_fantasy_score MORE 6.5 | Actual: 10 | HIT
+Luis Torrens | NYM | hitter_fantasy_score MORE 6.5 | Actual: 10 | HIT
+Bo Bichette | NYM | hitter_fantasy_score MORE 5.5 | Actual: 10 | HIT
+Brett Baty | NYM | hitter_fantasy_score MORE 5.5 | Actual: 8 | HIT
+Carson Benge | NYM | hitter_fantasy_score MORE 5.5 | Actual: 10 | HIT
+Marcus Semien | NYM | hitter_fantasy_score MORE 5 | Actual: 3 | MISS
+MJ Melendez | NYM | hitter_fantasy_score MORE 5 | Actual: 5 | PUSH
+Juan Soto | NYM | hitter_fantasy_score MORE 4.5 | Actual: 10 | HIT
+Mark Vientos | NYM | hitter_fantasy_score MORE 4.5 | Actual: 10 | HIT
+Francisco Alvarez | NYM | hitter_fantasy_score MORE 3.5 | Actual: 10 | HIT
+Luis Torrens | NYM | hitter_fantasy_score MORE 3.5 | Actual: 10 | HIT
+Marcus Semien | NYM | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+MJ Melendez | NYM | hitter_fantasy_score MORE 2.5 | Actual: 5 | HIT
+Bo Bichette | NYM | hitter_fantasy_score MORE 2.5 | Actual: 10 | HIT
+Brett Baty | NYM | hitter_fantasy_score MORE 2.5 | Actual: 8 | HIT
+Carson Benge | NYM | hitter_fantasy_score MORE 2.5 | Actual: 10 | HIT
+Mark Vientos | NYM | hitter_fantasy_score MORE 1.5 | Actual: 10 | HIT
+Francisco Alvarez | NYM | hitter_fantasy_score MORE 1.5 | Actual: 10 | HIT
+Luis Torrens | NYM | hitter_fantasy_score MORE 1.5 | Actual: 10 | HIT
+Landen Roupp | SF | pitcher_fantasy_score MORE 38.5 | Actual: 0 | MISS
+Braxton Ashcraft | PIT | pitcher_fantasy_score MORE 36.5 | Actual: 0 | MISS
+Landen Roupp | SF | pitcher_fantasy_score MORE 30.5 | Actual: 0 | MISS
+Braxton Ashcraft | PIT | pitcher_fantasy_score MORE 28.5 | Actual: 0 | MISS
+Landen Roupp | SF | pitcher_fantasy_score MORE 22.5 | Actual: 0 | MISS
+Braxton Ashcraft | PIT | pitcher_fantasy_score MORE 20.5 | Actual: 0 | MISS
+Oneil Cruz | PIT | hitter_fantasy_score MORE 13.5 | Actual: 19 | HIT
+Brandon Lowe | PIT | hitter_fantasy_score MORE 10.5 | Actual: 8 | MISS
+Bryan Reynolds | PIT | hitter_fantasy_score MORE 10.5 | Actual: 8 | MISS
+Jung Hoo Lee | SF | hitter_fantasy_score MORE 9.5 | Actual: 13 | HIT
+Ryan O'Hearn | PIT | hitter_fantasy_score MORE 9.5 | Actual: 0 | MISS
+Rafael Devers | SF | hitter_fantasy_score MORE 9.5 | Actual: 3 | MISS
+Konnor Griffin | PIT | hitter_fantasy_score MORE 8.5 | Actual: 2 | MISS
+Marcell Ozuna | PIT | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Luis Arraez | SF | hitter_fantasy_score MORE 8.5 | Actual: 3 | MISS
+Matt Chapman | SF | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Nick Gonzales | PIT | hitter_fantasy_score MORE 8.5 | Actual: 11 | HIT
+Casey Schmitt | SF | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Willy Adames | SF | hitter_fantasy_score MORE 7.5 | Actual: 8 | HIT
+Spencer Horwitz | PIT | hitter_fantasy_score MORE 7.5 | Actual: 9 | HIT
+Oneil Cruz | PIT | hitter_fantasy_score MORE 7.5 | Actual: 19 | HIT
+Heliot Ramos | SF | hitter_fantasy_score MORE 7.5 | Actual: 8 | HIT
+Brandon Lowe | PIT | hitter_fantasy_score MORE 6.5 | Actual: 8 | HIT
+Bryan Reynolds | PIT | hitter_fantasy_score MORE 6.5 | Actual: 8 | HIT
+Ryan O'Hearn | PIT | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Drew Gilbert | SF | hitter_fantasy_score MORE 6.5 | Actual: 7 | HIT
+Jesus Rodriguez | SF | hitter_fantasy_score MORE 6.5 | Actual: 0 | MISS
+Joey Bart | PIT | hitter_fantasy_score MORE 6.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Jung Hoo Lee | SF | hitter_fantasy_score MORE 5.5 | Actual: 13 | HIT
+Luis Arraez | SF | hitter_fantasy_score MORE 5.5 | Actual: 3 | MISS
+Matt Chapman | SF | hitter_fantasy_score MORE 5.5 | Actual: 0 | MISS
+Rafael Devers | SF | hitter_fantasy_score MORE 5.5 | Actual: 3 | MISS
+Spencer Horwitz | PIT | hitter_fantasy_score MORE 5 | Actual: 9 | HIT
+Nick Gonzales | PIT | hitter_fantasy_score MORE 5 | Actual: 11 | HIT
+Casey Schmitt | SF | hitter_fantasy_score MORE 5 | Actual: 0 | MISS
+Oneil Cruz | PIT | hitter_fantasy_score MORE 4.5 | Actual: 19 | HIT
+Heliot Ramos | SF | hitter_fantasy_score MORE 4.5 | Actual: 8 | HIT
+Konnor Griffin | PIT | hitter_fantasy_score MORE 4.5 | Actual: 2 | MISS
+Marcell Ozuna | PIT | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Willy Adames | SF | hitter_fantasy_score MORE 3.5 | Actual: 8 | HIT
+Brandon Lowe | PIT | hitter_fantasy_score MORE 3.5 | Actual: 8 | HIT
+Bryan Reynolds | PIT | hitter_fantasy_score MORE 3.5 | Actual: 8 | HIT
+Ryan O'Hearn | PIT | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Drew Gilbert | SF | hitter_fantasy_score MORE 3.5 | Actual: 7 | HIT
+Jesus Rodriguez | SF | hitter_fantasy_score MORE 3.5 | Actual: 0 | MISS
+Joey Bart | PIT | hitter_fantasy_score MORE 3.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Spencer Horwitz | PIT | hitter_fantasy_score MORE 2.5 | Actual: 9 | HIT
+Jung Hoo Lee | SF | hitter_fantasy_score MORE 2.5 | Actual: 13 | HIT
+Marcell Ozuna | PIT | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Luis Arraez | SF | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Matt Chapman | SF | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Nick Gonzales | PIT | hitter_fantasy_score MORE 2.5 | Actual: 11 | HIT
+Casey Schmitt | SF | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Rafael Devers | SF | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Willy Adames | SF | hitter_fantasy_score MORE 1.5 | Actual: 8 | HIT
+Heliot Ramos | SF | hitter_fantasy_score MORE 1.5 | Actual: 8 | HIT
+Konnor Griffin | PIT | hitter_fantasy_score MORE 1.5 | Actual: 2 | HIT
+Drew Gilbert | SF | hitter_fantasy_score MORE 1.5 | Actual: 7 | HIT
+Jesus Rodriguez | SF | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Joey Bart | PIT | hitter_fantasy_score MORE 1.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Spencer Strider | ATL | pitcher_fantasy_score MORE 33.5 | Actual: 0 | MISS
+Spencer Strider | ATL | pitcher_fantasy_score MORE 24.5 | Actual: 0 | MISS
+Spencer Strider | ATL | pitcher_fantasy_score MORE 17.5 | Actual: 0 | MISS
+Shohei Ohtani | LAD | hitter_fantasy_score MORE 13.5 | Actual: 22 | HIT
+Freddie Freeman | LAD | hitter_fantasy_score MORE 11.5 | Actual: 9 | MISS
+Matt Olson | ATL | hitter_fantasy_score MORE 11.5 | Actual: 5 | MISS
+Kyle Tucker | LAD | hitter_fantasy_score MORE 10.5 | Actual: 12 | HIT
+Max Muncy | LAD | hitter_fantasy_score MORE 10.5 | Actual: 0 | MISS
+Will Smith | LAD | hitter_fantasy_score MORE 10.5 | Actual: 5 | MISS
+Michael Harris II | ATL | hitter_fantasy_score MORE 10.5 | Actual: 3 | MISS
+Andy Pages | LAD | hitter_fantasy_score MORE 9.5 | Actual: 3 | MISS
+Ozzie Albies | ATL | hitter_fantasy_score MORE 9.5 | Actual: 3 | MISS
+Drake Baldwin | ATL | hitter_fantasy_score MORE 9.5 | Actual: 8 | MISS
+Jorge Mateo | ATL | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Mauricio Dubón | ATL | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Austin Riley | ATL | hitter_fantasy_score MORE 8.5 | Actual: 17 | HIT
+Teoscar Hernández | LAD | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Hyeseong Kim | LAD | hitter_fantasy_score MORE 8.5 | Actual: 0 | MISS
+Sean Murphy | ATL | hitter_fantasy_score MORE 7.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Mike Yastrzemski | ATL | hitter_fantasy_score MORE 7.5 | Actual: 21 | HIT
+Shohei Ohtani | LAD | hitter_fantasy_score MORE 7.5 | Actual: 22 | HIT
+Alex Freeland | LAD | hitter_fantasy_score MORE 7.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Kyle Tucker | LAD | hitter_fantasy_score MORE 6.5 | Actual: 12 | HIT
+Freddie Freeman | LAD | hitter_fantasy_score MORE 6.5 | Actual: 9 | HIT
+Ozzie Albies | ATL | hitter_fantasy_score MORE 5.5 | Actual: 3 | MISS
+Will Smith | LAD | hitter_fantasy_score MORE 5.5 | Actual: 5 | MISS
+Matt Olson | ATL | hitter_fantasy_score MORE 5.5 | Actual: 5 | MISS
+Michael Harris II | ATL | hitter_fantasy_score MORE 5.5 | Actual: 3 | MISS
+Drake Baldwin | ATL | hitter_fantasy_score MORE 5.5 | Actual: 8 | HIT
+Andy Pages | LAD | hitter_fantasy_score MORE 5 | Actual: 3 | MISS
+Austin Riley | ATL | hitter_fantasy_score MORE 5 | Actual: 17 | HIT
+Max Muncy | LAD | hitter_fantasy_score MORE 5 | Actual: 0 | MISS
+Teoscar Hernández | LAD | hitter_fantasy_score MORE 5 | Actual: 0 | MISS
+Jorge Mateo | ATL | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Sean Murphy | ATL | hitter_fantasy_score MORE 4.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Mauricio Dubón | ATL | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Mike Yastrzemski | ATL | hitter_fantasy_score MORE 4.5 | Actual: 21 | HIT
+Hyeseong Kim | LAD | hitter_fantasy_score MORE 4.5 | Actual: 0 | MISS
+Freddie Freeman | LAD | hitter_fantasy_score MORE 3.5 | Actual: 9 | HIT
+Shohei Ohtani | LAD | hitter_fantasy_score MORE 3.5 | Actual: 22 | HIT
+Alex Freeland | LAD | hitter_fantasy_score MORE 3.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Kyle Tucker | LAD | hitter_fantasy_score MORE 2.5 | Actual: 12 | HIT
+Ozzie Albies | ATL | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Mauricio Dubón | ATL | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Mike Yastrzemski | ATL | hitter_fantasy_score MORE 2.5 | Actual: 21 | HIT
+Austin Riley | ATL | hitter_fantasy_score MORE 2.5 | Actual: 17 | HIT
+Max Muncy | LAD | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Teoscar Hernández | LAD | hitter_fantasy_score MORE 2.5 | Actual: 0 | MISS
+Will Smith | LAD | hitter_fantasy_score MORE 2.5 | Actual: 5 | HIT
+Matt Olson | ATL | hitter_fantasy_score MORE 2.5 | Actual: 5 | HIT
+Michael Harris II | ATL | hitter_fantasy_score MORE 2.5 | Actual: 3 | HIT
+Drake Baldwin | ATL | hitter_fantasy_score MORE 2.5 | Actual: 8 | HIT
+Jorge Mateo | ATL | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Andy Pages | LAD | hitter_fantasy_score MORE 1.5 | Actual: 3 | HIT
+Sean Murphy | ATL | hitter_fantasy_score MORE 1.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+Hyeseong Kim | LAD | hitter_fantasy_score MORE 1.5 | Actual: 0 | MISS
+Alex Freeland | LAD | hitter_fantasy_score MORE 1.5 | Actual: NA | PENDING | player_not_found_in_boxscore
+
+Saved JSON: outputs/history/2026-05-12-fantasy-grades.json
+Saved TXT: outputs/history/2026-05-12-fantasy-grades.txt
+
+> mlb-prop-platform@1.0.0 save:history
+> node src/research/save-graded-history.cjs ${npm_config_date:-$(date +%F)} 2026-05-12
+
+saved graded history: data/results/graded-leg-history.json
+new rows: 2
+total rows: 64
+
+> mlb-prop-platform@1.0.0 warehouse:export
+> node src/research/export-historical-warehouse.cjs 2026-05-12
+
+HISTORICAL WAREHOUSE EXPORT
+date: 2026-05-12
+new rows: 0
+total rows: 77
+wrote data/results/prop-warehouse.json
+
+> mlb-prop-platform@1.0.0 clean:warehouse
+> node src/research/clean-warehouse-duplicates.cjs
+
+WAREHOUSE DUPLICATE CLEANER
+---------------------------
+before: 77
+after: 77
+removed: 0
+backup: data/results/prop-warehouse.backup-2026-05-13T11-31-48-030Z.json
+wrote: data/results/prop-warehouse.json
+
+> mlb-prop-platform@1.0.0 warehouse:calibration
+> node src/research/warehouse-calibration-report.cjs
+
+WAREHOUSE CALIBRATION REPORT
+graded rows: 49
+BY PROBABILITY
+┌─────────┬─────────────┬───────┬─────────┬───────────┬───────────────┬─────────┬─────────┬──────┬────────┐
+│ (index) │ bucket      │ count │ avgProb │ predicted │ actualHitRate │ actual  │ error   │ hits │ misses │
+├─────────┼─────────────┼───────┼─────────┼───────────┼───────────────┼─────────┼─────────┼──────┼────────┤
+│ 0       │ '0.60-0.65' │ 10    │ 0.6349  │ '63.5%'   │ 0.5           │ '50.0%' │ '13.5%' │ 5    │ 5      │
+│ 1       │ '0.65-0.70' │ 9     │ 0.669   │ '66.9%'   │ 0.6667        │ '66.7%' │ '0.2%'  │ 6    │ 3      │
+│ 2       │ '0.55-0.60' │ 8     │ 0.5827  │ '58.3%'   │ 0.625         │ '62.5%' │ '4.2%'  │ 5    │ 3      │
+│ 3       │ '0.70-0.75' │ 14    │ 0.737   │ '73.7%'   │ 0.5           │ '50.0%' │ '23.7%' │ 7    │ 7      │
+│ 4       │ '0.50-0.55' │ 2     │ 0.5224  │ '52.2%'   │ 0             │ '0.0%'  │ '52.2%' │ 0    │ 2      │
+│ 5       │ '0.45-0.50' │ 3     │ 0.4669  │ '46.7%'   │ 0.6667        │ '66.7%' │ '20.0%' │ 2    │ 1      │
+│ 6       │ '0.75-0.80' │ 3     │ 0.775   │ '77.5%'   │ 0.6667        │ '66.7%' │ '10.8%' │ 2    │ 1      │
+└─────────┴─────────────┴───────┴─────────┴───────────┴───────────────┴─────────┴─────────┴──────┴────────┘
+BY MARKET
+┌─────────┬──────────────┬───────┬─────────┬───────────┬───────────────┬──────────┬─────────┬──────┬────────┐
+│ (index) │ bucket       │ count │ avgProb │ predicted │ actualHitRate │ actual   │ error   │ hits │ misses │
+├─────────┼──────────────┼───────┼─────────┼───────────┼───────────────┼──────────┼─────────┼──────┼────────┤
+│ 0       │ 'bases MORE' │ 38    │ 0.6746  │ '67.5%'   │ 0.6053        │ '60.5%'  │ '6.9%'  │ 23   │ 15     │
+│ 1       │ 'runs MORE'  │ 5     │ 0.552   │ '55.2%'   │ 0             │ '0.0%'   │ '55.2%' │ 0    │ 5      │
+│ 2       │ 'hits MORE'  │ 1     │ 0.4564  │ '45.6%'   │ 0             │ '0.0%'   │ '45.6%' │ 0    │ 1      │
+│ 3       │ 'hrr LESS'   │ 3     │ 0.775   │ '77.5%'   │ 0.6667        │ '66.7%'  │ '10.8%' │ 2    │ 1      │
+│ 4       │ 'runs LESS'  │ 2     │ 0.4721  │ '47.2%'   │ 1             │ '100.0%' │ '52.8%' │ 2    │ 0      │
+└─────────┴──────────────┴───────┴─────────┴───────────┴───────────────┴──────────┴─────────┴──────┴────────┘
+BY BOOK SUPPORT
+┌─────────┬────────────┬───────┬─────────┬───────────┬───────────────┬──────────┬─────────┬──────┬────────┐
+│ (index) │ bucket     │ count │ avgProb │ predicted │ actualHitRate │ actual   │ error   │ hits │ misses │
+├─────────┼────────────┼───────┼─────────┼───────────┼───────────────┼──────────┼─────────┼──────┼────────┤
+│ 0       │ '4+ books' │ 23    │ 0.6621  │ '66.2%'   │ 0.4783        │ '47.8%'  │ '18.4%' │ 11   │ 12     │
+│ 1       │ '3 books'  │ 23    │ 0.6405  │ '64.1%'   │ 0.5652        │ '56.5%'  │ '7.5%'  │ 13   │ 10     │
+│ 2       │ '2 books'  │ 3     │ 0.72    │ '72.0%'   │ 1             │ '100.0%' │ '28.0%' │ 3    │ 0      │
+└─────────┴────────────┴───────┴─────────┴───────────┴───────────────┴──────────┴─────────┴──────┴────────┘
+Wrote outputs/warehouse-calibration-report.json
+
+> mlb-prop-platform@1.0.0 validation:rules
+> node src/research/build-validation-rules.cjs
+
+VALIDATION RULES
+BY PROB
+┌─────────┬───────────────┬─────────────┬───────┬───────────┬────────┬─────────────────┬────────────────────┬────────────┐
+│ (index) │ type          │ bucket      │ count │ predicted │ actual │ calibrationEdge │ action             │ adjustment │
+├─────────┼───────────────┼─────────────┼───────┼───────────┼────────┼─────────────────┼────────────────────┼────────────┤
+│ 0       │ 'probability' │ '0.60-0.65' │ 10    │ 0.6349    │ 0.5    │ -0.1349         │ 'light-sample'     │ 0          │
+│ 1       │ 'probability' │ '0.65-0.70' │ 9     │ 0.669     │ 0.6667 │ -0.0023         │ 'light-sample'     │ 0          │
+│ 2       │ 'probability' │ '0.55-0.60' │ 8     │ 0.5827    │ 0.625  │ 0.0423          │ 'light-sample'     │ 0          │
+│ 3       │ 'probability' │ '0.70-0.75' │ 14    │ 0.737     │ 0.5    │ -0.237          │ 'light-sample'     │ -0.02      │
+│ 4       │ 'probability' │ '0.50-0.55' │ 2     │ 0.5224    │ 0      │ -0.5224         │ 'sample-too-small' │ 0          │
+│ 5       │ 'probability' │ '0.45-0.50' │ 3     │ 0.4669    │ 0.6667 │ 0.1998          │ 'sample-too-small' │ 0          │
+│ 6       │ 'probability' │ '0.75-0.80' │ 3     │ 0.775     │ 0.6667 │ -0.1083         │ 'sample-too-small' │ 0          │
+└─────────┴───────────────┴─────────────┴───────┴───────────┴────────┴─────────────────┴────────────────────┴────────────┘
+BY MARKET
+┌─────────┬──────────┬──────────────┬───────┬───────────┬────────┬─────────────────┬────────────────────┬────────────┐
+│ (index) │ type     │ bucket       │ count │ predicted │ actual │ calibrationEdge │ action             │ adjustment │
+├─────────┼──────────┼──────────────┼───────┼───────────┼────────┼─────────────────┼────────────────────┼────────────┤
+│ 0       │ 'market' │ 'bases MORE' │ 38    │ 0.6746    │ 0.6053 │ -0.0693         │ 'neutral'          │ 0          │
+│ 1       │ 'market' │ 'runs MORE'  │ 5     │ 0.552     │ 0      │ -0.552          │ 'sample-too-small' │ 0          │
+│ 2       │ 'market' │ 'hits MORE'  │ 1     │ 0.4564    │ 0      │ -0.4564         │ 'sample-too-small' │ 0          │
+│ 3       │ 'market' │ 'hrr LESS'   │ 3     │ 0.775     │ 0.6667 │ -0.1083         │ 'sample-too-small' │ 0          │
+│ 4       │ 'market' │ 'runs LESS'  │ 2     │ 0.4721    │ 1      │ 0.5279          │ 'sample-too-small' │ 0          │
+└─────────┴──────────┴──────────────┴───────┴───────────┴────────┴─────────────────┴────────────────────┴────────────┘
+BY BOOKS
+┌─────────┬─────────┬────────────┬───────┬───────────┬────────┬─────────────────┬────────────────────┬────────────┐
+│ (index) │ type    │ bucket     │ count │ predicted │ actual │ calibrationEdge │ action             │ adjustment │
+├─────────┼─────────┼────────────┼───────┼───────────┼────────┼─────────────────┼────────────────────┼────────────┤
+│ 0       │ 'books' │ '4+ books' │ 23    │ 0.6621    │ 0.4783 │ -0.1838         │ 'medium-sample'    │ -0.025     │
+│ 1       │ 'books' │ '3 books'  │ 23    │ 0.6405    │ 0.5652 │ -0.0753         │ 'medium-sample'    │ 0          │
+│ 2       │ 'books' │ '2 books'  │ 3     │ 0.72      │ 1      │ 0.28            │ 'sample-too-small' │ 0          │
+└─────────┴─────────┴────────────┴───────┴───────────┴────────┴─────────────────┴────────────────────┴────────────┘
+Wrote data/results/validation-rules.json
+
+> mlb-prop-platform@1.0.0 history:intel
+> node src/research/history-intelligence.cjs
+
+HISTORICAL BETTING INTELLIGENCE
+================================
+graded legs: 77
+
+ROI BY MARKET
+┌─────────┬─────────┬───────┬───────────┬─────────┐
+│ (index) │ market  │ count │ roi       │ hitRate │
+├─────────┼─────────┼───────┼───────────┼─────────┤
+│ 0       │ 'bases' │ 60    │ '13.3%'   │ '38.3%' │
+│ 1       │ 'runs'  │ 13    │ '-23.1%'  │ '15.4%' │
+│ 2       │ 'hrr'   │ 3     │ '33.3%'   │ '66.7%' │
+│ 3       │ 'hits'  │ 1     │ '-100.0%' │ '0.0%'  │
+└─────────┴─────────┴───────┴───────────┴─────────┘
+
+ROI BY BOOK SUPPORT
+┌─────────┬───────┬───────┬─────────┬─────────┐
+│ (index) │ books │ count │ roi     │ hitRate │
+├─────────┼───────┼───────┼─────────┼─────────┤
+│ 0       │ '3'   │ 40    │ '7.5%'  │ '32.5%' │
+│ 1       │ '4+'  │ 31    │ '-3.2%' │ '35.5%' │
+│ 2       │ '2'   │ 6     │ '50.0%' │ '50.0%' │
+└─────────┴───────┴───────┴─────────┴─────────┘
+
+CALIBRATION
+┌─────────┬─────────────┬───────┬───────────┬─────────┬─────────┐
+│ (index) │ bucket      │ count │ predicted │ actual  │ error   │
+├─────────┼─────────────┼───────┼───────────┼─────────┼─────────┤
+│ 0       │ '0.60-0.65' │ 24    │ '62.9%'   │ '20.8%' │ '42.1%' │
+│ 1       │ '0.65-0.70' │ 15    │ '67.9%'   │ '40.0%' │ '27.9%' │
+│ 2       │ '0.70-0.75' │ 14    │ '73.7%'   │ '50.0%' │ '23.7%' │
+│ 3       │ '0.55-0.60' │ 13    │ '58.1%'   │ '38.5%' │ '19.7%' │
+│ 4       │ '0.50-0.55' │ 4     │ '52.7%'   │ '0.0%'  │ '52.7%' │
+│ 5       │ '0.45-0.50' │ 4     │ '46.5%'   │ '50.0%' │ '3.5%'  │
+│ 6       │ '0.75-0.80' │ 3     │ '77.5%'   │ '66.7%' │ '10.8%' │
+└─────────┴─────────────┴───────┴───────────┴─────────┴─────────┘
+
+> mlb-prop-platform@1.0.0 market:intel
+> node src/research/market-intelligence.cjs
+
+MARKET INTELLIGENCE
+===================
+graded legs: 49
+
+ROI BY MARKET + SIDE
+┌─────────┬──────────────┬──────┬────────┬───────────┬──────────┬─────────┬─────────┬──────────┐
+│ (index) │ bucket       │ legs │ roi    │ roiPct    │ hitRate  │ avgProb │ avgEdge │ avgBooks │
+├─────────┼──────────────┼──────┼────────┼───────────┼──────────┼─────────┼─────────┼──────────┤
+│ 0       │ 'bases MORE' │ 38   │ 0.2105 │ '21.1%'   │ '60.5%'  │ 0.6746  │ 0.2582  │ 3.53     │
+│ 1       │ 'runs MORE'  │ 5    │ -1     │ '-100.0%' │ '0.0%'   │ 0.552   │ 0.1036  │ 3        │
+│ 2       │ 'hrr LESS'   │ 3    │ 0.3333 │ '33.3%'   │ '66.7%'  │ 0.775   │ 0.193   │ 2.33     │
+│ 3       │ 'runs LESS'  │ 2    │ 1      │ '100.0%'  │ '100.0%' │ 0.4721  │ 0.2802  │ 6        │
+│ 4       │ 'hits MORE'  │ 1    │ -1     │ '-100.0%' │ '0.0%'   │ 0.4564  │ 0.0467  │ 3        │
+└─────────┴──────────────┴──────┴────────┴───────────┴──────────┴─────────┴─────────┴──────────┘
+
+ROI BY BOOK SUPPORT
+┌─────────┬─────────────┬──────┬─────────┬──────────┬──────────┬─────────┬─────────┬──────────┐
+│ (index) │ bucket      │ legs │ roi     │ roiPct   │ hitRate  │ avgProb │ avgEdge │ avgBooks │
+├─────────┼─────────────┼──────┼─────────┼──────────┼──────────┼─────────┼─────────┼──────────┤
+│ 0       │ 'books 3'   │ 23   │ 0.1304  │ '13.0%'  │ '56.5%'  │ 0.6405  │ 0.1967  │ 3        │
+│ 1       │ 'books 4'   │ 21   │ -0.1429 │ '-14.3%' │ '42.9%'  │ 0.6802  │ 0.2795  │ 4        │
+│ 2       │ 'books <=2' │ 3    │ 1       │ '100.0%' │ '100.0%' │ 0.72    │ 0.1866  │ 2        │
+│ 3       │ 'books >=5' │ 2    │ 1       │ '100.0%' │ '100.0%' │ 0.4721  │ 0.2802  │ 6        │
+└─────────┴─────────────┴──────┴─────────┴──────────┴──────────┴─────────┴─────────┴──────────┘
+
+ROI BY PROBABILITY BUCKET
+┌─────────┬─────────────┬──────┬────────┬───────────┬─────────┬─────────┬─────────┬──────────┐
+│ (index) │ bucket      │ legs │ roi    │ roiPct    │ hitRate │ avgProb │ avgEdge │ avgBooks │
+├─────────┼─────────────┼──────┼────────┼───────────┼─────────┼─────────┼─────────┼──────────┤
+│ 0       │ '0.70-0.75' │ 14   │ 0      │ '0.0%'    │ '50.0%' │ 0.737   │ 0.3975  │ 3.79     │
+│ 1       │ '0.60-0.65' │ 10   │ 0      │ '0.0%'    │ '50.0%' │ 0.6349  │ 0.1653  │ 3.4      │
+│ 2       │ '0.65-0.70' │ 9    │ 0.3333 │ '33.3%'   │ '66.7%' │ 0.669   │ 0.2312  │ 3        │
+│ 3       │ '0.55-0.60' │ 8    │ 0.25   │ '25.0%'   │ '62.5%' │ 0.5827  │ 0.1062  │ 3.63     │
+│ 4       │ '0.45-0.50' │ 3    │ 0.3333 │ '33.3%'   │ '66.7%' │ 0.4669  │ 0.2024  │ 5        │
+│ 5       │ '0.75-0.80' │ 3    │ 0.3333 │ '33.3%'   │ '66.7%' │ 0.775   │ 0.193   │ 2.33     │
+│ 6       │ '0.50-0.55' │ 2    │ -1     │ '-100.0%' │ '0.0%'  │ 0.5224  │ 0.0902  │ 3        │
+└─────────┴─────────────┴──────┴────────┴───────────┴─────────┴─────────┴─────────┴──────────┘
+
+ROI BY EDGE BUCKET
+┌─────────┬─────────────┬──────┬─────────┬───────────┬─────────┬─────────┬─────────┬──────────┐
+│ (index) │ bucket      │ legs │ roi     │ roiPct    │ hitRate │ avgProb │ avgEdge │ avgBooks │
+├─────────┼─────────────┼──────┼─────────┼───────────┼─────────┼─────────┼─────────┼──────────┤
+│ 0       │ '>=0.18'    │ 27   │ -0.1111 │ '-11.1%'  │ '44.4%' │ 0.6958  │ 0.3315  │ 3.74     │
+│ 1       │ '0.12-0.18' │ 11   │ 0.8182  │ '81.8%'   │ '90.9%' │ 0.6518  │ 0.1354  │ 2.91     │
+│ 2       │ '0.09-0.12' │ 10   │ 0       │ '0.0%'    │ '50.0%' │ 0.5706  │ 0.103   │ 3.5      │
+│ 3       │ '0.03-0.06' │ 1    │ -1      │ '-100.0%' │ '0.0%'  │ 0.4564  │ 0.0467  │ 3        │
+└─────────┴─────────────┴──────┴─────────┴───────────┴─────────┴─────────┴─────────┴──────────┘
+
+ROI BY SLIP SIZE
+┌─────────┬─────────┬──────┬─────────┬──────────┬─────────┬─────────┬─────────┬──────────┐
+│ (index) │ bucket  │ legs │ roi     │ roiPct   │ hitRate │ avgProb │ avgEdge │ avgBooks │
+├─────────┼─────────┼──────┼─────────┼──────────┼─────────┼─────────┼─────────┼──────────┤
+│ 0       │ '4-leg' │ 14   │ -0.1429 │ '-14.3%' │ '42.9%' │ 0.6609  │ 0.2223  │ 3.29     │
+│ 1       │ '2-leg' │ 11   │ 0.2727  │ '27.3%'  │ '63.6%' │ 0.6509  │ 0.302   │ 4        │
+│ 2       │ '3-leg' │ 11   │ 0.0909  │ '9.1%'   │ '54.5%' │ 0.6772  │ 0.2548  │ 3.36     │
+│ 3       │ '5-leg' │ 7    │ 0.1429  │ '14.3%'  │ '57.1%' │ 0.6516  │ 0.2114  │ 3.57     │
+│ 4       │ '6-leg' │ 6    │ 0.3333  │ '33.3%'  │ '66.7%' │ 0.6164  │ 0.133   │ 3.17     │
+└─────────┴─────────┴──────┴─────────┴──────────┴─────────┴─────────┴─────────┴──────────┘
+
+> mlb-prop-platform@1.0.0 mobile
+> node src/research/mobile-summary.cjs 2026-05-12
+
+MOBILE MLB PROP COMMAND CENTER
+==============================
+Slate date: 2026-05-12
+Playable slips: 1
+Watchlist slips: 1
+Distribution coverage: unknown
+
+BEST VALIDATED SLIP
+-------------------
+2-MAN POWER | status=PLAYABLE | green=2 | neutral=0
+1. Munetaka Murakami | CWS | Kansas City Royals @ Chicago White Sox | runs LESS 0.5 | prob=0.4721 | edge=0.2928 | books=6 | grade=GREEN
+2. Julio Rodríguez | SEA | Seattle Mariners @ Houston Astros | runs LESS 0.5 | prob=0.4721 | edge=0.2677 | books=6 | grade=GREEN
+
+TOP UNIQUE LEGS
+---------------
+1. Munetaka Murakami | CWS | Kansas City Royals @ Chicago White Sox | runs LESS 0.5 | prob=0.4721 | edge=0.2928 | books=6 | grade=GREEN
+2. Julio Rodríguez | SEA | Seattle Mariners @ Houston Astros | runs LESS 0.5 | prob=0.4721 | edge=0.2677 | books=6 | grade=GREEN
+
+CLV SUMMARY
+-----------
+Tracked legs: 2
+Average CLV: 115.50 cents
+Beat close: 100.0%
+
+ROI SUMMARY
+-----------
+Graded legs: 2
+runs: picks=2 hitRate=100.0% roi=100.0%
+
+VALIDATION SAMPLE WARNINGS
+--------------------------
+probability 0.60-0.65: count=10, action=light-sample, edge=-0.1349, heldAdjustment=0.0000
+
+probability 0.65-0.70: count=9, action=light-sample, edge=-0.0023, heldAdjustment=0.0000
+
+probability 0.55-0.60: count=8, action=light-sample, edge=0.0423, heldAdjustment=0.0000
+
+probability 0.70-0.75: count=14, action=light-sample, edge=-0.2370, heldAdjustment=-0.0200
+
+probability 0.50-0.55: count=2, action=sample-too-small, edge=-0.5224, heldAdjustment=0.0000
+
+probability 0.45-0.50: count=3, action=sample-too-small, edge=0.1998, heldAdjustment=0.0000
+
+probability 0.75-0.80: count=3, action=sample-too-small, edge=-0.1083, heldAdjustment=0.0000
+
+market runs MORE: count=5, action=sample-too-small, edge=-0.5520, heldAdjustment=0.0000
+
+
+WARNINGS
+--------
+
+> mlb-prop-platform@1.0.0 official
+> node src/research/official-slip-summary.cjs && npm run audit:final
+
+OFFICIAL SLIP DECISION
+======================
+LEARNING SOURCE: outputs/all-markets-graded.json + outputs/fantasy-graded.json + outputs/graded-props.json + outputs/history.json + outputs/history/2026-05-04-all-markets-graded.json + outputs/history/2026-05-04-fantasy-grades.json + outputs/history/2026-05-04-hrr-graded.json + outputs/history/2026-05-09-fantasy-grades.json + outputs/history/2026-05-10-fantasy-grades.json + outputs/history/2026-05-11-fantasy-grades.json | rows=978
+
+AUDIT
+-----
+Total legs considered: 2
+GREEN: 2
+NEUTRAL: 0
+SUPPRESSED: 0
+Grade counts:
+  GREEN: 2
+Market counts:
+  runs_LESS: 2
+Non-playable reason counts:
+  none
+
+STATUS: PLAYABLE
+REASON: 2+ GREEN legs available after learning suppression
+1. Munetaka Murakami | CWS | runs LESS 0.5 | prob=0.4721 | edge=0.2928 | grade=GREEN
+2. Julio Rodríguez | SEA | runs LESS 0.5 | prob=0.4721 | edge=0.2677 | grade=GREEN
+
+BEST PLAYABLE SLIP
+------------------
+2-MAN POWER | legs=2 | green=2 | correlation=OK | score=0.2923
+  1. Munetaka Murakami | CWS | runs LESS 0.5 | edge=0.2928 | grade=GREEN | books=6
+  2. Julio Rodríguez | SEA | runs LESS 0.5 | edge=0.2677 | grade=GREEN | books=6
+
+ALL PLAYABLE SLIPS RANKED
+-------------------------
+1. 2-MAN POWER | legs=2 | green=2 | correlation=OK | score=0.2923
+   1. Munetaka Murakami | CWS | runs LESS 0.5 | edge=0.2928 | grade=GREEN | books=6
+   2. Julio Rodríguez | SEA | runs LESS 0.5 | edge=0.2677 | grade=GREEN | books=6
+
+Wrote outputs/official-slip.json
+Wrote outputs/official-slip.txt
+POST-FILTER official slips: 1
+
+> mlb-prop-platform@1.0.0 audit:final
+> node src/research/final-audit.cjs
+
+FINAL AUDIT
+===========
+Final legs: 4
+Playable slips: 1
+HRR MORE legs: 0
+Fantasy legs: 0
+Suppressed legs: 0
+AUDIT PASSED
+
+> mlb-prop-platform@1.0.0 learn:phase6:all
+> npm run learn:phase5 && npm run learn:phase6 && npm run learn:phase6:regime && npm run learn:phase6:exposure && npm run learn:phase6:features && npm run learn:phase6:reactivation && npm run phase6:dashboard
+
+
+> mlb-prop-platform@1.0.0 learn:phase5
+> node src/research/phase5-learning-engine.cjs
+
+PHASE 5 LEARNING BUILT
+graded rows: 9660
+market groups: 16
+┌─────────┬──────────────────────────────┬────────┬─────────┬──────────────┬────────┐
+│ (index) │ key                          │ sample │ hitRate │ action       │ weight │
+├─────────┼──────────────────────────────┼────────┼─────────┼──────────────┼────────┤
+│ 0       │ 'strikeouts_MORE'            │ 214    │ 0.0841  │ 'SUPPRESS'   │ 0      │
+│ 1       │ 'bases_MORE'                 │ 340    │ 0.5     │ 'DOWNWEIGHT' │ 0.75   │
+│ 2       │ 'hits_MORE'                  │ 188    │ 0.5691  │ 'ALLOW'      │ 1      │
+│ 3       │ 'hrr_LESS'                   │ 1708   │ 0.8443  │ 'BOOST'      │ 1.08   │
+│ 4       │ 'hrr_MORE'                   │ 1181   │ 0.503   │ 'DOWNWEIGHT' │ 0.75   │
+│ 5       │ 'pitcher_fantasy_score_MORE' │ 287    │ 0.1289  │ 'SUPPRESS'   │ 0      │
+│ 6       │ 'hitter_fantasy_score_MORE'  │ 3557   │ 0.44    │ 'SUPPRESS'   │ 0      │
+│ 7       │ 'pitching_outs_LESS'         │ 22     │ 0.3636  │ 'ALLOW'      │ 1      │
+│ 8       │ 'bases_LESS'                 │ 758    │ 0.7665  │ 'BOOST'      │ 1.08   │
+│ 9       │ 'strikeouts_LESS'            │ 342    │ 0.9327  │ 'BOOST'      │ 1.08   │
+│ 10      │ 'hits_LESS'                  │ 275    │ 0.8364  │ 'BOOST'      │ 1.08   │
+│ 11      │ 'walks_allowed_LESS'         │ 42     │ 0.5714  │ 'ALLOW'      │ 1      │
+│ 12      │ 'rbis_LESS'                  │ 325    │ 0.88    │ 'BOOST'      │ 1.08   │
+│ 13      │ 'runs_LESS'                  │ 222    │ 0.8378  │ 'BOOST'      │ 1.08   │
+│ 14      │ 'rbis_MORE'                  │ 94     │ 0.3191  │ 'SUPPRESS'   │ 0      │
+│ 15      │ 'runs_MORE'                  │ 105    │ 0.3524  │ 'SUPPRESS'   │ 0      │
+└─────────┴──────────────────────────────┴────────┴─────────┴──────────────┴────────┘
+
+> mlb-prop-platform@1.0.0 learn:phase6
+> node src/research/phase6-calibration-engine.cjs
+
+PHASE 6 CALIBRATION / SHRINKAGE BUILT
+graded rows: 9660
+┌─────────┬──────────────────────────────┬────────┬─────────┬─────────┬─────────┬──────────┬────────────────┐
+│ (index) │ key                          │ sample │ hitRate │ avgProb │ bias    │ trust    │ edgeMultiplier │
+├─────────┼──────────────────────────────┼────────┼─────────┼─────────┼─────────┼──────────┼────────────────┤
+│ 0       │ 'strikeouts_MORE'            │ 214    │ 0.0841  │ 0.6605  │ -0.5764 │ 'BAD'    │ 0.45           │
+│ 1       │ 'bases_MORE'                 │ 340    │ 0.5     │ 0.73    │ -0.23   │ 'WEAK'   │ 0.7            │
+│ 2       │ 'hits_MORE'                  │ 188    │ 0.5691  │ 0.6425  │ -0.0734 │ 'OK'     │ 1              │
+│ 3       │ 'hrr_LESS'                   │ 1708   │ 0.8443  │ 0.6643  │ 0.18    │ 'STRONG' │ 1.08           │
+│ 4       │ 'hrr_MORE'                   │ 1181   │ 0.503   │ 0.6247  │ -0.1217 │ 'WEAK'   │ 0.7            │
+│ 5       │ 'pitcher_fantasy_score_MORE' │ 287    │ 0.1289  │ null    │ null    │ 'BAD'    │ 0.45           │
+│ 6       │ 'hitter_fantasy_score_MORE'  │ 3557   │ 0.44    │ null    │ null    │ 'BAD'    │ 0.45           │
+│ 7       │ 'pitching_outs_LESS'         │ 22     │ 0.3636  │ null    │ null    │ 'BAD'    │ 0.45           │
+│ 8       │ 'bases_LESS'                 │ 758    │ 0.7665  │ null    │ null    │ 'STRONG' │ 1.08           │
+│ 9       │ 'strikeouts_LESS'            │ 342    │ 0.9327  │ null    │ null    │ 'STRONG' │ 1.08           │
+│ 10      │ 'hits_LESS'                  │ 275    │ 0.8364  │ null    │ null    │ 'STRONG' │ 1.08           │
+│ 11      │ 'walks_allowed_LESS'         │ 42     │ 0.5714  │ null    │ null    │ 'OK'     │ 1              │
+│ 12      │ 'rbis_LESS'                  │ 325    │ 0.88    │ null    │ null    │ 'STRONG' │ 1.08           │
+│ 13      │ 'runs_LESS'                  │ 222    │ 0.8378  │ null    │ null    │ 'STRONG' │ 1.08           │
+│ 14      │ 'rbis_MORE'                  │ 94     │ 0.3191  │ null    │ null    │ 'BAD'    │ 0.45           │
+│ 15      │ 'runs_MORE'                  │ 105    │ 0.3524  │ null    │ null    │ 'BAD'    │ 0.45           │
+└─────────┴──────────────────────────────┴────────┴─────────┴─────────┴─────────┴──────────┴────────────────┘
+
+> mlb-prop-platform@1.0.0 learn:phase6:regime
+> node src/research/phase6-regime-engine.cjs
+
+PHASE 6 REGIME DETECTION BUILT
+graded rows: 9660
+┌─────────┬──────────────────────────────┬───────────────────┬─────────────────┬────────┬────────┬────────┐
+│ (index) │ key                          │ action            │ scoreMultiplier │ d3     │ d7     │ d14    │
+├─────────┼──────────────────────────────┼───────────────────┼─────────────────┼────────┼────────┼────────┤
+│ 0       │ 'strikeouts_MORE'            │ 'TIGHTEN'         │ 0.7             │ 0      │ 0      │ 0.0841 │
+│ 1       │ 'bases_MORE'                 │ 'BOOST_RECENT'    │ 1.05            │ 0.7    │ 0.7    │ 0.5    │
+│ 2       │ 'hits_MORE'                  │ 'ALLOW'           │ 1               │ 1      │ 1      │ 0.5691 │
+│ 3       │ 'hrr_LESS'                   │ 'BOOST_RECENT'    │ 1.05            │ 0.8547 │ 0.8547 │ 0.8443 │
+│ 4       │ 'hrr_MORE'                   │ 'ALLOW'           │ 1               │ 0.5025 │ 0.5025 │ 0.503  │
+│ 5       │ 'pitcher_fantasy_score_MORE' │ 'SUPPRESS_RECENT' │ 0.45            │ 0.0636 │ 0.1416 │ 0.1289 │
+│ 6       │ 'hitter_fantasy_score_MORE'  │ 'TIGHTEN'         │ 0.7             │ 0.4384 │ 0.4406 │ 0.44   │
+│ 7       │ 'pitching_outs_LESS'         │ 'TIGHTEN'         │ 0.7             │ null   │ null   │ 0.3636 │
+│ 8       │ 'bases_LESS'                 │ 'ALLOW'           │ 1               │ null   │ null   │ 0.7665 │
+│ 9       │ 'strikeouts_LESS'            │ 'ALLOW'           │ 1               │ null   │ null   │ 0.9327 │
+│ 10      │ 'hits_LESS'                  │ 'ALLOW'           │ 1               │ null   │ null   │ 0.8364 │
+│ 11      │ 'walks_allowed_LESS'         │ 'ALLOW'           │ 1               │ null   │ null   │ 0.5714 │
+│ 12      │ 'rbis_LESS'                  │ 'ALLOW'           │ 1               │ null   │ null   │ 0.88   │
+│ 13      │ 'runs_LESS'                  │ 'ALLOW'           │ 1               │ null   │ null   │ 0.8378 │
+│ 14      │ 'rbis_MORE'                  │ 'TIGHTEN'         │ 0.7             │ null   │ null   │ 0.3191 │
+│ 15      │ 'runs_MORE'                  │ 'TIGHTEN'         │ 0.7             │ null   │ null   │ 0.3524 │
+└─────────┴──────────────────────────────┴───────────────────┴─────────────────┴────────┴────────┴────────┘
+
+> mlb-prop-platform@1.0.0 learn:phase6:exposure
+> node src/research/phase6-exposure-governor.cjs
+
+PHASE 6 EXPOSURE GOVERNOR BUILT
+┌─────────┬──────────┬───────────┬─────────────┬─────────────────┬───────────┬─────────────────┬─────────────┬─────────────────┬───────────────┬────────────────┬───────────────────────────────────────┐
+│ (index) │ playable │ greenRate │ neutralRate │ marketSideShare │ teamShare │ riskLevel       │ maxSlipSize │ scoreMultiplier │ maxSameMarket │ maxSameSidePct │ reasons                               │
+├─────────┼──────────┼───────────┼─────────────┼─────────────────┼───────────┼─────────────────┼─────────────┼─────────────────┼───────────────┼────────────────┼───────────────────────────────────────┤
+│ 0       │ 5960     │ 0.3644    │ 0.6356      │ 0.1616          │ 0.0398    │ 'NEUTRAL_HEAVY' │ 3           │ 0.6375          │ 3             │ 0.85           │ 'low green rate, neutral-heavy board' │
+└─────────┴──────────┴───────────┴─────────────┴─────────────────┴───────────┴─────────────────┴─────────────┴─────────────────┴───────────────┴────────────────┴───────────────────────────────────────┘
+
+> mlb-prop-platform@1.0.0 learn:phase6:features
+> node src/research/phase6-feature-attribution.cjs
+
+PHASE 6 FEATURE ATTRIBUTION BUILT
+graded rows: 9660
+┌─────────┬───────────────┬──────────────────────────────┬────────┬─────────┬────────────────────┬────────┐
+│ (index) │ feature       │ value                        │ sample │ hitRate │ action             │ weight │
+├─────────┼───────────────┼──────────────────────────────┼────────┼─────────┼────────────────────┼────────┤
+│ 0       │ 'side'        │ 'MORE'                       │ 5966   │ 0.4288  │ 'SUPPRESS_FEATURE' │ 0.7    │
+│ 1       │ 'side'        │ 'LESS'                       │ 3694   │ 0.8327  │ 'BOOST'            │ 1.06   │
+│ 2       │ 'market_side' │ 'hitter_fantasy_score_MORE'  │ 3557   │ 0.44    │ 'SUPPRESS_FEATURE' │ 0.7    │
+│ 3       │ 'market'      │ 'hitter_fantasy_score'       │ 3557   │ 0.44    │ 'SUPPRESS_FEATURE' │ 0.7    │
+│ 4       │ 'market'      │ 'hrr'                        │ 2889   │ 0.7047  │ 'BOOST'            │ 1.06   │
+│ 5       │ 'market_side' │ 'hrr_LESS'                   │ 1708   │ 0.8443  │ 'BOOST'            │ 1.06   │
+│ 6       │ 'confidence'  │ 'elite'                      │ 1254   │ 0.7656  │ 'BOOST'            │ 1.06   │
+│ 7       │ 'market_side' │ 'hrr_MORE'                   │ 1181   │ 0.503   │ 'DOWNWEIGHT'       │ 0.88   │
+│ 8       │ 'market'      │ 'bases'                      │ 1098   │ 0.684   │ 'BOOST'            │ 1.06   │
+│ 9       │ 'market_side' │ 'bases_LESS'                 │ 758    │ 0.7665  │ 'BOOST'            │ 1.06   │
+│ 10      │ 'prob_bucket' │ '.55-.60'                    │ 721    │ 0.6075  │ 'ALLOW'            │ 1      │
+│ 11      │ 'market'      │ 'strikeouts'                 │ 556    │ 0.6061  │ 'ALLOW'            │ 1      │
+│ 12      │ 'market'      │ 'hits'                       │ 463    │ 0.7279  │ 'BOOST'            │ 1.06   │
+│ 13      │ 'market'      │ 'rbis'                       │ 419    │ 0.7542  │ 'BOOST'            │ 1.06   │
+│ 14      │ 'prob_bucket' │ '.75+'                       │ 353    │ 0.7847  │ 'BOOST'            │ 1.06   │
+│ 15      │ 'market_side' │ 'strikeouts_LESS'            │ 342    │ 0.9327  │ 'BOOST'            │ 1.06   │
+│ 16      │ 'market_side' │ 'bases_MORE'                 │ 340    │ 0.5     │ 'DOWNWEIGHT'       │ 0.88   │
+│ 17      │ 'confidence'  │ '3'                          │ 335    │ 0.8955  │ 'BOOST'            │ 1.06   │
+│ 18      │ 'market'      │ 'runs'                       │ 327    │ 0.682   │ 'BOOST'            │ 1.06   │
+│ 19      │ 'market_side' │ 'rbis_LESS'                  │ 325    │ 0.88    │ 'BOOST'            │ 1.06   │
+│ 20      │ 'prob_bucket' │ '.60-.65'                    │ 300    │ 0.69    │ 'BOOST'            │ 1.06   │
+│ 21      │ 'prob_bucket' │ '.65-.70'                    │ 292    │ 0.8082  │ 'BOOST'            │ 1.06   │
+│ 22      │ 'market_side' │ 'pitcher_fantasy_score_MORE' │ 287    │ 0.1289  │ 'SUPPRESS_FEATURE' │ 0.7    │
+│ 23      │ 'market'      │ 'pitcher_fantasy_score'      │ 287    │ 0.1289  │ 'SUPPRESS_FEATURE' │ 0.7    │
+│ 24      │ 'market_side' │ 'hits_LESS'                  │ 275    │ 0.8364  │ 'BOOST'            │ 1.06   │
+└─────────┴───────────────┴──────────────────────────────┴────────┴─────────┴────────────────────┴────────┘
+
+> mlb-prop-platform@1.0.0 learn:phase6:reactivation
+> node src/research/phase6-reactivation-engine.cjs
+
+PHASE 6 REACTIVATION BUILT
+┌─────────┬──────────────────────────────┬────────┬─────────┬──────┬────────────────────┐
+│ (index) │ key                          │ sample │ hitRate │ d7   │ reactivation       │
+├─────────┼──────────────────────────────┼────────┼─────────┼──────┼────────────────────┤
+│ 0       │ 'strikeouts_MORE'            │ 214    │ 0.0841  │ null │ 'KEEP_SUPPRESSED'  │
+│ 1       │ 'bases_MORE'                 │ 340    │ 0.5     │ null │ 'REACTIVATE_WATCH' │
+│ 2       │ 'hits_MORE'                  │ 188    │ 0.5691  │ null │ 'REACTIVATE_FULL'  │
+│ 3       │ 'hrr_LESS'                   │ 1708   │ 0.8443  │ null │ 'REACTIVATE_FULL'  │
+│ 4       │ 'hrr_MORE'                   │ 1181   │ 0.503   │ null │ 'REACTIVATE_WATCH' │
+│ 5       │ 'pitcher_fantasy_score_MORE' │ 287    │ 0.1289  │ null │ 'KEEP_SUPPRESSED'  │
+│ 6       │ 'hitter_fantasy_score_MORE'  │ 3557   │ 0.44    │ null │ 'KEEP_SUPPRESSED'  │
+│ 7       │ 'pitching_outs_LESS'         │ 22     │ 0.3636  │ null │ 'NO_ACTION'        │
+│ 8       │ 'bases_LESS'                 │ 758    │ 0.7665  │ null │ 'REACTIVATE_FULL'  │
+│ 9       │ 'strikeouts_LESS'            │ 342    │ 0.9327  │ null │ 'REACTIVATE_FULL'  │
+│ 10      │ 'hits_LESS'                  │ 275    │ 0.8364  │ null │ 'REACTIVATE_FULL'  │
+│ 11      │ 'walks_allowed_LESS'         │ 42     │ 0.5714  │ null │ 'NO_ACTION'        │
+│ 12      │ 'rbis_LESS'                  │ 325    │ 0.88    │ null │ 'REACTIVATE_FULL'  │
+│ 13      │ 'runs_LESS'                  │ 222    │ 0.8378  │ null │ 'REACTIVATE_FULL'  │
+│ 14      │ 'rbis_MORE'                  │ 94     │ 0.3191  │ null │ 'KEEP_SUPPRESSED'  │
+│ 15      │ 'runs_MORE'                  │ 105    │ 0.3524  │ null │ 'KEEP_SUPPRESSED'  │
+└─────────┴──────────────────────────────┴────────┴─────────┴──────┴────────────────────┘
+
+> mlb-prop-platform@1.0.0 phase6:dashboard
+> node src/research/phase6-dashboard-report.cjs
+
+PHASE 6 ADAPTIVE INTELLIGENCE DASHBOARD
+=======================================
+Generated: 2026-05-13T11:32:04.245Z
+
+Exposure Governor
+-----------------
+Risk Level: NEUTRAL_HEAVY
+Reasons: low green rate, neutral-heavy board
+Max Slip Size: 3
+Score Multiplier: 0.6375
+
+Suppressed / Downweighted Markets
+---------------------------------
+market:strikeouts_MORE | sample=214 | hitRate=0.0841 | action=SUPPRESS | weight=0
+market:pitcher_fantasy_score_MORE | sample=287 | hitRate=0.1289 | action=SUPPRESS | weight=0
+market:hitter_fantasy_score_MORE | sample=3557 | hitRate=0.44 | action=SUPPRESS | weight=0
+market:rbis_MORE | sample=94 | hitRate=0.3191 | action=SUPPRESS | weight=0
+market:runs_MORE | sample=105 | hitRate=0.3524 | action=SUPPRESS | weight=0
+market:bases_MORE | sample=340 | hitRate=0.5 | action=DOWNWEIGHT | weight=0.75
+market:hrr_MORE | sample=1181 | hitRate=0.503 | action=DOWNWEIGHT | weight=0.75
+
+Boosted Markets
+---------------
+market:hrr_LESS | sample=1708 | hitRate=0.8443 | action=BOOST | weight=1.08
+market:bases_LESS | sample=758 | hitRate=0.7665 | action=BOOST | weight=1.08
+market:strikeouts_LESS | sample=342 | hitRate=0.9327 | action=BOOST | weight=1.08
+market:hits_LESS | sample=275 | hitRate=0.8364 | action=BOOST | weight=1.08
+market:rbis_LESS | sample=325 | hitRate=0.88 | action=BOOST | weight=1.08
+market:runs_LESS | sample=222 | hitRate=0.8378 | action=BOOST | weight=1.08
+
+Weak / Tightened Regimes
+------------------------
+
+Top Positive Features
+---------------------
+market_side:strikeouts_LESS | sample=342 | hitRate=0.9327 | action=BOOST | weight=1.06
+confidence:3 | sample=335 | hitRate=0.8955 | action=BOOST | weight=1.06
+market_side:rbis_LESS | sample=325 | hitRate=0.88 | action=BOOST | weight=1.06
+market_side:hrr_LESS | sample=1708 | hitRate=0.8443 | action=BOOST | weight=1.06
+market_side:runs_LESS | sample=222 | hitRate=0.8378 | action=BOOST | weight=1.06
+market_side:hits_LESS | sample=275 | hitRate=0.8364 | action=BOOST | weight=1.06
+side:LESS | sample=3694 | hitRate=0.8327 | action=BOOST | weight=1.06
+prob_bucket:.70-.75 | sample=182 | hitRate=0.8187 | action=BOOST | weight=1.06
+prob_bucket:.65-.70 | sample=292 | hitRate=0.8082 | action=BOOST | weight=1.06
+prob_bucket:.75+ | sample=353 | hitRate=0.7847 | action=BOOST | weight=1.06
+market_side:bases_LESS | sample=758 | hitRate=0.7665 | action=BOOST | weight=1.06
+confidence:elite | sample=1254 | hitRate=0.7656 | action=BOOST | weight=1.06
+market:rbis | sample=419 | hitRate=0.7542 | action=BOOST | weight=1.06
+market:hits | sample=463 | hitRate=0.7279 | action=BOOST | weight=1.06
+market:hrr | sample=2889 | hitRate=0.7047 | action=BOOST | weight=1.06
+prob_bucket:.60-.65 | sample=300 | hitRate=0.69 | action=BOOST | weight=1.06
+market:bases | sample=1098 | hitRate=0.684 | action=BOOST | weight=1.06
+market:runs | sample=327 | hitRate=0.682 | action=BOOST | weight=1.06
+confidence:strong | sample=211 | hitRate=0.6493 | action=BOOST | weight=1.06
+confidence:playable | sample=167 | hitRate=0.6108 | action=ALLOW | weight=1
+
+Top Negative Features
+---------------------
+market_side:strikeouts_MORE | sample=214 | hitRate=0.0841 | action=SUPPRESS_FEATURE | weight=0.7
+market_side:pitcher_fantasy_score_MORE | sample=287 | hitRate=0.1289 | action=SUPPRESS_FEATURE | weight=0.7
+market:pitcher_fantasy_score | sample=287 | hitRate=0.1289 | action=SUPPRESS_FEATURE | weight=0.7
+market_side:rbis_MORE | sample=94 | hitRate=0.3191 | action=SUPPRESS_FEATURE | weight=0.7
+market_side:runs_MORE | sample=105 | hitRate=0.3524 | action=SUPPRESS_FEATURE | weight=0.7
+side:MORE | sample=5966 | hitRate=0.4288 | action=SUPPRESS_FEATURE | weight=0.7
+market_side:hitter_fantasy_score_MORE | sample=3557 | hitRate=0.44 | action=SUPPRESS_FEATURE | weight=0.7
+market:hitter_fantasy_score | sample=3557 | hitRate=0.44 | action=SUPPRESS_FEATURE | weight=0.7
+confidence:1 | sample=156 | hitRate=0.4551 | action=SUPPRESS_FEATURE | weight=0.7
+confidence:pass | sample=150 | hitRate=0.48 | action=DOWNWEIGHT | weight=0.88
+market_side:bases_MORE | sample=340 | hitRate=0.5 | action=DOWNWEIGHT | weight=0.88
+prob_bucket:<.55 | sample=68 | hitRate=0.5 | action=ALLOW | weight=1
+market_side:hrr_MORE | sample=1181 | hitRate=0.503 | action=DOWNWEIGHT | weight=0.88
+confidence:lean | sample=134 | hitRate=0.5224 | action=DOWNWEIGHT | weight=0.88
+market_side:hits_MORE | sample=188 | hitRate=0.5691 | action=ALLOW | weight=1
+market_side:walks_allowed_LESS | sample=42 | hitRate=0.5714 | action=ALLOW | weight=1
+market:walks_allowed | sample=42 | hitRate=0.5714 | action=ALLOW | weight=1
+market:strikeouts | sample=556 | hitRate=0.6061 | action=ALLOW | weight=1
+prob_bucket:.55-.60 | sample=721 | hitRate=0.6075 | action=ALLOW | weight=1
+confidence:playable | sample=167 | hitRate=0.6108 | action=ALLOW | weight=1
+
+Reactivation Watch
+------------------
+bases_MORE | sample=340 | hitRate=0.5 | d7=null | REACTIVATE_WATCH
+hits_MORE | sample=188 | hitRate=0.5691 | d7=null | REACTIVATE_FULL
+hrr_LESS | sample=1708 | hitRate=0.8443 | d7=null | REACTIVATE_FULL
+hrr_MORE | sample=1181 | hitRate=0.503 | d7=null | REACTIVATE_WATCH
+bases_LESS | sample=758 | hitRate=0.7665 | d7=null | REACTIVATE_FULL
+strikeouts_LESS | sample=342 | hitRate=0.9327 | d7=null | REACTIVATE_FULL
+hits_LESS | sample=275 | hitRate=0.8364 | d7=null | REACTIVATE_FULL
+rbis_LESS | sample=325 | hitRate=0.88 | d7=null | REACTIVATE_FULL
+runs_LESS | sample=222 | hitRate=0.8378 | d7=null | REACTIVATE_FULL
+
+Wrote outputs/phase6-dashboard.txt
+
+==============================
+OFFICIAL SLIP
+==============================
+OFFICIAL PLAYABLE SLIPS
+=======================
+
+2-MAN POWER | status=PLAYABLE | green=2 | correlation=OK
+1. Munetaka Murakami | CWS | runs LESS 0.5 | edge=0.2928 | grade=GREEN | books=6
+2. Julio Rodríguez | SEA | runs LESS 0.5 | edge=0.2677 | grade=GREEN | books=6
+
+
+==============================
+PHASE 6 DASHBOARD
+==============================
+PHASE 6 ADAPTIVE INTELLIGENCE DASHBOARD
+=======================================
+Generated: 2026-05-13T11:32:04.245Z
+
+Exposure Governor
+-----------------
+Risk Level: NEUTRAL_HEAVY
+Reasons: low green rate, neutral-heavy board
+Max Slip Size: 3
+Score Multiplier: 0.6375
+
+Suppressed / Downweighted Markets
+---------------------------------
+market:strikeouts_MORE | sample=214 | hitRate=0.0841 | action=SUPPRESS | weight=0
+market:pitcher_fantasy_score_MORE | sample=287 | hitRate=0.1289 | action=SUPPRESS | weight=0
+market:hitter_fantasy_score_MORE | sample=3557 | hitRate=0.44 | action=SUPPRESS | weight=0
+market:rbis_MORE | sample=94 | hitRate=0.3191 | action=SUPPRESS | weight=0
+market:runs_MORE | sample=105 | hitRate=0.3524 | action=SUPPRESS | weight=0
+market:bases_MORE | sample=340 | hitRate=0.5 | action=DOWNWEIGHT | weight=0.75
+market:hrr_MORE | sample=1181 | hitRate=0.503 | action=DOWNWEIGHT | weight=0.75
+
+Boosted Markets
+---------------
+market:hrr_LESS | sample=1708 | hitRate=0.8443 | action=BOOST | weight=1.08
+market:bases_LESS | sample=758 | hitRate=0.7665 | action=BOOST | weight=1.08
+market:strikeouts_LESS | sample=342 | hitRate=0.9327 | action=BOOST | weight=1.08
+market:hits_LESS | sample=275 | hitRate=0.8364 | action=BOOST | weight=1.08
+market:rbis_LESS | sample=325 | hitRate=0.88 | action=BOOST | weight=1.08
+market:runs_LESS | sample=222 | hitRate=0.8378 | action=BOOST | weight=1.08
+
+Weak / Tightened Regimes
+------------------------
+
+Top Positive Features
+---------------------
+market_side:strikeouts_LESS | sample=342 | hitRate=0.9327 | action=BOOST | weight=1.06
+confidence:3 | sample=335 | hitRate=0.8955 | action=BOOST | weight=1.06
+market_side:rbis_LESS | sample=325 | hitRate=0.88 | action=BOOST | weight=1.06
+market_side:hrr_LESS | sample=1708 | hitRate=0.8443 | action=BOOST | weight=1.06
+market_side:runs_LESS | sample=222 | hitRate=0.8378 | action=BOOST | weight=1.06
+market_side:hits_LESS | sample=275 | hitRate=0.8364 | action=BOOST | weight=1.06
+side:LESS | sample=3694 | hitRate=0.8327 | action=BOOST | weight=1.06
+prob_bucket:.70-.75 | sample=182 | hitRate=0.8187 | action=BOOST | weight=1.06
+prob_bucket:.65-.70 | sample=292 | hitRate=0.8082 | action=BOOST | weight=1.06
+prob_bucket:.75+ | sample=353 | hitRate=0.7847 | action=BOOST | weight=1.06
+market_side:bases_LESS | sample=758 | hitRate=0.7665 | action=BOOST | weight=1.06
+confidence:elite | sample=1254 | hitRate=0.7656 | action=BOOST | weight=1.06
+market:rbis | sample=419 | hitRate=0.7542 | action=BOOST | weight=1.06
+market:hits | sample=463 | hitRate=0.7279 | action=BOOST | weight=1.06
+market:hrr | sample=2889 | hitRate=0.7047 | action=BOOST | weight=1.06
+prob_bucket:.60-.65 | sample=300 | hitRate=0.69 | action=BOOST | weight=1.06
+market:bases | sample=1098 | hitRate=0.684 | action=BOOST | weight=1.06
+market:runs | sample=327 | hitRate=0.682 | action=BOOST | weight=1.06
+confidence:strong | sample=211 | hitRate=0.6493 | action=BOOST | weight=1.06
+confidence:playable | sample=167 | hitRate=0.6108 | action=ALLOW | weight=1
+
+Top Negative Features
+---------------------
+market_side:strikeouts_MORE | sample=214 | hitRate=0.0841 | action=SUPPRESS_FEATURE | weight=0.7
+market_side:pitcher_fantasy_score_MORE | sample=287 | hitRate=0.1289 | action=SUPPRESS_FEATURE | weight=0.7
+market:pitcher_fantasy_score | sample=287 | hitRate=0.1289 | action=SUPPRESS_FEATURE | weight=0.7
+market_side:rbis_MORE | sample=94 | hitRate=0.3191 | action=SUPPRESS_FEATURE | weight=0.7
+market_side:runs_MORE | sample=105 | hitRate=0.3524 | action=SUPPRESS_FEATURE | weight=0.7
+side:MORE | sample=5966 | hitRate=0.4288 | action=SUPPRESS_FEATURE | weight=0.7
+market_side:hitter_fantasy_score_MORE | sample=3557 | hitRate=0.44 | action=SUPPRESS_FEATURE | weight=0.7
+market:hitter_fantasy_score | sample=3557 | hitRate=0.44 | action=SUPPRESS_FEATURE | weight=0.7
+confidence:1 | sample=156 | hitRate=0.4551 | action=SUPPRESS_FEATURE | weight=0.7
+confidence:pass | sample=150 | hitRate=0.48 | action=DOWNWEIGHT | weight=0.88
+market_side:bases_MORE | sample=340 | hitRate=0.5 | action=DOWNWEIGHT | weight=0.88
+prob_bucket:<.55 | sample=68 | hitRate=0.5 | action=ALLOW | weight=1
+market_side:hrr_MORE | sample=1181 | hitRate=0.503 | action=DOWNWEIGHT | weight=0.88
+confidence:lean | sample=134 | hitRate=0.5224 | action=DOWNWEIGHT | weight=0.88
+market_side:hits_MORE | sample=188 | hitRate=0.5691 | action=ALLOW | weight=1
+market_side:walks_allowed_LESS | sample=42 | hitRate=0.5714 | action=ALLOW | weight=1
+market:walks_allowed | sample=42 | hitRate=0.5714 | action=ALLOW | weight=1
+market:strikeouts | sample=556 | hitRate=0.6061 | action=ALLOW | weight=1
+prob_bucket:.55-.60 | sample=721 | hitRate=0.6075 | action=ALLOW | weight=1
+confidence:playable | sample=167 | hitRate=0.6108 | action=ALLOW | weight=1
+
+Reactivation Watch
+------------------
+bases_MORE | sample=340 | hitRate=0.5 | d7=null | REACTIVATE_WATCH
+hits_MORE | sample=188 | hitRate=0.5691 | d7=null | REACTIVATE_FULL
+hrr_LESS | sample=1708 | hitRate=0.8443 | d7=null | REACTIVATE_FULL
+hrr_MORE | sample=1181 | hitRate=0.503 | d7=null | REACTIVATE_WATCH
+bases_LESS | sample=758 | hitRate=0.7665 | d7=null | REACTIVATE_FULL
+strikeouts_LESS | sample=342 | hitRate=0.9327 | d7=null | REACTIVATE_FULL
+hits_LESS | sample=275 | hitRate=0.8364 | d7=null | REACTIVATE_FULL
+rbis_LESS | sample=325 | hitRate=0.88 | d7=null | REACTIVATE_FULL
+runs_LESS | sample=222 | hitRate=0.8378 | d7=null | REACTIVATE_FULL

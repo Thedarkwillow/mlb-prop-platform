@@ -1,0 +1,110 @@
+MLB ALL PROPS REPORT
+Date: 2026-05-12
+Generated: Wed May 13 12:02:07 UTC 2026
+
+==============================
+ALL MARKET GRADING
+==============================
+Using input: /root/mlb-prop-platform/outputs/slips.json
+Grading date: 2026-05-12
+
+ALL MARKET GRADING SUMMARY
+--------------------------
+Raw rows: 15
+Graded rows: 15
+Unmatched/excluded rows: 0
+
+Overall
+-------
+ALL: 6-9-0 | graded=15 | hitRate=40.0% | ungraded=0
+
+By Market
+---------
+RUNS: 3-4-0 | graded=7 | hitRate=42.9% | ungraded=0
+HITS: 3-2-0 | graded=5 | hitRate=60.0% | ungraded=0
+HITS ALLOWED: 0-2-0 | graded=2 | hitRate=0.0% | ungraded=0
+EARNED RUNS ALLOWED: 0-1-0 | graded=1 | hitRate=0.0% | ungraded=0
+
+By Side
+-------
+LESS: 6-6-0 | graded=12 | hitRate=50.0% | ungraded=0
+MORE: 0-3-0 | graded=3 | hitRate=0.0% | ungraded=0
+
+By Market + Side
+----------------
+RUNS LESS: 3-4-0 | graded=7 | hitRate=42.9% | ungraded=0
+HITS LESS: 3-2-0 | graded=5 | hitRate=60.0% | ungraded=0
+HITS ALLOWED MORE: 0-2-0 | graded=2 | hitRate=0.0% | ungraded=0
+EARNED RUNS ALLOWED MORE: 0-1-0 | graded=1 | hitRate=0.0% | ungraded=0
+
+By Confidence
+-------------
+elite: 6-9-0 | graded=15 | hitRate=40.0% | ungraded=0
+
+By Probability Bucket
+---------------------
+70-79%: 6-8-0 | graded=14 | hitRate=42.9% | ungraded=0
+80%+: 0-1-0 | graded=1 | hitRate=0.0% | ungraded=0
+
+By Team
+-------
+SEA: 2-1-0 | graded=3 | hitRate=66.7% | ungraded=0
+HOU: 1-1-0 | graded=2 | hitRate=50.0% | ungraded=0
+TOR: 0-2-0 | graded=2 | hitRate=0.0% | ungraded=0
+CIN: 1-0-0 | graded=1 | hitRate=100.0% | ungraded=0
+NYY: 0-1-0 | graded=1 | hitRate=0.0% | ungraded=0
+LAA: 0-1-0 | graded=1 | hitRate=0.0% | ungraded=0
+BAL: 0-1-0 | graded=1 | hitRate=0.0% | ungraded=0
+CLE: 1-0-0 | graded=1 | hitRate=100.0% | ungraded=0
+SF: 0-1-0 | graded=1 | hitRate=0.0% | ungraded=0
+KC: 1-0-0 | graded=1 | hitRate=100.0% | ungraded=0
+MIN: 0-1-0 | graded=1 | hitRate=0.0% | ungraded=0
+
+Wrote:
+outputs/all-markets-graded.json
+outputs/all-markets-unmatched.json
+
+==============================
+MARKET LEARNING UPDATE
+==============================
+Learning file written: data/learning/market-learning.json
+Source: outputs/all-markets-graded.json + outputs/fantasy-graded.json + outputs/graded-props.json + outputs/history.json + outputs/history/2026-05-04-all-markets-graded.json + outputs/history/2026-05-04-fantasy-grades.json + outputs/history/2026-05-04-hrr-graded.json + outputs/history/2026-05-09-fantasy-grades.json + outputs/history/2026-05-10-fantasy-grades.json + outputs/history/2026-05-11-all-markets-graded.json + outputs/history/2026-05-11-fantasy-grades.json + outputs/history/2026-05-12-all-markets-graded.json + outputs/history/2026-05-12-fantasy-grades.json + outputs/history/2026-05-13-all-markets-graded.json
+Usable graded rows: 968
+
+==============================
+ALL MARKET FILES
+==============================
+-rw-r--r--  1 root root  15K May 13 12:02 all-markets-graded.json
+-rw-r--r--  1 root root  849 May 13 11:53 all-markets-summary.json
+-rw-r--r--  1 root root  850 May 13 11:53 all-markets-summary.txt
+-rw-r--r--  1 root root    2 May 13 12:02 all-markets-unmatched.json
+-rw-r--r--  1 root root 172K May  5 07:10 fantasy-graded.json
+-rw-r--r--  1 root root 4.4K May  7 04:35 final-slips-graded-2026-05-05.json
+-rw-r--r--  1 root root 1.7K May  7 11:30 final-slips-graded-2026-05-06.json
+-rw-r--r--  1 root root 1.7K May  7 11:08 final-slips-graded-2026-05-07.json
+-rw-r--r--  1 root root 8.9M May  5 07:14 full-board-research-graded.json
+-rw-r--r--  1 root root 495K May  5 06:22 graded-props.json
+-rw-r--r--  1 root root 7.1M May 12 23:30 graded-results.json
+-rw-r--r--  1 root root  25K May  1 02:30 graded-slips.json
+-rw-r--r--  1 root root    2 Apr 30 09:57 graded_results.json
+-rw-r--r--  1 root root 495K May  5 06:22 hrr-graded.json
+-rw-r--r--  1 root root 1.6K May  8 21:08 mobile-summary.txt
+-rw-r--r--  1 root root 508K May 12 17:42 odds-api-summary.json
+-rw-r--r--  1 root root  43K May 11 05:49 official-slip-graded-2026-05-11.json
+-rw-r--r--  1 root root  249 May  8 00:10 playable-final-slips-graded-2026-05-06.json
+-rw-r--r--  1 root root  25K May  9 00:10 playable-final-slips-graded-2026-05-07.json
+-rw-r--r--  1 root root 6.7K May 10 00:10 playable-final-slips-graded-2026-05-08.json
+-rw-r--r--  1 root root  23K May 11 00:10 playable-final-slips-graded-2026-05-09.json
+-rw-r--r--  1 root root 4.2K May 12 00:10 playable-final-slips-graded-2026-05-10.json
+-rw-r--r--  1 root root  36K May 13 00:10 playable-final-slips-graded-2026-05-11.json
+-rw-r--r--  1 root root 4.2K May 13 11:31 playable-final-slips-graded-2026-05-12.json
+-rw-r--r--  1 root root 2.2K May  9 11:48 roi-summary-2026-05-08.json
+-rw-r--r--  1 root root 2.0K May 10 22:12 roi-summary-2026-05-09.json
+-rw-r--r--  1 root root  128 May 11 15:24 roi-summary-2026-05-10.json
+-rw-r--r--  1 root root  915 May 12 13:42 roi-summary-2026-05-11.json
+-rw-r--r--  1 root root  760 May 13 11:31 roi-summary-2026-05-12.json
+-rw-r--r--  1 root root  760 May 13 11:31 roi-summary.json
+-rw-r--r--  1 root root 3.5K May 13 08:30 slip-summary.txt
+-rw-r--r--  1 root root  17K May  8 14:22 watchlist-final-slips-graded-2026-05-07.json
+-rw-r--r--  1 root root  250 May  8 18:47 watchlist-final-slips-graded-2026-05-08.json
+-rw-r--r--  1 root root  15K May 12 09:21 watchlist-final-slips-graded-2026-05-11.json
