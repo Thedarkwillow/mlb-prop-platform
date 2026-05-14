@@ -1,7 +1,7 @@
 const fs = require("fs");
 
 const DATE = process.argv[2] || new Date().toISOString().slice(0, 10);
-const IN = "outputs/playable-final-slips.json";
+const IN = `outputs/final-slips-${DATE}.json`;
 const OUT = `outputs/playable-final-slips-graded-${DATE}.json`;
 const HISTORY = "data/history/all-graded-slips.jsonl";
 
@@ -146,10 +146,15 @@ function gradeSlip(legs) {
 
 (async () => {
   if (!fs.existsSync(IN)) {
-    throw new Error(`Missing ${IN}. Run: node src/research/playable-final-slips.cjs`);
+    throw new Error(`Missing ${IN}. Run/fetch the dated final slips first.`);
   }
 
-  const playableSlips = JSON.parse(fs.readFileSync(IN, "utf8"));
+  const rawInput = JSON.parse(fs.readFileSync(IN, "utf8"));
+  const playableSlips = Array.isArray(rawInput)
+    ? rawInput
+    : Array.isArray(rawInput.slips)
+      ? rawInput.slips
+      : [];
   const schedule = await getSchedule(DATE);
   const cache = new Map();
 

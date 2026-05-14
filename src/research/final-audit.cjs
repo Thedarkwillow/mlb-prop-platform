@@ -1,4 +1,5 @@
 const fs = require("fs");
+const DATE = process.env.npm_config_date || process.argv[2] || new Date().toISOString().slice(0, 10);
 
 function read(path, fallback) {
   try {
@@ -9,8 +10,8 @@ function read(path, fallback) {
   }
 }
 
-const final = read("outputs/final-slips.json", { slips: [] });
-const playable = read("outputs/playable-final-slips.json", []);
+const final = read(`outputs/final-slips-${DATE}.json`, null) || read("outputs/final-slips.json", { slips: [] });
+const playable = read(`outputs/final-slips-${DATE}.json`, null) || read("outputs/playable-final-slips.json", []);
 const legs = (final.slips || []).flatMap(s => s.legs || []);
 
 const failures = [];

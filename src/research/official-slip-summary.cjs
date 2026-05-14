@@ -258,9 +258,18 @@ function dynamicAllowedForSlip(slip) {
   return officialRejectReasons(slip).length === 0;
 }
 
-const rows =
+const rawRows =
+  read(`outputs/final-slips-${DATE}.json`, null) ||
   read("outputs/playable-final-slips.json", null) ||
   read("outputs/final-slips-validated.json", []);
+
+const rows = Array.isArray(rawRows)
+  ? rawRows
+  : Array.isArray(rawRows.slips)
+    ? rawRows.slips
+    : Array.isArray(rawRows.topLegs)
+      ? rawRows.topLegs
+      : [];
 const rawLegs = rows
   .flatMap(x => Array.isArray(x.legs) ? x.legs : [x])
   .filter(l => l && l.player)
@@ -279,7 +288,7 @@ for (const l of rawLegs) {
 
 
 function playableSlipRows() {
-  const data = read("outputs/playable-final-slips.json", []);
+  const data = read(`outputs/final-slips-${DATE}.json`, null) || read("outputs/playable-final-slips.json", []);
   if (Array.isArray(data)) return data;
   if (Array.isArray(data.slips)) return data.slips;
   return [];
