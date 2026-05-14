@@ -308,6 +308,71 @@ function displayGrade(x) {
   return grade;
 }
 
+
+const FINAL_SUPPORTED_MARKETS = new Set([
+  "strikeouts",
+  "pitching_outs",
+  "hits_allowed",
+  "earned_runs_allowed",
+  "hits",
+  "bases",
+  "runs",
+  "rbis",
+  "home_runs"
+]);
+
+const FINAL_BLOCKED_MARKETS = new Set([
+  "hitter_fantasy_score",
+  "pitcher_fantasy_score",
+  "pitches_thrown",
+  "plate_appearances",
+  "walks",
+  "walks_allowed",
+  "singles",
+  "doubles",
+  "triples",
+  "stolen_bases",
+  "hitter_strikeouts",
+  "pitcher_strikeouts_(combo)"
+]);
+
+function normalizedMarket(x) {
+  return String(x.market || x.stat || "")
+    .toLowerCase()
+    .replace(/\s+/g, "_")
+    .trim();
+}
+
+function unsupportedFinalMarket(x) {
+  const market = normalizedMarket(x);
+  if (FINAL_BLOCKED_MARKETS.has(market)) return true;
+  if (!FINAL_SUPPORTED_MARKETS.has(market)) return true;
+  return false;
+}
+
+function marketSpecificFinalGate(x) {
+  const market = normalizedMarket(x);
+  const side = sideKey(x);
+  const prob = Number(x.calibratedDistributionProb ?? x.recommendedProb ?? x.probability ?? x.prob);
+  const adj = Number(x.sportsbookAdjustedEdge ?? x.adjustedEdge ?? x.sportsbookEdge ?? x.edge ?? 0);
+  const books = Number(x.sportsbookBookCount ?? x.books ?? 0);
+
+  if (!Number.isFinite(prob)) return false;
+  if (!Number.isFinite(adj)) return false;
+
+  if (market === "bases" && side === "MORE") return prob >= 0.60 && adj >= 0.08 && books >= 3;
+  if (market === "hits") return prob >= 0.62 && adj >= 0.10 && books >= 3;
+  if (market === "strikeouts") return prob >= 0.60 && adj >= 0.08 && books >= 2;
+  if (market === "pitching_outs") return prob >= 0.58 && adj >= 0.10 && books >= 3;
+  if (market === "hits_allowed") return prob >= 0.60 && adj >= 0.10 && books >= 3;
+  if (market === "earned_runs_allowed") return prob >= 0.60 && adj >= 0.12 && books >= 3;
+  if (market === "runs" || market === "rbis") return prob >= 0.64 && adj >= 0.12 && books >= 4;
+  if (market === "home_runs") return prob >= 0.65 && adj >= 0.15 && books >= 4;
+
+  return false;
+}
+
+
 function cleanLeg(x) {
   return {
     player: x.player,
@@ -341,6 +406,8 @@ function cleanLeg(x) {
     marketModel: marketModelScore(x),
     marketTrust: marketTrust(x),
     validationRule: validationTag(x),
+    finalMarketSupported: !unsupportedFinalMarket(x),
+    finalMarketGatePassed: marketSpecificFinalGate(x),
     marketSupportFlag: x.marketSupportFlag || null
   };
 }
