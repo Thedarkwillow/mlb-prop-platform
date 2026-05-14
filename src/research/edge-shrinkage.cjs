@@ -76,6 +76,90 @@ function shrinkFromRule(rule) {
   return clamp(multiplier, 0.55, 1.05);
 }
 
+
+function loadRollingRoi() {
+  return readJson("data/results/rolling-roi-windows.json", null);
+}
+
+function findRollingBucket(report, windowKey, section, bucket) {
+  const arr = report?.windows?.[windowKey]?.[section] || [];
+  return arr.find(x => String(x.bucket || "").toLowerCase() === String(bucket || "").toLowerCase()) || null;
+}
+
+function rollingRoiMultiplier(leg = {}) {
+  const report = loadRollingRoi();
+  if (!report) return {
+    multiplier: 1,
+    buckets: [],
+    applied: false,
+    reason: "no_rolling_roi_report"
+  };
+
+  const market = normMarket(leg.market || leg.stat);
+  const side = sideKey(leg);
+  const marketSide = `${market} ${side}`;
+
+  const checks = [
+    { window: "7d", weight: 0.50 },
+    { window: "15d", weight: 0.30 },
+    { window: "30d", weight: 0.20 }
+  ];
+
+  let weighted = 0;
+  let totalWeight = 0;
+  const buckets = [];
+
+  for (const c of checks) {
+    const row = findRollingBucket(report, c.window, "byMarketSide", marketSide);
+    if (!row || Number(row.count || 0) < 3) continue;
+
+    const roi = Number(row.roi);
+    const hitRate = Number(row.hitRate);
+    let mult = 1;
+
+    if (Number.isFinite(roi)) {
+      if (roi <= -0.35) mult *= 0.70;
+      else if (roi <= -0.20) mult *= 0.80;
+      else if (roi < 0) mult *= 0.92;
+      else if (roi >= 0.25 && hitRate >= 0.58) mult *= 1.03;
+    }
+
+    if (Number.isFinite(hitRate) && hitRate < 0.45 && Number(row.count || 0) >= 5) {
+      mult *= 0.88;
+    }
+
+    weighted += mult * c.weight;
+    totalWeight += c.weight;
+    buckets.push({
+      window: c.window,
+      bucket: marketSide,
+      count: row.count,
+      roi: row.roi,
+      hitRate: row.hitRate,
+      multiplier: Number(mult.toFixed(4))
+    });
+  }
+
+  if (!totalWeight) {
+    return {
+      multiplier: 1,
+      buckets,
+      applied: false,
+      reason: "insufficient_rolling_sample"
+    };
+  }
+
+  const multiplier = clamp(weighted / totalWeight, 0.60, 1.04);
+
+  return {
+    multiplier: Number(multiplier.toFixed(4)),
+    buckets,
+    applied: multiplier !== 1,
+    reason: "rolling_roi"
+  };
+}
+
+
 function applyHistoricalEdgeShrinkage(edge, leg = {}) {
   const e = Number(edge);
   if (!Number.isFinite(e)) {
@@ -104,9 +188,11 @@ function applyHistoricalEdgeShrinkage(edge, leg = {}) {
 
   const marketMult = shrinkFromRule(marketRule);
   const probabilityMult = shrinkFromRule(probabilityRule);
+  const rolling = rollingRoiMultiplier(leg);
 
-  // Market/side is more specific than probability bucket.
-  const multiplier = clamp((marketMult * 0.70) + (probabilityMult * 0.30), 0.55, 1.05);
+  // Market/side is most specific, probability bucket is broad, rolling ROI adds recent-regime awareness.
+  const baseMultiplier = (marketMult * 0.60) + (probabilityMult * 0.25) + (rolling.multiplier * 0.15);
+  const multiplier = clamp(baseMultiplier, 0.55, 1.05);
   const shrunkEdge = Number((e * multiplier).toFixed(4));
 
   return {
@@ -119,6 +205,7 @@ function applyHistoricalEdgeShrinkage(edge, leg = {}) {
       probabilityBucket: bucket,
       marketRule: marketRule || null,
       probabilityRule: probabilityRule || null,
+      rollingRoi: rolling,
       marketMultiplier: Number(marketMult.toFixed(4)),
       probabilityMultiplier: Number(probabilityMult.toFixed(4))
     }
