@@ -64,7 +64,7 @@
     "safe-mobile": "npm run freshness && npm run sharp-mobile",
     "live": "npm run prizepicks && npm run board:rebuild && node src/jobs/slipBuilder.js && npm run picks && npm run sharp-mobile",
     "official": "node src/research/official-slip-summary.cjs && npm run audit:final",
-    "nightly": "npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run official && npm run learn:phase6:all",
+    "nightly": "npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run official && npm run rolling:roi --date=${npm_config_date:-$(date +%F)} && npm run regime && npm run learn:phase6:all",
     "learn:markets": "node src/reports/grade-all-markets.js && node src/learning/build-market-learning.js",
     "learn:report": "node src/learning/report-market-learning.js",
     "grade:all-markets": "node src/reports/grade-all-markets.js",
@@ -149,8 +149,10 @@
     "learn:phase6:features": "node src/research/phase6-feature-attribution.cjs",
     "learn:phase6:reactivation": "node src/research/phase6-reactivation-engine.cjs",
     "phase6:dashboard": "node src/research/phase6-dashboard-report.cjs",
-    "learn:phase6:all": "npm run learn:phase5 && npm run learn:phase6 && npm run learn:phase6:regime && npm run learn:phase6:exposure && npm run learn:phase6:features && npm run learn:phase6:reactivation && npm run phase6:dashboard && npm run learn:phase6:hardban",
-    "learn:phase6:hardban": "node src/research/phase6-hardban-reactivation.cjs"
+    "learn:phase6:all": "npm run learn:phase5 && npm run learn:phase6 && npm run learn:phase6:regime && npm run learn:phase6:exposure && npm run learn:phase6:features && npm run learn:phase6:reactivation && npm run phase6:dashboard && npm run learn:phase6:hardban && npm run regime",
+    "learn:phase6:hardban": "node src/research/phase6-hardban-reactivation.cjs",
+    "regime": "node src/research/regime-detection.cjs",
+    "rolling:roi": "node src/research/rolling-roi-windows.cjs ${npm_config_date:-$(date +%F)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
