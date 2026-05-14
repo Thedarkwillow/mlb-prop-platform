@@ -10,6 +10,7 @@ const { modelRuns } = require("../models/markets/runs.cjs");
 const { modelRbis } = require("../models/markets/rbis.cjs");
 const { modelBases } = require("../models/markets/bases.cjs");
 const { applyContextToProbability } = require("./elite-context-score.cjs");
+const { applyHistoricalCalibration } = require("./probability-calibration.cjs");
 
 function readJson(path, fallback) {
   try {
@@ -74,14 +75,24 @@ function enrichLeg(leg) {
   const contextProbabilityAdjustment = contextApplied.contextAdjustment;
   const eliteContext = contextApplied.eliteContext;
 
+  const historicalCalibrated = applyHistoricalCalibration(contextAdjustedDistributionProb, {
+    ...leg,
+    market,
+    side
+  });
+
+  const finalDistributionProb = historicalCalibrated.probability;
+  const historicalCalibrationAdjustment = historicalCalibrated.historicalCalibrationAdjustment;
+  const historicalCalibration = historicalCalibrated.historicalCalibration;
+
   const isStrikeouts = market === "strikeouts";
   const poissonStrikeoutsProb =
-    isStrikeouts && Number.isFinite(contextAdjustedDistributionProb)
-      ? contextAdjustedDistributionProb
+    isStrikeouts && Number.isFinite(finalDistributionProb)
+      ? finalDistributionProb
       : null;
 
-  const finalRecommendedProb = Number.isFinite(contextAdjustedDistributionProb)
-    ? contextAdjustedDistributionProb
+  const finalRecommendedProb = Number.isFinite(finalDistributionProb)
+    ? finalDistributionProb
     : leg.recommendedProb;
 
   return {
@@ -89,8 +100,11 @@ function enrichLeg(leg) {
     distributionModel: distribution,
     distributionProb,
     preContextCalibratedDistributionProb: calibratedDistributionProb,
-    calibratedDistributionProb: contextAdjustedDistributionProb,
+    contextAdjustedDistributionProb,
+    calibratedDistributionProb: finalDistributionProb,
     contextProbabilityAdjustment,
+    historicalCalibrationAdjustment,
+    historicalCalibration,
     eliteContext,
     poissonStrikeoutsProb,
     probabilityModel: poissonStrikeoutsProb != null ? "poisson_strikeouts_context_v2" : leg.probabilityModel,
