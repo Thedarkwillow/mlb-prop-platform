@@ -21,6 +21,14 @@ function readJson(path, fallback) {
 
 const priced = readJson("outputs/slips-distribution-enriched.json", null) || readJson("outputs/slips-priced.json", []);
 const MARKET_TRUST = readJson("data/learning/market-trust.json", { byMarketDirection: {} });
+const VALIDATION_RULES_RAW = readJson("data/results/validation-rules.json", []);
+const VALIDATION_RULES = Array.isArray(VALIDATION_RULES_RAW)
+  ? VALIDATION_RULES_RAW
+  : [
+      ...(VALIDATION_RULES_RAW.byProbability || []),
+      ...(VALIDATION_RULES_RAW.byMarket || []),
+      ...(VALIDATION_RULES_RAW.byBooks || [])
+    ];
 
 function sideKey(x) {
   return String(x.side || x.recommendedSide || "").toUpperCase();
@@ -43,6 +51,86 @@ function trustScoreAdjustment(x) {
   if (t.trust === "blocked") return -0.25;
   return 0;
 }
+
+function normMarketKey(s) {
+  return String(s || "")
+    .toLowerCase()
+    .replace(/\s+/g, "_")
+    .trim();
+}
+
+function probBucket(prob) {
+  const p = Number(prob);
+  if (!Number.isFinite(p)) return null;
+  const lo = Math.floor(p * 20) / 20;
+  const hi = lo + 0.05;
+  return `${lo.toFixed(2)}-${hi.toFixed(2)}`;
+}
+
+function findValidationRule(x) {
+  const market = normMarketKey(x.market || x.stat);
+  const side = sideKey(x);
+  const marketBucket = `${market} ${side}`;
+  const prob = Number(x.calibratedDistributionProb ?? x.recommendedProb ?? x.probability ?? x.prob);
+  const bucket = probBucket(prob);
+
+  const marketRule = VALIDATION_RULES.find(r =>
+    String(r.type || "").toLowerCase() === "market" &&
+    String(r.bucket || "").toLowerCase() === marketBucket.toLowerCase()
+  );
+
+  const probRule = VALIDATION_RULES.find(r =>
+    String(r.type || "").toLowerCase() === "probability" &&
+    String(r.bucket || "") === bucket
+  );
+
+  return { marketRule, probRule };
+}
+
+function validationScoreAdjustment(x) {
+  const { marketRule, probRule } = findValidationRule(x);
+  let adj = 0;
+
+  for (const r of [marketRule, probRule]) {
+    if (!r) continue;
+    const action = String(r.action || "").toLowerCase();
+    const ruleAdj = Number(r.adjustment || 0);
+    const edge = Number(r.calibrationEdge || 0);
+
+    if (Number.isFinite(ruleAdj)) adj += ruleAdj;
+    if (action.includes("medium") && edge <= -0.12) adj -= 0.025;
+    if (action.includes("large") && edge <= -0.10) adj -= 0.05;
+  }
+
+  return Number(Math.max(-0.12, Math.min(0.04, adj)).toFixed(4));
+}
+
+function validationSuppressed(x) {
+  const { marketRule } = findValidationRule(x);
+  if (!marketRule) return false;
+
+  const count = Number(marketRule.count || 0);
+  const actual = Number(marketRule.actual);
+  const edge = Number(marketRule.calibrationEdge || 0);
+  const action = String(marketRule.action || "").toLowerCase();
+
+  // Only hard-block when there is enough signal. Small samples remain downgraded, not blocked.
+  if (count >= 20 && actual < 0.48 && edge <= -0.12) return true;
+  if (action.includes("large") && edge <= -0.15) return true;
+
+  return false;
+}
+
+function validationTag(x) {
+  const { marketRule, probRule } = findValidationRule(x);
+  return {
+    marketRule: marketRule || null,
+    probabilityRule: probRule || null,
+    adjustment: validationScoreAdjustment(x),
+    suppressed: validationSuppressed(x)
+  };
+}
+
 
 function normName(s) {
   return String(s || "")
@@ -252,6 +340,7 @@ function cleanLeg(x) {
     }),
     marketModel: marketModelScore(x),
     marketTrust: marketTrust(x),
+    validationRule: validationTag(x),
     marketSupportFlag: x.marketSupportFlag || null
   };
 }
@@ -328,6 +417,7 @@ function correlationLabel(legs) {
 
 function isFinalCandidate(x) {
   if (trustSuppressed(x)) return false;
+  if (validationSuppressed(x)) return false;
   if (!hasDistributionModel(x)) return false;
   if (!x.sportsbookMatch) return false;
   if (typeof x.sportsbookEdge !== "number") return false;
