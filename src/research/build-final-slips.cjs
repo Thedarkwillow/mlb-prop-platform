@@ -9,6 +9,7 @@ const EXPOSURE_GOVERNOR = readJsonSafe("data/learning/phase6-exposure-governor.j
 const MAX_FINAL_SLIP_SIZE = Number(EXPOSURE_GOVERNOR.governor?.maxSlipSize || EXPOSURE_GOVERNOR.maxSlipSize || 6);
 const { scoreEliteContext } = require("./elite-context-score.cjs");
 const { marketModelScore } = require("./market-model-router.cjs");
+const { applyHistoricalEdgeShrinkage } = require("./edge-shrinkage.cjs");
 
 function readJson(path, fallback) {
   try {
@@ -244,7 +245,9 @@ function minEdgeForSlipSize(size) {
 }
 
 function finalScore(x) {
-  const edge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? -999);
+  const rawEdge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? -999);
+  const edgeShrinkage = applyHistoricalEdgeShrinkage(rawEdge, x);
+  const edge = Number(edgeShrinkage.edge);
   const cal = Number(x.calibratedDistributionProb);
   const raw = Number(x.distributionProb);
   const marketModel = marketModelScore(x);
@@ -391,6 +394,10 @@ function cleanLeg(x) {
     line: x.line,
     edge: x.sportsbookEdge,
     adjustedEdge: x.sportsbookAdjustedEdge,
+    historicalEdgeShrinkage: applyHistoricalEdgeShrinkage(
+      Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge),
+      x
+    ),
     finalScore: x.finalScore,
     distributionProb: x.distributionProb ?? null,
     calibratedDistributionProb: x.calibratedDistributionProb ?? null,
