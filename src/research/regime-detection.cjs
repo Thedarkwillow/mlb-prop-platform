@@ -36,21 +36,36 @@ function classifyBucket(row) {
   return { regime: "NORMAL", adjustment: 0 };
 }
 
-function analyzeSection(rows = []) {
-  return rows.map(row => {
-    const c = classifyBucket(row);
-    return {
-      bucket: row.bucket,
-      count: row.count,
-      wins: row.wins,
-      losses: row.losses,
-      hitRate: row.hitRate,
-      roi: row.roi,
-      roiPct: row.roiPct,
-      regime: c.regime,
-      adjustment: c.adjustment
-    };
-  });
+function isActionableBucket(section, bucket) {
+  const b = String(bucket || "").toLowerCase();
+
+  if (!b || b === "unknown" || b === "na" || b === "undefined" || b === "null") {
+    return false;
+  }
+
+  // Confidence buckets are currently too noisy because older rows lack calibrated confidence.
+  if (section === "byConfidence") return false;
+
+  return true;
+}
+
+function analyzeSection(section, rows = []) {
+  return rows
+    .filter(row => isActionableBucket(section, row.bucket))
+    .map(row => {
+      const c = classifyBucket(row);
+      return {
+        bucket: row.bucket,
+        count: row.count,
+        wins: row.wins,
+        losses: row.losses,
+        hitRate: row.hitRate,
+        roi: row.roi,
+        roiPct: row.roiPct,
+        regime: c.regime,
+        adjustment: c.adjustment
+      };
+    });
 }
 
 const rolling = readJson("data/results/rolling-roi-windows.json", null);
@@ -72,17 +87,17 @@ for (const [windowKey, windowData] of Object.entries(rolling.windows || {})) {
     start: windowData.start,
     end: windowData.end,
     rows: windowData.rows,
-    byMarket: analyzeSection(windowData.byMarket),
-    byMarketSide: analyzeSection(windowData.byMarketSide),
-    byConfidence: analyzeSection(windowData.byConfidence),
-    byProbabilityBucket: analyzeSection(windowData.byProbabilityBucket),
-    byEdgeBucket: analyzeSection(windowData.byEdgeBucket)
+    byMarket: analyzeSection("byMarket", windowData.byMarket),
+    byMarketSide: analyzeSection("byMarketSide", windowData.byMarketSide),
+    byConfidence: analyzeSection("byConfidence", windowData.byConfidence),
+    byProbabilityBucket: analyzeSection("byProbabilityBucket", windowData.byProbabilityBucket),
+    byEdgeBucket: analyzeSection("byEdgeBucket", windowData.byEdgeBucket)
   };
 }
 
 const bad = [];
 for (const [windowKey, windowData] of Object.entries(report.windows)) {
-  for (const section of ["byMarket", "byMarketSide", "byConfidence", "byProbabilityBucket", "byEdgeBucket"]) {
+  for (const section of ["byMarket", "byMarketSide", "byProbabilityBucket", "byEdgeBucket"]) {
     for (const row of windowData[section] || []) {
       if (["BAD_REGIME", "WEAK_REGIME", "HOT_REGIME"].includes(row.regime)) {
         bad.push({
