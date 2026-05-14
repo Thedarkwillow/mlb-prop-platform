@@ -73,6 +73,93 @@ function ruleAdjustment(rule, maxAbs) {
   return clamp(adj, -maxAbs, maxAbs);
 }
 
+
+function loadRollingRoi() {
+  return readJson("data/results/rolling-roi-windows.json", null);
+}
+
+function findRollingBucket(report, windowKey, section, bucket) {
+  const arr = report?.windows?.[windowKey]?.[section] || [];
+  return arr.find(x => String(x.bucket || "").toLowerCase() === String(bucket || "").toLowerCase()) || null;
+}
+
+function rollingProbabilityAdjustment(leg = {}) {
+  const report = loadRollingRoi();
+  if (!report) {
+    return {
+      adjustment: 0,
+      applied: false,
+      reason: "no_rolling_roi_report",
+      buckets: []
+    };
+  }
+
+  const market = normMarket(leg.market || leg.stat);
+  const side = sideKey(leg);
+  const marketSide = `${market} ${side}`;
+
+  const checks = [
+    { window: "7d", weight: 0.50 },
+    { window: "15d", weight: 0.30 },
+    { window: "30d", weight: 0.20 }
+  ];
+
+  let weighted = 0;
+  let totalWeight = 0;
+  const buckets = [];
+
+  for (const c of checks) {
+    const row = findRollingBucket(report, c.window, "byMarketSide", marketSide);
+    if (!row || Number(row.count || 0) < 3) continue;
+
+    const roi = Number(row.roi);
+    const hitRate = Number(row.hitRate);
+    let adj = 0;
+
+    if (Number.isFinite(roi)) {
+      if (roi <= -0.35) adj -= 0.035;
+      else if (roi <= -0.20) adj -= 0.025;
+      else if (roi < 0) adj -= 0.012;
+      else if (roi >= 0.25 && Number.isFinite(hitRate) && hitRate >= 0.58) adj += 0.01;
+    }
+
+    if (Number.isFinite(hitRate) && hitRate < 0.45 && Number(row.count || 0) >= 5) {
+      adj -= 0.015;
+    }
+
+    weighted += adj * c.weight;
+    totalWeight += c.weight;
+
+    buckets.push({
+      window: c.window,
+      bucket: marketSide,
+      count: row.count,
+      roi: row.roi,
+      hitRate: row.hitRate,
+      adjustment: Number(adj.toFixed(4))
+    });
+  }
+
+  if (!totalWeight) {
+    return {
+      adjustment: 0,
+      applied: false,
+      reason: "insufficient_rolling_sample",
+      buckets
+    };
+  }
+
+  const adjustment = clamp(weighted / totalWeight, -0.035, 0.015);
+
+  return {
+    adjustment: Number(adjustment.toFixed(4)),
+    applied: adjustment !== 0,
+    reason: "rolling_roi",
+    buckets
+  };
+}
+
+
 function applyHistoricalCalibration(prob, leg = {}) {
   if (prob === null || prob === undefined || prob === "") {
     return {
@@ -109,9 +196,14 @@ function applyHistoricalCalibration(prob, leg = {}) {
 
   const marketAdj = ruleAdjustment(marketRule, 0.04);
   const probabilityAdj = ruleAdjustment(probabilityRule, 0.035);
+  const rolling = rollingProbabilityAdjustment(leg);
 
-  // Market rule is more specific, probability rule is broader.
-  const adjustment = clamp((marketAdj * 0.65) + (probabilityAdj * 0.35), -0.05, 0.035);
+  // Market rule is specific, probability rule is broad, rolling ROI adds recent-regime awareness.
+  const adjustment = clamp(
+    (marketAdj * 0.55) + (probabilityAdj * 0.30) + (rolling.adjustment * 0.15),
+    -0.055,
+    0.035
+  );
   const probability = Number(clamp(p + adjustment, 0.02, 0.98).toFixed(4));
 
   return {
@@ -123,6 +215,7 @@ function applyHistoricalCalibration(prob, leg = {}) {
       probabilityBucket: bucket,
       marketRule: marketRule || null,
       probabilityRule: probabilityRule || null,
+      rollingRoi: rolling,
       marketAdjustment: Number(marketAdj.toFixed(4)),
       probabilityAdjustment: Number(probabilityAdj.toFixed(4))
     }
