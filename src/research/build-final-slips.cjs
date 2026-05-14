@@ -10,6 +10,7 @@ const MAX_FINAL_SLIP_SIZE = Number(EXPOSURE_GOVERNOR.governor?.maxSlipSize || EX
 const { scoreEliteContext } = require("./elite-context-score.cjs");
 const { marketModelScore } = require("./market-model-router.cjs");
 const { applyHistoricalEdgeShrinkage } = require("./edge-shrinkage.cjs");
+const { remapConfidence } = require("./confidence-remap.cjs");
 
 function readJson(path, fallback) {
   try {
@@ -415,6 +416,15 @@ function cleanLeg(x) {
     validationRule: validationTag(x),
     finalMarketSupported: !unsupportedFinalMarket(x),
     finalMarketGatePassed: marketSpecificFinalGate(x),
+    calibratedConfidence: remapConfidence({
+      ...x,
+      validationRule: validationTag(x),
+      historicalEdgeShrinkage: applyHistoricalEdgeShrinkage(
+        Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge),
+        x
+      ),
+      finalMarketGatePassed: marketSpecificFinalGate(x)
+    }),
     marketSupportFlag: x.marketSupportFlag || null
   };
 }
