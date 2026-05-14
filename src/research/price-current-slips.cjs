@@ -60,7 +60,13 @@ function normName(s) {
 }
 
 function normMarket(s, stat = "") {
-  s = `${s || ""} ${stat || ""}`.toLowerCase().replace(/_/g, " ").replace(/\s+/g, " ").trim();
+  const a = String(s || "").trim();
+  const b = String(stat || "").trim();
+  s = (b && b.toLowerCase() !== a.toLowerCase() ? `${a} ${b}` : a)
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
   if (s.includes("hitter strikeout") || s.includes("batter strikeout")) return "hitter_strikeouts";
   if (s.includes("pitcher strikeout") || s === "strikeouts") return "strikeouts";
