@@ -192,6 +192,7 @@ function cheapHrrHalfCount(legs) {
 function marketFamily(x) {
   const m = String(x.market || x.stat || "").toLowerCase();
   if (["hits", "bases", "hrr", "runs", "rbis", "home_runs"].includes(m)) return "hitter_counting";
+  if (m === "hitter_strikeouts") return "hitter_k";
   if (m.includes("strikeout")) return "pitcher_k";
   return m;
 }

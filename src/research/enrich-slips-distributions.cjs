@@ -10,6 +10,7 @@ const { modelRuns } = require("../models/markets/runs.cjs");
 const { modelRbis } = require("../models/markets/rbis.cjs");
 const { modelBases } = require("../models/markets/bases.cjs");
 const { modelSingles } = require("../models/markets/singles.cjs");
+const { modelHitterStrikeouts } = require("../models/markets/hitter-strikeouts.cjs");
 const { applyContextToProbability } = require("./elite-context-score.cjs");
 const { applyHistoricalCalibration } = require("./probability-calibration.cjs");
 
@@ -24,7 +25,8 @@ function readJson(path, fallback) {
 
 function normMarket(s) {
   s = String(s || "").toLowerCase().trim();
-  if (s.includes("strikeout")) return "strikeouts";
+  if (s.includes("hitter_strikeouts") || s.includes("hitter strikeouts")) return "hitter_strikeouts";
+  if (s.includes("pitcher_strikeouts") || s.includes("pitcher strikeouts") || s.includes("strikeout")) return "strikeouts";
   if (s.includes("pitching_outs") || s.includes("pitching outs") || s.includes("outs")) return "pitching_outs";
   if (s.includes("hrr") || s.includes("hits + runs + rbis")) return "hrr";
   if (s.includes("total bases")) return "bases";
@@ -41,6 +43,7 @@ function enrichLeg(leg) {
   let distribution = null;
 
   if (market === "strikeouts") distribution = modelStrikeouts(leg);
+  if (market === "hitter_strikeouts") distribution = modelHitterStrikeouts(leg);
   if (market === "pitching_outs") distribution = modelPitchingOuts(leg);
   if (market === "earned_runs_allowed") distribution = modelEarnedRunsAllowed(leg);
   if (market === "hits_allowed") distribution = modelHitsAllowed(leg);
