@@ -14,6 +14,7 @@ const { modelHitterStrikeouts } = require("../models/markets/hitter-strikeouts.c
 const { modelWalks } = require("../models/markets/walks.cjs");
 const { applyContextToProbability } = require("./elite-context-score.cjs");
 const { applyHistoricalCalibration } = require("./probability-calibration.cjs");
+const { applyPhase6ProbabilityFeedback } = require("./phase6-probability-feedback.cjs");
 
 function readJson(path, fallback) {
   try {
@@ -91,7 +92,13 @@ function enrichLeg(leg) {
     side
   });
 
-  const finalDistributionProb = historicalCalibrated.probability;
+  const phase6Feedback = applyPhase6ProbabilityFeedback(historicalCalibrated.probability, {
+    ...leg,
+    market,
+    side
+  });
+  const finalDistributionProb = phase6Feedback.probability;
+  const phase6ProbabilityFeedback = phase6Feedback.phase6ProbabilityFeedback;
   const historicalCalibrationAdjustment = historicalCalibrated.historicalCalibrationAdjustment;
   const historicalCalibration = historicalCalibrated.historicalCalibration;
 
@@ -115,6 +122,7 @@ function enrichLeg(leg) {
     contextProbabilityAdjustment,
     historicalCalibrationAdjustment,
     historicalCalibration,
+    phase6ProbabilityFeedback,
     eliteContext,
     poissonStrikeoutsProb,
     probabilityModel: poissonStrikeoutsProb != null ? "poisson_strikeouts_context_v2" : leg.probabilityModel,
