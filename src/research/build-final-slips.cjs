@@ -270,6 +270,12 @@ function minEdgeForSlipSize(size) {
 function marketSideKey(x) {
   return `${normalizedMarket(x)}_${sideKey(x)}`;
 }
+function oddsTier(x) {
+  return String(x.oddsTier || x.tier || "standard").toLowerCase().trim();
+}
+function marketSideTierKey(x) {
+  return `${marketSideKey(x)}_${oddsTier(x)}`;
+}
 
 function phase6Rows(obj) {
   if (Array.isArray(obj)) return obj;
@@ -351,10 +357,12 @@ function phase6AdaptiveRuleSet(x) {
   const edge = Number(x.sportsbookAdjustedEdge ?? x.adjustedEdge ?? x.sportsbookEdge ?? x.edge);
   const market = normalizedMarket(x);
   const marketSide = marketSideKey(x);
+  const marketSideTier = marketSideTierKey(x);
   const probBucket = phase6ProbBucket(prob);
   const edgeBucket = phase6EdgeBucket(edge);
   const rules = [
     PHASE6_ADAPTIVE_RULES.byMarket?.[market],
+    PHASE6_ADAPTIVE_RULES.byMarketSideTier?.[marketSideTier],
     PHASE6_ADAPTIVE_RULES.byMarketSide?.[marketSide],
     PHASE6_ADAPTIVE_RULES.byProbabilityBucket?.[probBucket],
     PHASE6_ADAPTIVE_RULES.byEdgeBucket?.[edgeBucket]
@@ -364,6 +372,7 @@ function phase6AdaptiveRuleSet(x) {
   return {
     market,
     marketSide,
+    marketSideTier,
     probBucket,
     edgeBucket,
     multiplier: Number(Math.max(0.45, Math.min(1.2, multiplier)).toFixed(4)),

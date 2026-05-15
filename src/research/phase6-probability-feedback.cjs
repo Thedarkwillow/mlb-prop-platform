@@ -25,6 +25,12 @@ function sideKey(x) {
 function marketSideKey(x) {
   return `${normalizedMarket(x)}_${sideKey(x)}`;
 }
+function oddsTier(x) {
+  return String(x.oddsTier || x.tier || "standard").toLowerCase().trim();
+}
+function marketSideTierKey(x) {
+  return `${marketSideKey(x)}_${oddsTier(x)}`;
+}
 
 function probBucket(prob) {
   const p = Number(prob);
@@ -50,11 +56,13 @@ function rulesFor(x, prob) {
   const edge = Number(x.sportsbookAdjustedEdge ?? x.adjustedEdge ?? x.sportsbookEdge ?? x.edge);
   const market = normalizedMarket(x);
   const marketSide = marketSideKey(x);
+  const marketSideTier = marketSideTierKey(x);
   const pBucket = probBucket(prob);
   const eBucket = edgeBucket(edge);
 
   return [
     RULES.byMarket?.[market],
+    RULES.byMarketSideTier?.[marketSideTier],
     RULES.byMarketSide?.[marketSide],
     RULES.byProbabilityBucket?.[pBucket],
     RULES.byEdgeBucket?.[eBucket]

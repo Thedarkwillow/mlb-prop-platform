@@ -77,6 +77,7 @@ const rules = {
     : null,
   byMarket: buildRules(report.roi.byMarket),
   byMarketSide: buildRules(report.roi.byMarketSide),
+  byMarketSideTier: buildRules(report.roi.byMarketSideTier || []),
   byProbabilityBucket: buildRules(report.roi.byProbabilityBucket),
   byEdgeBucket: buildRules(report.roi.byEdgeBucket),
   byConfidence: buildRules(report.roi.byConfidence)
@@ -91,6 +92,8 @@ console.log("sample warning:", rules.sampleWarning || "none");
 
 console.log("\nMarket side rules");
 console.table(Object.values(rules.byMarketSide));
+console.log("\nMarket side tier rules");
+console.table(Object.values(rules.byMarketSideTier));
 
 console.log("\nProbability rules");
 console.table(Object.values(rules.byProbabilityBucket));

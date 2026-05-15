@@ -147,6 +147,7 @@ const phase6Exposure = read("data/learning/phase6-exposure-governor.json", {});
 
 const byMarket = {};
 const byMarketSide = {};
+const byMarketSideTier = {};
 const byProb = {};
 const byEdge = {};
 const byConfidence = {};
@@ -158,6 +159,8 @@ for (const r of history) {
   const side = keySide(r);
   add(byMarket, market, r);
   add(byMarketSide, `${market}_${side}`, r);
+  const tier = String(r.oddsTier || r.tier || "standard").toLowerCase().trim();
+  add(byMarketSideTier, `${market}_${side}_${tier}`, r);
   add(byProb, bucketProb(probOf(r)), r);
   add(byEdge, bucketEdge(edgeOf(r)), r);
   add(byConfidence, gradeOf(r), r);
@@ -191,6 +194,7 @@ const report = {
   roi: {
     byMarket: finalize(byMarket),
     byMarketSide: finalize(byMarketSide),
+    byMarketSideTier: finalize(byMarketSideTier),
     byProbabilityBucket: finalize(byProb),
     byEdgeBucket: finalize(byEdge),
     byConfidence: finalize(byConfidence),
@@ -223,6 +227,8 @@ console.log("\nROI by market");
 console.table(report.roi.byMarket.slice(0, 20));
 console.log("\nROI by market side");
 console.table(report.roi.byMarketSide.slice(0, 25));
+console.log("\nROI by market side tier");
+console.table(report.roi.byMarketSideTier.slice(0, 25));
 console.log("\nROI by probability bucket");
 console.table(report.roi.byProbabilityBucket);
 console.log("\nROI by edge bucket");
