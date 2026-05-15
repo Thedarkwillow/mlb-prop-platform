@@ -1,3 +1,4 @@
+const { applySavantV2Mean } = require("../savant-v2-adjustments.cjs");
 function poissonPmf(k, lambda) {
   if (!Number.isFinite(lambda) || lambda <= 0) return 0;
   let p = Math.exp(-lambda);
@@ -35,7 +36,9 @@ function estimateHitsMean(leg) {
 }
 
 function modelHits(leg) {
-  const mean = estimateHitsMean(leg);
+  const baseMean = estimateHitsMean(leg);
+  const savantV2Result = applySavantV2Mean(baseMean, leg, "hits");
+  const mean = savantV2Result.mean;
   const line = Number(leg.line);
   const probMore = poissonProbMore(mean, line);
   const probLess = 1 - probMore;
@@ -48,6 +51,7 @@ function modelHits(leg) {
     probMore: Number(probMore.toFixed(4)),
     probLess: Number(probLess.toFixed(4)),
     fairLine: Number(mean.toFixed(3)),
+    savantV2: savantV2Result.savantV2,
     confidence:
       Math.max(probMore, probLess) >= 0.68 ? "HIGH" :
       Math.max(probMore, probLess) >= 0.58 ? "MEDIUM" :
