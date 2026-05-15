@@ -6,7 +6,11 @@ function readJsonSafe(path, fallback = {}) {
 }
 
 const EXPOSURE_GOVERNOR = readJsonSafe("data/learning/phase6-exposure-governor.json", {});
+const PHASE6_FEATURES = readJsonSafe("data/learning/phase6-feature-attribution.json", {});
+const PHASE6_REGIME = readJsonSafe("data/learning/phase6-regime-detection.json", {});
+const PHASE6_HARDBAN = readJsonSafe("data/learning/phase6-hardban-reactivation.json", {});
 const MAX_FINAL_SLIP_SIZE = Number(EXPOSURE_GOVERNOR.governor?.maxSlipSize || EXPOSURE_GOVERNOR.maxSlipSize || 6);
+const EXPOSURE_SCORE_MULTIPLIER = Number(EXPOSURE_GOVERNOR.governor?.scoreMultiplier || EXPOSURE_GOVERNOR.scoreMultiplier || 1);
 const { scoreEliteContext } = require("./elite-context-score.cjs");
 const { marketModelScore } = require("./market-model-router.cjs");
 const { applyHistoricalEdgeShrinkage } = require("./edge-shrinkage.cjs");
@@ -261,6 +265,77 @@ function minEdgeForSlipSize(size) {
   return 0.10;
 }
 
+
+function marketSideKey(x) {
+  return `${normalizedMarket(x)}_${sideKey(x)}`;
+}
+
+function phase6Rows(obj) {
+  if (Array.isArray(obj)) return obj;
+  if (Array.isArray(obj.rows)) return obj.rows;
+  if (obj.rows && typeof obj.rows === "object") return Object.values(obj.rows);
+  if (Array.isArray(obj.features)) return obj.features;
+  if (obj.features && typeof obj.features === "object") return Object.values(obj.features);
+  if (Array.isArray(obj.markets)) return obj.markets;
+  if (obj.markets && typeof obj.markets === "object") return Object.values(obj.markets);
+  if (Array.isArray(obj.data)) return obj.data;
+  if (obj.data && typeof obj.data === "object") return Object.values(obj.data);
+  return [];
+}
+
+function phase6FeatureWeight(x) {
+  const rows = phase6Rows(PHASE6_FEATURES);
+  if (!rows.length) return 1;
+
+  const checks = [
+    ["market_side", marketSideKey(x)],
+    ["market", normalizedMarket(x)],
+    ["side", sideKey(x)]
+  ];
+
+  let weight = 1;
+  for (const [feature, value] of checks) {
+    const row = rows.find(r =>
+      String(r.feature || "").toLowerCase() === feature &&
+      String(r.value || r.key || "").toLowerCase() === String(value).toLowerCase()
+    );
+    if (row && Number.isFinite(Number(row.weight))) {
+      weight *= Number(row.weight);
+    }
+  }
+
+  return Math.max(0.35, Math.min(1.18, weight));
+}
+
+function phase6RegimeMultiplier(x) {
+  const rows = phase6Rows(PHASE6_REGIME);
+  const row = rows.find(r =>
+    String(r.key || "").toLowerCase() === marketSideKey(x).toLowerCase()
+  );
+  if (!row) return 1;
+  return Math.max(0.4, Math.min(1.12, Number(row.scoreMultiplier || 1)));
+}
+
+function phase6HardBanned(x) {
+  const rows = phase6Rows(PHASE6_HARDBAN);
+  const row = rows.find(r =>
+    String(r.key || "").toLowerCase() === marketSideKey(x).toLowerCase()
+  );
+  if (!row) return false;
+  const status = String(row.status || row.reactivation || "").toUpperCase();
+  return status.includes("KEEP_HARD_BANNED") || status.includes("KEEP_SUPPRESSED");
+}
+
+function phase6ScoreMultiplier(x) {
+  return Math.max(
+    0.25,
+    Math.min(
+      1.25,
+      EXPOSURE_SCORE_MULTIPLIER * phase6FeatureWeight(x) * phase6RegimeMultiplier(x)
+    )
+  );
+}
+
 function finalScore(x) {
   const rawEdge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? -999);
   const edgeShrinkage = applyHistoricalEdgeShrinkage(rawEdge, x);
@@ -291,6 +366,7 @@ function finalScore(x) {
   score += elite.contextScore;
   score += trustScoreAdjustment(x);
 
+  score *= phase6ScoreMultiplier(x);
   return Number(score.toFixed(4));
 }
 
@@ -444,7 +520,14 @@ function cleanLeg(x) {
     }),
     autoMarketDecision: autoMarketDecision(x),
     volatilityAdjustment: volatilityAdjustment(x),
-    marketSupportFlag: x.marketSupportFlag || null
+    marketSupportFlag: x.marketSupportFlag || null,
+    phase6: {
+      hardBanned: phase6HardBanned(x),
+      featureWeight: phase6FeatureWeight(x),
+      regimeMultiplier: phase6RegimeMultiplier(x),
+      exposureScoreMultiplier: EXPOSURE_SCORE_MULTIPLIER,
+      scoreMultiplier: phase6ScoreMultiplier(x)
+    }
   };
 }
 
@@ -572,6 +655,7 @@ function finalExecutionGate(x) {
 
 
 function isFinalCandidate(x) {
+  if (phase6HardBanned(x)) return false;
   if (trustSuppressed(x)) return false;
   if (validationSuppressed(x)) return false;
   if (autoMarketSuppressed(x)) return false;
@@ -589,6 +673,7 @@ function isFinalCandidate(x) {
 const blockedCandidates = [];
 
 function getBlockReason(x) {
+  if (phase6HardBanned(x)) return "phase6_hardban";
   if (trustSuppressed(x)) return "trust_suppressed";
   if (validationSuppressed(x)) return "validation_suppressed";
   if (autoMarketSuppressed(x)) return "auto_market_suppressed";
