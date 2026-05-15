@@ -1,3 +1,7 @@
+const { modelHits } = require("./hits.cjs");
+const { modelRuns } = require("./runs.cjs");
+const { modelRbis } = require("./rbis.cjs");
+
 function clamp(x, min = 0, max = 1) {
   return Math.max(min, Math.min(max, Number(x)));
 }
@@ -23,6 +27,29 @@ function firstNum(values) {
     if (Number.isFinite(n)) return n;
   }
   return null;
+}
+
+function cleanComponentLeg(leg, market, projectionFields = []) {
+  const out = {
+    ...leg,
+    market,
+    stat: market,
+    modelMean: undefined,
+    mean: undefined,
+    projectedMean: undefined,
+    projection: undefined,
+    recommendedProjection: undefined,
+    ballparkProjection: undefined,
+    sportsbookLine: undefined,
+    line: 0.5
+  };
+
+  const projection = firstNum(projectionFields.map(k => leg[k]));
+  if (Number.isFinite(projection)) {
+    out.modelMean = projection;
+  }
+
+  return out;
 }
 
 function lineupAdjustment(leg) {
@@ -70,71 +97,83 @@ function estimateDirectHrrMean(leg) {
   return Math.max(0.05, line + (prob - 0.5) * 2.2);
 }
 
-function estimateComponentMean(leg) {
-  const hits = firstNum([
-    leg.hitsProjection,
-    leg.hitProjection,
-    leg.projectedHits,
-    leg.hitsMean
+function estimateModelComponentMean(leg) {
+  const hitsLeg = cleanComponentLeg(leg, "hits", [
+    "hitsProjection",
+    "hitProjection",
+    "projectedHits",
+    "hitsMean"
   ]);
 
-  const runs = firstNum([
-    leg.runsProjection,
-    leg.runProjection,
-    leg.projectedRuns,
-    leg.runsMean
+  const runsLeg = cleanComponentLeg(leg, "runs", [
+    "runsProjection",
+    "runProjection",
+    "projectedRuns",
+    "runsMean"
   ]);
 
-  const rbis = firstNum([
-    leg.rbisProjection,
-    leg.rbiProjection,
-    leg.projectedRbis,
-    leg.rbisMean
+  const rbisLeg = cleanComponentLeg(leg, "rbis", [
+    "rbisProjection",
+    "rbiProjection",
+    "projectedRbis",
+    "rbisMean"
   ]);
 
-  const parts = [hits, runs, rbis].filter(Number.isFinite);
+  const hits = modelHits(hitsLeg);
+  const runs = modelRuns(runsLeg);
+  const rbis = modelRbis(rbisLeg);
 
-  if (parts.length >= 2) {
-    const missing = 3 - parts.length;
-    const fallbackPart = Math.max(0.18, parts.reduce((a, b) => a + b, 0) / parts.length * 0.75);
-    return parts.reduce((a, b) => a + b, 0) + missing * fallbackPart;
-  }
+  const means = [hits.mean, runs.mean, rbis.mean].map(Number).filter(Number.isFinite);
+  if (means.length !== 3) return null;
 
-  return null;
+  return {
+    mean: means.reduce((a, b) => a + b, 0),
+    components: {
+      hits: hits.mean,
+      runs: runs.mean,
+      rbis: rbis.mean
+    }
+  };
 }
 
 function estimateHrrMean(leg) {
-  const componentMean = estimateComponentMean(leg);
   const directMean = estimateDirectHrrMean(leg);
+  const modeled = estimateModelComponentMean(leg);
 
-  let mean = Number.isFinite(componentMean) ? componentMean : directMean;
-  if (!Number.isFinite(mean)) return null;
+  let mean = modeled?.mean;
+  if (!Number.isFinite(mean)) mean = directMean;
+  if (!Number.isFinite(mean)) return { mean: null, components: null };
 
   const contextMultiplier = 1 + lineupAdjustment(leg) + savantAdjustment(leg);
   mean *= contextMultiplier;
 
-  // Prevent accidental over-expansion from noisy component inputs.
+  // Safety cap keeps model-driven composition from exploding when component fields are missing.
   if (Number.isFinite(directMean)) {
     mean = Math.min(mean, directMean * 1.22);
     mean = Math.max(mean, directMean * 0.78);
   }
 
-  return Math.max(0.05, mean);
+  return {
+    mean: Math.max(0.05, mean),
+    components: modeled?.components || null
+  };
 }
 
 function modelHrr(leg) {
   const line = Number(leg.line);
-  const mean = estimateHrrMean(leg);
+  const estimated = estimateHrrMean(leg);
+  const mean = estimated.mean;
 
   if (!Number.isFinite(line) || !Number.isFinite(mean)) {
     return {
       market: "hrr",
-      distribution: "component_poisson_hrr_v2",
+      distribution: "model_component_poisson_hrr_v3",
       mean: null,
       variance: null,
       probMore: null,
       probLess: null,
       fairLine: null,
+      components: null,
       confidence: "UNKNOWN"
     };
   }
@@ -145,12 +184,13 @@ function modelHrr(leg) {
 
   return {
     market: "hrr",
-    distribution: "component_poisson_hrr_v2",
+    distribution: "model_component_poisson_hrr_v3",
     mean: Number(mean.toFixed(4)),
     variance: Number(mean.toFixed(4)),
     probMore: Number(probMore.toFixed(4)),
     probLess: Number(probLess.toFixed(4)),
     fairLine: Number(mean.toFixed(2)),
+    components: estimated.components,
     confidence:
       best >= 0.70 ? "HIGH" :
       best >= 0.58 ? "MEDIUM" :
