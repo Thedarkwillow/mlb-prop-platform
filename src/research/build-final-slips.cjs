@@ -615,6 +615,59 @@ function autoMarketScoreAdjustment(x) {
 }
 
 
+
+function adaptiveThresholds(x, confidence) {
+  const base = {
+    absoluteScoreFloor: 0.10,
+    nonEliteScoreFloor: 0.15,
+    eliteScoreFloor: 0.10
+  };
+
+  const phase6Mult = phase6ScoreMultiplier(x);
+  const featureWeight = phase6FeatureWeight(x);
+  const regimeMult = phase6RegimeMultiplier(x);
+  const marketSide = marketSideKey(x);
+
+  let absoluteScoreFloor = base.absoluteScoreFloor;
+  let nonEliteScoreFloor = base.nonEliteScoreFloor;
+  let eliteScoreFloor = base.eliteScoreFloor;
+
+  // If Phase 6 has downweighted this market/side, require stronger score.
+  if (featureWeight < 0.9 || regimeMult < 0.9 || phase6Mult < 0.75) {
+    absoluteScoreFloor += 0.015;
+    nonEliteScoreFloor += 0.03;
+    eliteScoreFloor += 0.04;
+  }
+
+  // Severe downweight = force elite plays to still clear meaningful score.
+  if (featureWeight < 0.75 || phase6Mult < 0.55) {
+    absoluteScoreFloor += 0.015;
+    nonEliteScoreFloor += 0.03;
+    eliteScoreFloor += 0.02;
+  }
+
+  // Strong historical LESS buckets can remain normal.
+  if (
+    marketSide.endsWith("_LESS") &&
+    featureWeight >= 1.03 &&
+    regimeMult >= 1
+  ) {
+    absoluteScoreFloor -= 0.01;
+    nonEliteScoreFloor -= 0.01;
+    eliteScoreFloor -= 0.01;
+  }
+
+  return {
+    absoluteScoreFloor: Number(Math.max(0.08, Math.min(0.18, absoluteScoreFloor)).toFixed(4)),
+    nonEliteScoreFloor: Number(Math.max(0.13, Math.min(0.24, nonEliteScoreFloor)).toFixed(4)),
+    eliteScoreFloor: Number(Math.max(0.10, Math.min(0.20, eliteScoreFloor)).toFixed(4)),
+    phase6Multiplier: phase6Mult,
+    featureWeight,
+    regimeMultiplier: regimeMult,
+    marketSide
+  };
+}
+
 function finalExecutionGate(x) {
   const confidence = remapConfidence({
     ...x,
@@ -630,14 +683,16 @@ function finalExecutionGate(x) {
   const score = finalScore(x);
   const auto = autoMarketDecision(x);
   const vol = volatilityAdjustment(x);
+  const thresholds = adaptiveThresholds(x, confidence.confidence);
 
   const reasons = [];
 
   if (auto.suppressed) reasons.push("auto_market_suppressed");
   if (confidence.confidence === "weak") reasons.push("weak_confidence");
   if (confidence.confidence === "unmodeled") reasons.push("unmodeled_confidence");
-  if (score < 0.10) reasons.push("score_below_minimum");
-  if (confidence.confidence !== "elite" && score < 0.15) reasons.push("non_elite_score_too_low");
+  if (score < thresholds.absoluteScoreFloor) reasons.push("score_below_adaptive_minimum");
+  if (confidence.confidence === "elite" && score < thresholds.eliteScoreFloor) reasons.push("elite_score_below_adaptive_floor");
+  if (confidence.confidence !== "elite" && score < thresholds.nonEliteScoreFloor) reasons.push("non_elite_score_below_adaptive_floor");
   if (vol.volatility === "high" && confidence.confidence !== "elite") reasons.push("high_volatility_non_elite");
   if (!marketSpecificFinalGate(x)) reasons.push("failed_market_gate");
 
@@ -649,7 +704,8 @@ function finalExecutionGate(x) {
     confidenceScore: confidence.score,
     autoMarketAction: auto.action,
     volatility: vol.volatility,
-    volatilityPenalty: vol.penalty
+    volatilityPenalty: vol.penalty,
+    adaptiveThresholds: thresholds
   };
 }
 
@@ -710,7 +766,22 @@ const top = priced
 
 const finalTop = [];
 for (const x of top) {
-  if (!finalExecutionGate(x).passed) continue;
+  const gate = finalExecutionGate(x);
+  if (!gate.passed) {
+    blockedCandidates.push({
+      player: x.player,
+      market: x.market,
+      side: x.side,
+      line: x.line,
+      reason: gate.reasons[0] || "failed_final_execution_gate",
+      reasons: gate.reasons,
+      prob: x.calibratedDistributionProb ?? null,
+      edge: x.sportsbookAdjustedEdge ?? x.adjustedEdge ?? x.edge ?? null,
+      score: x.finalScore,
+      thresholds: gate.adaptiveThresholds
+    });
+    continue;
+  }
   if (canAddStrict(finalTop, x)) finalTop.push(x);
 }
 
