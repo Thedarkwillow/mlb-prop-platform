@@ -21,10 +21,32 @@ function normName(s) {
 }
 
 const ROLLING = readJson("data/savant/rolling-form.json", {});
+const MATCHUPS = readJson("data/savant/pitch-type-matchups.json", {});
 const HITTERS = ROLLING.hitters || {};
+const PITCH_MATCHUPS = MATCHUPS.matchups || {};
 
 function rollingFormForPlayer(player) {
   return HITTERS[normName(player)] || null;
+}
+
+function pitchTypeMatchupForLeg(leg) {
+  const playerKey = normName(leg.player);
+  if (!playerKey) return null;
+
+  const team = String(leg.team || leg.resolvedTeam || "").toUpperCase();
+
+  const matches = Object.values(PITCH_MATCHUPS).filter(m =>
+    normName(m.player) === playerKey &&
+    (!team || String(m.team || "").toUpperCase() === team)
+  );
+
+  if (!matches.length) return null;
+
+  const exactMarket = matches.find(m =>
+    String(m.market || "").toLowerCase() === String(leg.market || leg.stat || "").toLowerCase()
+  );
+
+  return exactMarket || matches[0];
 }
 
 function rollingFormMeanAdjustment(leg, market) {
@@ -38,12 +60,12 @@ function rollingFormMeanAdjustment(leg, market) {
   let adjustment = 0;
   const notes = [];
 
-  if (tier === "positive" || score >= 2) {
+  if (["positive", "hot"].includes(tier) || score >= 2) {
     adjustment += 0.025;
     notes.push("positive rolling form");
   }
 
-  if (tier === "negative" || score <= -2) {
+  if (["negative", "cold"].includes(tier) || score <= -2) {
     adjustment -= 0.025;
     notes.push("negative rolling form");
   }
@@ -68,7 +90,6 @@ function rollingFormMeanAdjustment(leg, market) {
     notes.push("high k-rate form");
   }
 
-  // Conservative first version: cap to +/- 4%.
   adjustment = Math.max(-0.04, Math.min(0.04, adjustment));
 
   return {
@@ -83,6 +104,48 @@ function rollingFormMeanAdjustment(leg, market) {
   };
 }
 
+function pitchTypeMeanAdjustment(leg) {
+  const matchup = pitchTypeMatchupForLeg(leg);
+
+  if (!matchup || matchup.matched !== true) {
+    return {
+      adjustment: 0,
+      matchup: matchup
+        ? {
+            matched: false,
+            tier: matchup.tier || "unknown",
+            score: matchup.score ?? null,
+            opponentPitcher: matchup.opponentPitcher || null,
+            flags: matchup.flags || []
+          }
+        : null,
+      notes: ["no matched pitch-type matchup"]
+    };
+  }
+
+  const tier = String(matchup.tier || "").toLowerCase();
+  let adjustment = 0;
+
+  if (tier === "strong_boost") adjustment = 0.02;
+  else if (tier === "boost") adjustment = 0.01;
+  else if (tier === "downgrade") adjustment = -0.01;
+  else if (tier === "strong_downgrade") adjustment = -0.02;
+
+  return {
+    adjustment,
+    matchup: {
+      matched: true,
+      tier: matchup.tier,
+      score: matchup.score,
+      opponentPitcher: matchup.opponentPitcher || null,
+      opponentPitcherHand: matchup.opponentPitcherHand || null,
+      flags: matchup.flags || [],
+      pitchTypes: (matchup.pitchTypes || []).slice(0, 3)
+    },
+    notes: adjustment === 0 ? ["neutral pitch-type matchup"] : [`pitch-type ${tier}`]
+  };
+}
+
 function applySavantV2Mean(mean, leg, market) {
   const base = Number(mean);
   if (!Number.isFinite(base)) {
@@ -91,27 +154,40 @@ function applySavantV2Mean(mean, leg, market) {
       savantV2: {
         applied: false,
         adjustment: 0,
+        rollingAdjustment: 0,
+        pitchTypeAdjustment: 0,
         notes: ["invalid mean"]
       }
     };
   }
 
   const rolling = rollingFormMeanAdjustment(leg, market);
-  const adjusted = base * (1 + rolling.adjustment);
+  const pitchType = pitchTypeMeanAdjustment({ ...leg, market });
+
+  const totalAdjustment = Math.max(
+    -0.05,
+    Math.min(0.05, rolling.adjustment + pitchType.adjustment)
+  );
+
+  const adjusted = base * (1 + totalAdjustment);
 
   return {
     mean: Math.max(0.01, adjusted),
     savantV2: {
-      applied: rolling.adjustment !== 0,
-      adjustment: Number(rolling.adjustment.toFixed(4)),
-      source: "rolling_form_v1",
+      applied: totalAdjustment !== 0,
+      adjustment: Number(totalAdjustment.toFixed(4)),
+      rollingAdjustment: Number(rolling.adjustment.toFixed(4)),
+      pitchTypeAdjustment: Number(pitchType.adjustment.toFixed(4)),
+      source: "rolling_form_plus_pitch_type_v2",
       form: rolling.form,
-      notes: rolling.notes
+      pitchTypeMatchup: pitchType.matchup,
+      notes: [...rolling.notes, ...pitchType.notes]
     }
   };
 }
 
 module.exports = {
   applySavantV2Mean,
-  rollingFormForPlayer
+  rollingFormForPlayer,
+  pitchTypeMatchupForLeg
 };
