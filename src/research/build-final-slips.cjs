@@ -9,6 +9,7 @@ const EXPOSURE_GOVERNOR = readJsonSafe("data/learning/phase6-exposure-governor.j
 const PHASE6_FEATURES = readJsonSafe("data/learning/phase6-feature-attribution.json", {});
 const PHASE6_REGIME = readJsonSafe("data/learning/phase6-regime-detection.json", {});
 const PHASE6_HARDBAN = readJsonSafe("data/learning/phase6-hardban-reactivation.json", {});
+const PHASE6_ADAPTIVE_RULES = readJsonSafe("data/learning/phase6-adaptive-rules.json", {});
 const MAX_FINAL_SLIP_SIZE = Number(EXPOSURE_GOVERNOR.governor?.maxSlipSize || EXPOSURE_GOVERNOR.maxSlipSize || 6);
 const EXPOSURE_SCORE_MULTIPLIER = Number(EXPOSURE_GOVERNOR.governor?.scoreMultiplier || EXPOSURE_GOVERNOR.scoreMultiplier || 1);
 const { scoreEliteContext } = require("./elite-context-score.cjs");
@@ -326,6 +327,66 @@ function phase6HardBanned(x) {
   return status.includes("KEEP_HARD_BANNED") || status.includes("KEEP_SUPPRESSED");
 }
 
+
+function phase6ProbBucket(prob) {
+  const p = Number(prob);
+  if (!Number.isFinite(p)) return "unknown";
+  if (p < 0.55) return "<55";
+  if (p < 0.60) return "55-60";
+  if (p < 0.65) return "60-65";
+  if (p < 0.70) return "65-70";
+  if (p < 0.75) return "70-75";
+  return "75+";
+}
+function phase6EdgeBucket(edge) {
+  const e = Number(edge);
+  if (!Number.isFinite(e)) return "unknown";
+  if (e < 0.05) return "<5%";
+  if (e < 0.10) return "5-10%";
+  if (e < 0.15) return "10-15%";
+  return "15%+";
+}
+function phase6AdaptiveRuleSet(x) {
+  const prob = Number(x.calibratedDistributionProb ?? x.recommendedProb ?? x.probability ?? x.prob);
+  const edge = Number(x.sportsbookAdjustedEdge ?? x.adjustedEdge ?? x.sportsbookEdge ?? x.edge);
+  const market = normalizedMarket(x);
+  const marketSide = marketSideKey(x);
+  const probBucket = phase6ProbBucket(prob);
+  const edgeBucket = phase6EdgeBucket(edge);
+  const rules = [
+    PHASE6_ADAPTIVE_RULES.byMarket?.[market],
+    PHASE6_ADAPTIVE_RULES.byMarketSide?.[marketSide],
+    PHASE6_ADAPTIVE_RULES.byProbabilityBucket?.[probBucket],
+    PHASE6_ADAPTIVE_RULES.byEdgeBucket?.[edgeBucket]
+  ].filter(Boolean);
+  const multiplier = rules.reduce((m, r) => m * Number(r.multiplier ?? 1), 1);
+  const thresholdAdjustment = rules.reduce((a, r) => a + Number(r.thresholdAdjustment ?? 0), 0);
+  return {
+    market,
+    marketSide,
+    probBucket,
+    edgeBucket,
+    multiplier: Number(Math.max(0.45, Math.min(1.2, multiplier)).toFixed(4)),
+    thresholdAdjustment: Number(Math.max(-0.03, Math.min(0.08, thresholdAdjustment)).toFixed(4)),
+    actions: rules.map(r => ({
+      bucket: r.bucket,
+      action: r.action,
+      multiplier: r.multiplier,
+      thresholdAdjustment: r.thresholdAdjustment,
+      reason: r.reason,
+      graded: r.graded,
+      hitRate: r.hitRate,
+      roi: r.roi
+    }))
+  };
+}
+function phase6AdaptiveSuppressed(x) {
+  return phase6AdaptiveRuleSet(x).actions.some(r =>
+    String(r.action || "").toUpperCase() === "SUPPRESS" ||
+    (String(r.action || "").toUpperCase() === "TIGHTEN" && Number(r.roi) <= -0.30 && Number(r.graded) >= 20)
+  );
+}
+
 function phase6ScoreMultiplier(x) {
   return Math.max(
     0.25,
@@ -367,6 +428,7 @@ function finalScore(x) {
   score += trustScoreAdjustment(x);
 
   score *= phase6ScoreMultiplier(x);
+  score *= phase6AdaptiveRuleSet(x).multiplier;
   return Number(score.toFixed(4));
 }
 
@@ -520,6 +582,7 @@ function cleanLeg(x) {
     }),
     autoMarketDecision: autoMarketDecision(x),
     volatilityAdjustment: volatilityAdjustment(x),
+    phase6Adaptive: phase6AdaptiveRuleSet(x),
     marketSupportFlag: x.marketSupportFlag || null,
     phase6: {
       hardBanned: phase6HardBanned(x),
@@ -684,10 +747,15 @@ function finalExecutionGate(x) {
   const auto = autoMarketDecision(x);
   const vol = volatilityAdjustment(x);
   const thresholds = adaptiveThresholds(x, confidence.confidence);
+  const adaptive = phase6AdaptiveRuleSet(x);
+  thresholds.absoluteScoreFloor = Number((thresholds.absoluteScoreFloor + adaptive.thresholdAdjustment).toFixed(4));
+  thresholds.nonEliteScoreFloor = Number((thresholds.nonEliteScoreFloor + adaptive.thresholdAdjustment).toFixed(4));
+  thresholds.eliteScoreFloor = Number((thresholds.eliteScoreFloor + adaptive.thresholdAdjustment).toFixed(4));
 
   const reasons = [];
 
   if (auto.suppressed) reasons.push("auto_market_suppressed");
+  if (phase6AdaptiveSuppressed(x)) reasons.push("phase6_adaptive_suppressed");
   if (confidence.confidence === "weak") reasons.push("weak_confidence");
   if (confidence.confidence === "unmodeled") reasons.push("unmodeled_confidence");
   if (score < thresholds.absoluteScoreFloor) reasons.push("score_below_adaptive_minimum");
@@ -705,6 +773,7 @@ function finalExecutionGate(x) {
     autoMarketAction: auto.action,
     volatility: vol.volatility,
     volatilityPenalty: vol.penalty,
+    adaptiveRules: adaptive,
     adaptiveThresholds: thresholds
   };
 }
@@ -715,6 +784,7 @@ function isFinalCandidate(x) {
   if (trustSuppressed(x)) return false;
   if (validationSuppressed(x)) return false;
   if (autoMarketSuppressed(x)) return false;
+  if (phase6AdaptiveSuppressed(x)) return false;
   if (!hasDistributionModel(x)) return false;
   if (!x.sportsbookMatch) return false;
   if (typeof x.sportsbookEdge !== "number") return false;
@@ -733,6 +803,7 @@ function getBlockReason(x) {
   if (trustSuppressed(x)) return "trust_suppressed";
   if (validationSuppressed(x)) return "validation_suppressed";
   if (autoMarketSuppressed(x)) return "auto_market_suppressed";
+  if (phase6AdaptiveSuppressed(x)) return "phase6_adaptive_suppressed";
   const gate = finalExecutionGate(x);
   if (!gate.passed) return gate.reasons[0] || "failed_final_execution_gate";
   if (unsupportedFinalMarket(x)) return "unsupported_market";
