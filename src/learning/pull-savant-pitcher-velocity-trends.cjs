@@ -69,8 +69,13 @@ function collectPitchers() {
     }
   }
 
-  const max = Number(process.env.SAVANT_MAX_PITCHERS || 35);
-  return [...out.values()].slice(0, max);
+  const max = Number(process.env.SAVANT_MAX_PITCHERS || 75);
+
+  const values = [...out.values()];
+  const starters = values.filter(p => p.role === "probable_starter");
+  const others = values.filter(p => p.role !== "probable_starter");
+
+  return [...starters, ...others].slice(0, max);
 }
 
 function norm(v) {
