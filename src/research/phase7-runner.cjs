@@ -34,6 +34,7 @@ run("Risk of Ruin", "node", ["src/research/phase7-risk-of-ruin.cjs", DATE]);
 
 // Second bankroll pass applies drawdown-aware risk scaling.
 run("Risk-Adjusted Bankroll", "node", ["src/research/phase7-bankroll.cjs", DATE]);
+run("PostgreSQL Export", "node", ["src/db/export-json-to-postgres.cjs", DATE]);
 
 console.log("\nPHASE 7 COMPLETE");
 console.log("================");
