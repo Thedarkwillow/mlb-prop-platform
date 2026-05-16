@@ -50,6 +50,67 @@ function legKey(row) {
   ].join("|");
 }
 
+function playerKey(row) {
+  return String(row.player || "").toLowerCase().trim();
+}
+
+function teamKey(row) {
+  return String(row.team || "").toUpperCase().trim();
+}
+
+function gameKey(row) {
+  return String(row.game || row.matchup || "").toUpperCase().trim();
+}
+
+function propKey(row) {
+  return [playerKey(row), market(row)].join("|");
+}
+
+function oddsTier(row) {
+  return String(row.oddsTier || row.tier || "standard").toLowerCase().trim();
+}
+
+function isSpecial(row) {
+  return ["goblin", "demon"].includes(oddsTier(row));
+}
+
+function violatesSlipConstraints(candidate, slip) {
+  const candidatePlayer = playerKey(candidate);
+  const candidateTeam = teamKey(candidate);
+  const candidateGame = gameKey(candidate);
+  const candidateProp = propKey(candidate);
+  const candidateMarket = market(candidate);
+
+  for (const leg of slip) {
+    if (playerKey(leg) === candidatePlayer) return true;
+    if (propKey(leg) === candidateProp) return true;
+  }
+
+  const sameTeamCount = slip.filter(l => teamKey(l) && teamKey(l) === candidateTeam).length;
+  if (candidateTeam && sameTeamCount >= 2) return true;
+
+  const sameGameCount = slip.filter(l => gameKey(l) && gameKey(l) === candidateGame).length;
+  if (candidateGame && sameGameCount >= 3) return true;
+
+  const specialCount = slip.filter(isSpecial).length;
+  if (isSpecial(candidate) && specialCount >= 1) return true;
+
+  const volatileMarkets = new Set(["home_runs", "hr", "triples"]);
+  if (volatileMarkets.has(candidateMarket)) return true;
+
+  return false;
+}
+
+function buildConstrainedSlip(rows, size) {
+  const slip = [];
+  for (const row of rows) {
+    if (slip.length >= size) break;
+    if (violatesSlipConstraints(row, slip)) continue;
+    slip.push(row);
+  }
+  return slip.length === size ? slip : [];
+}
+
 function simulateLeg(prob) {
   return Math.random() < prob;
 }
@@ -186,11 +247,11 @@ function buildCandidateSlips(rows) {
   }
 
   return [2, 3, 4, 5, 6]
-    .filter(size => unique.length >= size)
     .map(size => ({
       name: `PHASE 7 SIM ${size}-LEG`,
-      legs: unique.slice(0, size)
-    }));
+      legs: buildConstrainedSlip(unique, size)
+    }))
+    .filter(slip => slip.legs.length === Number(slip.name.match(/(\d+)-LEG/)?.[1] || 0));
 }
 
 const playable = read("outputs/playable-final-slips.json", []);
