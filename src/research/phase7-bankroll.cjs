@@ -10,6 +10,8 @@ const BANKROLL = Number(process.env.BANKROLL || 1000);
 const KELLY_FRACTION = Number(process.env.KELLY_FRACTION || 0.25);
 const MAX_BET_PCT = Number(process.env.MAX_BET_PCT || 0.05);
 const MIN_EDGE = Number(process.env.MIN_EDGE || 0.01);
+const MAX_ACCEPTABLE_DRAWDOWN_RATE = Number(process.env.MAX_ACCEPTABLE_DRAWDOWN_RATE || 0.35);
+const MAX_ACCEPTABLE_P95_DRAWDOWN = Number(process.env.MAX_ACCEPTABLE_P95_DRAWDOWN || 0.35);
 
 function read(file, fallback) {
   try {
@@ -44,6 +46,28 @@ function kellyFraction(p, b) {
 }
 
 const portfolio = read(`outputs/phase7-portfolio-${DATE}.json`, read("outputs/phase7-portfolio.json", null));
+const riskReport = read(`outputs/phase7-risk-of-ruin-${DATE}.json`, read("outputs/phase7-risk-of-ruin.json", null));
+
+function riskScale(report) {
+  if (!report || !report.summary) return 1;
+
+  const drawdownRate = Number(report.summary.drawdownRate ?? 0);
+  const p95Drawdown = Number(report.summary.p95MaxDrawdown ?? 0);
+
+  let scale = 1;
+
+  if (drawdownRate > MAX_ACCEPTABLE_DRAWDOWN_RATE) {
+    scale *= Math.max(0.25, MAX_ACCEPTABLE_DRAWDOWN_RATE / drawdownRate);
+  }
+
+  if (p95Drawdown > MAX_ACCEPTABLE_P95_DRAWDOWN) {
+    scale *= Math.max(0.25, MAX_ACCEPTABLE_P95_DRAWDOWN / p95Drawdown);
+  }
+
+  return Math.max(0.1, Math.min(1, scale));
+}
+
+const RISK_SCALE = riskScale(riskReport);
 
 if (!portfolio || !Array.isArray(portfolio.selected)) {
   console.error("Missing portfolio file");
@@ -67,7 +91,8 @@ for (const slip of portfolio.selected) {
   const rawKelly = kellyFraction(p, b);
   const adjustedKelly = rawKelly * KELLY_FRACTION;
 
-  const cappedKelly = Math.min(adjustedKelly, MAX_BET_PCT);
+  const riskAdjustedKelly = adjustedKelly * RISK_SCALE;
+  const cappedKelly = Math.min(riskAdjustedKelly, MAX_BET_PCT);
 
   if (cappedKelly < MIN_EDGE) continue;
 
@@ -81,6 +106,8 @@ for (const slip of portfolio.selected) {
     payout,
     rawKelly,
     adjustedKelly,
+    riskScale: RISK_SCALE,
+    riskAdjustedKelly,
     cappedKelly,
     betPct: cappedKelly,
     betSize
@@ -92,6 +119,8 @@ const result = {
   bankroll: BANKROLL,
   kellyFraction: KELLY_FRACTION,
   maxBetPct: MAX_BET_PCT,
+  riskScale: RISK_SCALE,
+  riskInputs: riskReport?.summary || null,
   bets,
   summary: {
     totalBets: bets.length,
