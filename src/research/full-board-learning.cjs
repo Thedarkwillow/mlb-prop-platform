@@ -262,6 +262,7 @@ function buildReport(rows) {
 }
 
 async function main() {
+  const pricedBoard = read("outputs/priced-board.json", []);
   const enriched = read("outputs/slips-distribution-enriched.json", []);
   const blocked = read("outputs/blocked-final-candidates.json", []);
   const playable = read("outputs/playable-final-slips.json", []);
@@ -276,7 +277,33 @@ async function main() {
 
   const rowsByKey = new Map();
 
-  for (const r of enriched || []) {
+  const SUPPORTED_MARKETS = new Set([
+    "bases",
+    "hits",
+    "runs",
+    "rbis",
+    "rbi",
+    "home_runs",
+    "hr",
+    "walks",
+    "singles",
+    "hrr"
+  ]);
+
+  const allBoardRows = [
+    ...(pricedBoard || []).filter(r =>
+      r &&
+      r.recordType !== "pricing_summary" &&
+      SUPPORTED_MARKETS.has(norm(r.market || r.stat)) &&
+      !(["goblin", "demon"].includes(tier(r.oddsTier || r.tier)) && side(r.side || r.recommendedSide) === "LESS")
+    ),
+    ...(enriched || []).filter(r =>
+      SUPPORTED_MARKETS.has(norm(r.market || r.stat)) &&
+      !(["goblin", "demon"].includes(tier(r.oddsTier || r.tier)) && side(r.side || r.recommendedSide) === "LESS")
+    )
+  ];
+
+  for (const r of allBoardRows) {
     const k = keyOf(r);
     const b = blockedByKey.get(k);
     const isPlayed = playableKeys.has(k);
@@ -331,6 +358,7 @@ async function main() {
   const histByKey = new Map();
 
   for (const r of hist) {
+    if (String(r.date || "").slice(0, 10) === DATE) continue;
     histByKey.set([r.date, keyOf(r)].join("|"), r);
   }
   for (const r of gradedRows) {
