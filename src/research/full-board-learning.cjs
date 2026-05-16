@@ -109,12 +109,68 @@ function totalBases(b) {
   return singles + 2 * d + 3 * t + 4 * hr;
 }
 
+function hitterFantasyScore(b) {
+  const h = Number(b.hits || 0);
+  const d = Number(b.doubles || 0);
+  const t = Number(b.triples || 0);
+  const hr = Number(b.homeRuns || 0);
+  const singles = Math.max(0, h - d - t - hr);
+  return (
+    singles * 3 +
+    d * 5 +
+    t * 8 +
+    hr * 10 +
+    Number(b.runs || 0) * 2 +
+    Number(b.rbi || 0) * 2 +
+    Number(b.baseOnBalls || 0) * 2 +
+    Number(b.hitByPitch || 0) * 2 +
+    Number(b.stolenBases || 0) * 5
+  );
+}
+
+function pitcherOuts(p) {
+  return Number(p.outs || 0);
+}
+
+function qualityStart(p) {
+  const outs = pitcherOuts(p);
+  const er = Number(p.earnedRuns || 0);
+  return outs >= 18 && er <= 3 ? 1 : 0;
+}
+
+function pitcherFantasyScore(p) {
+  return (
+    Number(p.wins || 0) * 6 +
+    qualityStart(p) * 4 +
+    Number(p.earnedRuns || 0) * -3 +
+    Number(p.strikeOuts || 0) * 3 +
+    pitcherOuts(p)
+  );
+}
+
 function hrr(b) {
   return Number(b.hits || 0) + Number(b.runs || 0) + Number(b.rbi || 0);
 }
 
-function statForMarket(batting, market) {
+function hasAnyStat(obj) {
+  return obj && Object.keys(obj).length > 0;
+}
+
+function statForMarket(stats, market) {
   const m = norm(market);
+  const batting = stats.batting || {};
+  const pitching = stats.pitching || {};
+  const hitterMarkets = new Set([
+    "bases","hits","runs","rbis","rbi","home_runs","hr","walks","singles","hrr",
+    "hitter_fantasy_score","plate_appearances"
+  ]);
+  const pitcherMarkets = new Set([
+    "pitcher_fantasy_score","pitching_outs","strikeouts","pitches_thrown"
+  ]);
+
+  if (hitterMarkets.has(m) && !hasAnyStat(batting)) return null;
+  if (pitcherMarkets.has(m) && !hasAnyStat(pitching)) return null;
+
   if (m === "bases") return totalBases(batting);
   if (m === "hits") return Number(batting.hits || 0);
   if (m === "runs") return Number(batting.runs || 0);
@@ -129,6 +185,13 @@ function statForMarket(batting, market) {
     return Math.max(0, h - d - t - hr);
   }
   if (m === "hrr") return hrr(batting);
+  if (m === "hitter_fantasy_score") return hitterFantasyScore(batting);
+  if (m === "pitcher_fantasy_score") return pitcherFantasyScore(pitching);
+  if (m === "pitching_outs") return pitcherOuts(pitching);
+  if (m === "strikeouts") return Number(pitching.strikeOuts || 0);
+  if (m === "pitches_thrown") return Number(pitching.numberOfPitches || 0);
+  if (m === "plate_appearances") return Number(batting.plateAppearances || 0);
+
   return null;
 }
 
@@ -138,6 +201,10 @@ async function buildStats(date) {
 
   for (const d of schedule.dates || []) {
     for (const g of d.games || []) {
+      const status = String(g.status?.detailedState || g.status?.abstractGameState || "").toLowerCase();
+      const isFinal = status.includes("final") || status.includes("game over");
+      if (!isFinal) continue;
+
       const box = await fetchJson(`https://statsapi.mlb.com/api/v1/game/${g.gamePk}/boxscore`);
       for (const teamSide of ["away", "home"]) {
         const players = box.teams?.[teamSide]?.players || {};
@@ -148,7 +215,8 @@ async function buildStats(date) {
             player: name,
             gamePk: g.gamePk,
             teamSide,
-            batting: p.stats?.batting || {}
+            batting: p.stats?.batting || {},
+            pitching: p.stats?.pitching || {}
           });
         }
       }
@@ -160,9 +228,9 @@ async function buildStats(date) {
 
 function grade(row, statsByName) {
   const found = statsByName.get(cleanName(row.player));
-  const actual = found ? statForMarket(found.batting, row.market) : null;
+  const actual = found ? statForMarket(found, row.market) : null;
 
-  if (!Number.isFinite(Number(actual))) {
+  if (actual === null || actual === undefined || !Number.isFinite(Number(actual))) {
     return {
       ...row,
       actual: null,
@@ -287,7 +355,13 @@ async function main() {
     "hr",
     "walks",
     "singles",
-    "hrr"
+    "hrr",
+    "hitter_fantasy_score",
+    "pitcher_fantasy_score",
+    "pitches_thrown",
+    "plate_appearances",
+    "pitching_outs",
+    "strikeouts"
   ]);
 
   const allBoardRows = [
