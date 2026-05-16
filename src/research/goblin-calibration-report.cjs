@@ -70,10 +70,14 @@ const history = [
 ];
 
 const nearMiss = read("outputs/near-miss-tracking.json", []);
+const nearMissHistory = read("data/results/near-miss-history.json", []);
 
 const byTier = {};
 const byMarketSideTier = {};
 const goblins = [];
+const shadowByTier = {};
+const shadowByMarketSideTier = {};
+const shadowGoblins = [];
 
 for (const r of history) {
   const t = tier(r.oddsTier || r.tier);
@@ -87,13 +91,28 @@ for (const r of history) {
   if (t === "goblin") goblins.push(r);
 }
 
+for (const r of nearMissHistory) {
+  const t = tier(r.oddsTier || r.tier || "goblin");
+  const market = norm(r.market || r.stat);
+  const s = side(r.side || r.recommendedSide);
+  if (!market || !s) continue;
+
+  add(shadowByTier, t, r);
+  add(shadowByMarketSideTier, `${market}_${s}_${t}`, r);
+
+  if (t === "goblin") shadowGoblins.push(r);
+}
+
 const report = {
   generatedAt: new Date().toISOString(),
   note: "Goblin calibration is tracked separately. Do not auto-play goblins until graded sample is large enough.",
   sampleWarning: "Require 50+ graded goblin legs before changing final-gate behavior. Prefer 100+.",
   goblinSummary: summarize(goblins),
+  shadowGoblinSummary: summarize(shadowGoblins),
   byTier: Object.fromEntries(Object.entries(byTier).map(([k,v]) => [k, summarize(v)])),
+  shadowByTier: Object.fromEntries(Object.entries(shadowByTier).map(([k,v]) => [k, summarize(v)])),
   byMarketSideTier: Object.fromEntries(Object.entries(byMarketSideTier).map(([k,v]) => [k, summarize(v)])),
+  shadowByMarketSideTier: Object.fromEntries(Object.entries(shadowByMarketSideTier).map(([k,v]) => [k, summarize(v)])),
   nearMissGoblinCandidates: nearMiss.filter(r => tier(r.oddsTier || r.tier || "goblin") === "goblin")
 };
 
@@ -104,9 +123,17 @@ console.log("GOBLIN CALIBRATION REPORT");
 console.log("=========================");
 console.log("Goblin summary:");
 console.table([report.goblinSummary]);
+console.log("Official goblin summary:");
+console.table([report.goblinSummary]);
+console.log("Shadow goblin summary:");
+console.table([report.shadowGoblinSummary]);
 console.log("By tier:");
 console.table(Object.entries(report.byTier).map(([bucket, x]) => ({ bucket, ...x })));
-console.log("Top market-side-tier buckets:");
+console.log("Shadow by tier:");
+console.table(Object.entries(report.shadowByTier).map(([bucket, x]) => ({ bucket, ...x })));
+console.log("Top official market-side-tier buckets:");
 console.table(Object.entries(report.byMarketSideTier).slice(0, 20).map(([bucket, x]) => ({ bucket, ...x })));
+console.log("Top shadow market-side-tier buckets:");
+console.table(Object.entries(report.shadowByMarketSideTier).slice(0, 20).map(([bucket, x]) => ({ bucket, ...x })));
 console.log("Near-miss goblin candidates:", report.nearMissGoblinCandidates.length);
 console.log("Wrote data/learning/goblin-calibration.json");
