@@ -262,7 +262,7 @@ function buildReport(rows) {
 }
 
 async function main() {
-  const pricedBoard = read("outputs/priced-board.json", []);
+  const pricedBoard = read(`outputs/priced-board-${DATE}.json`, read("outputs/priced-board.json", []));
   const enriched = read("outputs/slips-distribution-enriched.json", []);
   const blocked = read("outputs/blocked-final-candidates.json", []);
   const playable = read("outputs/playable-final-slips.json", []);
