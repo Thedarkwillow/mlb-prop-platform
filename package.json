@@ -152,7 +152,8 @@
     "learn:phase6:all": "npm run learn:phase5 && npm run learn:phase6 && npm run learn:phase6:regime && npm run learn:phase6:exposure && npm run learn:phase6:features && npm run learn:phase6:reactivation && npm run phase6:dashboard && npm run learn:phase6:hardban && npm run regime",
     "learn:phase6:hardban": "node src/research/phase6-hardban-reactivation.cjs",
     "regime": "node src/research/regime-detection.cjs",
-    "rolling:roi": "node src/research/rolling-roi-windows.cjs ${npm_config_date:-$(date +%F)}"
+    "rolling:roi": "node src/research/rolling-roi-windows.cjs ${npm_config_date:-$(date +%F)}",
+    "phase7": "node src/research/phase7-runner.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
