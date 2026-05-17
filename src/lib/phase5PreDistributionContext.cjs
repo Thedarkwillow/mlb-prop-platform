@@ -18,12 +18,12 @@ function applyPreDistributionContext(leg) {
   const notes = [];
 
   if (Number(leg.teamTotal) >= 5) {
-    multiplier += 0.05;
+    multiplier += 0.03;
     notes.push("team_total_boost");
   }
 
   if (Number(leg.teamTotal) > 0 && Number(leg.teamTotal) <= 3.5) {
-    multiplier -= 0.05;
+    multiplier -= 0.03;
     notes.push("team_total_penalty");
   }
 
@@ -50,12 +50,12 @@ function applyPreDistributionContext(leg) {
   }
 
   if (Number(leg.recentForm) >= 1.2) {
-    multiplier += 0.05;
+    multiplier += 0.03;
     notes.push("recent_form_boost");
   }
 
   if (Number(leg.recentForm) > 0 && Number(leg.recentForm) <= 0.8) {
-    multiplier -= 0.05;
+    multiplier -= 0.03;
     notes.push("recent_form_penalty");
   }
 
@@ -72,28 +72,34 @@ function applyPreDistributionContext(leg) {
   }
 
   if (["hits", "bases", "hrr"].includes(market)) {
-    if (Number(leg.hardHitRate) >= 45) {
-      multiplier += 0.05;
+    if (Number(leg.hardHitRate) >= 50) {
+      multiplier += 0.03;
       notes.push("hard_hit_boost");
     }
 
     if (Number(leg.hardHitRate) > 0 && Number(leg.hardHitRate) <= 30) {
-      multiplier -= 0.05;
+      multiplier -= 0.03;
       notes.push("hard_hit_penalty");
     }
   }
 
-  if (Number(leg.pitchTypeMatchupScore) >= 0.7 || leg.pitchTypeMatchupTier === "positive") {
+  if (
+    Number(leg.pitchTypeMatchupScore) >= 1.5 ||
+    ["strong_boost", "boost", "positive"].includes(String(leg.pitchTypeMatchupTier || ""))
+  ) {
     multiplier += 0.04;
     notes.push("pitch_type_matchup_boost");
   }
 
-  if (Number(leg.pitchTypeMatchupScore) > 0 && Number(leg.pitchTypeMatchupScore) <= 0.35 || leg.pitchTypeMatchupTier === "negative") {
+  if (
+    Number(leg.pitchTypeMatchupScore) <= -0.75 ||
+    ["strong_downgrade", "downgrade", "negative"].includes(String(leg.pitchTypeMatchupTier || ""))
+  ) {
     multiplier -= 0.04;
     notes.push("pitch_type_matchup_penalty");
   }
 
-  multiplier = Math.max(0.82, Math.min(1.18, multiplier));
+  multiplier = Math.max(0.90, Math.min(1.10, multiplier));
 
   return {
     contextBaseProjection: Number(baseProjection.toFixed(4)),
