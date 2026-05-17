@@ -83,6 +83,16 @@ function applyPreDistributionContext(leg) {
     }
   }
 
+  if (Number(leg.pitchTypeMatchupScore) >= 0.7 || leg.pitchTypeMatchupTier === "positive") {
+    multiplier += 0.04;
+    notes.push("pitch_type_matchup_boost");
+  }
+
+  if (Number(leg.pitchTypeMatchupScore) > 0 && Number(leg.pitchTypeMatchupScore) <= 0.35 || leg.pitchTypeMatchupTier === "negative") {
+    multiplier -= 0.04;
+    notes.push("pitch_type_matchup_penalty");
+  }
+
   multiplier = Math.max(0.82, Math.min(1.18, multiplier));
 
   return {

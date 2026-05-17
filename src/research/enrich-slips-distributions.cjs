@@ -14,6 +14,7 @@ const { modelHitterStrikeouts } = require("../models/markets/hitter-strikeouts.c
 const { modelWalks } = require("../models/markets/walks.cjs");
 const { applyContextToProbability } = require("./elite-context-score.cjs");
 const { applyPreDistributionContext } = require("../lib/phase5PreDistributionContext.cjs");
+const { applyPhase5ContextFields } = require("../lib/phase5ContextFieldEnricher.cjs");
 const { applyHistoricalCalibration } = require("./probability-calibration.cjs");
 const { applyPhase6ProbabilityFeedback } = require("./phase6-probability-feedback.cjs");
 
@@ -45,12 +46,13 @@ function normMarket(s, stat = "") {
 
 function enrichLeg(leg) {
   const market = normMarket(leg.market || leg.stat, leg.stat || leg.projectionType);
-  const preDistributionContext = applyPreDistributionContext({
+  const contextLeg = applyPhase5ContextFields({
     ...leg,
     market
   });
+  const preDistributionContext = applyPreDistributionContext(contextLeg);
   const modelLeg = {
-    ...leg,
+    ...contextLeg,
     market,
     projection: preDistributionContext.contextAdjustedProjection ?? leg.projection,
     mean: preDistributionContext.contextAdjustedProjection ?? leg.mean,
@@ -129,7 +131,7 @@ function enrichLeg(leg) {
     : leg.recommendedProb;
 
   return {
-    ...leg,
+    ...contextLeg,
     distributionModel: distribution,
     contextBaseProjection: preDistributionContext.contextBaseProjection ?? null,
     contextAdjustedProjection: preDistributionContext.contextAdjustedProjection ?? null,
