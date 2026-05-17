@@ -566,6 +566,23 @@ function cleanLeg(x) {
     distributionProb: x.distributionProb ?? null,
     calibratedDistributionProb: x.calibratedDistributionProb ?? null,
     distributionConfidence: x.distributionModel?.confidence || null,
+
+    // Phase 5 context audit fields
+    contextBaseProjection: x.contextBaseProjection ?? null,
+    contextAdjustedProjection: x.contextAdjustedProjection ?? null,
+    contextMultiplier: x.contextMultiplier ?? null,
+    contextProjectionNotes: x.contextProjectionNotes ?? [],
+    teamTotal: x.teamTotal ?? null,
+    opponent: x.opponent ?? null,
+    opponentBullpenWeak: x.opponentBullpenWeak ?? null,
+    opponentBullpenElite: x.opponentBullpenElite ?? null,
+    handednessAdvantage: x.handednessAdvantage ?? null,
+    recentForm: x.recentForm ?? null,
+    velocityTrend: x.velocityTrend ?? null,
+    hardHitRate: x.hardHitRate ?? null,
+    pitchTypeMatchupScore: x.pitchTypeMatchupScore ?? null,
+    pitchTypeMatchupTier: x.pitchTypeMatchupTier ?? null,
+
     grade: displayGrade(x),
     books: x.sportsbookBookCount,
     savant: x.savantReportGrade,
