@@ -13,6 +13,7 @@ const { modelSingles } = require("../models/markets/singles.cjs");
 const { modelHitterStrikeouts } = require("../models/markets/hitter-strikeouts.cjs");
 const { modelWalks } = require("../models/markets/walks.cjs");
 const { applyContextToProbability } = require("./elite-context-score.cjs");
+const { applyPreDistributionContext } = require("../lib/phase5PreDistributionContext.cjs");
 const { applyHistoricalCalibration } = require("./probability-calibration.cjs");
 const { applyPhase6ProbabilityFeedback } = require("./phase6-probability-feedback.cjs");
 
@@ -44,21 +45,36 @@ function normMarket(s, stat = "") {
 
 function enrichLeg(leg) {
   const market = normMarket(leg.market || leg.stat, leg.stat || leg.projectionType);
+  const preDistributionContext = applyPreDistributionContext({
+    ...leg,
+    market
+  });
+  const modelLeg = {
+    ...leg,
+    market,
+    projection: preDistributionContext.contextAdjustedProjection ?? leg.projection,
+    mean: preDistributionContext.contextAdjustedProjection ?? leg.mean,
+    hrrMean: preDistributionContext.contextAdjustedProjection ?? leg.hrrMean,
+    hitsMean: preDistributionContext.contextAdjustedProjection ?? leg.hitsMean,
+    basesMean: preDistributionContext.contextAdjustedProjection ?? leg.basesMean,
+    kMean: preDistributionContext.contextAdjustedProjection ?? leg.kMean,
+    strikeoutMean: preDistributionContext.contextAdjustedProjection ?? leg.strikeoutMean
+  };
   let distribution = null;
 
-  if (market === "strikeouts") distribution = modelStrikeouts(leg);
-  if (market === "hitter_strikeouts") distribution = modelHitterStrikeouts(leg);
-  if (market === "pitching_outs") distribution = modelPitchingOuts(leg);
-  if (market === "earned_runs_allowed") distribution = modelEarnedRunsAllowed(leg);
-  if (market === "hits_allowed") distribution = modelHitsAllowed(leg);
-  if (market === "home_runs") distribution = modelHomeRuns(leg);
-  if (market === "hrr") distribution = modelHrr(leg);
-  if (market === "hits") distribution = modelHits(leg);
-  if (market === "runs") distribution = modelRuns(leg);
-  if (market === "rbis") distribution = modelRbis(leg);
-  if (market === "bases") distribution = modelBases(leg);
-  if (market === "singles") distribution = modelSingles(leg);
-  if (market === "walks") distribution = modelWalks(leg);
+  if (market === "strikeouts") distribution = modelStrikeouts(modelLeg);
+  if (market === "hitter_strikeouts") distribution = modelHitterStrikeouts(modelLeg);
+  if (market === "pitching_outs") distribution = modelPitchingOuts(modelLeg);
+  if (market === "earned_runs_allowed") distribution = modelEarnedRunsAllowed(modelLeg);
+  if (market === "hits_allowed") distribution = modelHitsAllowed(modelLeg);
+  if (market === "home_runs") distribution = modelHomeRuns(modelLeg);
+  if (market === "hrr") distribution = modelHrr(modelLeg);
+  if (market === "hits") distribution = modelHits(modelLeg);
+  if (market === "runs") distribution = modelRuns(modelLeg);
+  if (market === "rbis") distribution = modelRbis(modelLeg);
+  if (market === "bases") distribution = modelBases(modelLeg);
+  if (market === "singles") distribution = modelSingles(modelLeg);
+  if (market === "walks") distribution = modelWalks(modelLeg);
 
   let distributionProb = null;
   const side = String(leg.side || "").toUpperCase();
@@ -115,6 +131,10 @@ function enrichLeg(leg) {
   return {
     ...leg,
     distributionModel: distribution,
+    contextBaseProjection: preDistributionContext.contextBaseProjection ?? null,
+    contextAdjustedProjection: preDistributionContext.contextAdjustedProjection ?? null,
+    contextMultiplier: preDistributionContext.contextMultiplier ?? null,
+    contextProjectionNotes: preDistributionContext.contextProjectionNotes ?? [],
     distributionProb,
     preContextCalibratedDistributionProb: calibratedDistributionProb,
     contextAdjustedDistributionProb,
