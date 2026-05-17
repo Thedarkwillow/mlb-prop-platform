@@ -43,9 +43,9 @@ function main() {
   const data = read(INPUT, {});
   const rules = [];
 
+  // Only market/side/tier rules are safe enough for automatic unblocking.
+  // Reason and score-bucket rules are tracked but too broad for live slip inclusion.
   addRulesFromBucketGroup(rules, "byMarketSideTier", data.byMarketSideTier);
-  addRulesFromBucketGroup(rules, "byReason", data.byReason);
-  addRulesFromBucketGroup(rules, "byScoreBucket", data.byScoreBucket);
 
   const output = {
     last_updated: new Date().toISOString(),

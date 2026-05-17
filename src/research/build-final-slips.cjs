@@ -740,6 +740,52 @@ function adaptiveThresholds(x, confidence) {
   };
 }
 
+
+function readJsonSafe(file, fallback) {
+  try {
+    if (!fs.existsSync(file)) return fallback;
+    return JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch {
+    return fallback;
+  }
+}
+
+const adaptiveOverrides = readJsonSafe("data/learning/adaptive-overrides.json", { rules: [] });
+
+function scoreBucket(score) {
+  if (!Number.isFinite(Number(score))) return null;
+  const s = Number(score);
+  if (s < 0.05) return "<0.05";
+  if (s < 0.10) return "0.05-0.10";
+  if (s < 0.15) return "0.10-0.15";
+  if (s < 0.20) return "0.15-0.20";
+  if (s < 0.25) return "0.20-0.25";
+  return "0.25+";
+}
+
+function marketSideTierBucket(x) {
+  const market = String(x.market || "").toLowerCase();
+  const side = String(x.side || x.recommendedSide || "").toUpperCase();
+  const tier = String(x.oddsTier || x.tier || "standard").toLowerCase();
+  return `${market}_${side}_${tier}`;
+}
+
+function isAdaptiveUnblocked(x, gate) {
+  const rules = adaptiveOverrides.rules || [];
+  if (!rules.length || !gate) return false;
+
+  const buckets = new Set([
+    marketSideTierBucket(x),
+    scoreBucket(gate.score),
+    ...(gate.reasons || [])
+  ].filter(Boolean));
+
+  return rules.some(r =>
+    r.action === "UNBLOCK" &&
+    buckets.has(r.bucket)
+  );
+}
+
 function finalExecutionGate(x) {
   const confidence = remapConfidence({
     ...x,
@@ -799,6 +845,9 @@ function isFinalCandidate(x) {
   if (typeof x.sportsbookEdge !== "number") return false;
   if (x.sportsbookEdge <= 0) return false;
 
+  const gate = finalExecutionGate(x);
+  if (!gate.passed && !isAdaptiveUnblocked(x, gate)) return false;
+
   const grade = displayGrade(x);
   return grade === "GREEN" || grade === "NEUTRAL";
 }
@@ -835,6 +884,8 @@ const top = priced
         side: x.side,
         line: x.line,
         reason: getBlockReason(x),
+        reasons: finalExecutionGate(x).reasons || [],
+        adaptiveUnblocked: isAdaptiveUnblocked(x, finalExecutionGate(x)),
         prob: x.calibratedDistributionProb ?? null,
         edge: x.sportsbookAdjustedEdge ?? x.adjustedEdge ?? x.edge ?? null
       });
@@ -847,7 +898,7 @@ const top = priced
 const finalTop = [];
 for (const x of top) {
   const gate = finalExecutionGate(x);
-  if (!gate.passed) {
+  if (!gate.passed && !isAdaptiveUnblocked(x, gate)) {
     blockedCandidates.push({
       player: x.player,
       market: x.market,
@@ -858,6 +909,7 @@ for (const x of top) {
       prob: x.calibratedDistributionProb ?? null,
       edge: x.sportsbookAdjustedEdge ?? x.adjustedEdge ?? x.edge ?? null,
       score: x.finalScore,
+      adaptiveUnblocked: isAdaptiveUnblocked(x, gate),
       thresholds: gate.adaptiveThresholds
     });
     continue;
@@ -875,7 +927,10 @@ const slipDefs = [
 
 const slips = slipDefs.map(def => {
   const legs = [];
-  const slipPool = top.filter(x => finalExecutionGate(x).passed === true);
+  const slipPool = top.filter(x => {
+    const gate = finalExecutionGate(x);
+    return gate.passed === true || isAdaptiveUnblocked(x, gate);
+  });
   for (const x of slipPool) {
     if (legs.length >= def.size) break;
     const edge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? 0);
