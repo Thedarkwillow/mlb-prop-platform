@@ -153,7 +153,8 @@
     "learn:phase6:hardban": "node src/research/phase6-hardban-reactivation.cjs",
     "regime": "node src/research/regime-detection.cjs",
     "rolling:roi": "node src/research/rolling-roi-windows.cjs ${npm_config_date:-$(date +%F)}",
-    "phase7": "node src/research/phase7-runner.cjs"
+    "phase7": "node src/research/phase7-runner.cjs",
+    "adaptive:overrides": "node src/research/generate-adaptive-overrides.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
