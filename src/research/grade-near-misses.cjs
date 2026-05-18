@@ -34,6 +34,14 @@ function statForMarket(batting, market) {
   const m = String(market || "").toLowerCase();
   if (m === "bases") return totalBases(batting);
   if (m === "hits") return Number(batting.hits || 0);
+  if (m === "singles") {
+    const h = Number(batting.hits || 0);
+    const d = Number(batting.doubles || 0);
+    const t = Number(batting.triples || 0);
+    const hr = Number(batting.homeRuns || 0);
+    return Math.max(0, h - d - t - hr);
+  }
+  if (m === "walks") return Number(batting.baseOnBalls || batting.walks || 0);
   if (m === "runs") return Number(batting.runs || 0);
   if (m === "rbis" || m === "rbi") return Number(batting.rbi || 0);
   if (m === "home_runs" || m === "hr") return Number(batting.homeRuns || 0);
@@ -97,6 +105,8 @@ async function main() {
   const graded = near.map(r => gradeRow(r, statsByName));
 
   fs.writeFileSync(`outputs/near-miss-graded-${DATE}.json`, JSON.stringify(graded, null, 2));
+  fs.mkdirSync("outputs/history", { recursive: true });
+  fs.writeFileSync(`outputs/history/${DATE}-shadow-graded.json`, JSON.stringify(graded, null, 2));
 
   const histPath = "data/results/near-miss-history.json";
   const hist = read(histPath, []);

@@ -155,7 +155,10 @@
     "rolling:roi": "node src/research/rolling-roi-windows.cjs ${npm_config_date:-$(date +%F)}",
     "phase7": "node src/research/phase7-runner.cjs",
     "adaptive:overrides": "node src/research/generate-adaptive-overrides.cjs",
-    "show:slips": "bash -c 'echo \"=== PLAYABLE ===\" && cat outputs/playable-final-slips.json | jq \".[] | {name, complete, legs: [.legs[]? | {player, team, game, market, side, line, edge, adjustedEdge, calibratedDistributionProb, grade, books, contextMultiplier, contextProjectionNotes}]}\" && echo \"=== FINAL TOP LEGS ===\" && cat outputs/final-slips.json | jq \".topLegs[] | {player, team, game, market, side, line, edge, adjustedEdge, calibratedDistributionProb, grade, books, finalScore, contextMultiplier, contextProjectionNotes}\" && echo \"=== SHADOW / BLOCKED ===\" && cat outputs/blocked-final-candidates.json | jq \"[.[] | {player, market, side, line, reason, reasons, prob, edge, score, adaptiveUnblocked}]\"'"
+    "show:slips": "bash -c 'echo \"=== PLAYABLE ===\" && cat outputs/playable-final-slips.json | jq \".[] | {name, complete, legs: [.legs[]? | {player, team, game, market, side, line, edge, adjustedEdge, calibratedDistributionProb, grade, books, contextMultiplier, contextProjectionNotes}]}\" && echo \"=== FINAL TOP LEGS ===\" && cat outputs/final-slips.json | jq \".topLegs[] | {player, team, game, market, side, line, edge, adjustedEdge, calibratedDistributionProb, grade, books, finalScore, contextMultiplier, contextProjectionNotes}\" && echo \"=== SHADOW / BLOCKED ===\" && cat outputs/blocked-final-candidates.json | jq \"[.[] | {player, market, side, line, reason, reasons, prob, edge, score, adaptiveUnblocked}]\"'",
+    "track:near-misses": "node src/research/track-near-misses.cjs ${npm_config_date:-$(date +%F)}",
+    "grade:near-misses": "node src/research/grade-near-misses.cjs ${npm_config_date:-$(date +%F)}",
+    "grade:shadows": "npm run track:near-misses --date=${npm_config_date:-$(date +%F)} && npm run grade:near-misses --date=${npm_config_date:-$(date +%F)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
