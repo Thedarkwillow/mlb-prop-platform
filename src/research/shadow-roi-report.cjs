@@ -38,7 +38,12 @@ function groupBy(rows, fn) {
 }
 
 const shadow = read(`outputs/history/${DATE}-shadow-graded.json`, []);
-const playable = read(`outputs/playable-final-slips-graded-${DATE}.json`, []);
+const playableRaw = read(`outputs/playable-final-slips-graded-${DATE}.json`, []);
+const playable = Array.isArray(playableRaw)
+  ? playableRaw
+  : Array.isArray(playableRaw.slips)
+    ? playableRaw.slips
+    : [];
 
 const playableLegs = [];
 for (const slip of playable) {
