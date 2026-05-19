@@ -811,6 +811,41 @@ function isAdaptiveUnblocked(x, gate) {
   );
 }
 
+
+function specialTier(x) {
+  const raw = [
+    x.special,
+    x.specialTier,
+    x.tier,
+    x.projectionType,
+    x.pickType,
+    x.variant,
+    x.promoType
+  ].filter(Boolean).join(" ").toLowerCase();
+
+  if (raw.includes("goblin")) return "goblin";
+  if (raw.includes("demon")) return "demon";
+  return "standard";
+}
+
+function bestLegProb(x) {
+  const vals = [
+    x.calibratedDistributionProb,
+    x.phase55Prob,
+    x.adjustedProb,
+    x.finalProb,
+    x.probability,
+    x.prob
+  ];
+
+  for (const v of vals) {
+    const n = Number(v);
+    if (Number.isFinite(n) && n > 0 && n < 1) return n;
+  }
+
+  return null;
+}
+
 function finalExecutionGate(x) {
   const confidence = remapConfidence({
     ...x,
@@ -843,6 +878,18 @@ function finalExecutionGate(x) {
   if (confidence.confidence !== "elite" && score < thresholds.nonEliteScoreFloor) reasons.push("non_elite_score_below_adaptive_floor");
   if (vol.volatility === "high" && confidence.confidence !== "elite") reasons.push("high_volatility_non_elite");
   if (!marketSpecificFinalGate(x)) reasons.push("failed_market_gate");
+
+  const tier = specialTier(x);
+  const legProb = bestLegProb(x);
+  const adjEdge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? 0);
+
+  if (tier === "goblin" && (legProb == null || legProb < 0.72)) {
+    reasons.push("goblin_prob_below_72");
+  }
+
+  if (tier === "demon" && (!Number.isFinite(adjEdge) || adjEdge < 0.06)) {
+    reasons.push("demon_edge_below_6pct");
+  }
 
   return {
     passed: reasons.length === 0,
