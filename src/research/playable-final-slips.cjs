@@ -1,3 +1,58 @@
+
+function evaluatePlayableSlipQuality(legs) {
+  const probs = (legs || []).map(x => Number(
+    x.calibratedDistributionProb ??
+    x.distributionProb ??
+    x.prob ??
+    0
+  )).filter(Number.isFinite);
+
+  const minLegProb = probs.length ? Math.min(...probs) : 0;
+  const avgLegProb = probs.length
+    ? probs.reduce((a, b) => a + b, 0) / probs.length
+    : 0;
+
+  const weakMarkets = (legs || []).filter(x => {
+    const trust = String(
+      x.marketTrust?.trust ??
+      x.marketTrustTier ??
+      x.marketSupportFlag ??
+      ""
+    ).toLowerCase();
+
+    return (
+      trust.includes("weak") ||
+      trust.includes("suppressed") ||
+      x.finalMarketSupported === false ||
+      x.finalMarketGatePassed === false
+    );
+  });
+
+  const rejectReasons = [];
+  if (legs.length > 0 && minLegProb < 0.60) rejectReasons.push("low_min_prob");
+  if (legs.length > 0 && avgLegProb < 0.64) rejectReasons.push("low_avg_prob");
+  if (weakMarkets.length > 0) rejectReasons.push("weak_market");
+
+  let tier = "C";
+  if (avgLegProb >= 0.68 && minLegProb >= 0.62 && weakMarkets.length === 0) {
+    tier = "A";
+  } else if (avgLegProb >= 0.64 && minLegProb >= 0.60 && weakMarkets.length === 0) {
+    tier = "B";
+  }
+
+  return {
+    minLegProb: Number(minLegProb.toFixed(4)),
+    avgLegProb: Number(avgLegProb.toFixed(4)),
+    marketMixScore: legs.length
+      ? Number(((legs.length - weakMarkets.length) / legs.length).toFixed(4))
+      : 0,
+    weakMarkets: weakMarkets.length,
+    tier,
+    rejectReasons,
+    isRejected: rejectReasons.length > 0
+  };
+}
+
 const fs = require("fs");
 
 function slipQualityStatus(slip) {
@@ -116,6 +171,13 @@ function isSlateLeg(leg, slate) {
     slip.neutral = (slip.legs || []).filter(l => String(l.grade || "").toUpperCase() === "NEUTRAL").length;
     slip.watchlist = (slip.legs || []).filter(l => String(l.grade || "").toUpperCase() === "WATCHLIST").length;
     slip.fade = (slip.legs || []).filter(l => String(l.grade || "").toUpperCase() === "FADE").length;
+    slip.quality = evaluatePlayableSlipQuality(slip.legs || []);
+    slip.rejected = slip.quality.isRejected;
+    slip.rejectReasons = slip.quality.rejectReasons;
+    if (slip.rejected) {
+      slip.complete = false;
+      slip.legs = [];
+    }
     slip.status = slipQualityStatus(slip);
   }
 
