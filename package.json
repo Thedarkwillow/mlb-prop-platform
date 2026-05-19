@@ -170,7 +170,8 @@
     "fantasy:project": "node src/research/enrich-fantasy-projections.cjs",
     "fantasy:watchlist": "npm run fantasy:project && node src/research/fantasy-watchlist.cjs",
     "slips:optimize-types": "node src/research/optimize-slip-types.cjs",
-    "snapshot:run": "node src/research/snapshot-current-run.cjs"
+    "snapshot:run": "node src/research/snapshot-current-run.cjs",
+    "grade:run": "node src/research/grade-snapshot-run.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
