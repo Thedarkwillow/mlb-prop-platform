@@ -963,6 +963,72 @@ for (const x of top) {
 
 
 
+
+const PORTFOLIO_EXPOSURE_LIMITS = {
+  maxPlayer: 2,
+  maxGame: 3,
+  maxMarket: 3
+};
+
+function exposureKey(v) {
+  return String(v || "").trim().toLowerCase();
+}
+
+function makeExposureState() {
+  return {
+    players: {},
+    games: {},
+    markets: {}
+  };
+}
+
+function incrementExposure(state, leg) {
+  const player = exposureKey(leg.player);
+  const game = exposureKey(leg.game || leg.resolvedGame || leg.sportsbookGame);
+  const market = exposureKey(leg.market);
+
+  if (player) state.players[player] = (state.players[player] || 0) + 1;
+  if (game) state.games[game] = (state.games[game] || 0) + 1;
+  if (market) state.markets[market] = (state.markets[market] || 0) + 1;
+}
+
+function wouldViolateExposure(state, leg) {
+  const violations = [];
+
+  const player = exposureKey(leg.player);
+  const game = exposureKey(leg.game || leg.resolvedGame || leg.sportsbookGame);
+  const market = exposureKey(leg.market);
+
+  if (player && (state.players[player] || 0) >= PORTFOLIO_EXPOSURE_LIMITS.maxPlayer) {
+    violations.push(`player_exposure:${leg.player}`);
+  }
+
+  if (game && (state.games[game] || 0) >= PORTFOLIO_EXPOSURE_LIMITS.maxGame) {
+    violations.push(`game_exposure:${leg.game || leg.resolvedGame || leg.sportsbookGame}`);
+  }
+
+  if (market && (state.markets[market] || 0) >= PORTFOLIO_EXPOSURE_LIMITS.maxMarket) {
+    violations.push(`market_exposure:${leg.market}`);
+  }
+
+  return {
+    violates: violations.length > 0,
+    violations
+  };
+}
+
+function summarizeExposure(legs) {
+  const state = makeExposureState();
+  for (const leg of legs || []) incrementExposure(state, leg);
+
+  return {
+    limits: PORTFOLIO_EXPOSURE_LIMITS,
+    playerCounts: state.players,
+    gameCounts: state.games,
+    marketCounts: state.markets
+  };
+}
+
 function isPitcherMarketName(market) {
   const m = String(market || "").toLowerCase();
   return (
@@ -1125,8 +1191,11 @@ const slipDefs = [
   { name: "6-MAN FLEX", size: 6 }
 ].filter(x => x.size <= MAX_FINAL_SLIP_SIZE);
 
+const portfolioExposure = makeExposureState();
+
 const slips = slipDefs.map(def => {
   const legs = [];
+  const exposureViolations = [];
   const slipPool = top.filter(x => {
     const gate = finalExecutionGate(x);
     return gate.passed === true || isAdaptiveUnblocked(x, gate);
@@ -1135,6 +1204,19 @@ const slips = slipDefs.map(def => {
     if (legs.length >= def.size) break;
     const edge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? 0);
     if (edge < minEdgeForSlipSize(def.size)) continue;
+
+    const exposureCheck = wouldViolateExposure(portfolioExposure, x);
+    if (exposureCheck.violates) {
+      exposureViolations.push({
+        player: x.player,
+        market: x.market,
+        side: x.side,
+        line: x.line,
+        violations: exposureCheck.violations
+      });
+      continue;
+    }
+
     const ok = def.size <= 4 ? canAddStrict(legs, x) : canAddBalanced(legs, x);
     if (ok) legs.push(x);
   }
@@ -1157,6 +1239,9 @@ const slips = slipDefs.map(def => {
   const rejected = quality.isRejected || correlationRisk.isCorrelated;
   const complete = legs.length === def.size && !rejected;
 
+  const acceptedLegs = rejected ? [] : legs;
+  for (const leg of acceptedLegs) incrementExposure(portfolioExposure, leg);
+
   return {
     name: def.name,
     size: def.size,
@@ -1166,12 +1251,14 @@ const slips = slipDefs.map(def => {
     quality,
     correlationFlag: correlationRisk.isCorrelated,
     correlationIssues: correlationRisk.issues,
+    exposure: summarizeExposure(acceptedLegs),
+    exposureSkipped: exposureViolations,
     green: legs.filter(x => displayGrade(x) === "GREEN").length,
     neutral: legs.filter(x => displayGrade(x) === "NEUTRAL").length,
     watchlist: legs.filter(x => displayGrade(x) === "WATCHLIST").length,
     fade: legs.filter(x => displayGrade(x) === "FADE").length,
     correlation: correlationRisk.isCorrelated ? "RISK" : correlationLabel(legs),
-    legs: rejected ? [] : legs.map(cleanLeg)
+    legs: acceptedLegs.map(cleanLeg)
   };
 });
 
