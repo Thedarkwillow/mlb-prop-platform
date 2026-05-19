@@ -961,6 +961,70 @@ for (const x of top) {
   if (canAddStrict(finalTop, x)) finalTop.push(x);
 }
 
+
+function evaluateSlipQuality(legs) {
+  const probs = (legs || []).map(x => Number(
+    x.calibratedDistributionProb ??
+    x.distributionProb ??
+    x.prob ??
+    0
+  )).filter(Number.isFinite);
+
+  const minLegProb = probs.length ? Math.min(...probs) : 0;
+  const avgLegProb = probs.length
+    ? probs.reduce((a, b) => a + b, 0) / probs.length
+    : 0;
+
+  const weakMarkets = (legs || []).filter(x => {
+    const trust = String(
+      x.marketTrust?.trust ??
+      x.marketTrustTier ??
+      x.marketSupportFlag ??
+      ""
+    ).toLowerCase();
+
+    const score = Number(
+      x.marketTrustScore ??
+      x.marketTrust?.adjustmentMultiplier ??
+      1
+    );
+
+    return (
+      trust.includes("weak") ||
+      trust.includes("suppressed") ||
+      x.finalMarketSupported === false ||
+      x.finalMarketGatePassed === false ||
+      (Number.isFinite(score) && score < 0.5)
+    );
+  });
+
+  const marketMixScore = legs.length
+    ? (legs.length - weakMarkets.length) / legs.length
+    : 0;
+
+  const rejectReasons = [];
+  if (legs.length > 0 && minLegProb < 0.60) rejectReasons.push("low_min_prob");
+  if (legs.length > 0 && avgLegProb < 0.64) rejectReasons.push("low_avg_prob");
+  if (weakMarkets.length > 0) rejectReasons.push("weak_market");
+
+  let tier = "C";
+  if (avgLegProb >= 0.68 && minLegProb >= 0.62 && weakMarkets.length === 0) {
+    tier = "A";
+  } else if (avgLegProb >= 0.64 && minLegProb >= 0.60 && weakMarkets.length === 0) {
+    tier = "B";
+  }
+
+  return {
+    minLegProb: Number(minLegProb.toFixed(4)),
+    avgLegProb: Number(avgLegProb.toFixed(4)),
+    marketMixScore: Number(marketMixScore.toFixed(4)),
+    weakMarkets: weakMarkets.length,
+    tier,
+    rejectReasons,
+    isRejected: rejectReasons.length > 0
+  };
+}
+
 const slipDefs = [
   { name: "2-MAN POWER", size: 2 },
   { name: "3-MAN FLEX", size: 3 },
@@ -992,16 +1056,22 @@ const slips = slipDefs.map(def => {
     }
   }
 
+  const quality = evaluateSlipQuality(legs);
+  const complete = legs.length === def.size && !quality.isRejected;
+
   return {
     name: def.name,
     size: def.size,
-    complete: legs.length === def.size,
+    complete,
+    rejected: quality.isRejected,
+    rejectReasons: quality.rejectReasons,
+    quality,
     green: legs.filter(x => displayGrade(x) === "GREEN").length,
     neutral: legs.filter(x => displayGrade(x) === "NEUTRAL").length,
     watchlist: legs.filter(x => displayGrade(x) === "WATCHLIST").length,
     fade: legs.filter(x => displayGrade(x) === "FADE").length,
     correlation: correlationLabel(legs),
-    legs: legs.map(cleanLeg)
+    legs: quality.isRejected ? [] : legs.map(cleanLeg)
   };
 });
 

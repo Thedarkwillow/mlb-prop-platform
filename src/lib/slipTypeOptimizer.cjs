@@ -57,33 +57,55 @@ function optimizeSlipType(slip, payouts) {
   const pEv = powerEv(probs, payouts.power?.[String(size)]);
   const fEv = size >= 3 ? flexEv(probs, payouts.flex?.[String(size)]) : null;
 
+  const qualityTier = slip.quality?.tier || null;
+  const qualityRejected = slip.quality?.isRejected === true || slip.rejected === true;
+
   let bestType = "POWER";
   let bestEv = pEv;
+  let selectionReason = "power_ev_best";
 
-  if (fEv !== null && (pEv === null || fEv > pEv)) {
+  if (qualityRejected || qualityTier === "C") {
+    bestType = null;
+    bestEv = null;
+    selectionReason = "quality_rejected";
+  } else if (qualityTier === "A") {
+    bestType = "POWER";
+    bestEv = pEv;
+    selectionReason = "tier_a_power_priority";
+  } else if (qualityTier === "B" && fEv !== null) {
+    bestType = fEv >= (pEv ?? -999) ? "FLEX" : "POWER";
+    bestEv = bestType === "FLEX" ? fEv : pEv;
+    selectionReason = bestType === "FLEX" ? "tier_b_flex_ev_best" : "tier_b_power_ev_best";
+  } else if (fEv !== null && (pEv === null || fEv > pEv)) {
     bestType = "FLEX";
     bestEv = fEv;
+    selectionReason = "flex_ev_best";
   }
 
   const originalName = slip.name || `${size}-MAN`;
   const cleanName = originalName.replace(/\s+(POWER|FLEX)$/i, "");
+  const finalName = bestType ? `${cleanName} ${bestType}` : `${cleanName} REJECTED`;
 
   return {
     ...slip,
-    name: `${cleanName} ${bestType}`,
+    name: finalName,
     entryType: bestType,
     size,
+    complete: bestType ? slip.complete : false,
+    rejected: qualityRejected || qualityTier === "C" || slip.rejected === true,
     slipTypeOptimization: {
       originalName,
       selectedType: bestType,
+      selectionReason,
+      qualityTier,
       powerEv: pEv,
       flexEv: fEv,
       bestEv,
-      avgLegProb: Number((probs.reduce((a, p) => a + p, 0) / Math.max(1, probs.length)).toFixed(4)),
-      minLegProb: Number(Math.min(...probs).toFixed(4)),
-      maxLegProb: Number(Math.max(...probs).toFixed(4)),
+      avgLegProb: probs.length ? Number((probs.reduce((a, p) => a + p, 0) / probs.length).toFixed(4)) : null,
+      minLegProb: probs.length ? Number(Math.min(...probs).toFixed(4)) : null,
+      maxLegProb: probs.length ? Number(Math.max(...probs).toFixed(4)) : null,
       legProbs: probs.map(p => Number(p.toFixed(4))),
-      note: "Uses configured PrizePicks payout multipliers. Update data/config/prizepicks-slip-payouts.json if payout table changes."
+      note: "Uses configured PrizePicks payout multipliers plus slip quality tier. Update data/config/prizepicks-slip-payouts.json if payout table changes."
     }
   };
 }
