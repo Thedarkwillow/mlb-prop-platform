@@ -1,0 +1,49 @@
+{
+  "version": "v1-manual",
+  "note": "Update these multipliers from actual PrizePicks slip builder screenshots. Standard values are placeholders.",
+  "power": {
+    "2": {
+      "0G_0D": 3
+    },
+    "3": {
+      "0G_0D": 5
+    },
+    "4": {
+      "0G_0D": 10
+    },
+    "5": {
+      "0G_0D": 20
+    },
+    "6": {
+      "0G_0D": 37.5
+    }
+  },
+  "flex": {
+    "3": {
+      "0G_0D": {
+        "3": 2.25,
+        "2": 1.25
+      }
+    },
+    "4": {
+      "0G_0D": {
+        "4": 5,
+        "3": 1.5
+      }
+    },
+    "5": {
+      "0G_0D": {
+        "5": 10,
+        "4": 2,
+        "3": 0.4
+      }
+    },
+    "6": {
+      "0G_0D": {
+        "6": 25,
+        "5": 2,
+        "4": 0.4
+      }
+    }
+  }
+}
