@@ -176,7 +176,11 @@
     "test:payouts": "node src/scripts/test-payout-engine.cjs",
     "payouts:collect": "node src/research/collect-prizepicks-payouts.cjs",
     "command": "node src/research/command-center.cjs",
-    "dash": "node src/research/command-center.cjs"
+    "dash": "node src/research/command-center.cjs",
+    "optimize:mixed-ev": "node src/research/mixed-slip-ev-optimizer.cjs",
+    "mixed": "node src/research/mixed-slip-ev-optimizer.cjs",
+    "execution:track": "node src/research/execution-tracker.cjs",
+    "track:execution": "node src/research/execution-tracker.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
