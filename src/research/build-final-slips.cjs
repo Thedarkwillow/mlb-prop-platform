@@ -1,4 +1,5 @@
 const fs = require("fs");
+const { loadFullBoardPromotion, applyFullBoardPromotion } = require("../lib/fullBoardPromotion.cjs");
 
 function readJsonSafe(path, fallback = {}) {
   try { return fs.existsSync(path) ? JSON.parse(fs.readFileSync(path, "utf8")) : fallback; }
@@ -406,6 +407,8 @@ function phase6ScoreMultiplier(x) {
   );
 }
 
+const fullBoardPromotionMap = loadFullBoardPromotion();
+
 function finalScore(x) {
   const rawEdge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? -999);
   const edgeShrinkage = applyHistoricalEdgeShrinkage(rawEdge, x);
@@ -563,6 +566,7 @@ function cleanLeg(x) {
       x
     ),
     finalScore: x.finalScore,
+    fullBoardPromotion: x.fullBoardPromotion ?? null,
     distributionProb: x.distributionProb ?? null,
     calibratedDistributionProb: x.calibratedDistributionProb ?? null,
     distributionConfidence: x.distributionModel?.confidence || null,
@@ -909,7 +913,7 @@ const top = priced
     }
     return ok;
   })
-  .map(x => ({ ...x, finalScore: finalScore(x) }))
+  .map(x => applyFullBoardPromotion({ ...x, finalScore: finalScore(x) }, fullBoardPromotionMap))
   .sort((a, b) => b.finalScore - a.finalScore);
 
 const finalTop = [];
