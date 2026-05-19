@@ -30,8 +30,11 @@ function totalBases(b) {
   return singles + 2 * d + 3 * t + 4 * hr;
 }
 
-function statForMarket(batting, market) {
+function statForMarket(stats, market) {
   const m = String(market || "").toLowerCase();
+  const batting = stats.batting || {};
+  const pitching = stats.pitching || {};
+
   if (m === "bases") return totalBases(batting);
   if (m === "hits") return Number(batting.hits || 0);
   if (m === "singles") {
@@ -45,6 +48,14 @@ function statForMarket(batting, market) {
   if (m === "runs") return Number(batting.runs || 0);
   if (m === "rbis" || m === "rbi") return Number(batting.rbi || 0);
   if (m === "home_runs" || m === "hr") return Number(batting.homeRuns || 0);
+  if (m === "hrr") return Number(batting.hits || 0) + Number(batting.runs || 0) + Number(batting.rbi || 0);
+
+  if (m === "strikeouts") return Number(pitching.strikeOuts || pitching.strikeouts || 0);
+  if (m === "pitching_outs") return Number(pitching.outs || 0);
+  if (m === "walks_allowed") return Number(pitching.baseOnBalls || pitching.walks || 0);
+  if (m === "hits_allowed") return Number(pitching.hits || 0);
+  if (m === "earned_runs_allowed") return Number(pitching.earnedRuns || 0);
+
   return null;
 }
 
@@ -63,7 +74,8 @@ async function buildPlayerStatsByName(date) {
           out.set(norm(name), {
             player: name,
             gamePk: g.gamePk,
-            batting: p.stats?.batting || {}
+            batting: p.stats?.batting || {},
+            pitching: p.stats?.pitching || {}
           });
         }
       }
@@ -75,7 +87,7 @@ async function buildPlayerStatsByName(date) {
 
 function gradeRow(row, statsByName) {
   const found = statsByName.get(norm(row.player));
-  const actual = found ? statForMarket(found.batting, row.market) : null;
+  const actual = found ? statForMarket(found, row.market) : null;
 
   if (!Number.isFinite(Number(actual))) {
     return { ...row, actual: null, result: "UNKNOWN", shadow: true, source: "mlb_stats_api_boxscore" };

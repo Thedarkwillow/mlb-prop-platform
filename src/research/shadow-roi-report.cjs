@@ -37,7 +37,8 @@ function groupBy(rows, fn) {
   return Object.fromEntries(Object.entries(out).map(([k, v]) => [k, summarize(v)]));
 }
 
-const shadow = read(`outputs/history/${DATE}-shadow-graded.json`, []);
+const shadow = read(`outputs/history/${DATE}-shadow-graded.json`, [])
+  .filter(r => r.shadow === true && (r.reasonBlocked || (Array.isArray(r.reasons) && r.reasons.length)));
 const playableRaw = read(`outputs/playable-final-slips-graded-${DATE}.json`, []);
 const playable = Array.isArray(playableRaw)
   ? playableRaw
