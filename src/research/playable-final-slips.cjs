@@ -55,6 +55,12 @@ function evaluatePlayableSlipQuality(legs) {
 
 const fs = require("fs");
 
+function hasPositiveTrueEV(slip) {
+  const ev = Number(slip.trueEV);
+  return Number.isFinite(ev) && ev > 0;
+}
+
+
 function slipQualityStatus(slip) {
   const green = Number(slip.green || 0);
   const neutral = Number(slip.neutral || 0);
@@ -181,7 +187,7 @@ function isSlateLeg(leg, slate) {
     slip.status = slipQualityStatus(slip);
   }
 
-  const playable = processed.filter(slip => slip.status === "PLAYABLE");
+  const playable = processed.filter(slip => slip.status === "PLAYABLE" && hasPositiveTrueEV(slip));
   const watchlist = processed.filter(slip => slip.status !== "PLAYABLE");
 
   console.log("PLAYABLE FINAL SLIPS");
