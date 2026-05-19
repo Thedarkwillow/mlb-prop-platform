@@ -40,6 +40,7 @@ function main() {
   const playable = readJson("outputs/playable-final-slips.json", []);
   const watchlist = readJson("outputs/watchlist-final-slips.json", []);
   const blocked = readJson("outputs/blocked-final-candidates.json", []);
+  const mixed = readJson("outputs/mixed-slip-ev-optimizer.json", { safeSlips: [], aggressiveWatchlist: [] });
   const latestRun = latestRunId(date);
 
   console.log("\nMLB PROP COMMAND CENTER");
@@ -137,6 +138,43 @@ function main() {
     blockedCounts[r] = (blockedCounts[r] || 0) + 1;
   }
   console.table(blockedCounts);
+
+  console.log("\nRESEARCH EV WATCHLIST");
+  console.log("---------------------");
+  const researchSafe = mixed.safeSlips || [];
+  const researchAggressive = mixed.aggressiveWatchlist || [];
+
+  if (!researchSafe.length && !researchAggressive.length) {
+    console.log("No mixed optimizer research slips.");
+  } else {
+    if (researchSafe.length) {
+      console.log("SAFE RESEARCH EV");
+      console.table(researchSafe.slice(0, 10).map(s => ({
+        slip: s.name,
+        mode: s.mode,
+        trueEVPct: pct(s.trueEVPct),
+        payoutKey: s.payoutConfigKey || "—",
+        payout: s.payout || (s.payoutMap ? JSON.stringify(s.payoutMap) : "—"),
+        avgProb: num(s.avgProb),
+        minProb: num(s.minProb),
+        tiers: JSON.stringify(s.tiers || {})
+      })));
+    }
+
+    if (researchAggressive.length) {
+      console.log("AGGRESSIVE RESEARCH ONLY");
+      console.table(researchAggressive.slice(0, 10).map(s => ({
+        slip: s.name,
+        mode: s.mode,
+        trueEVPct: pct(s.trueEVPct),
+        payoutKey: s.payoutConfigKey || "—",
+        issues: (s.executionIssues || []).length,
+        avgProb: num(s.avgProb),
+        minProb: num(s.minProb),
+        tiers: JSON.stringify(s.tiers || {})
+      })));
+    }
+  }
 
   console.log("\nACTION");
   console.log("------");
