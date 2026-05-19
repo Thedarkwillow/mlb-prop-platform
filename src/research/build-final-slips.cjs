@@ -962,6 +962,98 @@ for (const x of top) {
 }
 
 
+
+function isPitcherMarketName(market) {
+  const m = String(market || "").toLowerCase();
+  return (
+    m.includes("pitch") ||
+    m === "strikeouts" ||
+    m === "hits_allowed" ||
+    m === "earned_runs_allowed" ||
+    m === "walks_allowed"
+  );
+}
+
+function evaluateCorrelationRisk(legs) {
+  const issues = [];
+  const teams = {};
+  const games = {};
+  const hittersByTeam = {};
+
+  for (const leg of legs || []) {
+    const team = leg.team;
+    const game = leg.game || leg.resolvedGame || leg.sportsbookGame;
+    const market = String(leg.market || "").toLowerCase();
+    const isPitcher = isPitcherMarketName(market);
+    const isHitter = !isPitcher;
+
+    if (team) teams[team] = (teams[team] || 0) + 1;
+    if (game) games[game] = (games[game] || 0) + 1;
+    if (isHitter && team) hittersByTeam[team] = (hittersByTeam[team] || 0) + 1;
+  }
+
+  for (const [team, count] of Object.entries(hittersByTeam)) {
+    if (count >= 3) issues.push(`too_many_hitters_same_team:${team}`);
+  }
+
+  for (const [team, count] of Object.entries(teams)) {
+    if (count >= 3) issues.push(`too_many_legs_same_team:${team}`);
+  }
+
+  for (const [game, count] of Object.entries(games)) {
+    if (count >= 3) issues.push(`too_many_same_game:${game}`);
+  }
+
+  for (const a of legs || []) {
+    for (const b of legs || []) {
+      if (a === b) continue;
+
+      const aMarket = String(a.market || "").toLowerCase();
+      const bMarket = String(b.market || "").toLowerCase();
+
+      const aIsPitcher = isPitcherMarketName(aMarket);
+      const bIsPitcher = isPitcherMarketName(bMarket);
+
+      const aIsHitter = !aIsPitcher;
+      const bIsHitter = !bIsPitcher;
+
+      const aGame = a.game || a.resolvedGame || a.sportsbookGame;
+      const bGame = b.game || b.resolvedGame || b.sportsbookGame;
+
+      if (
+        aIsHitter &&
+        bIsPitcher &&
+        aGame &&
+        bGame &&
+        aGame === bGame &&
+        a.team &&
+        b.team &&
+        a.team !== b.team
+      ) {
+        issues.push(`hitter_vs_opposing_pitcher:${a.player || "hitter"}:${b.player || "pitcher"}`);
+      }
+
+      if (
+        bIsHitter &&
+        aIsPitcher &&
+        aGame &&
+        bGame &&
+        aGame === bGame &&
+        a.team &&
+        b.team &&
+        a.team !== b.team
+      ) {
+        issues.push(`hitter_vs_opposing_pitcher:${b.player || "hitter"}:${a.player || "pitcher"}`);
+      }
+    }
+  }
+
+  return {
+    isCorrelated: issues.length > 0,
+    issues: [...new Set(issues)]
+  };
+}
+
 function evaluateSlipQuality(legs) {
   const probs = (legs || []).map(x => Number(
     x.calibratedDistributionProb ??
@@ -1057,21 +1149,29 @@ const slips = slipDefs.map(def => {
   }
 
   const quality = evaluateSlipQuality(legs);
-  const complete = legs.length === def.size && !quality.isRejected;
+  const correlationRisk = evaluateCorrelationRisk(legs);
+  const rejectReasons = [
+    ...quality.rejectReasons,
+    ...(correlationRisk.isCorrelated ? ["correlation_risk"] : [])
+  ];
+  const rejected = quality.isRejected || correlationRisk.isCorrelated;
+  const complete = legs.length === def.size && !rejected;
 
   return {
     name: def.name,
     size: def.size,
     complete,
-    rejected: quality.isRejected,
-    rejectReasons: quality.rejectReasons,
+    rejected,
+    rejectReasons,
     quality,
+    correlationFlag: correlationRisk.isCorrelated,
+    correlationIssues: correlationRisk.issues,
     green: legs.filter(x => displayGrade(x) === "GREEN").length,
     neutral: legs.filter(x => displayGrade(x) === "NEUTRAL").length,
     watchlist: legs.filter(x => displayGrade(x) === "WATCHLIST").length,
     fade: legs.filter(x => displayGrade(x) === "FADE").length,
-    correlation: correlationLabel(legs),
-    legs: quality.isRejected ? [] : legs.map(cleanLeg)
+    correlation: correlationRisk.isCorrelated ? "RISK" : correlationLabel(legs),
+    legs: rejected ? [] : legs.map(cleanLeg)
   };
 });
 
