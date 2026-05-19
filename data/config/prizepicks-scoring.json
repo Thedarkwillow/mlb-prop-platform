@@ -1,0 +1,30 @@
+{
+  "trackOnlyMarkets": [
+    "pitcher_fantasy_score",
+    "hitter_fantasy_score",
+    "pitches_thrown"
+  ],
+  "pitcherFantasy": {
+    "inningsPitched": 3,
+    "strikeouts": 3,
+    "earnedRuns": -3,
+    "hitsAllowed": -1,
+    "walksAllowed": -1,
+    "hitBatsmen": -1
+  },
+  "hitterFantasy": {
+    "single": 3,
+    "double": 6,
+    "triple": 8,
+    "homeRun": 10,
+    "run": 2,
+    "rbi": 2,
+    "walk": 2,
+    "hitByPitch": 2,
+    "stolenBase": 5
+  },
+  "notes": [
+    "Track-only until scoring formula is verified against PrizePicks rules.",
+    "Do not allow these markets into playable slips until validated sample is strong."
+  ]
+}
