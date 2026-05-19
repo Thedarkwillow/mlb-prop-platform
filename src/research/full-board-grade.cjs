@@ -16,7 +16,10 @@ const ALLOWED_MARKETS = new Set([
   "walks",
   "singles",
   "home_runs",
-  "hr"
+  "hr",
+  "pitcher_fantasy_score",
+  "hitter_fantasy_score",
+  "pitches_thrown"
 ]);
 
 function read(path, fallback) {
