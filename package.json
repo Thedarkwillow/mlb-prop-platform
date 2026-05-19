@@ -171,7 +171,8 @@
     "fantasy:watchlist": "npm run fantasy:project && node src/research/fantasy-watchlist.cjs",
     "slips:optimize-types": "node src/research/optimize-slip-types.cjs",
     "snapshot:run": "node src/research/snapshot-current-run.cjs",
-    "grade:run": "node src/research/grade-snapshot-run.cjs"
+    "grade:run": "node src/research/grade-snapshot-run.cjs",
+    "slip-type:performance": "node src/research/slip-type-performance.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

@@ -103,4 +103,13 @@ manifest.graded = {
 };
 fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
 
+const perf = spawnSync("node", ["src/research/slip-type-performance.cjs", DATE, fs.existsSync(frozenGradedPath) ? frozenGradedPath : gradedPath], {
+  stdio: "inherit",
+  shell: false
+});
+
+if (perf.status !== 0) {
+  console.warn("WARNING: slip-type performance tracking failed");
+}
+
 console.log("Snapshot grading complete.");
