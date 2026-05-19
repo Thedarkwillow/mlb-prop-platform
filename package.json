@@ -166,7 +166,8 @@
     "learn:full-board": "npm run grade:full-board --date=${npm_config_date:-$(date +%F)}",
     "full-board:report": "node src/research/full-board-drop-report.cjs ${npm_config_date:-$(date +%F)}",
     "full-board:promote": "node src/research/full-board-market-promotion.cjs",
-    "full-board:cycle": "npm run grade:full-board --date=${npm_config_date:-$(date +%F)} && npm run full-board:report --date=${npm_config_date:-$(date +%F)} && npm run full-board:promote"
+    "full-board:cycle": "npm run grade:full-board --date=${npm_config_date:-$(date +%F)} && npm run full-board:report --date=${npm_config_date:-$(date +%F)} && npm run full-board:promote",
+    "fantasy:project": "node src/research/enrich-fantasy-projections.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

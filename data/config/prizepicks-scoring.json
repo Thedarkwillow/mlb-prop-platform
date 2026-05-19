@@ -5,16 +5,15 @@
     "pitches_thrown"
   ],
   "pitcherFantasy": {
-    "inningsPitched": 3,
-    "strikeouts": 3,
-    "earnedRuns": -3,
-    "hitsAllowed": -1,
-    "walksAllowed": -1,
-    "hitBatsmen": -1
+    "win": 6,
+    "qualityStart": 4,
+    "earnedRun": -3,
+    "strikeout": 3,
+    "out": 1
   },
   "hitterFantasy": {
     "single": 3,
-    "double": 6,
+    "double": 5,
     "triple": 8,
     "homeRun": 10,
     "run": 2,
@@ -24,7 +23,8 @@
     "stolenBase": 5
   },
   "notes": [
-    "Track-only until scoring formula is verified against PrizePicks rules.",
+    "Official PrizePicks MLB fantasy scoring confirmed from PrizePicks scoring page screenshots.",
+    "Fantasy markets remain track-only until projection calibration is validated.",
     "Do not allow these markets into playable slips until validated sample is strong."
   ]
 }
