@@ -2,6 +2,23 @@ const fs = require("fs");
 
 const DATE = process.argv[2] || process.env.npm_config_date || new Date().toISOString().slice(0, 10);
 
+const ALLOWED_MARKETS = new Set([
+  "strikeouts",
+  "pitching_outs",
+  "hits_allowed",
+  "earned_runs_allowed",
+  "walks_allowed",
+  "hits",
+  "bases",
+  "hrr",
+  "runs",
+  "rbis",
+  "walks",
+  "singles",
+  "home_runs",
+  "hr"
+]);
+
 function read(path, fallback) {
   try {
     if (!fs.existsSync(path)) return fallback;
@@ -27,6 +44,28 @@ async function fetchJson(url) {
   return res.json();
 }
 
+function normalizeMarket(v) {
+  return String(v || "")
+    .toLowerCase()
+    .replace(/pitcher strikeouts/g, "strikeouts")
+    .replace(/pitcher_outs/g, "pitching_outs")
+    .replace(/total bases/g, "bases")
+    .replace(/batter_total_bases/g, "bases")
+    .replace(/batter_hits_runs_rbis/g, "hrr")
+    .replace(/hits\+runs\+rbis/g, "hrr")
+    .replace(/hits runs rbis/g, "hrr")
+    .replace(/home runs/g, "home_runs")
+    .replace(/\s+/g, "_")
+    .trim();
+}
+
+function sideOf(row) {
+  const s = String(row.side || row.recommendedSide || row.direction || "").toUpperCase();
+  if (s === "OVER") return "MORE";
+  if (s === "UNDER") return "LESS";
+  return s;
+}
+
 function totalBases(b) {
   const h = Number(b.hits || 0);
   const d = Number(b.doubles || 0);
@@ -37,7 +76,7 @@ function totalBases(b) {
 }
 
 function statForMarket(stats, market) {
-  const m = String(market || "").toLowerCase();
+  const m = normalizeMarket(market);
   const batting = stats.batting || {};
   const pitching = stats.pitching || {};
 
@@ -65,32 +104,6 @@ function statForMarket(stats, market) {
   return null;
 }
 
-function normalizeMarket(r) {
-  return String(r.market || r.stat || r.statType || "")
-    .toLowerCase()
-    .replace(/pitcher strikeouts/g, "strikeouts")
-    .replace(/total bases/g, "bases")
-    .replace(/hits\+runs\+rbis/g, "hrr")
-    .replace(/hits runs rbis/g, "hrr")
-    .replace(/\s+/g, "_")
-    .trim();
-}
-
-function sideOf(r) {
-  const s = String(r.side || r.recommendedSide || r.direction || "").toUpperCase();
-  if (s === "OVER") return "MORE";
-  if (s === "UNDER") return "LESS";
-  return s;
-}
-
-function probOf(r) {
-  return Number(r.calibratedDistributionProb ?? r.distributionProb ?? r.prob ?? r.recommendedProb ?? r.vegasPickProb);
-}
-
-function edgeOf(r) {
-  return Number(r.adjustedEdge ?? r.edge ?? r.sportsbookAdjustedEdge ?? r.sportsbookEdge ?? r.expectedValue);
-}
-
 function bucketProb(p) {
   if (!Number.isFinite(p)) return "unknown";
   const n = Math.floor(p * 100 / 5) * 5;
@@ -104,6 +117,67 @@ function bucketEdge(e) {
   if (e < 0.10) return "5-10";
   if (e < 0.15) return "10-15";
   return "15+";
+}
+
+function getConsensusRows() {
+  const consensus = read("data/vegas-consensus.json", []);
+  const rows = Array.isArray(consensus) ? consensus : consensus.rows || consensus.data || [];
+
+  return rows
+    .map(r => {
+      const market = normalizeMarket(r.market || r.rawMarket);
+      const side = sideOf(r);
+      const line = Number(r.line);
+      const prob = Number(r.noVigProb ?? r.weightedImpliedProb ?? r.avgImpliedProb);
+      const books = Number(r.books || 0);
+
+      return {
+        source: "vegas_consensus",
+        player: r.player,
+        team: r.team ?? null,
+        game: r.game ?? null,
+        market,
+        side,
+        line,
+        prob,
+        edge: null,
+        books,
+        rawMarket: r.rawMarket ?? null,
+        sportsbooks: r.sportsbooks ?? [],
+        commenceTime: r.commenceTime ?? null
+      };
+    })
+    .filter(r =>
+      r.player &&
+      ALLOWED_MARKETS.has(r.market) &&
+      ["MORE", "LESS"].includes(r.side) &&
+      Number.isFinite(r.line) &&
+      Number.isFinite(r.prob)
+    );
+}
+
+function pickOneSidePerProp(rows) {
+  const groups = new Map();
+
+  for (const r of rows) {
+    const k = [normName(r.player), r.market, r.line, r.game || ""].join("|");
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(r);
+  }
+
+  const picked = [];
+  for (const group of groups.values()) {
+    const more = group.filter(r => r.side === "MORE").sort((a, b) => b.prob - a.prob)[0];
+    const less = group.filter(r => r.side === "LESS").sort((a, b) => b.prob - a.prob)[0];
+
+    if (more && less) {
+      picked.push(more.prob >= less.prob ? more : less);
+    } else {
+      picked.push(more || less);
+    }
+  }
+
+  return picked;
 }
 
 async function buildPlayerStats(date) {
@@ -133,37 +207,27 @@ async function buildPlayerStats(date) {
 }
 
 function gradeRow(row, statsByName) {
-  const player = row.player || row.name;
-  const market = normalizeMarket(row);
-  const side = sideOf(row);
-  const line = Number(row.line);
-  const prob = probOf(row);
-  const edge = edgeOf(row);
-
-  const found = statsByName.get(normName(player));
-  const actual = found ? statForMarket(found, market) : null;
+  const found = statsByName.get(normName(row.player));
+  const actual = found ? statForMarket(found, row.market) : null;
 
   const base = {
     date: DATE,
-    player,
-    team: row.team ?? row.resolvedTeam ?? null,
-    game: row.game ?? row.resolvedGame ?? row.sportsbookGame ?? null,
-    market,
-    side,
-    line,
-    prob: Number.isFinite(prob) ? prob : null,
-    edge: Number.isFinite(edge) ? edge : null,
-    confidence: row.confidence ?? row.confidenceBucket ?? row.distributionModel?.confidence ?? row.grade ?? null,
-    books: row.books ?? row.sportsbookBookCount ?? null,
-    grade: row.grade ?? null,
-    source: "full_board",
+    player: row.player,
+    team: row.team,
+    game: row.game,
+    market: row.market,
+    side: row.side,
+    line: row.line,
+    prob: row.prob,
+    edge: row.edge,
+    confidence: bucketProb(row.prob),
+    books: row.books,
+    source: "full_board_consensus_clean",
     foundPlayer: Boolean(found),
-    gamePk: found?.gamePk || row.gamePk || null
+    gamePk: found?.gamePk || null,
+    rawMarket: row.rawMarket,
+    sportsbooks: row.sportsbooks
   };
-
-  if (!player || !market || !side || !Number.isFinite(line)) {
-    return { ...base, actual: null, result: "UNSUPPORTED", reason: "missing_required_fields" };
-  }
 
   if (!Number.isFinite(Number(actual))) {
     return { ...base, actual: null, result: "UNSUPPORTED", reason: "unsupported_or_unmatched_market" };
@@ -171,8 +235,8 @@ function gradeRow(row, statsByName) {
 
   const a = Number(actual);
   let result = "UNKNOWN";
-  if (side === "MORE") result = a > line ? "HIT" : a === line ? "PUSH" : "MISS";
-  if (side === "LESS") result = a < line ? "HIT" : a === line ? "PUSH" : "MISS";
+  if (row.side === "MORE") result = a > row.line ? "HIT" : a === row.line ? "PUSH" : "MISS";
+  if (row.side === "LESS") result = a < row.line ? "HIT" : a === row.line ? "PUSH" : "MISS";
 
   return { ...base, actual: a, result, reason: null };
 }
@@ -204,13 +268,13 @@ function grouped(rows, fn) {
 }
 
 async function main() {
-  const board = read("outputs/priced-board.json", []);
-  const rows = Array.isArray(board) ? board : board.rows || board.data || board.props || [];
-
+  const rawConsensus = getConsensusRows();
+  const rows = pickOneSidePerProp(rawConsensus);
   const stats = await buildPlayerStats(DATE);
-  const graded = rows.map(r => gradeRow(r, stats));
-  const supported = graded.filter(r => ["HIT", "MISS", "PUSH"].includes(r.result));
-  const unsupported = graded.filter(r => !["HIT", "MISS", "PUSH"].includes(r.result));
+
+  const gradedAll = rows.map(r => gradeRow(r, stats));
+  const supported = gradedAll.filter(r => ["HIT", "MISS", "PUSH"].includes(r.result));
+  const unsupported = gradedAll.filter(r => !["HIT", "MISS", "PUSH"].includes(r.result));
 
   fs.mkdirSync("outputs/history", { recursive: true });
   fs.mkdirSync("data/results", { recursive: true });
@@ -227,6 +291,7 @@ async function main() {
   const learning = {
     date: DATE,
     updatedAt: new Date().toISOString(),
+    note: "Clean consensus full-board learning: one side per player/market/line/game; learning-only, not direct ROI.",
     overall: summarize(updatedHist),
     byMarket: grouped(updatedHist, r => r.market),
     byMarketSide: grouped(updatedHist, r => `${r.market} ${r.side}`),
@@ -237,14 +302,17 @@ async function main() {
 
   fs.writeFileSync("data/learning/full-board-market-learning.json", JSON.stringify(learning, null, 2));
 
-  console.log(`FULL BOARD GRADING ${DATE}`);
-  console.log("Raw rows:", rows.length);
+  console.log(`FULL BOARD CLEAN CONSENSUS GRADING ${DATE}`);
+  console.log("Raw consensus rows:", rawConsensus.length);
+  console.log("One-side prop rows:", rows.length);
   console.log("Supported graded:", supported.length);
   console.log("Unsupported/unmatched:", unsupported.length);
   console.log("Overall:");
   console.table([summarize(supported)]);
   console.log("By market:");
   console.table(Object.entries(grouped(supported, r => r.market)).map(([bucket, x]) => ({ bucket, ...x })).slice(0, 30));
+  console.log("By market side:");
+  console.table(Object.entries(grouped(supported, r => `${r.market} ${r.side}`)).map(([bucket, x]) => ({ bucket, ...x })).slice(0, 30));
   console.log("Wrote:");
   console.log(`outputs/history/${DATE}-full-board-graded.json`);
   console.log(`outputs/history/${DATE}-full-board-unmatched.json`);
