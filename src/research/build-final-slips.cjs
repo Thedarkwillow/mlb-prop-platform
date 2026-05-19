@@ -902,6 +902,11 @@ const top = priced
   .filter(x => {
     const ok = isFinalCandidate(x);
     if (!ok) {
+      const audited = applyFullBoardPromotion(
+        { ...x, finalScore: finalScore(x) },
+        fullBoardPromotionMap
+      );
+
       blockedCandidates.push({
         player: x.player,
         market: x.market,
@@ -911,7 +916,12 @@ const top = priced
         reasons: finalExecutionGate(x).reasons || [],
         adaptiveUnblocked: isAdaptiveUnblocked(x, finalExecutionGate(x)),
         prob: x.calibratedDistributionProb ?? null,
-        edge: x.sportsbookAdjustedEdge ?? x.adjustedEdge ?? x.edge ?? null
+        edge: x.sportsbookAdjustedEdge ?? x.adjustedEdge ?? x.edge ?? null,
+        prePromotionScore: audited.prePromotionScore ?? null,
+        postPromotionScore: audited.postPromotionScore ?? null,
+        promotionDelta: audited.promotionDelta ?? null,
+        fullBoardPromotion: audited.fullBoardPromotion ?? null,
+        promotionAuditOnly: true
       });
     }
     return ok;
@@ -923,6 +933,11 @@ const finalTop = [];
 for (const x of top) {
   const gate = finalExecutionGate(x);
   if (!gate.passed && !isAdaptiveUnblocked(x, gate)) {
+    const audited = applyFullBoardPromotion(
+      { ...x, finalScore: finalScore(x) },
+      fullBoardPromotionMap
+    );
+
     blockedCandidates.push({
       player: x.player,
       market: x.market,
@@ -934,7 +949,12 @@ for (const x of top) {
       edge: x.sportsbookAdjustedEdge ?? x.adjustedEdge ?? x.edge ?? null,
       score: x.finalScore,
       adaptiveUnblocked: isAdaptiveUnblocked(x, gate),
-      thresholds: gate.adaptiveThresholds
+      thresholds: gate.adaptiveThresholds,
+      prePromotionScore: audited.prePromotionScore ?? null,
+      postPromotionScore: audited.postPromotionScore ?? null,
+      promotionDelta: audited.promotionDelta ?? null,
+      fullBoardPromotion: audited.fullBoardPromotion ?? null,
+      promotionAuditOnly: true
     });
     continue;
   }
