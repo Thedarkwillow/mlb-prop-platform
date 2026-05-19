@@ -566,6 +566,9 @@ function cleanLeg(x) {
       x
     ),
     finalScore: x.finalScore,
+    prePromotionScore: x.prePromotionScore ?? null,
+    postPromotionScore: x.postPromotionScore ?? null,
+    promotionDelta: x.promotionDelta ?? null,
     fullBoardPromotion: x.fullBoardPromotion ?? null,
     distributionProb: x.distributionProb ?? null,
     calibratedDistributionProb: x.calibratedDistributionProb ?? null,
