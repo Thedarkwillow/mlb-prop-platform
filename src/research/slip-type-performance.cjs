@@ -25,23 +25,99 @@ function ensureDir(path) {
   fs.mkdirSync(path, { recursive: true });
 }
 
-function resultOfSlip(slip) {
-  const legs = slip.legs || [];
-  const hits = legs.filter(l => String(l.result || l.gradeResult || "").toUpperCase() === "HIT").length;
-  const misses = legs.filter(l => String(l.result || l.gradeResult || "").toUpperCase() === "MISS").length;
-  const pushes = legs.filter(l => String(l.result || l.gradeResult || "").toUpperCase() === "PUSH").length;
-
-  const size = legs.length || Number(slip.size || 0);
-  const entryType = String(slip.entryType || slip.type || slip.name || "").toUpperCase().includes("FLEX")
-    ? "FLEX"
-    : "POWER";
-
-  return { entryType, size, hits, misses, pushes, legs };
+function normalizeResult(leg) {
+  return String(
+    leg.result ||
+    leg.gradeResult ||
+    leg.outcome ||
+    leg.status ||
+    ""
+  ).toUpperCase();
 }
 
-function payoutReturn(entryType, size, hits) {
+function baseEntryType(slip) {
+  return String(slip.entryType || slip.type || slip.name || "").toUpperCase().includes("FLEX")
+    ? "FLEX"
+    : "POWER";
+}
+
+function resolveEffectiveSlip(slip) {
+  const legs = slip.legs || [];
+  const originalEntryType = baseEntryType(slip);
+  const originalSize = legs.length || Number(slip.size || 0);
+
+  let active = 0;
+  let hits = 0;
+  let misses = 0;
+  let pushes = 0;
+  let dnp = 0;
+  let ties = 0;
+  const activeTeams = new Set();
+
+  for (const leg of legs) {
+    const r = normalizeResult(leg);
+
+    if (r === "DNP" || r === "REBOOT") {
+      dnp += 1;
+      continue;
+    }
+
+    active += 1;
+    if (leg.team) activeTeams.add(leg.team);
+
+    if (r === "HIT" || r === "WIN" || r === "WON") hits += 1;
+    else if (r === "PUSH" || r === "TIE") {
+      pushes += 1;
+      ties += 1;
+    } else misses += 1;
+  }
+
+  // PrizePicks ties revert payout by one level but are not removed for same-team/2-pick eligibility.
+  const payoutSize = Math.max(0, active - ties);
+
+  // 3-flex with one DNP/reboot reverts to 2-pick power.
+  let effectiveEntryType = originalEntryType;
+  if (originalEntryType === "FLEX" && payoutSize === 2) {
+    effectiveEntryType = "POWER";
+  }
+
+  const sameTeamRefund =
+    active >= 2 &&
+    activeTeams.size === 1 &&
+    dnp > 0;
+
+  return {
+    originalEntryType,
+    entryType: effectiveEntryType,
+    originalSize,
+    size: payoutSize,
+    active,
+    hits,
+    misses,
+    pushes,
+    dnp,
+    ties,
+    sameTeamRefund,
+    legs
+  };
+}
+
+function resultOfSlip(slip) {
+  return resolveEffectiveSlip(slip);
+}
+
+function payoutReturn(entryType, size, hits, slipResult = {}) {
   const payouts = read("data/config/prizepicks-slip-payouts.json", {});
+
+  if (slipResult.sameTeamRefund) return 1;
+  if (size <= 1) return slipResult.dnp > 0 ? 1 : 0;
+
   if (entryType === "POWER") {
+    if (size === 2) {
+      if (hits === 2) return Number(payouts.power?.["2"] || 3);
+      if (hits === 1 && slipResult.ties > 0) return 1.5;
+      return 0;
+    }
     return hits === size ? Number(payouts.power?.[String(size)] || 0) : 0;
   }
 
@@ -65,7 +141,7 @@ function emptyBucket() {
 
 function addToBucket(bucket, slipResult) {
   const { entryType, size, hits, pushes } = slipResult;
-  const ret = payoutReturn(entryType, size, hits);
+  const ret = payoutReturn(entryType, size, hits, slipResult);
   const profit = ret - 1;
 
   bucket.count += 1;
@@ -107,9 +183,15 @@ for (const slip of slips) {
     name: slip.name,
     entryType: r.entryType,
     size: r.size,
+    originalSize: r.originalSize,
     hits: r.hits,
     misses: r.misses,
     pushes: r.pushes,
+    dnp: r.dnp,
+    ties: r.ties,
+    active: r.active,
+    originalEntryType: r.originalEntryType,
+    sameTeamRefund: r.sameTeamRefund,
     returnMultiplier: ret,
     profit,
     roi: profit,
