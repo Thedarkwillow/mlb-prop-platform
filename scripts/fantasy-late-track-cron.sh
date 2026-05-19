@@ -26,6 +26,7 @@ jq -r '
 if [ "$FANTASY_COUNT" -ge 100 ] && [ "$FANTASY_GAMES" -ge 6 ]; then
   echo "Fantasy coverage sufficient for tracking snapshot"
   npm run grade:full-board --date="$DATE"
+  npm run fantasy:watchlist
 else
   echo "Fantasy coverage partial; skipping trust update"
 fi
