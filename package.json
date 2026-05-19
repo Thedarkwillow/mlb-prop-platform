@@ -163,7 +163,10 @@
     "shadow:thresholds": "node src/research/shadow-threshold-adjustments.cjs ${npm_config_date:-$(date +%F)}",
     "shadow:report": "npm run grade:shadows --date=${npm_config_date:-$(date +%F)} && npm run shadow:roi --date=${npm_config_date:-$(date +%F)} && npm run shadow:thresholds --date=${npm_config_date:-$(date +%F)}",
     "grade:full-board": "node src/research/full-board-grade.cjs ${npm_config_date:-$(date +%F)}",
-    "learn:full-board": "npm run grade:full-board --date=${npm_config_date:-$(date +%F)}"
+    "learn:full-board": "npm run grade:full-board --date=${npm_config_date:-$(date +%F)}",
+    "full-board:report": "node src/research/full-board-drop-report.cjs ${npm_config_date:-$(date +%F)}",
+    "full-board:promote": "node src/research/full-board-market-promotion.cjs",
+    "full-board:cycle": "npm run grade:full-board --date=${npm_config_date:-$(date +%F)} && npm run full-board:report --date=${npm_config_date:-$(date +%F)} && npm run full-board:promote"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
