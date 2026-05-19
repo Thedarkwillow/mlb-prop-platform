@@ -174,7 +174,9 @@
     "grade:run": "node src/research/grade-snapshot-run.cjs",
     "slip-type:performance": "node src/research/slip-type-performance.cjs",
     "test:payouts": "node src/scripts/test-payout-engine.cjs",
-    "payouts:collect": "node src/research/collect-prizepicks-payouts.cjs"
+    "payouts:collect": "node src/research/collect-prizepicks-payouts.cjs",
+    "command": "node src/research/command-center.cjs",
+    "dash": "node src/research/command-center.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
