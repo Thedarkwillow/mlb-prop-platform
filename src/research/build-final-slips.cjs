@@ -19,6 +19,7 @@ const { applyHistoricalEdgeShrinkage } = require("./edge-shrinkage.cjs");
 const { remapConfidence } = require("./confidence-remap.cjs");
 const { autoMarketDecision } = require("./auto-market-suppression.cjs");
 const { volatilityAdjustment } = require("./volatility-adjustment.cjs");
+const { priceSlip } = require("../pricing/prizepicks-payout-engine.cjs");
 
 function readJson(path, fallback) {
   try {
@@ -1191,6 +1192,21 @@ const slipDefs = [
   { name: "6-MAN FLEX", size: 6 }
 ].filter(x => x.size <= MAX_FINAL_SLIP_SIZE);
 
+
+function entryModeFromName(name) {
+  return String(name || "").toUpperCase().includes("FLEX") ? "flex" : "power";
+}
+
+function safePayoutPricing(legs, mode) {
+  try {
+    if (!Array.isArray(legs) || legs.length < 2) return null;
+    if (mode === "flex" && legs.length < 3) return null;
+    return priceSlip({ legs, mode });
+  } catch (err) {
+    return { mode, error: err.message };
+  }
+}
+
 const portfolioExposure = makeExposureState();
 
 const slips = slipDefs.map(def => {
@@ -1241,10 +1257,19 @@ const slips = slipDefs.map(def => {
 
   const acceptedLegs = rejected ? [] : legs;
   for (const leg of acceptedLegs) incrementExposure(portfolioExposure, leg);
+  const entryMode = entryModeFromName(def.name);
+  const payoutPricing = complete ? safePayoutPricing(acceptedLegs, entryMode) : null;
 
   return {
     name: def.name,
     size: def.size,
+    entryMode,
+    payoutPricing,
+    trueEV: payoutPricing?.ev ?? null,
+    trueEVPct: payoutPricing?.evPct ?? null,
+    payoutConfigKey: payoutPricing?.configKey ?? null,
+    payout: payoutPricing?.payout ?? null,
+    payoutMap: payoutPricing?.payoutMap ?? null,
     complete,
     rejected,
     rejectReasons,
@@ -1298,7 +1323,11 @@ console.log("Slip correlation:");
 console.table(slips.map(s => ({
   name: s.name,
   size: s.size,
+  mode: s.entryMode,
   complete: s.complete,
+  trueEVPct: s.trueEVPct == null ? null : Number(s.trueEVPct.toFixed(2)),
+  payoutKey: s.payoutConfigKey,
+  payout: s.payout,
   green: s.green,
   neutral: s.neutral,
   correlation: s.correlation

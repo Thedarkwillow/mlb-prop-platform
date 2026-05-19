@@ -172,7 +172,8 @@
     "slips:optimize-types": "node src/research/optimize-slip-types.cjs",
     "snapshot:run": "node src/research/snapshot-current-run.cjs",
     "grade:run": "node src/research/grade-snapshot-run.cjs",
-    "slip-type:performance": "node src/research/slip-type-performance.cjs"
+    "slip-type:performance": "node src/research/slip-type-performance.cjs",
+    "test:payouts": "node src/scripts/test-payout-engine.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
