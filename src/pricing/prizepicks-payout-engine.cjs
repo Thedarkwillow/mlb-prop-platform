@@ -17,6 +17,7 @@ function loadPayoutTable(tablePath = DEFAULT_TABLE_PATH) {
 
 function getLegTier(leg) {
   const raw =
+    leg.oddsTier ||
     leg.tier ||
     leg.projectionType ||
     leg.specialType ||

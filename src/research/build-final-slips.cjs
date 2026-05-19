@@ -814,6 +814,7 @@ function isAdaptiveUnblocked(x, gate) {
 
 function specialTier(x) {
   const raw = [
+    x.oddsTier,
     x.special,
     x.specialTier,
     x.tier,
