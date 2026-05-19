@@ -100,10 +100,12 @@ function applyFullBoardPromotion(row, promotionMap = loadFullBoardPromotion()) {
   const multiplier = capMultiplier(action, decision.multiplier);
   const thresholdAdjustment = capThreshold(action, decision.thresholdAdjustment);
 
-  const prePromotionScore = Number(row.finalScore ?? row.score);
-  const postPromotionScore = Number.isFinite(prePromotionScore)
+  const rawScore = row.finalScore ?? row.score;
+  const prePromotionScore = Number(rawScore);
+  const hasScore = Number.isFinite(prePromotionScore);
+  const postPromotionScore = hasScore
     ? Number((prePromotionScore * multiplier).toFixed(6))
-    : row.finalScore ?? row.score ?? null;
+    : null;
 
   const probDelta = action === "WATCH_BOOST" ? 0.005 : action === "TIGHTEN" ? -0.005 : 0;
   const edgeDelta = action === "WATCH_BOOST" ? 0.01 : action === "TIGHTEN" ? -0.01 : 0;
@@ -111,11 +113,9 @@ function applyFullBoardPromotion(row, promotionMap = loadFullBoardPromotion()) {
   const out = {
     ...row,
     market: cleanMarket(row.market || row.stat),
-    prePromotionScore: Number.isFinite(prePromotionScore) ? prePromotionScore : null,
-    postPromotionScore,
-    promotionDelta: Number.isFinite(prePromotionScore) && Number.isFinite(Number(postPromotionScore))
-      ? Number((Number(postPromotionScore) - prePromotionScore).toFixed(6))
-      : 0,
+    prePromotionScore: hasScore ? prePromotionScore : null,
+    postPromotionScore: hasScore ? postPromotionScore : null,
+    promotionDelta: hasScore ? Number((postPromotionScore - prePromotionScore).toFixed(6)) : 0,
     calibratedDistributionProb: adjustNumber(row.calibratedDistributionProb, probDelta, 0.01, 0.99),
     edge: adjustNumber(row.edge, edgeDelta),
     adjustedEdge: adjustNumber(row.adjustedEdge, edgeDelta),
@@ -136,7 +136,7 @@ function applyFullBoardPromotion(row, promotionMap = loadFullBoardPromotion()) {
     }
   };
 
-  if (Number.isFinite(prePromotionScore)) {
+  if (hasScore) {
     out.finalScore = postPromotionScore;
     if (Number.isFinite(Number(row.score))) {
       out.score = Number((Number(row.score) * multiplier).toFixed(6));
