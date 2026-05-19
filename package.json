@@ -173,12 +173,13 @@
     "snapshot:run": "node src/research/snapshot-current-run.cjs",
     "grade:run": "node src/research/grade-snapshot-run.cjs",
     "slip-type:performance": "node src/research/slip-type-performance.cjs",
-    "test:payouts": "node src/scripts/test-payout-engine.cjs"
+    "test:payouts": "node src/scripts/test-payout-engine.cjs",
+    "payouts:collect": "node src/research/collect-prizepicks-payouts.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "pg": "^8.20.0",
-    "playwright": "^1.59.1"
+    "playwright": "^1.60.0"
   }
 }

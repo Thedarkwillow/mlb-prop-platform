@@ -1,12 +1,19 @@
 {
-  "version": "v1-manual",
-  "note": "Update these multipliers from actual PrizePicks slip builder screenshots. Standard values are placeholders.",
+  "version": "v2-real-prizepicks-observed-2026-05-19",
+  "note": "Observed manually from user's PrizePicks account. Goblin/Demon payouts can vary by line intensity; these are baseline buckets.",
   "power": {
     "2": {
-      "0G_0D": 3
+      "0G_0D": 3,
+      "1G_0D": 2.1,
+      "0G_1D": 3.25
     },
     "3": {
-      "0G_0D": 5
+      "0G_0D": 6,
+      "1G_0D": 4,
+      "2G_0D": 2.8,
+      "0G_1D": 9,
+      "0G_2D": 14,
+      "1G_1D": 6.75
     },
     "4": {
       "0G_0D": 10
@@ -21,8 +28,28 @@
   "flex": {
     "3": {
       "0G_0D": {
+        "3": 3,
+        "2": 0.75
+      },
+      "1G_0D": {
+        "3": 3,
+        "2": 0.75
+      },
+      "2G_0D": {
         "3": 2.25,
-        "2": 1.25
+        "2": 0.5
+      },
+      "0G_1D": {
+        "3": 7,
+        "2": 1
+      },
+      "0G_2D": {
+        "3": 9,
+        "2": 1.5
+      },
+      "1G_1D": {
+        "3": 4.5,
+        "2": 1
       }
     },
     "4": {
