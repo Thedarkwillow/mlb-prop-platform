@@ -191,14 +191,72 @@ function projectPitcherFantasy(comps = {}) {
   };
 }
 
+function projectPitchesThrown(comps = {}) {
+  const outs = getComp(comps, "pitching_outs");
+  const strikeouts = getComp(comps, "strikeouts");
+  const walksAllowed = getComp(comps, "walks_allowed");
+  const earnedRuns = getComp(comps, "earned_runs_allowed");
+
+  // Conservative shell: outs drive volume, Ks/BB/ER add inefficiency.
+  const projection =
+    outs * 4.35 +
+    strikeouts * 0.75 +
+    walksAllowed * 3.5 +
+    earnedRuns * 1.25;
+
+  return {
+    projection: Number(projection.toFixed(3)),
+    components: { outs, strikeouts, walksAllowed, earnedRuns },
+    coverage: {
+      available: [outs, strikeouts, walksAllowed, earnedRuns].filter(v => Number.isFinite(v) && v !== 0).length,
+      possible: 4,
+      tier: outs && strikeouts ? "MEDIUM" : "LOW"
+    }
+  };
+}
+
+function projectPlateAppearances(comps = {}) {
+  const runs = getComp(comps, "runs");
+  const rbis = getComp(comps, "rbis") || getComp(comps, "rbi");
+  const hits = getComp(comps, "hits");
+  const walks = getComp(comps, "walks");
+
+  // Track-only shell. Real PA model needs lineup slot and team run environment.
+  const projection = 3.85 + runs * 0.15 + rbis * 0.08 + hits * 0.1 + walks * 0.05;
+
+  return {
+    projection: Number(projection.toFixed(3)),
+    components: { runs, rbis, hits, walks },
+    coverage: {
+      available: [runs, rbis, hits, walks].filter(v => Number.isFinite(v) && v !== 0).length,
+      possible: 4,
+      tier: "LOW"
+    }
+  };
+}
+
 function applyFantasyProjection(row, componentIndex) {
   const market = cleanMarket(row.market || row.stat);
-  if (!["hitter_fantasy_score", "pitcher_fantasy_score"].includes(market)) return row;
+  const trackOnlyMarkets = new Set([
+    "hitter_fantasy_score",
+    "pitcher_fantasy_score",
+    "pitches_thrown",
+    "plate_appearances",
+    "batter_strikeouts",
+    "triples"
+  ]);
+
+  if (!trackOnlyMarkets.has(market)) return row;
 
   const comps = componentIndex.get(keyFor(row)) || {};
-  const projected = market === "hitter_fantasy_score"
-    ? projectHitterFantasy(comps)
-    : projectPitcherFantasy(comps);
+  const projected =
+    market === "hitter_fantasy_score" ? projectHitterFantasy(comps) :
+    market === "pitcher_fantasy_score" ? projectPitcherFantasy(comps) :
+    market === "pitches_thrown" ? projectPitchesThrown(comps) :
+    market === "plate_appearances" ? projectPlateAppearances(comps) :
+    market === "batter_strikeouts" ? { projection: getComp(comps, "strikeouts"), components: { hitterStrikeouts: getComp(comps, "strikeouts") }, coverage: { available: 0, possible: 1, tier: "LOW" } } :
+    market === "triples" ? { projection: getComp(comps, "triples"), components: { triples: getComp(comps, "triples") }, coverage: { available: 0, possible: 1, tier: "VERY_LOW" } } :
+    { projection: null, components: {}, coverage: { available: 0, possible: 0, tier: "NONE" } };
 
   const line = Number(row.line);
   const fantasyEdge = Number.isFinite(line)
@@ -219,7 +277,7 @@ function applyFantasyProjection(row, componentIndex) {
     rankEligible: false,
     promotionEligible: false,
     playableEligible: false,
-    disabledReason: "fantasy_track_only_until_calibrated"
+    disabledReason: `${market}_track_only_until_calibrated`
   };
 }
 
