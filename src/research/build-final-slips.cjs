@@ -1334,10 +1334,22 @@ const slips = slipDefs.map(def => {
   };
 });
 
+const evRankedSlips = [...slips].sort((a, b) => {
+  const av = Number(a.trueEV ?? -999);
+  const bv = Number(b.trueEV ?? -999);
+
+  if (Number.isFinite(av) && Number.isFinite(bv) && bv !== av) {
+    return bv - av;
+  }
+
+  return Number(b.complete === true) - Number(a.complete === true);
+});
+
 const output = {
   generatedAt: new Date().toISOString(),
+  rankingMethod: "true_ev_desc",
   topLegs: finalTop.map(cleanLeg),
-  slips
+  slips: evRankedSlips
 };
 
 fs.writeFileSync("outputs/final-slips.json", JSON.stringify(output, null, 2));
