@@ -560,6 +560,8 @@ function cleanLeg(x) {
     market: x.market,
     side: x.side,
     line: x.line,
+    oddsTier: x.oddsTier || "standard",
+    specialTier: x.oddsTier || x.specialTier || x.tier || "standard",
     edge: x.sportsbookEdge,
     adjustedEdge: x.sportsbookAdjustedEdge,
     historicalEdgeShrinkage: applyHistoricalEdgeShrinkage(
