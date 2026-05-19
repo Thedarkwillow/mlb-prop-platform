@@ -892,6 +892,27 @@ function finalExecutionGate(x) {
     reasons.push("demon_edge_below_6pct");
   }
 
+  const goblinStrongOverride =
+    tier === "goblin" &&
+    legProb != null &&
+    legProb >= 0.68 &&
+    Number.isFinite(adjEdge) &&
+    adjEdge >= 0.30;
+
+  if (goblinStrongOverride) {
+    const removable = new Set([
+      "non_elite_score_below_adaptive_floor",
+      "high_volatility_non_elite",
+      "score_below_adaptive_minimum"
+    ]);
+
+    for (let i = reasons.length - 1; i >= 0; i--) {
+      if (removable.has(reasons[i])) reasons.splice(i, 1);
+    }
+
+    reasons.push("goblin_strong_override");
+  }
+
   return {
     passed: reasons.length === 0,
     reasons,
