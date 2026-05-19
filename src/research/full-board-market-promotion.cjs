@@ -1,5 +1,26 @@
 const fs = require("fs");
 
+const PLAYABLE_MARKETS = new Set([
+  "strikeouts",
+  "pitching_outs",
+  "hits_allowed",
+  "earned_runs_allowed",
+  "walks_allowed",
+  "hits",
+  "bases",
+  "hrr",
+  "runs",
+  "rbis",
+  "walks",
+  "singles",
+  "home_runs",
+  "hr"
+]);
+
+function marketFromBucket(bucket) {
+  return String(bucket || "").split(/\s+/)[0].trim().toLowerCase();
+}
+
 const MIN_SAMPLE = 25;
 const BOOST_HIT_RATE = 0.58;
 const BOOST_ROI = 0.08;
@@ -66,8 +87,22 @@ function decide(bucket, row) {
 const learning = read("data/learning/full-board-market-learning.json", {});
 const marketSide = learning.byMarketSide || {};
 
-const decisions = Object.entries(marketSide)
-  .map(([bucket, row]) => decide(bucket, row))
+const rawDecisions = Object.entries(marketSide)
+  .map(([bucket, row]) => decide(bucket, row));
+
+const excluded = rawDecisions
+  .filter(d => !PLAYABLE_MARKETS.has(marketFromBucket(d.bucket)))
+  .map(d => ({
+    bucket: d.bucket,
+    action: "EXCLUDED",
+    reason: "market_not_approved_for_playable_promotion",
+    count: d.count,
+    hitRate: d.hitRate,
+    roi: d.roi
+  }));
+
+const decisions = rawDecisions
+  .filter(d => PLAYABLE_MARKETS.has(marketFromBucket(d.bucket)))
   .sort((a, b) => {
     const order = { WATCH_BOOST: 0, TIGHTEN: 1, HOLD: 2 };
     return (order[a.action] ?? 9) - (order[b.action] ?? 9) || b.count - a.count;
@@ -89,6 +124,8 @@ const out = {
     tightenMultiplier: 0.9,
     tightenThreshold: 0.02
   },
+  approvedMarkets: [...PLAYABLE_MARKETS],
+  excluded,
   decisions
 };
 
