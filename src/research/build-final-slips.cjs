@@ -262,7 +262,7 @@ function hasDistributionModel(x) {
 }
 
 function minEdgeForSlipSize(size) {
-  if (size <= 2) return 0.18;
+  if (size <= 2) return 0.17;
   if (size === 3) return 0.15;
   if (size === 4) return 0.12;
   return 0.10;
@@ -659,7 +659,7 @@ function canAddStrict(legs, x) {
   if (teamKey(x) && c.sameTeam >= 1) return false;
   if (isCheapHrrHalf(x) && cheapHrrHalfCount(legs) >= 1) return false;
   if (fam === "hitter_counting" && c.sameFamily >= 4) return false;
-  if (fam === "pitcher_k" && c.sameFamily >= 1) return false;
+  if (fam === "pitcher_k" && c.sameFamily >= 2) return false;
   if (c.sameMarket >= 2) return false;
   return true;
 }
