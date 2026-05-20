@@ -534,7 +534,7 @@ function marketSpecificFinalGate(x) {
   if (market === "bases" && side === "MORE") return prob >= 0.60 && adj >= 0.08 && books >= 3;
   if (market === "hits") return prob >= 0.62 && adj >= 0.10 && books >= 3;
   if (market === "strikeouts") return prob >= 0.60 && adj >= 0.08 && books >= 2;
-  if (market === "pitching_outs") return prob >= 0.58 && adj >= 0.10 && books >= 3;
+  if (market === "pitching_outs") return prob >= 0.58 && adj >= 0.10 && books >= 2;
   if (market === "hits_allowed") return prob >= 0.60 && adj >= 0.10 && books >= 3;
   if (market === "earned_runs_allowed") return prob >= 0.60 && adj >= 0.12 && books >= 3;
   if (market === "runs" || market === "rbis") return prob >= 0.64 && adj >= 0.12 && books >= 4;
