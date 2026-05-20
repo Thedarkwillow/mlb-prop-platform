@@ -271,6 +271,31 @@ function confidenceBucket(prob) {
   return 'pass';
 }
 
+
+function hasValidProjection(row) {
+  const projection = Number(row.projection);
+  return Number.isFinite(projection) && projection > 0;
+}
+
+function specialTierLessBlocked(row, side = row.recommendedSide || row.side) {
+  const oddsTier = String(row.oddsTier || row.odds_tier || row.tier || '').toLowerCase();
+  const resolvedSide = String(side || '').toUpperCase();
+  return (oddsTier === 'demon' || oddsTier === 'goblin') && resolvedSide === 'LESS';
+}
+
+function disabledPricingRow(row, reason) {
+  return {
+    ...row,
+    recommendedSide: null,
+    recommendedProb: null,
+    expectedValue: null,
+    fairLine: null,
+    rankEligible: false,
+    pricingStatus: 'DISABLED',
+    disabledReason: reason
+  };
+}
+
 function impliedMultiplierEV(prob, oddsTier) {
   const payout =
     oddsTier === 'demon' ? 2.0 :
@@ -1090,6 +1115,15 @@ const priced = board.map(row => {
   let underProb = 1 - overProb;
 
   let recommendedSide = overProb >= 0.5 ? 'MORE' : 'LESS';
+  
+  if (!hasValidProjection({ ...row, projection: contextProjection })) {
+    return disabledPricingRow(row, 'missing_or_zero_projection');
+  }
+
+  if (specialTierLessBlocked(row, recommendedSide)) {
+    return disabledPricingRow(row, 'special_tier_less_not_allowed');
+  }
+
   let recommendedProb = Math.max(overProb, underProb);
 
   const savantFormResult = applySavantRollingForm(

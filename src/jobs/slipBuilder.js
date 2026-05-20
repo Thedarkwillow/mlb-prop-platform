@@ -309,7 +309,32 @@ function dedupeRows(rows) {
 }
 
 
+function invalidProjectionRow(r) {
+  const projection = Number(r.projection);
+  return !Number.isFinite(projection) || projection <= 0;
+}
+
+function specialTierLessBlockedForSlip(r) {
+  const oddsTier = String(r.oddsTier || r.odds_tier || r.tier || '').toLowerCase();
+  const resolvedSide = String(r.side || r.recommendedSide || '').toUpperCase();
+  return (oddsTier === 'demon' || oddsTier === 'goblin') && resolvedSide === 'LESS';
+}
+
 function normalizeForOptimizer(r) {
+  if (invalidProjectionRow(r)) {
+    return {
+      ...r,
+      rankEligible: false,
+      disabledReason: "missing_or_zero_projection"
+    };
+  }
+  if (specialTierLessBlockedForSlip(r)) {
+    return {
+      ...r,
+      rankEligible: false,
+      disabledReason: "special_tier_less_not_allowed"
+    };
+  }
   const rawMarketText = String(r.market || r.stat || "").toLowerCase();
 
   if (rawMarketText.includes("fantasy")) {
@@ -397,6 +422,8 @@ function hrrMoreAllowed(r) {
 }
 
 function playable(r) {
+  if (invalidProjectionRow(r)) return false;
+  if (specialTierLessBlockedForSlip(r)) return false;
   if (phase6DirectionalBlocked(r)) return false;
   if (r.rankEligible === false) return false;
 
@@ -607,16 +634,22 @@ function phase6DirectionalBlocked(r) {
   }
 
   // Existing known bad MORE markets from Phase 6.
+  // Exception: standard pitcher K MORE can enter watchlist/slips if probability is strong.
   if (
     side === "MORE" &&
     [
-      "strikeouts",
       "rbis",
       "runs",
       "hitter_fantasy_score"
     ].includes(m)
   ) {
     return true;
+  }
+
+  if (side === "MORE" && m === "strikeouts") {
+    const prob = Number(r.recommendedProb ?? r.prob ?? 0);
+    const t = String(r.oddsTier || r.odds_tier || r.tier || "").toLowerCase();
+    if (!(t === "standard" && prob >= 0.52)) return true;
   }
 
   return false;
@@ -856,7 +889,59 @@ function applyPhase55ToOptimizerRow(r) {
   };
 }
 
+
+function diagnostics(rows) {
+  const counts = {
+    total: 0,
+    afterRecordType: 0,
+    afterGameValid: 0,
+    afterProjection: 0,
+    afterSideRule: 0,
+    afterDirectional: 0,
+    afterMarketTrust: 0,
+    afterProb: 0,
+    afterEV: 0,
+    finalPlayable: 0
+  };
+
+  for (const r of rows) {
+    if (r.recordType !== 'merged_prop') continue;
+    counts.total++;
+
+    if (!isValidGameAssignment(r)) continue;
+    counts.afterGameValid++;
+
+    if (invalidProjectionRow(r)) continue;
+    counts.afterProjection++;
+
+    if (specialTierLessBlockedForSlip(r)) continue;
+    counts.afterSideRule++;
+
+    if (phase6DirectionalBlocked(r)) continue;
+    counts.afterDirectional++;
+
+    if (!marketTrustAllowed(r)) continue;
+    counts.afterMarketTrust++;
+
+    const prob = Number(r.recommendedProb);
+    if (!(prob >= (tier(r) === 'standard' ? 0.52 : 0.60))) continue;
+    counts.afterProb++;
+
+    const ev = Number(r.expectedValue);
+    if (!(tier(r) === 'standard' ? ev >= 0 : ev >= 1.10)) continue;
+    counts.afterEV++;
+
+    counts.finalPlayable++;
+  }
+
+  console.log("FILTER DIAGNOSTICS");
+  console.table(counts);
+}
+
+
 const normalizedRows = rows.map(normalizeForOptimizer).map(applyPhase55ToOptimizerRow).map(applyPhase5ContextAdjustments);
+diagnostics(normalizedRows);
+
 const baseCandidates = dedupeRows(normalizedRows.filter(r => playable(r) && phase5HardAllowed(r) && phase6RegimeAllowed(r)));
 
 const standardKWatchlist = normalizedRows
