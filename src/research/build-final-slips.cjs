@@ -852,6 +852,44 @@ function bestLegProb(x) {
   return null;
 }
 
+
+function adaptiveUnblockV1(x, reasons) {
+  const tier = specialTier(x);
+  const market = normalizedMarket(x);
+  const side = sideKey(x);
+  const prob = Number(x.calibratedDistributionProb ?? x.recommendedProb ?? x.probability ?? x.prob);
+  const edge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? x.adjustedEdge ?? x.edge);
+  const books = Number(x.sportsbookBookCount ?? x.books ?? 0);
+
+  if (tier !== "standard") return false;
+  if (!Number.isFinite(prob) || !Number.isFinite(edge)) return false;
+  if (books < 3) return false;
+
+  const hardBlocks = new Set([
+    "auto_market_suppressed",
+    "phase6_adaptive_suppressed",
+    "unmodeled_confidence",
+    "failed_market_gate",
+    "high_volatility_non_elite"
+  ]);
+  if (reasons.some(r => hardBlocks.has(r))) return false;
+
+  const allowedMarkets = new Set([
+    "strikeouts",
+    "pitching_outs",
+    "hits_allowed",
+    "earned_runs_allowed",
+    "hits"
+  ]);
+  if (!allowedMarkets.has(market)) return false;
+  if (side === "MORE" && market !== "strikeouts") return false;
+
+  return (
+    (prob >= 0.58 && edge >= 0.12 && books >= 3) ||
+    (prob >= 0.55 && edge >= 0.20 && books >= 3)
+  );
+}
+
 function finalExecutionGate(x) {
   const confidence = remapConfidence({
     ...x,
@@ -921,8 +959,21 @@ function finalExecutionGate(x) {
     reasons.push("goblin_strong_override");
   }
 
+  if (adaptiveUnblockV1(x, reasons)) {
+    const removable = new Set([
+      "weak_confidence",
+      "score_below_adaptive_minimum",
+      "non_elite_score_below_adaptive_floor",
+      "elite_score_below_adaptive_floor"
+    ]);
+    for (let i = reasons.length - 1; i >= 0; i--) {
+      if (removable.has(reasons[i])) reasons.splice(i, 1);
+    }
+    reasons.push("adaptive_unblock_v1");
+  }
+
   return {
-    passed: reasons.length === 0,
+    passed: reasons.length === 0 || (reasons.length === 1 && reasons[0] === "adaptive_unblock_v1"),
     reasons,
     score,
     confidence: confidence.confidence,
