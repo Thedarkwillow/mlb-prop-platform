@@ -532,7 +532,10 @@ function marketSpecificFinalGate(x) {
   if (!Number.isFinite(adj)) return false;
 
   if (market === "bases" && side === "MORE") return prob >= 0.60 && adj >= 0.08 && books >= 3;
-  if (market === "hits") return prob >= 0.62 && adj >= 0.10 && books >= 3;
+  if (market === "hits") {
+    if (side === "LESS") return prob >= 0.60 && adj >= 0.09 && books >= 3;
+    return prob >= 0.62 && adj >= 0.10 && books >= 3;
+  }
   if (market === "strikeouts") return prob >= 0.60 && adj >= 0.08 && books >= 2;
   if (market === "pitching_outs") return prob >= 0.58 && adj >= 0.10 && books >= 2;
   if (market === "hits_allowed") return prob >= 0.60 && adj >= 0.10 && books >= 3;
@@ -878,7 +881,10 @@ function finalExecutionGate(x) {
   if (confidence.confidence === "unmodeled") reasons.push("unmodeled_confidence");
   if (score < thresholds.absoluteScoreFloor) reasons.push("score_below_adaptive_minimum");
   if (confidence.confidence === "elite" && score < thresholds.eliteScoreFloor) reasons.push("elite_score_below_adaptive_floor");
-  if (confidence.confidence !== "elite" && score < thresholds.nonEliteScoreFloor) reasons.push("non_elite_score_below_adaptive_floor");
+  if (
+    confidence.confidence !== "elite" &&
+    score < (thresholds.nonEliteScoreFloor - 0.03)
+  ) reasons.push("non_elite_score_below_adaptive_floor");
   if (vol.volatility === "high" && confidence.confidence !== "elite") reasons.push("high_volatility_non_elite");
   if (!marketSpecificFinalGate(x)) reasons.push("failed_market_gate");
 
