@@ -1,7 +1,12 @@
 const fs = require("fs");
 const { hitterFantasyScore, pitcherFantasyScore } = require("./fantasyScoreRules.cjs");
 
-const date = process.argv[2];
+const dateArg = process.argv
+  .slice(2)
+  .filter(arg => /^\d{4}-\d{2}-\d{2}$/.test(String(arg || "")))
+  .at(-1);
+
+const date = process.env.npm_config_date || dateArg;
 
 if (!date) {
   console.error("Usage: node src/jobs/gradeFantasyProps.cjs YYYY-MM-DD");
