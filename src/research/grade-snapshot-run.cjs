@@ -45,9 +45,14 @@ if (useLatest) {
 
 const runDir = path.join(baseDir, runId);
 const snapshotPlayable = path.join(runDir, "playable-final-slips.json");
+const snapshotFinal = path.join(runDir, "final-slips.json");
 
 if (!fs.existsSync(snapshotPlayable)) {
   throw new Error(`Missing snapshot playable slips: ${snapshotPlayable}`);
+}
+
+if (!fs.existsSync(snapshotFinal)) {
+  throw new Error(`Missing snapshot final slips: ${snapshotFinal}`);
 }
 
 fs.mkdirSync("outputs/history/grade-backups", { recursive: true });
@@ -63,7 +68,23 @@ if (fs.existsSync("outputs/playable-final-slips.json")) {
   fs.copyFileSync("outputs/playable-final-slips.json", backupPath);
 }
 
+const finalBackupPath = path.join(
+  "outputs",
+  "history",
+  "grade-backups",
+  `final-slips-${DATE}-before-grade-run-${Date.now()}.json`
+);
+
+if (fs.existsSync(`outputs/final-slips-${DATE}.json`)) {
+  fs.copyFileSync(`outputs/final-slips-${DATE}.json`, finalBackupPath);
+}
+
 fs.copyFileSync(snapshotPlayable, "outputs/playable-final-slips.json");
+
+// grade-final-slips.cjs reads outputs/final-slips-${DATE}.json,
+// so freeze that file from the selected snapshot too.
+fs.copyFileSync(snapshotFinal, "outputs/final-slips.json");
+fs.copyFileSync(snapshotFinal, `outputs/final-slips-${DATE}.json`);
 
 console.log("GRADE SNAPSHOT RUN");
 console.log(JSON.stringify({
@@ -71,8 +92,11 @@ console.log(JSON.stringify({
   runId,
   runDir,
   source: snapshotPlayable,
+  finalSource: snapshotFinal,
   activeTarget: "outputs/playable-final-slips.json",
-  backupPath: fs.existsSync(backupPath) ? backupPath : null
+  activeFinalTarget: `outputs/final-slips-${DATE}.json`,
+  backupPath: fs.existsSync(backupPath) ? backupPath : null,
+  finalBackupPath: fs.existsSync(finalBackupPath) ? finalBackupPath : null
 }, null, 2));
 
 const res = spawnSync("npm", ["run", "grade", `--date=${DATE}`], {
