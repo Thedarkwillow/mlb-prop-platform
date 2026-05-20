@@ -102,7 +102,11 @@ function actualForMarket(playerRecord, market) {
   const pitching = playerRecord.stats?.pitching || {};
   const m = String(market || "").toLowerCase();
 
-  if (m === "hits") return Number(batting.hits ?? 0);
+  if (m === "hits") {
+    const pitchingHits = Number(pitching.hits);
+    if (Number.isFinite(pitchingHits)) return pitchingHits;
+    return Number(batting.hits ?? 0);
+  }
   if (m === "runs") return Number(batting.runs ?? 0);
   if (m === "rbis" || m === "rbi") return Number(batting.rbi ?? 0);
   if (m === "home_runs" || m === "home runs" || m === "hr") return Number(batting.homeRuns ?? 0);
