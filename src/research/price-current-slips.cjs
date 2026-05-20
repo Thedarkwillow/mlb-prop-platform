@@ -200,17 +200,24 @@ function getQualityGrade({ edge, adjustedEdge, books }) {
 function bestPriceForLeg(priceMap, player, market, side, ppLine) {
   const exact = priceMap.get(key(player, market, side, ppLine));
 
-  let best = exact
-    ? {
-        ...exact,
-        lineDelta: 0,
-        lineDeltaBonus: 0,
-        lineDistancePenalty: 0,
-        matchType: "EXACT_LINE",
-        exactLine: true,
-        matchScore: 0
-      }
-    : null;
+  if (exact) {
+    return {
+      ...exact,
+      lineDelta: 0,
+      lineDeltaBonus: 0,
+      lineDistancePenalty: 0,
+      matchType: "EXACT_LINE",
+      exactLine: true,
+      matchScore: 0,
+      pricingEligible: true
+    };
+  }
+
+  // Safety rule:
+  // Do not use nearest-line sportsbook prices as playable pricing.
+  // They can distort edge badly, especially for LESS props.
+  // Keep nearest match metadata only for audit/watchlist.
+  let nearest = null;
 
   for (const [, p] of priceMap) {
     if (normName(p.player) !== normName(player)) continue;
@@ -222,26 +229,26 @@ function bestPriceForLeg(priceMap, player, market, side, ppLine) {
     if (absDelta > MAX_NEAREST_LINE_DELTA) continue;
 
     const favorableDelta = lineDeltaEdge(side, ppLine, p.line);
-    const lineDeltaBonus = favorableDelta > 0 ? Math.min(0.12, favorableDelta * 0.06) : 0;
     const lineDistancePenalty = absDelta * LINE_DISTANCE_PENALTY;
-    const matchScore = lineDeltaBonus - lineDistancePenalty;
+    const matchScore = -lineDistancePenalty;
 
     const candidate = {
       ...p,
       lineDelta: favorableDelta,
-      lineDeltaBonus,
+      lineDeltaBonus: 0,
       lineDistancePenalty,
-      matchType: absDelta === 0 ? "EXACT_LINE" : "NEAREST_LINE",
-      exactLine: absDelta === 0,
-      matchScore
+      matchType: "NEAREST_LINE_AUDIT_ONLY",
+      exactLine: false,
+      matchScore,
+      pricingEligible: false
     };
 
-    if (!best || candidate.matchScore > best.matchScore) {
-      best = candidate;
+    if (!nearest || candidate.matchScore > nearest.matchScore) {
+      nearest = candidate;
     }
   }
 
-  return best;
+  return nearest;
 }
 
 const priceMap = new Map();
@@ -326,7 +333,10 @@ const out = legs.map(l => {
   const books = p ? Number(p.bookCount || 0) : 0;
   const savantGrade = sav?.savantGradeReport || sav?.grade || "UNKNOWN";
   const adjustedEdge = edge == null ? null : qualityScore(edge, books, savantGrade);
-  const qualityGrade = getQualityGrade({ edge, adjustedEdge, books });
+  const qualityGrade =
+    p?.pricingEligible === false
+      ? "FADE"
+      : getQualityGrade({ edge, adjustedEdge, books });
 
   return {
     ...l,
@@ -350,6 +360,7 @@ const out = legs.map(l => {
     sportsbookSynthetic: Boolean(p?.synthetic),
     sportsbookSyntheticSource: p?.syntheticSource || null,
     sportsbookSyntheticNote: p?.syntheticNote || null,
+    sportsbookPricingEligible: p?.pricingEligible ?? false,
     sportsbookExactLine: p?.exactLine ?? false,
     sportsbookLineDelta: p?.lineDelta ?? null,
     sportsbookLineDeltaBonus: p?.lineDeltaBonus ?? null,
