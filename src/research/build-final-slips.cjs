@@ -269,6 +269,87 @@ function minEdgeForSlipSize(size) {
 }
 
 
+
+function selectedSideProb(x) {
+  return Number(x.calibratedDistributionProb ?? x.recommendedProb ?? x.probability ?? x.prob);
+}
+
+function oppositeSide(side) {
+  return String(side || "").toUpperCase() === "MORE" ? "LESS" : "MORE";
+}
+
+function twoSidedPricing(x) {
+  const side = sideKey(x);
+  const selectedProb = selectedSideProb(x);
+  if (!Number.isFinite(selectedProb)) {
+    return {
+      selectedSide: side,
+      oppositeSide: oppositeSide(side),
+      selectedProb: null,
+      oppositeProb: null,
+      modelOnlyEdge: null,
+      valid: false
+    };
+  }
+
+  const clamped = Math.max(0.01, Math.min(0.99, selectedProb));
+  const oppositeProb = Math.max(0.01, Math.min(0.99, 1 - clamped));
+
+  return {
+    selectedSide: side,
+    oppositeSide: oppositeSide(side),
+    selectedProb: Number(clamped.toFixed(4)),
+    oppositeProb: Number(oppositeProb.toFixed(4)),
+    modelOnlyEdge: Number((clamped - 0.5).toFixed(4)),
+    valid: true
+  };
+}
+
+function priceCoverageTier(x) {
+  const books = Number(x.sportsbookBookCount ?? x.books ?? 0);
+  const edge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? x.adjustedEdge ?? x.edge);
+  if (books <= 0 || !Number.isFinite(edge)) return "NO_PRICE";
+  if (books < 3) return "LOW_BOOK";
+  if (books < 5) return "MEDIUM_BOOK";
+  return "FULL_MARKET";
+}
+
+function lowBookControlledUnlockV1(x, gate) {
+  if (!gate || gate.passed === true) return false;
+
+  const market = normalizedMarket(x);
+  const side = sideKey(x);
+  const tier = specialTier(x);
+  const books = Number(x.sportsbookBookCount ?? x.books ?? 0);
+  const edge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? x.adjustedEdge ?? x.edge);
+  const two = twoSidedPricing(x);
+
+  if (tier !== "standard") return false;
+  if (!two.valid) return false;
+  if (books < 1 || books > 2) return false;
+  if (!Number.isFinite(edge)) return false;
+
+  // Never low-book unlock known fragile/no-price/blocked markets.
+  if (FINAL_BLOCKED_MARKETS.has(market)) return false;
+  if (market === "home_runs") return false;
+  if (market === "walks" || market === "walks_allowed") return false;
+
+  const stableLess =
+    side === "LESS" &&
+    ["strikeouts", "pitching_outs", "hits_allowed", "hits"].includes(market);
+
+  if (stableLess) {
+    return two.selectedProb >= 0.62 && edge >= 0.075;
+  }
+
+  if (market === "earned_runs_allowed" && side === "LESS") {
+    return two.selectedProb >= 0.64 && edge >= 0.10;
+  }
+
+  return false;
+}
+
+
 function marketSideKey(x) {
   return `${normalizedMarket(x)}_${sideKey(x)}`;
 }
@@ -578,6 +659,9 @@ function cleanLeg(x) {
     fullBoardPromotion: x.fullBoardPromotion ?? null,
     distributionProb: x.distributionProb ?? null,
     calibratedDistributionProb: x.calibratedDistributionProb ?? null,
+    twoSidedPricing: twoSidedPricing(x),
+    priceCoverageTier: priceCoverageTier(x),
+    lowBookControlledUnlock: lowBookControlledUnlockV1(x, finalExecutionGate(x)),
     distributionConfidence: x.distributionModel?.confidence || null,
 
     // Phase 5 context audit fields
@@ -798,6 +882,58 @@ function marketSideTierBucket(x) {
   const side = String(x.side || x.recommendedSide || "").toUpperCase();
   const tier = String(x.oddsTier || x.tier || "standard").toLowerCase();
   return `${market}_${side}_${tier}`;
+}
+
+
+function controlledUnblockV2(x, gate) {
+  if (!gate || gate.passed === true) return false;
+
+  const reasons = new Set(gate.reasons || []);
+  const market = normalizedMarket(x);
+  const side = sideKey(x);
+  const tier = specialTier(x);
+  const prob = Number(x.calibratedDistributionProb ?? x.recommendedProb ?? x.probability ?? x.prob);
+  const edge = Number(x.sportsbookAdjustedEdge ?? x.sportsbookEdge ?? x.adjustedEdge ?? x.edge);
+  const books = Number(x.sportsbookBookCount ?? x.books ?? 0);
+
+  if (tier !== "standard") return false;
+  if (!Number.isFinite(prob)) return false;
+
+  const hardBlocks = [
+    "auto_market_suppressed",
+    "phase6_adaptive_suppressed",
+    "unmodeled_confidence",
+    "unsupported_market",
+    "negative_edge",
+    "missing_distribution",
+    "missing_sportsbook_price"
+  ];
+  if (hardBlocks.some(r => reasons.has(r))) return false;
+
+  const pitcherStable =
+    market === "strikeouts" ||
+    market === "pitching_outs" ||
+    market === "hits_allowed";
+
+  if (pitcherStable) {
+    if (Number.isFinite(edge)) return prob >= 0.58 && edge >= 0.045 && books >= 3;
+    return prob >= 0.595;
+  }
+
+  if (market === "earned_runs_allowed") {
+    return prob >= 0.60 && edge >= 0.08 && books >= 3;
+  }
+
+  if ((market === "runs" || market === "rbis") && side === "LESS") {
+    return prob >= 0.64 && edge >= 0.12 && books >= 4;
+  }
+
+  if (market === "hits" && side === "LESS") {
+    if (Number.isFinite(edge)) return prob >= 0.57 && edge >= 0.06 && books >= 3;
+    return prob >= 0.57;
+  }
+
+  return false;
 }
 
 function isAdaptiveUnblocked(x, gate) {
@@ -1342,7 +1478,7 @@ const slips = slipDefs.map(def => {
   const exposureViolations = [];
   const slipPool = top.filter(x => {
     const gate = finalExecutionGate(x);
-    return gate.passed === true || isAdaptiveUnblocked(x, gate);
+    return gate.passed === true || isAdaptiveUnblocked(x, gate) || controlledUnblockV2(x, gate) || lowBookControlledUnlockV1(x, gate);
   });
   for (const x of slipPool) {
     if (legs.length >= def.size) break;
