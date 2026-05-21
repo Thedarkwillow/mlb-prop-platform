@@ -181,7 +181,9 @@
     "mixed": "node src/research/mixed-slip-ev-optimizer.cjs",
     "execution:track": "node src/research/execution-tracker.cjs",
     "track:execution": "node src/research/execution-tracker.cjs",
-    "decision:grade": "node src/research/grade-final-decision-ledger.cjs"
+    "decision:grade": "node src/research/grade-final-decision-ledger.cjs",
+    "fantasy:sides": "node src/research/fantasy-side-tracker.cjs",
+    "fantasy:less:shadow": "npm run fantasy:sides && node src/research/fantasy-less-shadow-sim.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
