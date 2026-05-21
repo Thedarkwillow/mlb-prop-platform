@@ -1121,10 +1121,10 @@ const priced = board.map(row => {
   }
 
   if (specialTierLessBlocked(row, recommendedSide)) {
-    return disabledPricingRow(row, 'special_tier_less_not_allowed');
+    recommendedSide = 'MORE';
   }
 
-  let recommendedProb = Math.max(overProb, underProb);
+  let recommendedProb = recommendedSide === 'MORE' ? overProb : underProb;
 
   const savantFormResult = applySavantRollingForm(
     { ...row, recommendedSide },
