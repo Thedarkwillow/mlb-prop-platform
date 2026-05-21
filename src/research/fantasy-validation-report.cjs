@@ -1,99 +1,109 @@
 const fs = require("fs");
 
-const date =
-  process.argv[2] ||
-  process.env.npm_config_date ||
-  new Date().toISOString().slice(0, 10);
-
-const input = `outputs/history/${date}-fantasy-grades.json`;
-const out = `outputs/history/${date}-fantasy-validation-report.json`;
-
-function read(path, fallback) {
-  if (!fs.existsSync(path)) return fallback;
-  return JSON.parse(fs.readFileSync(path, "utf8"));
+function readJson(p, fallback) {
+  try { return JSON.parse(fs.readFileSync(p, "utf8")); } catch { return fallback; }
 }
 
-function bucketLine(line) {
-  const n = Number(line);
-  if (!Number.isFinite(n)) return "unknown";
-  if (n <= 3.5) return "low_line_possible_goblin";
-  if (n <= 6.5) return "mid_line";
-  if (n <= 10.5) return "high_line_standard";
-  return "very_high_line_possible_demon";
+function pct(n) {
+  return Number.isFinite(n) ? Number((n * 100).toFixed(2)) : null;
 }
 
-function summarize(rows) {
-  const decided = rows.filter(x => x.result === "HIT" || x.result === "MISS");
-  const hits = decided.filter(x => x.result === "HIT").length;
-  const misses = decided.filter(x => x.result === "MISS").length;
-  const pushes = rows.filter(x => x.result === "PUSH").length;
-  const pending = rows.filter(x => x.result === "PENDING").length;
+const sideReport = readJson("outputs/fantasy-side-tracking.json", null);
+const lessShadow = readJson("outputs/fantasy-less-shadow-sim.json", null);
+
+if (!sideReport) {
+  throw new Error("Missing outputs/fantasy-side-tracking.json. Run npm run fantasy:sides first.");
+}
+
+const summary = sideReport.summary || [];
+const rows = sideReport.rows || [];
+
+function bucket(row) {
+  const line = Number(row.line);
+  const type = row.type || "Fantasy Score";
+  const side = row.side || "UNKNOWN";
+  const synthetic = Boolean(row.syntheticInverse);
+
+  let lineBucket = "unknown_line";
+  if (Number.isFinite(line)) {
+    if (line <= 5.5) lineBucket = "low_line";
+    else if (line <= 8.5) lineBucket = "mid_line";
+    else lineBucket = "high_line";
+  }
+
+  let playerType = "unknown";
+  if (String(type).toLowerCase().includes("hitter")) playerType = "hitter";
+  if (String(type).toLowerCase().includes("pitcher")) playerType = "pitcher";
+
+  return `${lineBucket}_${playerType}_fantasy_${String(side).toLowerCase()}_${synthetic ? "synthetic" : "direct"}`;
+}
+
+const buckets = new Map();
+
+for (const r of rows) {
+  const result = String(r.result || "").toUpperCase();
+  if (!["HIT", "MISS", "PUSH"].includes(result)) continue;
+
+  const k = bucket(r);
+  if (!buckets.has(k)) {
+    buckets.set(k, {
+      bucket: k,
+      plays: 0,
+      hits: 0,
+      misses: 0,
+      pushes: 0
+    });
+  }
+
+  const b = buckets.get(k);
+  b.plays++;
+  if (result === "HIT") b.hits++;
+  else if (result === "MISS") b.misses++;
+  else if (result === "PUSH") b.pushes++;
+}
+
+const bucketSummary = [...buckets.values()].map(b => {
+  const graded = b.hits + b.misses;
+  const hitRate = graded ? b.hits / graded : null;
+
+  let action = "MONITOR_ONLY";
+  if (b.bucket.includes("more")) action = "SUPPRESS";
+  if (
+    b.bucket.includes("low_line_hitter_fantasy_less") &&
+    b.bucket.includes("synthetic")
+  ) {
+    action = "MONITOR_ONLY_NOT_PLAYABLE";
+  }
 
   return {
-    count: rows.length,
-    decided: decided.length,
-    hits,
-    misses,
-    pushes,
-    pending,
-    hitRate: decided.length ? Number((hits / decided.length).toFixed(4)) : null,
-    roiFlat: decided.length ? Number(((hits - misses) / decided.length).toFixed(4)) : null
+    ...b,
+    graded,
+    hitRate,
+    hitRatePct: pct(hitRate),
+    action
   };
-}
-
-function groupBy(rows, fn) {
-  const map = {};
-  for (const row of rows) {
-    const key = fn(row);
-    if (!map[key]) map[key] = [];
-    map[key].push(row);
-  }
-  return Object.fromEntries(
-    Object.entries(map)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([k, v]) => [k, summarize(v)])
-  );
-}
-
-const rows = read(input, []);
-
-const enriched = rows.map(r => ({
-  ...r,
-  lineBucket: bucketLine(r.line),
-  fantasyStatus: "TRACK_ONLY",
-  promotionEligible: false,
-  playableEligible: false,
-  disabledReason: `${r.market || "fantasy"}_track_only_until_calibrated`
-}));
+}).sort((a, b) =>
+  a.bucket.localeCompare(b.bucket)
+);
 
 const report = {
-  date,
-  note: "Fantasy remains Option A: research-only / track-only. No playable promotion.",
-  overall: summarize(enriched),
-  byMarket: groupBy(enriched, r => r.market || "unknown"),
-  bySide: groupBy(enriched, r => r.side || "unknown"),
-  byOddsTier: groupBy(enriched, r => r.oddsTier || "unknown"),
-  byLineBucket: groupBy(enriched, r => r.lineBucket),
-  byMarketAndLineBucket: groupBy(enriched, r => `${r.market || "unknown"} | ${r.lineBucket}`),
-  topMisses: enriched
-    .filter(r => r.result === "MISS")
-    .sort((a, b) => Number(b.line || 0) - Number(a.line || 0))
-    .slice(0, 25),
-  topHits: enriched
-    .filter(r => r.result === "HIT")
-    .sort((a, b) => Number(b.actual || 0) - Number(a.actual || 0))
-    .slice(0, 25)
+  generatedAt: new Date().toISOString(),
+  status: "MONITOR_ONLY",
+  policy: {
+    fantasyLiveEnabled: false,
+    lowLineHitterFantasyGoblinBucket: "MONITOR_ONLY_NOT_PLAYABLE",
+    reason: "Fantasy LESS signal is currently inferred/synthetic. Do not unlock until direct LESS sample and ROI validation exist."
+  },
+  sideTotals: sideReport.totals || null,
+  lessShadowTotal: lessShadow?.total || null,
+  bucketSummary
 };
 
-fs.writeFileSync(out, JSON.stringify(report, null, 2));
+fs.writeFileSync("outputs/fantasy-validation-report.json", JSON.stringify(report, null, 2) + "\n");
 
-console.log(`FANTASY VALIDATION REPORT ${date}`);
-console.log("OVERALL");
-console.table([report.overall]);
-console.log("BY MARKET");
-console.table(Object.entries(report.byMarket).map(([bucket, x]) => ({ bucket, ...x })));
-console.log("BY LINE BUCKET");
-console.table(Object.entries(report.byLineBucket).map(([bucket, x]) => ({ bucket, ...x })));
-console.log("BY ODDS TIER");
-console.table(Object.entries(report.byOddsTier).map(([bucket, x]) => ({ bucket, ...x })));
-console.log(`Wrote ${out}`);
+console.log("FANTASY VALIDATION REPORT");
+console.log("=========================");
+console.log("status:", report.status);
+console.log("policy:", report.policy);
+console.table(bucketSummary);
+console.log("Wrote outputs/fantasy-validation-report.json");
