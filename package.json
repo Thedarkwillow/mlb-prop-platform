@@ -188,7 +188,8 @@
     "unsupported:shadow": "node src/research/unsupported-market-shadow-report.cjs",
     "context:rolling-form": "node src/research/build-rolling-form.cjs ${npm_config_date:-$(date +%F)} && node src/jobs/mergeRollingFormIntoBoard.cjs",
     "context:game-log-form": "node src/research/build-player-game-log-form.cjs ${npm_config_date:-$(date +%F)} && node src/jobs/mergePlayerGameLogFormIntoBoard.cjs",
-    "context:phase6": "npm run context:rolling-form --date=${npm_config_date:-$(date +%F)} && npm run context:game-log-form --date=${npm_config_date:-$(date +%F)}"
+    "context:phase6": "npm run context:rolling-form --date=${npm_config_date:-$(date +%F)} && npm run context:game-log-form --date=${npm_config_date:-$(date +%F)} && npm run context:lineup",
+    "context:lineup": "node src/research/build-lineup-strength.cjs && node src/jobs/mergeLineupStrengthIntoBoard.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
