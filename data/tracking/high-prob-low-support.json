@@ -1,0 +1,22 @@
+[
+  {
+    "date": "2026-05-22",
+    "player": "Juan Soto",
+    "team": "NYM",
+    "game": "New York Mets @ Miami Marlins",
+    "market": "bases",
+    "side": "MORE",
+    "line": 0.5,
+    "prob": 0.7265,
+    "rawProb": 0.9481,
+    "edge": 0.1259,
+    "adjustedEdge": 0.091,
+    "books": 1,
+    "tier": "goblin",
+    "grade": "GREEN",
+    "support": "LOW_BOOK_SUPPORT",
+    "reason": "HIGH_PROB_LOW_SUPPORT",
+    "includedInSlip": false,
+    "result": null
+  }
+]
