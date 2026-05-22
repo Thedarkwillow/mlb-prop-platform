@@ -9,13 +9,58 @@ function normTeam(s) {
   return String(s || "").toUpperCase().trim();
 }
 
+function aliasTeam(s) {
+  const x = normTeam(s);
+  const map = {
+    "ATHLETICS": "ATH",
+    "A'S": "ATH",
+    "OAK": "ATH",
+    "ARI": "AZ",
+    "WSN": "WSH",
+    "WAS": "WSH",
+    "CHW": "CWS",
+    "SDP": "SD",
+    "SFG": "SF",
+    "TBR": "TB",
+    "KCR": "KC"
+  };
+  return map[x] || x;
+}
+
+function splitGameTeams(raw) {
+  const s = String(raw || "");
+  if (!s.includes("@")) return [];
+  return s.split("@").map(x => aliasTeam(x.trim()));
+}
+
 function inferOpponent(row, team) {
-  const raw = String(row.game || row.resolvedGame || "");
-  if (!raw.includes("@")) return "";
-  const parts = raw.split("@").map(x => normTeam(x));
-  if (parts.length !== 2) return "";
-  if (parts[0] === team) return parts[1];
-  if (parts[1] === team) return parts[0];
+  const t = aliasTeam(team);
+
+  const explicit = aliasTeam(row.opponent || row.opponentTeam || row.resolvedOpponent);
+  if (explicit) return explicit;
+
+  const away = aliasTeam(row.awayTeam || row.away || row.awayAbbrev);
+  const home = aliasTeam(row.homeTeam || row.home || row.homeAbbrev);
+
+  if (away && home) {
+    if (away === t) return home;
+    if (home === t) return away;
+  }
+
+  for (const raw of [
+    row.game,
+    row.resolvedGame,
+    row.gameName,
+    row.matchup,
+    row.event,
+    row.eventName
+  ]) {
+    const parts = splitGameTeams(raw);
+    if (parts.length !== 2) continue;
+    if (parts[0] === t) return parts[1];
+    if (parts[1] === t) return parts[0];
+  }
+
   return "";
 }
 
@@ -32,8 +77,8 @@ let teamMatched = 0;
 let opponentMatched = 0;
 
 const out = board.map(row => {
-  const team = normTeam(row.team || row.playerTeam || row.teamAbbrev);
-  const opponent = normTeam(row.opponent || row.opponentTeam || inferOpponent(row, team));
+  const team = aliasTeam(row.team || row.playerTeam || row.teamAbbrev || row.resolvedTeam);
+  const opponent = inferOpponent(row, team);
 
   const own = byTeam.get(team);
   const opp = byTeam.get(opponent);
