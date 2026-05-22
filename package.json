@@ -188,10 +188,11 @@
     "unsupported:shadow": "node src/research/unsupported-market-shadow-report.cjs",
     "context:rolling-form": "node src/research/build-rolling-form.cjs ${npm_config_date:-$(date +%F)} && node src/jobs/mergeRollingFormIntoBoard.cjs",
     "context:game-log-form": "node src/research/build-player-game-log-form.cjs ${npm_config_date:-$(date +%F)} && node src/jobs/mergePlayerGameLogFormIntoBoard.cjs",
-    "context:phase6": "npm run context:rolling-form --date=${npm_config_date:-$(date +%F)} && npm run context:game-log-form --date=${npm_config_date:-$(date +%F)} && npm run context:lineup && npm run context:pitcher-game-repair --date=${npm_config_date:-$(date +%F)} && npm run context:bullpen --date=${npm_config_date:-$(date +%F)}",
+    "context:phase6": "npm run context:rolling-form --date=${npm_config_date:-$(date +%F)} && npm run context:game-log-form --date=${npm_config_date:-$(date +%F)} && npm run context:lineup && npm run context:pitcher-game-repair --date=${npm_config_date:-$(date +%F)} && npm run context:bullpen --date=${npm_config_date:-$(date +%F)} && npm run context:catcher-framing",
     "context:lineup": "node src/research/build-lineup-strength.cjs && node src/jobs/mergeLineupStrengthIntoBoard.cjs",
     "context:bullpen": "node src/research/build-bullpen-fatigue.cjs ${npm_config_date:-$(date +%F)} && node src/jobs/mergeBullpenFatigueIntoBoard.cjs",
-    "context:pitcher-game-repair": "node src/jobs/repairPitcherGameContext.cjs ${npm_config_date:-$(date +%F)}"
+    "context:pitcher-game-repair": "node src/jobs/repairPitcherGameContext.cjs ${npm_config_date:-$(date +%F)}",
+    "context:catcher-framing": "node src/research/build-catcher-framing.cjs && node src/research/build-team-catcher-framing.cjs && node src/jobs/mergeCatcherFramingIntoBoard.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
