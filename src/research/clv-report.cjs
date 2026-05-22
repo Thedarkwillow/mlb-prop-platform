@@ -2,7 +2,12 @@ const fs = require("fs");
 
 const DATE = process.argv[2] || process.env.npm_config_date || new Date().toISOString().slice(0,10);
 const DIR = `data/odds-history/${DATE}`;
-const PICKS = "outputs/official-slip.json";
+const PICK_FILES = [
+  `outputs/final-slips-${DATE}.json`,
+  "outputs/final-slips.json",
+  "outputs/playable-final-slips.json",
+  "outputs/official-slip.json"
+];
 
 function read(path, fallback) {
   try { return JSON.parse(fs.readFileSync(path, "utf8")); } catch { return fallback; }
@@ -10,8 +15,16 @@ function read(path, fallback) {
 function norm(s) {
   return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 }
+function marketKey(x) {
+  const m = norm(x.market).replace(/\s+/g, "_");
+  const raw = norm(x.rawMarket).replace(/\s+/g, "_");
+  if (m === "hits" && raw.includes("pitcher")) return "hits_allowed";
+  if (m === "hits" && String(x.player || "").match(/Rodon|Rodón|Strider|Soriano|Mize|Severino|Ashcraft|Cantillo|Peterson/i)) return "hits_allowed";
+  return m;
+}
+
 function key(x) {
-  return [norm(x.player), norm(x.market), norm(x.side), String(Number(x.line))].join("|");
+  return [norm(x.player), marketKey(x), norm(x.side), String(Number(x.line))].join("|");
 }
 function americanToCents(o) {
   o = Number(o);
@@ -38,7 +51,27 @@ for (const f of files) {
   }
 }
 
-const slips = read(PICKS, []);
+let slips = [];
+let pickSource = null;
+
+for (const f of PICK_FILES) {
+  const data = read(f, null);
+  if (!data) continue;
+
+  if (Array.isArray(data)) {
+    slips = data;
+  } else if (Array.isArray(data.slips)) {
+    slips = data.slips;
+  } else if (Array.isArray(data.playableSlips)) {
+    slips = data.playableSlips;
+  }
+
+  if (slips.length) {
+    pickSource = f;
+    break;
+  }
+}
+
 const allLegs = slips.flatMap(s => s.legs || []);
 const seenLegs = new Set();
 const legs = [];
@@ -80,6 +113,7 @@ for (const l of legs) {
 
 const valid = report.filter(x => x.clv != null);
 console.log(`CLV REPORT ${DATE}`);
+console.log(`pick source: ${pickSource || "NONE"}`);
 console.log(`tracked legs: ${valid.length}`);
 if (!valid.length) process.exit(0);
 
