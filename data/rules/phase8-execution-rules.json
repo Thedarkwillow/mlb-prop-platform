@@ -1,0 +1,34 @@
+{
+  "version": "phase8_v1_guardrails",
+  "mode": "flag_only",
+  "notes": [
+    "Do not hard block yet. Flag candidates first, validate after postgame sample grows.",
+    "Line bucket rules are based on early ROI report and must be revalidated."
+  ],
+  "lineBuckets": {
+    "allow": [
+      { "market": "hits", "side": "LESS", "bucket": "4.0-5.5" },
+      { "market": "bases", "side": "MORE", "bucket": "<=0.5" },
+      { "market": "runs", "side": "LESS", "bucket": "<=0.5" }
+    ],
+    "block": [
+      { "market": "runs", "side": "MORE", "bucket": "<=0.5" },
+      { "market": "bases", "side": "MORE", "bucket": "1.0-1.5" }
+    ]
+  },
+  "minimums": {
+    "recommendedProb": 0.58,
+    "expectedValue": 0.05
+  },
+  "preferredSignals": [
+    "HITTER_K_RISK",
+    "GOOD_SPLIT_XWOBA",
+    "SWING_MISS_RISK",
+    "HITTER_SWING_MISS_RISK",
+    "PLUS_HARD_HIT"
+  ],
+  "avoidSignals": [
+    "LOW_HARD_HIT",
+    "LOW_BARREL"
+  ]
+}
