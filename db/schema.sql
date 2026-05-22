@@ -1,53 +1,69 @@
-CREATE TABLE IF NOT EXISTS priced_boards (
+CREATE TABLE IF NOT EXISTS prop_snapshots (
   id BIGSERIAL PRIMARY KEY,
-  slate_date DATE NOT NULL,
+  slate_date DATE,
   created_at TIMESTAMPTZ DEFAULT now(),
   source_file TEXT,
-  row_count INTEGER,
-  data JSONB NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS full_board_grades (
-  id BIGSERIAL PRIMARY KEY,
-  slate_date DATE NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now(),
+  row_hash TEXT UNIQUE,
   player TEXT,
   team TEXT,
+  opponent TEXT,
   game TEXT,
   market TEXT,
   side TEXT,
   line NUMERIC,
   odds_tier TEXT,
+  projection NUMERIC,
   probability NUMERIC,
-  edge NUMERIC,
-  decision TEXT,
-  actual NUMERIC,
+  expected_value NUMERIC,
+  confidence_bucket TEXT,
+  raw JSONB NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS graded_props (
+  id BIGSERIAL PRIMARY KEY,
+  slate_date DATE,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  source_file TEXT,
+  row_hash TEXT UNIQUE,
+  player TEXT,
+  team TEXT,
+  opponent TEXT,
+  game TEXT,
+  market TEXT,
+  side TEXT,
+  line NUMERIC,
   result TEXT,
-  game_pk BIGINT,
-  data JSONB NOT NULL
+  hit BOOLEAN,
+  probability NUMERIC,
+  expected_value NUMERIC,
+  confidence_bucket TEXT,
+  pitch_type_tier TEXT,
+  lineup_tier TEXT,
+  own_bullpen_tier TEXT,
+  opponent_bullpen_tier TEXT,
+  catcher_framing_tier TEXT,
+  savant_form_tier TEXT,
+  raw JSONB NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS slips (
+CREATE TABLE IF NOT EXISTS context_roi_history (
   id BIGSERIAL PRIMARY KEY,
-  slate_date DATE NOT NULL,
+  report_date DATE,
   created_at TIMESTAMPTZ DEFAULT now(),
-  name TEXT,
-  size INTEGER,
-  status TEXT,
-  data JSONB NOT NULL
+  signal TEXT,
+  total INTEGER,
+  wins INTEGER,
+  losses INTEGER,
+  pushes INTEGER,
+  hit_rate NUMERIC,
+  roi NUMERIC,
+  avg_prob NUMERIC,
+  avg_ev NUMERIC,
+  raw JSONB NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS phase7_reports (
-  id BIGSERIAL PRIMARY KEY,
-  slate_date DATE NOT NULL,
-  report_type TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  data JSONB NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_full_board_grades_date ON full_board_grades(slate_date);
-CREATE INDEX IF NOT EXISTS idx_full_board_grades_market ON full_board_grades(market);
-CREATE INDEX IF NOT EXISTS idx_full_board_grades_result ON full_board_grades(result);
-CREATE INDEX IF NOT EXISTS idx_priced_boards_date ON priced_boards(slate_date);
-CREATE INDEX IF NOT EXISTS idx_slips_date ON slips(slate_date);
-CREATE INDEX IF NOT EXISTS idx_phase7_reports_date_type ON phase7_reports(slate_date, report_type);
+CREATE INDEX IF NOT EXISTS idx_prop_snapshots_slate ON prop_snapshots (slate_date);
+CREATE INDEX IF NOT EXISTS idx_prop_snapshots_player_market ON prop_snapshots (player, market);
+CREATE INDEX IF NOT EXISTS idx_graded_props_slate ON graded_props (slate_date);
+CREATE INDEX IF NOT EXISTS idx_graded_props_market_side ON graded_props (market, side);
+CREATE INDEX IF NOT EXISTS idx_context_roi_signal ON context_roi_history (signal);
