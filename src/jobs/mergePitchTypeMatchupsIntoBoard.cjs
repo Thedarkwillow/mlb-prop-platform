@@ -21,9 +21,33 @@ const board = readJson(boardPath, []);
 const data = readJson(matchupPath, {});
 const matchups = data.matchups || {};
 
-const byKey = new Map();
+function normTeam(s) {
+  return String(s || "").toUpperCase().trim();
+}
+
+function inferOpponent(row) {
+  const team = normTeam(row.team || row.resolvedTeam);
+  const raw = String(row.resolvedGame || row.game || "");
+  if (!raw.includes("@")) return "";
+  const parts = raw.split("@").map(x => normTeam(x));
+  if (parts.length !== 2) return "";
+  if (parts[0] === team) return parts[1];
+  if (parts[1] === team) return parts[0];
+  return "";
+}
+
+const hitterMarkets = new Set([
+  "hits", "bases", "hrr", "runs", "rbis", "hr",
+  "singles", "doubles", "walks", "stolen_bases",
+  "hitter_fantasy_score"
+]);
+
+const byPitcherKey = new Map();
+const byOpponentTeamKey = new Map();
+
 for (const m of Object.values(matchups)) {
-  byKey.set(`${norm(m.player)}__${norm(m.opponentPitcher)}`, m);
+  byPitcherKey.set(`${norm(m.player)}__${norm(m.opponentPitcher)}`, m);
+  byOpponentTeamKey.set(`${norm(m.player)}__${normTeam(m.opponent)}`, m);
 }
 
 let matched = 0;
@@ -39,12 +63,19 @@ const out = board.map(row => {
     row.starter ||
     row.opponentStarter;
 
-  const key = `${norm(player)}__${norm(oppPitcher)}`;
-  const m = byKey.get(key);
+  const market = String(row.market || "").toLowerCase();
+  const eligible = hitterMarkets.has(market);
+  const opponentTeam = inferOpponent(row);
 
-  if (!m) {
+  const pitcherKey = `${norm(player)}__${norm(oppPitcher)}`;
+  const opponentTeamKey = `${norm(player)}__${normTeam(opponentTeam)}`;
+
+  const m = byPitcherKey.get(pitcherKey) || byOpponentTeamKey.get(opponentTeamKey);
+
+  if (!eligible || !m) {
     return {
       ...row,
+      pitchTypeMatchupEligible: eligible,
       pitchTypeMatchupReady: false
     };
   }
@@ -53,6 +84,7 @@ const out = board.map(row => {
 
   return {
     ...row,
+    pitchTypeMatchupEligible: true,
     pitchTypeMatchupReady: true,
     pitchTypeOpponentPitcher: m.opponentPitcher,
     pitchTypeOpponentPitcherHand: m.opponentPitcherHand,
@@ -78,7 +110,7 @@ console.log("PITCH TYPE MATCHUP MERGE REPORT");
 console.log("===============================");
 console.log({
   boardRows: board.length,
-  matchupKeys: byKey.size,
+  matchupKeys: byPitcherKey.size,
   matchedRows: matched,
   matchRate: board.length ? Number((matched / board.length).toFixed(4)) : 0
 });
