@@ -19,6 +19,15 @@ function n(v) {
   return Number.isFinite(x) ? x : null;
 }
 
+function normMarket(v) {
+  return String(v || "").toLowerCase().trim();
+}
+
+function normSide(v) {
+  const x = String(v || "").toUpperCase().trim();
+  return x || null;
+}
+
 function dateArg() {
   const i = process.argv.findIndex(x => x === "--date");
   if (i >= 0 && process.argv[i + 1]) return process.argv[i + 1];
@@ -51,8 +60,8 @@ async function main() {
     const rowHash = hashRow(`prop:${slateDate}:`, {
       player: r.player,
       team: r.team || r.resolvedTeam,
-      market: r.market,
-      side: r.recommendedSide || r.side,
+      market: normMarket(r.market),
+      side: normSide(r.recommendedSide || r.side),
       line: r.line,
       game: r.resolvedGame || r.game,
       oddsTier: r.oddsTier
@@ -74,8 +83,8 @@ async function main() {
       r.team || r.resolvedTeam || null,
       r.opponent || null,
       r.resolvedGame || r.game || null,
-      r.market || null,
-      r.recommendedSide || r.side || null,
+      normMarket(r.market) || null,
+      normSide(r.recommendedSide || r.side),
       n(r.line),
       r.oddsTier || null,
       n(r.projection ?? r.contextAdjustedProjection ?? r.rawProjection),
@@ -104,8 +113,10 @@ async function main() {
       const rowHash = hashRow(`grade:${slateDate}:${file}:`, {
         player: r.player || r.playerName,
         team: r.team || r.resolvedTeam,
-        market: r.market,
-        side: r.recommendedSide || r.side,
+        market: normMarket(r.market),
+        side: normSide(r.recommendedSide || r.side),
+        sourceFile: file,
+        sourceIndex: gradedInserted,
         line: r.line,
         game: r.resolvedGame || r.game,
         result: r.result || r.grade || r.outcome
@@ -135,8 +146,8 @@ async function main() {
         r.team || r.resolvedTeam || null,
         r.opponent || null,
         r.resolvedGame || r.game || null,
-        r.market || null,
-        r.recommendedSide || r.side || null,
+        normMarket(r.market) || null,
+        normSide(r.recommendedSide || r.side),
         n(r.line),
         result || null,
         hit,
