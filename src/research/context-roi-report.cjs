@@ -5,8 +5,12 @@ function readJson(p, fallback) {
   catch { return fallback; }
 }
 
+function isReal(v) {
+  return v !== undefined && v !== null && String(v) !== "" && String(v) !== "undefined";
+}
+
 function push(map, key, row) {
-  if (!key) return;
+  if (!isReal(key)) return;
   if (!map.has(key)) {
     map.set(key, {
       signal: key,
@@ -60,6 +64,22 @@ function finish(x) {
   return x;
 }
 
+function rowKey(r) {
+  const player = String(r.player || r.playerName || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+  const market = String(r.market || "").toLowerCase().replace(/[^a-z0-9]+/g, "_");
+  const side = String(r.recommendedSide || r.side || "").toUpperCase();
+  const line = String(Number(r.line));
+  return [player, market, side, line].join("|");
+}
+
+const board = readJson("outputs/priced-board.json", []);
+const boardContext = new Map();
+
+for (const r of board) {
+  if (!r || !(r.player || r.playerName)) continue;
+  boardContext.set(rowKey(r), r);
+}
+
 const files = [
   "outputs/all-markets-graded.json",
   "outputs/playable-final-slips-graded.json",
@@ -82,7 +102,9 @@ for (const f of files) {
   }
 }
 
-rows = rows.filter(r => r && (r.player || r.playerName));
+rows = rows
+  .filter(r => r && (r.player || r.playerName))
+  .map(r => ({ ...(boardContext.get(rowKey(r)) || {}), ...r }));
 
 const signals = new Map();
 
@@ -93,14 +115,14 @@ for (const r of rows) {
 
   push(signals, `confidence:${r.confidenceBucket || r.confidence}`, r);
 
-  push(signals, `pitchType:${r.pitchTypeMatchupTier}`, r);
-  push(signals, `catcher:${r.opponentCatcherFramingTier}`, r);
-  push(signals, `ownBullpen:${r.ownBullpenFatigueTier}`, r);
-  push(signals, `oppBullpen:${r.opponentBullpenFatigueTier}`, r);
-  push(signals, `lineup:${r.lineupTier}`, r);
+  if (isReal(r.pitchTypeMatchupTier)) push(signals, `pitchType:${r.pitchTypeMatchupTier}`, r);
+  if (isReal(r.opponentCatcherFramingTier)) push(signals, `catcher:${r.opponentCatcherFramingTier}`, r);
+  if (isReal(r.ownBullpenFatigueTier)) push(signals, `ownBullpen:${r.ownBullpenFatigueTier}`, r);
+  if (isReal(r.opponentBullpenFatigueTier)) push(signals, `oppBullpen:${r.opponentBullpenFatigueTier}`, r);
+  if (isReal(r.lineupTier)) push(signals, `lineup:${r.lineupTier}`, r);
 
-  push(signals, `savantForm:${r.savantRollingForm?.formTier}`, r);
-  push(signals, `rollingForm:${r.rollingFormTrend}`, r);
+  if (isReal(r.savantRollingForm?.formTier)) push(signals, `savantForm:${r.savantRollingForm.formTier}`, r);
+  if (isReal(r.rollingFormTrend)) push(signals, `rollingForm:${r.rollingFormTrend}`, r);
 
   const flags = [
     ...(r.pitchTypeMatchupFlags || []),
