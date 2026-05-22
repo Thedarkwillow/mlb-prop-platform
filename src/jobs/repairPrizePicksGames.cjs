@@ -1,65 +1,83 @@
 const fs = require("fs");
 
-const BOARD = "outputs/priced-board.json";
-const RAW = "data/prizepicks-latest.json";
-
-function read(path) {
-  return JSON.parse(fs.readFileSync(path, "utf8"));
+function readJson(p, fallback) {
+  try { return JSON.parse(fs.readFileSync(p, "utf8")); }
+  catch { return fallback; }
 }
 
-const board = read(BOARD);
-const raw = read(RAW);
-
-const byProjection = new Map();
-const byLoose = new Map();
-
-for (const r of raw) {
-  if (r.projection_id) byProjection.set(String(r.projection_id), r);
-  const key = [
-    String(r.player_name || "").toLowerCase(),
-    String(r.stat || "").toLowerCase(),
-    String(Number(r.line)),
-    String(r.odds_tier || "").toLowerCase()
-  ].join("|");
-  byLoose.set(key, r);
+function norm(s) {
+  return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
-let repaired = 0;
-
-for (const row of board) {
-  const badGame = !row.game || String(row.game).includes("null");
-  if (!badGame) continue;
-
-  const looseKey = [
-    String(row.player || "").toLowerCase(),
-    String(row.stat || "").toLowerCase(),
-    String(Number(row.line)),
-    String(row.oddsTier || row.odds_tier || "").toLowerCase()
-  ].join("|");
-
-  const src =
-    byProjection.get(String(row.projection_id || row.projectionId || "")) ||
-    byLoose.get(looseKey);
-
-  if (!src) continue;
-
-  const team = src.player_team || row.team;
-  const opp =
-    src.description ||
-    (src.player_team === src.home_team ? src.away_team : null) ||
-    (src.player_team === src.away_team ? src.home_team : null) ||
-    row.opponent;
-
-  if (!team || !opp) continue;
-
-  row.team = team;
-  row.opponent = opp;
-  row.game = `${team} @ ${opp}`;
-  row.gameRepairSource = "prizepicks_description";
-  row.startTime = row.startTime || src.start_time || src.game_start || null;
-
-  repaired++;
+function validTeam(s) {
+  const x = String(s || "").toUpperCase().trim();
+  return /^[A-Z]{2,3}$/.test(x) ? x : "";
 }
 
-fs.writeFileSync(BOARD, JSON.stringify(board, null, 2));
-console.log(`Repaired PrizePicks game rows: ${repaired}`);
+const boardPath = "outputs/priced-board.json";
+const pp = readJson("data/prizepicks-latest.json", []);
+const board = readJson(boardPath, []);
+
+const ppByPlayerTeam = new Map();
+
+for (const r of pp) {
+  const player = norm(r.player_name || r.player || r.name);
+  const team = validTeam(r.player_team || r.team);
+  const opp = validTeam(r.description || r.opponent || r.opponent_team);
+  const start = r.game_start || r.start_time || null;
+
+  if (!player || !team || !opp || team === opp) continue;
+
+  ppByPlayerTeam.set(`${player}__${team}`, {
+    game: `${team} @ ${opp}`,
+    team,
+    opp,
+    start
+  });
+}
+
+let fixed = 0;
+
+const repaired = board.map(row => {
+  if (!row || typeof row !== "object") return row;
+
+  const player = norm(row.player);
+  const team = validTeam(row.team || row.resolvedTeam);
+
+  if (!player || !team) return row;
+
+  const badGame =
+    !row.resolvedGame ||
+    !row.game ||
+    row.game === " @ " ||
+    row.game === "null @ null";
+
+  if (!badGame) return row;
+
+  const hit = ppByPlayerTeam.get(`${player}__${team}`);
+  if (!hit) return row;
+
+  fixed++;
+
+  return {
+    ...row,
+    game: hit.game,
+    resolvedGame: hit.game,
+    resolvedTeam: hit.team,
+    teamResolved: hit.team,
+    teamValid: true,
+    teamResolverStatus: "PRIZEPICKS_DESCRIPTION_REPAIR",
+    startTime: row.startTime || hit.start
+  };
+});
+
+fs.writeFileSync(boardPath, JSON.stringify(repaired, null, 2));
+
+console.log("PRIZEPICKS GAME REPAIR");
+console.log("======================");
+console.log({
+  boardRows: board.length,
+  prizePicksRows: pp.length,
+  lookupKeys: ppByPlayerTeam.size,
+  fixed
+});
