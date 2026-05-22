@@ -9,13 +9,14 @@ function pct(n, d) {
   return d ? Number((n / d).toFixed(4)) : 0;
 }
 
-const board = readJson("outputs/priced-board.json", []);
+const rawBoard = readJson("outputs/priced-board.json", []);
+const board = rawBoard.filter(r => r.recordType === "merged_prop" || r.player);
 const total = board.length;
 
 const checks = [
-  ["rollingFormReady", r => r.rollingFormReady === true],
-  ["gameLogFormReady", r => r.gameLogFormReady === true],
-  ["lineupStrengthReady", r => r.lineupStrengthReady === true],
+  ["savantRollingForm", r => !!r.savantRollingForm],
+  ["gameLogForm", r => r.hitterLast15Sample != null || r.pitcherLast5Sample != null || r.hitterLast15HitsPerGame != null || r.pitcherLast5StrikeoutsPerGame != null],
+  ["lineupStrength", r => r.lineupStrength != null || r.lineupTier != null],
   ["ownBullpenFatigueReady", r => r.ownBullpenFatigueReady === true],
   ["opponentBullpenFatigueReady", r => r.opponentBullpenFatigueReady === true],
   ["opponentCatcherFramingReady", r => r.opponentCatcherFramingReady === true],
