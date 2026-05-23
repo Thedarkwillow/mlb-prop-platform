@@ -95,6 +95,19 @@ function decorate(l) {
   if (role === "SUPPORT") score *= 0.9;
   if (role === "DEAD") score = -999;
 
+  const fantasy = fantasyByKey.get(norm(l.player));
+  const fantasyUnlock =
+    norm(l.market) === "hitter_fantasy_score" &&
+    String(l.side || "").toUpperCase() === "LESS" &&
+    fantasy
+      ? {
+          directProjection: fantasy.directProjection,
+          componentProjection: fantasy.componentProjection,
+          fantasyLine: fantasy.fantasyLine,
+          unlocked: false
+        }
+      : null;
+
   return {
     ...l,
     v5: {
@@ -105,13 +118,25 @@ function decorate(l) {
       books,
       grade,
       support,
-      score: Number(score.toFixed(6))
+      score: Number(score.toFixed(6)),
+      fantasyUnlock
     }
   };
 }
 
 function passesBase(l) {
-  if (!l || l.v5.role === "DEAD") return false;
+  if (!l) return false;
+
+  if (l.v5.role === "DEAD") return false;
+
+  if (norm(l.market) === "hitter_fantasy_score" && String(l.side || "").toUpperCase() === "MORE") {
+    return false;
+  }
+
+  if (norm(l.market) === "hitter_fantasy_score" && String(l.side || "").toUpperCase() === "LESS") {
+    return fantasyLessUnlock(l);
+  }
+
   if (l.v5.grade && !["GREEN", "NEUTRAL"].includes(l.v5.grade)) return false;
   if (l.v5.prob < 0.52) return false;
   if (l.v5.ev < 0.02) return false;
@@ -218,10 +243,47 @@ function buildSlip(type, size, candidates, usedGlobal) {
 
 const final = readJson("outputs/final-slips.json", {});
 const priced = readJson("outputs/slips-priced.json", []);
+const fantasyDecomp = readJson("outputs/fantasy-decomposition.json", []);
 const topLegs = Array.isArray(final.topLegs) ? final.topLegs : [];
+
+const fantasyByKey = new Map();
+for (const r of fantasyDecomp) {
+  if (!r || r.type !== "hitter") continue;
+  fantasyByKey.set(norm(r.player), r);
+}
+
+function fantasyLessUnlock(l) {
+  if (norm(l.market) !== "hitter_fantasy_score") return false;
+  if (String(l.side || "").toUpperCase() !== "LESS") return false;
+
+  const f = fantasyByKey.get(norm(l.player));
+  if (!f) return false;
+
+  const line = num(l.line ?? f.fantasyLine);
+  const direct = num(f.directProjection);
+  const component = num(f.componentProjection);
+
+  return (
+    line >= 7.5 &&
+    direct > 0 &&
+    component > 0 &&
+    direct <= line - 0.75 &&
+    component <= line - 0.75
+  );
+}
 
 const source = [...topLegs, ...priced]
   .map(decorate)
+  .map(l => {
+    if (
+      l.v5?.fantasyUnlock &&
+      norm(l.market) === "hitter_fantasy_score" &&
+      String(l.side || "").toUpperCase() === "LESS"
+    ) {
+      l.v5.fantasyUnlock.unlocked = fantasyLessUnlock(l);
+    }
+    return l;
+  })
   .filter(passesBase)
   .sort((a, b) => b.v5.score - a.v5.score);
 
