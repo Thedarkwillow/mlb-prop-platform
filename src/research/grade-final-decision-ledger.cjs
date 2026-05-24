@@ -69,10 +69,40 @@ function candidateKeys(x) {
   return keys;
 }
 
+function looksLikeGradeRow(x) {
+  return !!(
+    x &&
+    typeof x === "object" &&
+    (x.player || x.fullName || x.matchedName) &&
+    (x.market || x.stat || x.statKey) &&
+    (x.side || x.direction || x.recommendedSide) &&
+    x.line !== undefined
+  );
+}
+
 function rowsFrom(obj) {
-  if (Array.isArray(obj)) return obj;
-  if (!obj || typeof obj !== "object") return [];
-  return obj.rows || obj.legs || obj.results || obj.graded || obj.props || [];
+  const out = [];
+  const seen = new Set();
+
+  function walk(x) {
+    if (!x || typeof x !== "object") return;
+    if (seen.has(x)) return;
+    seen.add(x);
+
+    if (Array.isArray(x)) {
+      for (const item of x) walk(item);
+      return;
+    }
+
+    if (looksLikeGradeRow(x)) out.push(x);
+
+    for (const key of ["rows", "legs", "picks", "entries", "results", "graded", "props", "slips"]) {
+      if (x[key]) walk(x[key]);
+    }
+  }
+
+  walk(obj);
+  return out;
 }
 
 function resultOf(r) {
