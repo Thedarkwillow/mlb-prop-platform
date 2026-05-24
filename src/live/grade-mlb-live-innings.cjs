@@ -152,10 +152,102 @@ function buildPitcherInningStats(feed) {
   return map;
 }
 
+
+function normTeam(x) {
+  const s = String(x || "").toUpperCase().replace(/\./g, "").trim();
+  const map = {
+    ARIZONA: "ARI", "D-BACKS": "ARI", DIAMONDBACKS: "ARI", ARI: "ARI", AZ: "ARI",
+    ATLANTA: "ATL", BRAVES: "ATL", ATL: "ATL",
+    BALTIMORE: "BAL", ORIOLES: "BAL", BAL: "BAL",
+    BOSTON: "BOS", "RED SOX": "BOS", BOS: "BOS",
+    CUBS: "CHC", CHC: "CHC",
+    "WHITE SOX": "CWS", CWS: "CWS", CHW: "CWS",
+    CINCINNATI: "CIN", REDS: "CIN", CIN: "CIN",
+    CLEVELAND: "CLE", GUARDIANS: "CLE", CLE: "CLE",
+    COLORADO: "COL", ROCKIES: "COL", COL: "COL",
+    DETROIT: "DET", TIGERS: "DET", DET: "DET",
+    HOUSTON: "HOU", ASTROS: "HOU", HOU: "HOU",
+    KANSAS: "KC", ROYALS: "KC", KC: "KC", KCR: "KC",
+    ANGELS: "LAA", LAA: "LAA",
+    DODGERS: "LAD", LAD: "LAD",
+    MIAMI: "MIA", MARLINS: "MIA", MIA: "MIA",
+    MILWAUKEE: "MIL", BREWERS: "MIL", MIL: "MIL",
+    MINNESOTA: "MIN", TWINS: "MIN", MIN: "MIN",
+    METS: "NYM", NYM: "NYM",
+    YANKEES: "NYY", NYY: "NYY",
+    ATHLETICS: "ATH", ATH: "ATH", OAK: "ATH",
+    PHILADELPHIA: "PHI", PHILLIES: "PHI", PHI: "PHI",
+    PITTSBURGH: "PIT", PIRATES: "PIT", PIT: "PIT",
+    PADRES: "SD", SD: "SD", SDP: "SD",
+    GIANTS: "SF", SF: "SF", SFG: "SF",
+    SEATTLE: "SEA", MARINERS: "SEA", SEA: "SEA",
+    CARDINALS: "STL", STL: "STL",
+    RAYS: "TB", TB: "TB", TBR: "TB",
+    TEXAS: "TEX", RANGERS: "TEX", TEX: "TEX",
+    TORONTO: "TOR", "BLUE JAYS": "TOR", TOR: "TOR",
+    WASHINGTON: "WSH", NATIONALS: "WSH", WSH: "WSH", WAS: "WSH"
+  };
+  return map[s] || s;
+}
+
+function teamsFromGameText(game) {
+  const txt = String(game || "").replace(/\s+/g, " ").trim();
+
+  if (txt.includes("@")) {
+    const parts = txt.split("@").map(x => normTeam(x.trim()));
+    return parts.length === 2 ? parts : [];
+  }
+
+  if (txt.includes("/")) {
+    const parts = txt.split("/").map(x => normTeam(x.trim()));
+    return parts.length === 2 ? parts : [];
+  }
+
+  return [];
+}
+
+function buildGameInningStats(feed) {
+  const gamePk = feed.gamePk || feed.gameData?.game?.pk || null;
+  const away = normTeam(feed.gameData?.teams?.away?.abbreviation || feed.gameData?.teams?.away?.name);
+  const home = normTeam(feed.gameData?.teams?.home?.abbreviation || feed.gameData?.teams?.home?.name);
+  const map = new Map();
+  const innings = feed.liveData?.linescore?.innings || [];
+
+  for (const inningRow of innings) {
+    const inning = Number(inningRow.num);
+    if (!Number.isFinite(inning)) continue;
+
+    const awayRuns = Number(inningRow.away?.runs || 0);
+    const homeRuns = Number(inningRow.home?.runs || 0);
+    const totalRuns = awayRuns + homeRuns;
+
+    map.set(`${gamePk}|${inning}|total_runs`, {
+      gamePk,
+      inning,
+      away,
+      home,
+      awayRuns,
+      homeRuns,
+      totalRuns,
+      runs_allowed: totalRuns
+    });
+  }
+
+  return map;
+}
+
+function mergeMaps(target, source) {
+  for (const [k, v] of source.entries()) target.set(k, v);
+  return target;
+}
+
 async function fetchGameStats(gamePk) {
   const feed = await fetchJson(`https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`);
   feed.gamePk = gamePk;
-  return buildPitcherInningStats(feed);
+  return {
+    pitcherMap: buildPitcherInningStats(feed),
+    gameMap: buildGameInningStats(feed)
+  };
 }
 
 async function main() {
@@ -184,19 +276,31 @@ async function main() {
     let foundPitcher = false;
 
     if (!reasons.length) {
-      const gameMap = gameMaps.get(String(gamePk));
+      const maps = gameMaps.get(String(gamePk));
       let total = 0;
       let foundAny = false;
       let unsupported = false;
 
-      for (let inn = inningStart; inn <= inningEnd; inn++) {
-        const statRow = gameMap?.get(`${gamePk}|${playerKey}|${inn}`);
-        if (statRow) {
-          foundAny = true;
-          foundPitcher = true;
-          const v = Number(statRow[market]);
-          if (Number.isFinite(v)) total += v;
-          else unsupported = true;
+      if (market === "runs_allowed" && teamsFromGameText(row.game).length === 2) {
+        for (let inn = inningStart; inn <= inningEnd; inn++) {
+          const statRow = maps?.gameMap?.get(`${gamePk}|${inn}|total_runs`);
+          if (statRow) {
+            foundAny = true;
+            const v = Number(statRow.runs_allowed);
+            if (Number.isFinite(v)) total += v;
+            else unsupported = true;
+          }
+        }
+      } else {
+        for (let inn = inningStart; inn <= inningEnd; inn++) {
+          const statRow = maps?.pitcherMap?.get(`${gamePk}|${playerKey}|${inn}`);
+          if (statRow) {
+            foundAny = true;
+            foundPitcher = true;
+            const v = Number(statRow[market]);
+            if (Number.isFinite(v)) total += v;
+            else unsupported = true;
+          }
         }
       }
 
@@ -204,6 +308,8 @@ async function main() {
         actual = total;
       } else if (unsupported) {
         reasons.push("unsupported_market");
+      } else if (market === "runs_allowed") {
+        reasons.push("game_inning_range_not_found");
       } else {
         reasons.push("pitcher_inning_range_not_found");
       }
