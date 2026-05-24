@@ -120,46 +120,77 @@ function sizeOf(slip, legs) {
   );
 }
 
-function payoutFor(size, mode) {
-  const m = String(mode || "").toLowerCase();
-
-  // Conservative default PrizePicks-style payout estimate.
-  // Exact historical payout can override this if present on the slip.
-  if (m.includes("flex")) {
-    if (size === 3) return 1.25;
-    if (size === 4) return 2;
-    if (size === 5) return 4;
-    if (size === 6) return 10;
-  }
-
+function powerPayoutFor(size) {
+  // Default standard Power total-return multipliers.
+  // If a graded slip file contains an explicit payout, that value overrides this.
   if (size === 2) return 3;
-  if (size === 3) return 5;
+  if (size === 3) return 6;
   if (size === 4) return 10;
   if (size === 5) return 20;
   if (size === 6) return 37.5;
-
   return null;
 }
 
-function slipMode(slip) {
-  return String(
-    slip.mode ||
-    slip.type ||
-    slip.slipType ||
-    slip.entryType ||
-    slip.payoutType ||
-    ""
-  ).toLowerCase();
+function flexPayoutFor(size, hits) {
+  // Default standard Flex total-return multipliers.
+  // These are intentionally centralized so we can adjust if PrizePicks changes payouts.
+  const table = {
+    3: { 3: 2.25, 2: 1.25 },
+    4: { 4: 5, 3: 1.5 },
+    5: { 5: 10, 4: 2, 3: 0.4 },
+    6: { 6: 25, 5: 2, 4: 0.4 }
+  };
+  return table[size]?.[hits] ?? null;
 }
 
-function slipStatus({ hits, misses, pushes, unknown }, size) {
+function payoutFor(size, mode, hits = null) {
+  const m = String(mode || "").toLowerCase();
+
+  if (m.includes("flex")) {
+    return flexPayoutFor(size, hits);
+  }
+
+  return powerPayoutFor(size);
+}
+
+function slipMode(slip) {
+  const text = [
+    slip.mode,
+    slip.type,
+    slip.slipType,
+    slip.entryType,
+    slip.payoutType,
+    slip.name,
+    slip.title,
+    slip.slipName
+  ].map(x => String(x || "")).join(" ").toLowerCase();
+
+  if (text.includes("flex")) return "flex";
+  if (text.includes("power")) return "power";
+  if (text.includes("mixed")) return "mixed";
+  if (text.includes("standard")) return "standard";
+
+  return "";
+}
+
+function slipStatus({ hits, misses, pushes, unknown }, size, mode) {
   if (unknown > 0) return "PENDING_OR_UNKNOWN";
+
+  const m = String(mode || "").toLowerCase();
+  const activeSize = Math.max(0, size - pushes);
+
+  if (m.includes("flex")) {
+    const payout = flexPayoutFor(activeSize || size, hits);
+    return Number.isFinite(Number(payout)) && Number(payout) > 0 ? "WIN" : "LOSS";
+  }
+
   if (misses > 0) return "LOSS";
   if (hits + pushes >= size && hits > 0) return "WIN";
+
   return "PENDING_OR_UNKNOWN";
 }
 
-function profitFor(slip, status, size, mode) {
+function profitFor(slip, status, size, mode, hits = null, pushes = 0) {
   if (Number.isFinite(Number(slip.profit))) return Number(slip.profit);
   if (Number.isFinite(Number(slip.profitUnits))) return Number(slip.profitUnits);
   if (Number.isFinite(Number(slip.roiUnits))) return Number(slip.roiUnits);
@@ -176,9 +207,11 @@ function profitFor(slip, status, size, mode) {
     slip.projectedPayout
   );
 
+  const activeSize = Math.max(0, size - Number(pushes || 0));
+
   const payout = Number.isFinite(explicitPayout) && explicitPayout > 0
     ? explicitPayout
-    : payoutFor(size, mode);
+    : payoutFor(activeSize || size, mode, hits);
 
   if (!Number.isFinite(payout)) return 0;
 
@@ -208,9 +241,9 @@ function normalizeSlip(raw, file, date, index) {
 
   const finalStatus = ["WIN", "LOSS", "PUSH", "PENDING"].includes(status)
     ? status
-    : slipStatus(g, size);
+    : slipStatus(g, size, mode);
 
-  const profit = profitFor(raw, finalStatus, size, mode);
+  const profit = profitFor(raw, finalStatus, size, mode, g.hits, g.pushes);
 
   return {
     date,
@@ -227,7 +260,7 @@ function normalizeSlip(raw, file, date, index) {
     gradedLegs: g.hits + g.misses + g.pushes,
     totalLegs: legs.length,
     stake: Number(raw.stake || raw.unit || 1),
-    payout: raw.payout || raw.payoutMultiplier || raw.multiplier || payoutFor(size, mode),
+    payout: raw.payout || raw.payoutMultiplier || raw.multiplier || payoutFor(Math.max(0, size - g.pushes) || size, mode, g.hits),
     profitUnits: profit,
     roiUnits: Number((profit / Number(raw.stake || raw.unit || 1)).toFixed(4)),
     legs: legs.map(normalizeLeg)
