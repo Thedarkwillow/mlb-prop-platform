@@ -13,6 +13,17 @@ function norm(s) {
     .replace(/^_|_$/g, "");
 }
 
+function normPlayer(s) {
+  return String(s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[.'’`-]/g, "")
+    .replace(/\b(jr|sr|ii|iii|iv)\b/g, "")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "");
+}
+
 function normMarket(m) {
   const x = norm(m);
   if (x.includes("strikeout") || x === "ks" || x === "k") return "strikeouts";
@@ -35,7 +46,7 @@ function nline(x) {
 
 function key(x) {
   return [
-    norm(x.player || x.fullName || x.matchedName),
+    normPlayer(x.player || x.fullName || x.matchedName),
     normMarket(x.market || x.stat || x.statKey),
     norm(x.side || x.direction || x.recommendedSide),
     nline(x.line)
@@ -44,7 +55,7 @@ function key(x) {
 
 
 function candidateKeys(x) {
-  const player = norm(x.player || x.fullName || x.matchedName);
+  const player = normPlayer(x.player || x.fullName || x.matchedName);
   const market = normMarket(x.market || x.stat || x.statKey);
   const side = norm(x.side || x.direction || x.recommendedSide);
   const line = nline(x.line);
@@ -127,7 +138,7 @@ const graded = ledger.map(x => {
 
   // Nearest-line fallback for same player/market/side only, max 1.0 line away.
   if (!g) {
-    const player = norm(x.player || x.fullName || x.matchedName);
+    const player = normPlayer(x.player || x.fullName || x.matchedName);
     const market = normMarket(x.market || x.stat || x.statKey);
     const side = norm(x.side || x.direction || x.recommendedSide);
     const aliases = new Set([market]);
@@ -149,7 +160,7 @@ const graded = ledger.map(x => {
   // Inverse-side inference:
   // Example: MORE 16.5 MISS implies LESS 17.5 HIT.
   if (!g) {
-    const player = norm(x.player || x.fullName || x.matchedName);
+    const player = normPlayer(x.player || x.fullName || x.matchedName);
     const market = normMarket(x.market || x.stat || x.statKey);
     const side = norm(x.side || x.direction || x.recommendedSide);
     const opposite = side === "less" ? "more" : side === "more" ? "less" : "";
