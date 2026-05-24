@@ -212,7 +212,8 @@
     "live:coverage": "node src/live/live-micro-market-coverage.cjs",
     "live:ingame": "node src/live/live-in-game-detector.cjs",
     "slips:ledger": "node src/research/slip-results-ledger.cjs",
-    "slips:suppress-types": "node src/research/apply-slip-type-suppression.cjs"
+    "slips:suppress-types": "node src/research/apply-slip-type-suppression.cjs",
+    "team:lines:detect": "node src/team-picks/detect-prizepicks-game-lines.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
