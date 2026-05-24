@@ -24,13 +24,28 @@ function normMarket(x) {
   return s.replace(/\s+/g, "_").trim();
 }
 
-function inferInningWindow(r) {
-  const raw = String(r.inningWindow || r.window || r.period || r.market || r.stat || "");
-  const m = raw.match(/([1-5])(?:st|nd|rd|th)?\s*inning/i) || raw.match(/\b([1-5])\b/);
-  return m ? Number(m[1]) : null;
+function inferInningRange(r) {
+  const raw = String(r.inningRange || r.inningWindow || r.window || r.period || r.market || r.stat || "");
+  const range = raw.match(/([1-9])\s*(?:\+|\-|to|through)\s*([1-9])/i);
+  if (range) {
+    return {
+      inningStart: Number(range[1]),
+      inningEnd: Number(range[2]),
+      inningWindow: `${Number(range[1])}-${Number(range[2])}`
+    };
+  }
+
+  const single = raw.match(/([1-9])(?:st|nd|rd|th)?\s*inning/i) || raw.match(/\b([1-9])\b/);
+  if (single) {
+    const n = Number(single[1]);
+    return { inningStart: n, inningEnd: n, inningWindow: String(n) };
+  }
+
+  return { inningStart: null, inningEnd: null, inningWindow: null };
 }
 
 function normalizeRow(r) {
+  const range = inferInningRange(r);
   return {
     date,
     snapshotTime: new Date().toISOString(),
@@ -39,7 +54,9 @@ function normalizeRow(r) {
     team: r.team || r.teamAbbr || null,
     game: r.game || r.matchup || null,
     gamePk: r.gamePk || r.resolvedGamePk || null,
-    inningWindow: inferInningWindow(r),
+    inningStart: range.inningStart,
+    inningEnd: range.inningEnd,
+    inningWindow: range.inningWindow,
     market: normMarket(r.market || r.stat || r.statType),
     side: String(r.side || r.recommendedSide || r.direction || "").toUpperCase() || null,
     line: Number.isFinite(Number(r.line)) ? Number(r.line) : null,
