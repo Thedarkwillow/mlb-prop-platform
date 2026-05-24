@@ -939,7 +939,97 @@ function diagnostics(rows) {
 }
 
 
-const normalizedRows = rows.map(normalizeForOptimizer).map(applyPhase55ToOptimizerRow).map(applyPhase5ContextAdjustments);
+
+function hasCleanGamePk(r) {
+  return !!(r.gamePk || r.game_pk || r.mlbGamePk || r.gameId || r.game_id);
+}
+
+function hasCleanStartTime(r) {
+  return !!(
+    r.startTime ||
+    r.start_time ||
+    r.gameTime ||
+    r.game_time ||
+    r.commence_time ||
+    r.scheduledStart ||
+    r.scheduled_start
+  );
+}
+
+function getDoubleHeaderMatchupKey(r) {
+  return (
+    r.canonicalGameKey ||
+    r.gameKey ||
+    r.game_key ||
+    r.matchup ||
+    r.game ||
+    ((r.awayTeam || r.away || r.away_team) && (r.homeTeam || r.home || r.home_team)
+      ? `${r.awayTeam || r.away || r.away_team}@${r.homeTeam || r.home || r.home_team}`
+      : null)
+  );
+}
+
+function applyDoubleHeaderGuard(rows) {
+  const gamePkByMatchup = new Map();
+  const startTimesByMatchup = new Map();
+
+  for (const r of rows) {
+    const key = getDoubleHeaderMatchupKey(r);
+    if (!key) continue;
+
+    const pk = r.gamePk || r.game_pk || r.mlbGamePk || r.gameId || r.game_id;
+    const start = r.startTime || r.start_time || r.gameTime || r.game_time || r.commence_time || r.scheduledStart || r.scheduled_start;
+
+    if (pk) {
+      if (!gamePkByMatchup.has(key)) gamePkByMatchup.set(key, new Set());
+      gamePkByMatchup.get(key).add(String(pk));
+    }
+
+    if (start) {
+      if (!startTimesByMatchup.has(key)) startTimesByMatchup.set(key, new Set());
+      startTimesByMatchup.get(key).add(String(start));
+    }
+  }
+
+  return rows.map(r => {
+    const key = getDoubleHeaderMatchupKey(r);
+    const gamePkCount = key && gamePkByMatchup.has(key) ? gamePkByMatchup.get(key).size : 0;
+    const startCount = key && startTimesByMatchup.has(key) ? startTimesByMatchup.get(key).size : 0;
+    const possibleDoubleHeader = !!key && (gamePkCount > 1 || startCount > 1);
+
+    if (!possibleDoubleHeader) return r;
+
+    if (!hasCleanGamePk(r)) {
+      return {
+        ...r,
+        rankEligible: false,
+        playableEligible: false,
+        playable: false,
+        doubleHeaderRisk: true,
+        disabledReason: r.disabledReason || "doubleheader_missing_gamepk"
+      };
+    }
+
+    if (!hasCleanStartTime(r)) {
+      return {
+        ...r,
+        rankEligible: false,
+        playableEligible: false,
+        playable: false,
+        doubleHeaderRisk: true,
+        disabledReason: r.disabledReason || "doubleheader_missing_start_time"
+      };
+    }
+
+    return {
+      ...r,
+      doubleHeaderRisk: true,
+      doubleHeaderCleared: true
+    };
+  });
+}
+
+const normalizedRows = applyDoubleHeaderGuard(rows.map(normalizeForOptimizer).map(applyPhase55ToOptimizerRow).map(applyPhase5ContextAdjustments));
 diagnostics(normalizedRows);
 
 const baseCandidates = dedupeRows(normalizedRows.filter(r => playable(r) && phase5HardAllowed(r) && phase6RegimeAllowed(r)));
