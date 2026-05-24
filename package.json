@@ -215,7 +215,8 @@
     "slips:suppress-types": "node src/research/apply-slip-type-suppression.cjs",
     "team:lines:detect": "node src/team-picks/detect-prizepicks-game-lines.cjs",
     "audit:line-blocks": "node src/research/line-specific-block-audit.cjs",
-    "unlocks:controlled": "node src/research/controlled-line-unlocks.cjs"
+    "unlocks:controlled": "node src/research/controlled-line-unlocks.cjs",
+    "live:discover": "node src/live/discover-mlb-live-micro-markets.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
