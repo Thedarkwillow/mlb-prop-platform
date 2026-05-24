@@ -8,6 +8,10 @@ function clean(v) {
 }
 
 function normName(v) {
+  return normalizePlayerName(v);
+}
+
+function oldNormName_UNUSED(v) {
   return clean(v)
     .toLowerCase()
     .normalize('NFD')

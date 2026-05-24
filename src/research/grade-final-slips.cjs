@@ -1,4 +1,5 @@
 const fs = require("fs");
+const normalizePlayerName = require("../utils/normalizePlayerName.cjs");
 
 const DATE = process.argv[2] || new Date().toISOString().slice(0, 10);
 const IN = `outputs/final-slips-${DATE}.json`;
@@ -6,6 +7,10 @@ const OUT = `outputs/playable-final-slips-graded-${DATE}.json`;
 const HISTORY = "data/history/all-graded-slips.jsonl";
 
 function normName(s) {
+  return normalizePlayerName(s);
+}
+
+function oldNormName_UNUSED(s) {
   return String(s || "")
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .replace(/[.'’-]/g, "")

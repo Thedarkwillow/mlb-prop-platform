@@ -1,10 +1,15 @@
 const fs = require("fs");
+const normalizePlayerName = require("../utils/normalizePlayerName.cjs");
 
 const date = process.argv[2] || new Date().toISOString().slice(0, 10);
 const INPUT = "outputs/official-slip.json";
 const OUT = `outputs/official-slip-graded-${date}.json`;
 
 function norm(s) {
+  return normalizePlayerName(s);
+}
+
+function oldNorm_UNUSED(s) {
   return String(s || "")
     .toLowerCase()
     .normalize("NFD")

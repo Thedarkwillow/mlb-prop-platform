@@ -1,4 +1,5 @@
 const fs = require('fs');
+const normalizePlayerName = require('../utils/normalizePlayerName.cjs');
 
 const DATE = process.argv[2] || new Date().toISOString().slice(0, 10);
 
@@ -52,6 +53,10 @@ function readJson(path, fallback) {
 }
 
 function normName(v) {
+  return normalizePlayerName(v);
+}
+
+function oldNormName_UNUSED(v) {
   return String(v || '')
     .toLowerCase()
     .replace(/jr\.?|sr\.?|ii|iii|iv/g, '')
