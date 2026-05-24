@@ -21,15 +21,11 @@ const board = readJson("outputs/priced-board.json", []);
 const blockedMarkets = new Set([
   "hitter_fantasy_score",
   "pitcher_fantasy_score",
-  "pitches_thrown",
   "plate_appearances",
-  "walks",
-  "walks_allowed",
   "singles",
   "doubles",
   "triples",
   "stolen_bases",
-  "hitter_strikeouts",
   "pitcher_strikeouts_(combo)"
 ]);
 

@@ -332,7 +332,6 @@ function lowBookControlledUnlockV1(x, gate) {
   // Never low-book unlock known fragile/no-price/blocked markets.
   if (FINAL_BLOCKED_MARKETS.has(market)) return false;
   if (market === "home_runs") return false;
-  if (market === "walks" || market === "walks_allowed") return false;
 
   const stableLess =
     side === "LESS" &&
@@ -570,21 +569,21 @@ const FINAL_SUPPORTED_MARKETS = new Set([
   "bases",
   "runs",
   "rbis",
-  "home_runs"
+  "home_runs",
+  "walks",
+  "walks_allowed",
+  "pitches_thrown",
+  "hitter_strikeouts"
 ]);
 
 const FINAL_BLOCKED_MARKETS = new Set([
   "hitter_fantasy_score",
   "pitcher_fantasy_score",
-  "pitches_thrown",
   "plate_appearances",
-  "walks",
-  "walks_allowed",
   "singles",
   "doubles",
   "triples",
   "stolen_bases",
-  "hitter_strikeouts",
   "pitcher_strikeouts_(combo)"
 ]);
 

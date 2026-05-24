@@ -14,15 +14,11 @@ if (!goblinReport) throw new Error("Run node src/research/goblin-shadow-report.c
 const blockedMarkets = new Set([
   "hitter_fantasy_score",
   "pitcher_fantasy_score",
-  "pitches_thrown",
   "plate_appearances",
-  "walks",
-  "walks_allowed",
   "singles",
   "doubles",
   "triples",
   "stolen_bases",
-  "hitter_strikeouts",
   "pitcher_strikeouts_(combo)",
   "home_runs",
   "hr"
