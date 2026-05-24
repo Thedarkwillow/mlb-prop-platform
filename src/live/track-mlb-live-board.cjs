@@ -14,16 +14,14 @@ function write(p, data) {
 }
 
 function normMarket(x) {
-  return String(x || "")
-    .toLowerCase()
-    .replace(/\s+/g, "_")
-    .replace(/pitcher_strikeouts|strikeouts|ks/g, "strikeouts")
-    .replace(/pitches_thrown|pitch_count/g, "pitches_thrown")
-    .replace(/outs_recorded|pitching_outs/g, "pitching_outs")
-    .replace(/hits_allowed/g, "hits_allowed")
-    .replace(/runs_allowed/g, "runs_allowed")
-    .replace(/walks_allowed/g, "walks_allowed")
-    .trim();
+  const s = String(x || "").toLowerCase();
+  if (s.includes("strikeout") || /\bks\b/.test(s)) return "strikeouts";
+  if (s.includes("pitches thrown") || s.includes("pitch_count") || s.includes("pitches_thrown")) return "pitches_thrown";
+  if (s.includes("outs recorded") || s.includes("pitching outs") || s.includes("pitching_outs")) return "pitching_outs";
+  if (s.includes("hits allowed")) return "hits_allowed";
+  if (s.includes("runs allowed")) return "runs_allowed";
+  if (s.includes("walks allowed")) return "walks_allowed";
+  return s.replace(/\s+/g, "_").trim();
 }
 
 function inferInningWindow(r) {
