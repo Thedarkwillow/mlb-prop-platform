@@ -5,6 +5,8 @@ const date = process.argv[2] || process.env.npm_config_date || new Date().toISOS
 
 const FINAL = "outputs/final-slips.json";
 const BLOCKED = "outputs/blocked-final-candidates.json";
+const ENRICHED = "outputs/slips-distribution-enriched.json";
+const PRICED = "outputs/slips-priced.json";
 const OUT = "outputs/lean-final-slips.json";
 const OUT_DATED = `outputs/lean-final-slips-${date}.json`;
 
@@ -43,6 +45,72 @@ function uniqueKey(row) {
     lower(row.side),
     num(row.line, "")
   ].join("|");
+}
+
+function candidateKey(row) {
+  return [
+    lower(row.player),
+    lower(row.market),
+    lower(row.side),
+    num(row.line, "")
+  ].join("|");
+}
+
+function candidateKeyNoSide(row) {
+  return [
+    lower(row.player),
+    lower(row.market),
+    num(row.line, "")
+  ].join("|");
+}
+
+function buildEnrichmentIndex(rows) {
+  const exact = new Map();
+  const noSide = new Map();
+
+  for (const row of rows || []) {
+    if (!row || !row.player || !row.market || row.line === undefined || row.line === null) continue;
+
+    const k1 = candidateKey(row);
+    const k2 = candidateKeyNoSide(row);
+
+    if (!exact.has(k1)) exact.set(k1, row);
+    if (!noSide.has(k2)) noSide.set(k2, row);
+  }
+
+  return { exact, noSide };
+}
+
+function mergeEnrichment(row, indexes) {
+  const enriched =
+    indexes.exact.get(candidateKey(row)) ||
+    indexes.noSide.get(candidateKeyNoSide(row));
+
+  if (!enriched) return row;
+
+  return {
+    ...enriched,
+    ...row,
+
+    team: row.team ?? enriched.team ?? enriched.resolvedTeam ?? null,
+    game: row.game ?? enriched.game ?? enriched.resolvedGame ?? null,
+    gamePk: row.gamePk ?? row.resolvedGamePk ?? enriched.gamePk ?? enriched.resolvedGamePk ?? null,
+
+    oddsTier: row.oddsTier ?? row.specialTier ?? enriched.oddsTier ?? enriched.specialTier ?? enriched.tier ?? null,
+
+    books: row.books ?? enriched.books ?? enriched.bookCount ?? null,
+    support: row.support ?? row.marketSupportFlag ?? row.priceCoverageTier ?? enriched.support ?? enriched.marketSupportFlag ?? enriched.priceCoverageTier ?? null,
+    marketSupportFlag: row.marketSupportFlag ?? enriched.marketSupportFlag ?? null,
+    priceCoverageTier: row.priceCoverageTier ?? enriched.priceCoverageTier ?? null,
+
+    grade: row.grade ?? enriched.grade ?? null,
+
+    prob: row.prob ?? row.probability ?? row.finalProb ?? row.calibratedDistributionProb ?? enriched.prob ?? enriched.calibratedDistributionProb ?? null,
+    calibratedDistributionProb: row.calibratedDistributionProb ?? row.prob ?? enriched.calibratedDistributionProb ?? enriched.prob ?? null,
+
+    edge: row.adjustedEdge ?? row.adjEdge ?? row.edge ?? enriched.adjustedEdge ?? enriched.adjEdge ?? enriched.edge ?? null,
+    adjustedEdge: row.adjustedEdge ?? row.adjEdge ?? enriched.adjustedEdge ?? enriched.adjEdge ?? null
+  };
 }
 
 function hasHardBan(row) {
@@ -253,12 +321,18 @@ function normalizeCandidate(row, source) {
 const final = readJson(FINAL, {});
 const topLegs = Array.isArray(final.topLegs) ? final.topLegs : [];
 const blocked = readJson(BLOCKED, []);
+const enrichmentRows = [
+  ...readJson(ENRICHED, []),
+  ...readJson(PRICED, [])
+];
+const enrichmentIndex = buildEnrichmentIndex(enrichmentRows);
 
 const candidates = [];
 const seen = new Set();
 
 for (const row of topLegs) {
-  const normalized = normalizeCandidate(row, "final_top_leg");
+  const merged = mergeEnrichment(row, enrichmentIndex);
+  const normalized = normalizeCandidate(merged, "final_top_leg");
   const key = uniqueKey(normalized);
   if (!seen.has(key)) {
     seen.add(key);
@@ -267,7 +341,8 @@ for (const row of topLegs) {
 }
 
 for (const row of blocked) {
-  const normalized = normalizeCandidate(row, "blocked_candidate");
+  const merged = mergeEnrichment(row, enrichmentIndex);
+  const normalized = normalizeCandidate(merged, "blocked_candidate");
   const key = uniqueKey(normalized);
   if (!seen.has(key)) {
     seen.add(key);
