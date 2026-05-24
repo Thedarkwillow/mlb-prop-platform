@@ -213,7 +213,8 @@
     "live:ingame": "node src/live/live-in-game-detector.cjs",
     "slips:ledger": "node src/research/slip-results-ledger.cjs",
     "slips:suppress-types": "node src/research/apply-slip-type-suppression.cjs",
-    "team:lines:detect": "node src/team-picks/detect-prizepicks-game-lines.cjs"
+    "team:lines:detect": "node src/team-picks/detect-prizepicks-game-lines.cjs",
+    "audit:line-blocks": "node src/research/line-specific-block-audit.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
