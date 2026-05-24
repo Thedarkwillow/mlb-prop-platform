@@ -217,7 +217,8 @@
     "audit:line-blocks": "node src/research/line-specific-block-audit.cjs",
     "unlocks:controlled": "node src/research/controlled-line-unlocks.cjs",
     "live:discover": "node src/live/discover-mlb-live-micro-markets.cjs",
-    "live:hrr:1to5": "node src/live/detect-true-1to5-hrr.cjs"
+    "live:hrr:1to5": "node src/live/detect-true-1to5-hrr.cjs",
+    "live:hrr:1to5:probe": "node src/live/probe-prizepicks-1to5-hrr-endpoints.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
