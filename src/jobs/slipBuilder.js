@@ -1032,6 +1032,69 @@ function applyDoubleHeaderGuard(rows) {
 const normalizedRows = applyDoubleHeaderGuard(rows.map(normalizeForOptimizer).map(applyPhase55ToOptimizerRow).map(applyPhase5ContextAdjustments));
 diagnostics(normalizedRows);
 
+
+function executionMarket(m) {
+  return String(m || "").toLowerCase().replace(/\s+/g, "_").trim();
+}
+
+function executionSide(r) {
+  return String(r.side || r.recommendedSide || r.direction || "").toUpperCase();
+}
+
+function executionProb(r) {
+  return Number(r.calibratedDistributionProb ?? r.distributionProb ?? r.prob ?? r.recommendedProb ?? 0);
+}
+
+function executionEdge(r) {
+  return Number(r.adjustedEdge ?? r.edge ?? r.sportsbookAdjustedEdge ?? r.sportsbookEdge ?? 0);
+}
+
+function executionBooks(r) {
+  return Number(r.sportsbookBookCount ?? r.books ?? 0);
+}
+
+function executionConfidence(r) {
+  return String(r.confidenceBucket || r.confidence || r.calibratedConfidence?.confidence || "").toLowerCase();
+}
+
+function passesExecutionFilter(r) {
+  const market = executionMarket(r.market || r.stat);
+  const side = executionSide(r);
+  const prob = executionProb(r);
+  const edge = executionEdge(r);
+  const books = executionBooks(r);
+  const confidence = executionConfidence(r);
+  const tier = String(r.oddsTier || r.tier || r.specialTier || "standard").toLowerCase();
+
+  const allowedMarkets = new Set([
+    "strikeouts",
+    "hits",
+    "bases",
+    "hrr",
+    "runs",
+    "rbis",
+    "rbi",
+    "pitching_outs",
+    "hits_allowed",
+    "earned_runs_allowed"
+  ]);
+
+  const hitterMarkets = new Set(["hits", "bases", "hrr", "runs", "rbis", "rbi"]);
+
+  if (!allowedMarkets.has(market)) return false;
+  if (["goblin", "demon"].includes(tier)) return false;
+  if (!["MORE", "LESS"].includes(side)) return false;
+  if (!Number.isFinite(prob) || prob < 0.56) return false;
+  if (!Number.isFinite(edge) || edge < 0.03) return false;
+  // Books can be missing on otherwise valid model rows; require books later in final-slips layer.
+  // Confidence labels are not consistently populated here; use probability/edge/market/side gates instead.
+
+  // v1 side-bias protection: raw board shows hitter MORE is structurally weak.
+  if (hitterMarkets.has(market) && side === "MORE") return false;
+
+  return true;
+}
+
 const baseCandidates = dedupeRows(normalizedRows.filter(r => playable(r) && phase5HardAllowed(r) && phase6RegimeAllowed(r)));
 
 const standardKWatchlist = normalizedRows
@@ -1049,9 +1112,35 @@ const standardKWatchlist = normalizedRows
     kWatchlistCandidate: true
   }));
 
-const candidates = dedupeRows([...baseCandidates, ...standardKWatchlist])
-  .sort((a, b) => baseScore(b) - baseScore(a))
-  .slice(0, MAX_CANDIDATES);
+const preExecutionCandidates = dedupeRows([...baseCandidates, ...standardKWatchlist])
+  .sort((a, b) => baseScore(b) - baseScore(a));
+
+const executionPassedCandidates = preExecutionCandidates.filter(passesExecutionFilter);
+const candidates = preExecutionCandidates.slice(0, MAX_CANDIDATES); // report-only for now; do not enforce until fresh slate validation.
+
+
+const executionRejects = {};
+for (const r of preExecutionCandidates) {
+  const market = executionMarket(r.market || r.stat);
+  const side = executionSide(r);
+  const prob = executionProb(r);
+  const edge = executionEdge(r);
+  const tier = String(r.oddsTier || r.tier || r.specialTier || "standard").toLowerCase();
+
+  let reason = "pass";
+  if (!new Set(["strikeouts","hits","bases","hrr","runs","rbis","rbi","pitching_outs","hits_allowed","earned_runs_allowed"]).has(market)) reason = `market:${market}`;
+  else if (["goblin", "demon"].includes(tier)) reason = `tier:${tier}`;
+  else if (!["MORE", "LESS"].includes(side)) reason = `side:${side}`;
+  else if (!Number.isFinite(prob) || prob < 0.56) reason = `prob:${prob}`;
+  else if (!Number.isFinite(edge) || edge < 0.03) reason = `edge:${edge}`;
+  else if (new Set(["hits","bases","hrr","runs","rbis","rbi"]).has(market) && side === "MORE") reason = `hitter_more:${market}`;
+
+  executionRejects[reason] = (executionRejects[reason] || 0) + 1;
+}
+console.log("Execution reject reasons:", executionRejects);
+
+console.log("Execution filter before:", preExecutionCandidates.length);
+console.log("Execution filter after:", executionPassedCandidates.length);
 
 console.log('Optimizer V4.5 candidates:', candidates.length);
 console.log('Mode:', MODE);
