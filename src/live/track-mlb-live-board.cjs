@@ -53,6 +53,7 @@ function rowKey(r) {
     r.line,
     r.inningWindow,
     r.oddsTier,
+    r.sourceFeed,
     r.sourceType
   ].join("|");
 }
@@ -72,6 +73,7 @@ const snapshot = rawRows
     date: r.date || date,
     capturedAt,
     prizepicksId: r.prizepicksId || r.id || null,
+    sourceFeed: r.sourceFeed || null,
     sourceType: r.sourceType || null,
     trackOnly: r.trackOnly === true,
     player: r.player || r.name || r.playerName || null,
@@ -106,7 +108,7 @@ write(HISTORY, merged);
 
 const buckets = Object.entries(
   snapshot.reduce((acc, r) => {
-    const key = `${r.sourceType || "unknown"} | ${r.inningWindow} | ${r.market} | ${r.oddsTier}`;
+    const key = `${r.sourceFeed || "unknown"} | ${r.sourceType || "unknown"} | ${r.inningWindow} | ${r.market} | ${r.oddsTier}`;
     acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {})
