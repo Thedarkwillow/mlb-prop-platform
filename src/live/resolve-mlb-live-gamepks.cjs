@@ -135,15 +135,17 @@ async function main() {
   console.log("input rows:", rows.length);
   console.log("resolved:", resolved.filter(r => r.resolvedGamePk).length);
   console.log("unresolved:", resolved.filter(r => !r.resolvedGamePk).length);
-  console.table(resolved.map(r => ({
-    player: r.player,
-    team: r.team,
-    game: r.game,
-    market: r.market,
-    inning: r.inningWindow,
-    resolvedGamePk: r.resolvedGamePk,
-    status: r.resolveStatus
-  })));
+  if (!process.argv.includes("--quiet")) {
+    console.table(resolved.slice(0, 40).map(r => ({
+      player: r.player,
+      team: r.team,
+      game: r.game,
+      market: r.market,
+      inning: r.inningWindow,
+      resolvedGamePk: r.resolvedGamePk,
+      status: r.resolveStatus
+    })));
+  }
   console.log("saved:", OUT);
   console.log("saved:", LATEST);
 }
