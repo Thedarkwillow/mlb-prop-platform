@@ -101,6 +101,7 @@ function statForMarket(stats, market) {
   if (m === "strikeouts") return Number(pitching.strikeOuts || pitching.strikeouts || 0);
   if (m === "pitching_outs") return Number(pitching.outs || 0);
   if (m === "walks_allowed") return Number(pitching.baseOnBalls || pitching.walks || 0);
+  if (m === "pitches_thrown") return Number(pitching.numberOfPitches || 0);
   if (m === "hits_allowed") return Number(pitching.hits || 0);
   if (m === "earned_runs_allowed") return Number(pitching.earnedRuns || 0);
 
@@ -127,14 +128,15 @@ function getPrizePicksRows() {
   const rows = Array.isArray(board) ? board : board.rows || board.data || [];
 
   return rows
-    .map(r => {
+    .flatMap(r => {
       const market = normalizeMarket(r.market || r.stat || r.statType);
-      const side = sideOf(r);
+      const rawSide = sideOf(r);
+      const sides = ["MORE", "LESS"].includes(rawSide) ? [rawSide] : ["MORE", "LESS"];
       const line = Number(r.line ?? r.projectionLine ?? r.projectedLine);
       const prob = Number(r.calibratedDistributionProb ?? r.recommendedProb ?? r.probability ?? r.prob);
       const books = Number(r.sportsbookBookCount ?? r.books ?? 0);
 
-      return {
+      return sides.map(side => ({
         source: "prizepicks_board",
         player: r.player || r.playerName || r.name,
         team: r.team ?? r.teamAbbr ?? null,
@@ -148,8 +150,9 @@ function getPrizePicksRows() {
         books,
         rawMarket: r.rawMarket ?? r.stat ?? null,
         oddsTier: r.oddsTier ?? r.tier ?? r.specialTier ?? null,
-        disabledReason: r.disabledReason ?? null
-      };
+        disabledReason: r.disabledReason ?? null,
+        inferredSideForBoardGrade: !["MORE", "LESS"].includes(rawSide)
+      }));
     })
     .filter(r =>
       r.player &&
