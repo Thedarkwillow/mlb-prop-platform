@@ -395,10 +395,51 @@ async function main() {
     gameMaps.set(String(gamePk), await fetchGameStats(gamePk));
   }
 
+
+  function parseInningRange(row) {
+    if (Number.isFinite(Number(row.inningStart)) && Number.isFinite(Number(row.inningEnd))) {
+      return {
+        inningStart: Number(row.inningStart),
+        inningEnd: Number(row.inningEnd)
+      };
+    }
+
+    const raw = String(row.inningWindow || row.inningRange || row.inning || "").trim().toLowerCase();
+
+    if (raw === "full") {
+      return { inningStart: 1, inningEnd: 9 };
+    }
+
+    if (/^\d+$/.test(raw)) {
+      const n = Number(raw);
+      return { inningStart: n, inningEnd: n };
+    }
+
+    const range = raw.match(/^(\d+)\s*-\s*(\d+)$/);
+    if (range) {
+      return {
+        inningStart: Number(range[1]),
+        inningEnd: Number(range[2])
+      };
+    }
+
+    const plus = raw.match(/^(\d+)(?:\+\d+)+$/);
+    if (plus) {
+      const nums = raw.split("+").map(Number).filter(Number.isFinite);
+      return {
+        inningStart: Math.min(...nums),
+        inningEnd: Math.max(...nums)
+      };
+    }
+
+    return { inningStart: NaN, inningEnd: NaN };
+  }
+
   const graded = rows.map(row => {
     const gamePk = row.resolvedGamePk || row.gamePk;
-    const inningStart = Number(row.inningStart ?? row.inningWindow);
-    const inningEnd = Number(row.inningEnd ?? row.inningWindow);
+    const parsedRange = parseInningRange(row);
+    const inningStart = parsedRange.inningStart;
+    const inningEnd = parsedRange.inningEnd;
     const market = String(row.market || "").toLowerCase();
     const playerKey = normName(row.player);
 
@@ -454,14 +495,22 @@ async function main() {
         actual = total;
       } else if (unsupported) {
         reasons.push("unsupported_market");
+      } else if (String(row.status || "").toLowerCase() === "pre_game") {
+        reasons.push("game_not_started");
       } else if (market === "runs_allowed") {
         reasons.push("game_inning_range_not_found");
+      } else if (market === "hrr" || market === "hitter_fantasy_score") {
+        reasons.push("hitter_inning_range_not_found");
       } else {
         reasons.push("pitcher_inning_range_not_found");
       }
     }
 
-    const res = reasons.length ? "UNSUPPORTED" : result(actual, row.side, row.line);
+    const res = reasons.includes("game_not_started")
+      ? "PENDING"
+      : reasons.length
+        ? "UNSUPPORTED"
+        : result(actual, row.side, row.line);
 
     return {
       ...row,
