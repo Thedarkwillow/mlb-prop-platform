@@ -135,7 +135,7 @@ function makeRows(item, maps) {
   // These are not inning micro unless PrizePicks sends a non-Full duration later.
   if (
     a.event_type === "team" &&
-    ["strikeouts", "earned_runs_allowed", "walks_allowed"].includes(market)
+    ["strikeouts", "earned_runs_allowed", "walks_allowed", "hrr"].includes(market)
   ) {
     const inningWindow = durationName && durationName !== "full" ? duration?.name : "full";
 
