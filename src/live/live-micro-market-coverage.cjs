@@ -26,6 +26,8 @@ function isGradeable(r) {
   if (m === "hits_allowed") return true;
   if (m === "walks_allowed") return true;
   if (m === "earned_runs_allowed") return true;
+    if (m === "hrr") return true;
+    if (m === "hitter_fantasy_score") return true;
 
   if (m === "runs_allowed" && win === "1") return true;
 
