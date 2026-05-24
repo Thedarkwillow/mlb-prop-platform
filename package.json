@@ -199,7 +199,15 @@
     "board:repair-games": "node src/jobs/repairPrizePicksGames.cjs",
     "slips:v5": "node src/research/build-v5-portfolio-slips.cjs",
     "fantasy:components": "node src/research/fantasy-component-model.cjs",
-    "fantasy:hitter-advanced": "node src/research/hitter-fantasy-advanced-model.cjs"
+    "fantasy:hitter-advanced": "node src/research/hitter-fantasy-advanced-model.cjs",
+    "side:bias": "node src/research/side-bias-report.cjs",
+    "board:pp-grade": "node src/research/prizepicks-board-grade.cjs",
+    "board:coverage": "node src/research/full-board-coverage-report.cjs",
+    "live:track": "node src/live/track-mlb-live-board.cjs",
+    "live:resolve": "node src/live/resolve-mlb-live-gamepks.cjs",
+    "live:grade": "node src/live/grade-mlb-live-innings.cjs",
+    "live:alerts": "node src/live/live-alert-report.cjs",
+    "live:state": "node src/live/live-game-state-snapshot.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
