@@ -208,7 +208,8 @@
     "live:grade": "node src/live/grade-mlb-live-innings.cjs",
     "live:alerts": "node src/live/live-alert-report.cjs",
     "live:state": "node src/live/live-game-state-snapshot.cjs",
-    "live:capture": "node src/live/capture-prizepicks-live-micro.cjs"
+    "live:capture": "node src/live/capture-prizepicks-live-micro.cjs",
+    "live:coverage": "node src/live/live-micro-market-coverage.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
