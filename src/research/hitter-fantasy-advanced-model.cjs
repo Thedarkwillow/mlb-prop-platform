@@ -220,11 +220,33 @@ for (const [, group] of byPlayer.entries()) {
   }
 }
 
+const bestGoblinMoreByPlayer = new Set();
+for (const r of [...out].filter(x => x.flags.moreCandidate)) {
+  const k = norm(r.player);
+  const current = [...out].find(x =>
+    x !== r &&
+    x.flags.moreCandidate &&
+    norm(x.player) === k &&
+    (x.moreProb ?? -9) > (r.moreProb ?? -9)
+  );
+  if (!current) bestGoblinMoreByPlayer.add(k);
+}
+
+for (const r of out) {
+  if (r.flags.moreCandidate && !bestGoblinMoreByPlayer.has(norm(r.player))) {
+    r.flags.moreCandidate = false;
+    r.flags.moreDeduped = true;
+  }
+}
+
 out.sort((a, b) => {
+  if (a.flags.moreCandidate !== b.flags.moreCandidate) {
+    return a.flags.moreCandidate ? -1 : 1;
+  }
   if (a.flags.lessCandidate !== b.flags.lessCandidate) {
     return a.flags.lessCandidate ? -1 : 1;
   }
-  return (b.lessEdge ?? -9) - (a.lessEdge ?? -9);
+  return Math.max(b.moreEdge ?? -9, b.lessEdge ?? -9) - Math.max(a.moreEdge ?? -9, a.lessEdge ?? -9);
 });
 
 writeJson("outputs/hitter-fantasy-advanced-model.json", out);
