@@ -219,7 +219,8 @@
     "live:discover": "node src/live/discover-mlb-live-micro-markets.cjs",
     "live:hrr:1to5": "node src/live/detect-true-1to5-hrr.cjs",
     "live:hrr:1to5:probe": "node src/live/probe-prizepicks-1to5-hrr-endpoints.cjs",
-    "prizepicks:live": "node src/scrapers/prizepicks-mlb-live.cjs"
+    "prizepicks:live": "node src/scrapers/prizepicks-mlb-live.cjs",
+    "slips:leans": "node src/research/build-lean-final-slips.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
