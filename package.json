@@ -210,7 +210,8 @@
     "live:state": "node src/live/live-game-state-snapshot.cjs",
     "live:capture": "node src/live/capture-prizepicks-live-micro.cjs",
     "live:coverage": "node src/live/live-micro-market-coverage.cjs",
-    "live:ingame": "node src/live/live-in-game-detector.cjs"
+    "live:ingame": "node src/live/live-in-game-detector.cjs",
+    "slips:ledger": "node src/research/slip-results-ledger.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
