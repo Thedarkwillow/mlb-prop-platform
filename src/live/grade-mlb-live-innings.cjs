@@ -236,6 +236,141 @@ function buildGameInningStats(feed) {
   return map;
 }
 
+
+function playBatterName(play) {
+  return play.matchup?.batter?.fullName || play.matchup?.batter?.person?.fullName || null;
+}
+
+function playBatterId(play) {
+  return play.matchup?.batter?.id || play.matchup?.batter?.person?.id || null;
+}
+
+function hitterEventStats(play) {
+  const ev = eventType(play);
+  const stats = {
+    hits: 0,
+    singles: 0,
+    doubles: 0,
+    triples: 0,
+    home_runs: 0,
+    total_bases: 0,
+    runs: 0,
+    rbis: num(play.result?.rbi, 0),
+    walks: 0,
+    hit_by_pitch: 0,
+    stolen_bases: 0
+  };
+
+  if (ev === "single") {
+    stats.hits = 1;
+    stats.singles = 1;
+    stats.total_bases = 1;
+  } else if (ev === "double") {
+    stats.hits = 1;
+    stats.doubles = 1;
+    stats.total_bases = 2;
+  } else if (ev === "triple") {
+    stats.hits = 1;
+    stats.triples = 1;
+    stats.total_bases = 3;
+  } else if (ev === "home_run" || ev === "home run") {
+    stats.hits = 1;
+    stats.home_runs = 1;
+    stats.total_bases = 4;
+    stats.runs = 1;
+  } else if (ev === "walk" || ev === "intent_walk" || ev === "intentional_walk") {
+    stats.walks = 1;
+  } else if (ev === "hit_by_pitch") {
+    stats.hit_by_pitch = 1;
+  }
+
+  for (const r of play.runners || []) {
+    const runnerName = r.details?.runner?.fullName || r.runner?.fullName || null;
+    const batterName = playBatterName(play);
+
+    if (runnerName && batterName && normName(runnerName) === normName(batterName)) {
+      if (r.movement?.end === "score") stats.runs = 1;
+    }
+
+    const runnerEvent = String(r.details?.eventType || r.details?.event || "").toLowerCase();
+    if (runnerEvent === "stolen_base" || runnerEvent === "stolen base") {
+      const runnerKey = normName(runnerName);
+      const batterKey = normName(batterName);
+      if (runnerKey && batterKey && runnerKey === batterKey) {
+        stats.stolen_bases += 1;
+      }
+    }
+  }
+
+  return stats;
+}
+
+function buildHitterInningStats(feed) {
+  const map = new Map();
+  const plays = feed.liveData?.plays?.allPlays || [];
+
+  function ensure(gamePk, hitterKey, inning) {
+    const k = `${gamePk}|${hitterKey}|${inning}`;
+    if (!map.has(k)) {
+      map.set(k, {
+        gamePk,
+        hitterKey,
+        inning,
+        hitter: null,
+        hitterId: null,
+        hits: 0,
+        singles: 0,
+        doubles: 0,
+        triples: 0,
+        home_runs: 0,
+        total_bases: 0,
+        runs: 0,
+        rbis: 0,
+        walks: 0,
+        hit_by_pitch: 0,
+        stolen_bases: 0,
+        hrr: 0,
+        hitter_fantasy_score: 0
+      });
+    }
+    return map.get(k);
+  }
+
+  for (const play of plays) {
+    const inning = Number(play.about?.inning);
+    if (!Number.isFinite(inning) || inning < 1 || inning > 9) continue;
+
+    const hitter = playBatterName(play);
+    if (!hitter) continue;
+
+    const hitterKey = normName(hitter);
+    const gamePk = feed.gamePk || feed.gameData?.game?.pk || null;
+    const row = ensure(gamePk, hitterKey, inning);
+
+    row.hitter = hitter;
+    row.hitterId = playBatterId(play);
+
+    const stats = hitterEventStats(play);
+    for (const [k, v] of Object.entries(stats)) {
+      row[k] += Number(v || 0);
+    }
+
+    row.hrr = row.hits + row.runs + row.rbis;
+    row.hitter_fantasy_score =
+      row.singles * 3 +
+      row.doubles * 5 +
+      row.triples * 8 +
+      row.home_runs * 10 +
+      row.runs * 2 +
+      row.rbis * 2 +
+      row.walks * 2 +
+      row.hit_by_pitch * 2 +
+      row.stolen_bases * 5;
+  }
+
+  return map;
+}
+
 function mergeMaps(target, source) {
   for (const [k, v] of source.entries()) target.set(k, v);
   return target;
@@ -246,7 +381,8 @@ async function fetchGameStats(gamePk) {
   feed.gamePk = gamePk;
   return {
     pitcherMap: buildPitcherInningStats(feed),
-    gameMap: buildGameInningStats(feed)
+    gameMap: buildGameInningStats(feed),
+    hitterMap: buildHitterInningStats(feed)
   };
 }
 
@@ -287,6 +423,16 @@ async function main() {
           if (statRow) {
             foundAny = true;
             const v = Number(statRow.runs_allowed);
+            if (Number.isFinite(v)) total += v;
+            else unsupported = true;
+          }
+        }
+      } else if (market === "hrr" || market === "hitter_fantasy_score") {
+        for (let inn = inningStart; inn <= inningEnd; inn++) {
+          const statRow = maps?.hitterMap?.get(`${gamePk}|${playerKey}|${inn}`);
+          if (statRow) {
+            foundAny = true;
+            const v = Number(statRow[market]);
             if (Number.isFinite(v)) total += v;
             else unsupported = true;
           }

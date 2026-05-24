@@ -15,12 +15,17 @@ function write(p, data) {
 
 function normMarket(x) {
   const s = String(x || "").toLowerCase();
+
+  if (s.includes("hitter fantasy score") || s.includes("fantasy score")) return "hitter_fantasy_score";
+  if (s.includes("hits+runs+rbis") || s.includes("hits + runs + rbis") || s.includes("hrr")) return "hrr";
+
   if (s.includes("strikeout") || /\bks\b/.test(s)) return "strikeouts";
   if (s.includes("pitches thrown") || s.includes("pitch_count") || s.includes("pitches_thrown")) return "pitches_thrown";
   if (s.includes("outs recorded") || s.includes("pitching outs") || s.includes("pitching_outs")) return "pitching_outs";
   if (s.includes("hits allowed")) return "hits_allowed";
   if (s.includes("runs allowed")) return "runs_allowed";
   if (s.includes("walks allowed")) return "walks_allowed";
+
   return s.replace(/\s+/g, "_").trim();
 }
 
