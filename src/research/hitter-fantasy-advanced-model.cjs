@@ -206,7 +206,14 @@ for (const [, group] of byPlayer.entries()) {
         component <= line - 0.75 &&
         lessProb >= 0.58,
       moreCandidate:
-        false
+        oddsTier === "goblin" &&
+        line <= 4 &&
+        direct != null &&
+        direct > 3 &&
+        component > 3 &&
+        direct >= line + 1.25 &&
+        component >= line + 1.25 &&
+        moreProb >= 0.62
     }
   });
 }
