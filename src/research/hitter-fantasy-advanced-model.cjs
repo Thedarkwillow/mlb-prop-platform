@@ -67,12 +67,13 @@ const out = [];
 
 for (const [, group] of byPlayer.entries()) {
   const rows = group.rows;
-  const fantasy = findMarket(rows, "hitter_fantasy_score");
-  if (!fantasy) continue;
+  const fantasyRows = rows.filter(r => String(r.market || "").toLowerCase() === "hitter_fantasy_score");
+  if (!fantasyRows.length) continue;
 
   const k = norm(group.player);
   const f = formByPlayer.get(k) || {};
 
+  for (const fantasy of fantasyRows) {
   const line = num(fantasy.line);
   const direct = projection(fantasy);
   const oddsTier = fantasy.oddsTier || fantasy.specialTier || "standard";
@@ -216,6 +217,7 @@ for (const [, group] of byPlayer.entries()) {
         moreProb >= 0.62
     }
   });
+  }
 }
 
 out.sort((a, b) => {
