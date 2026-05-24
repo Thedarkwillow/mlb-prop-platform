@@ -207,7 +207,12 @@ for (const [, group] of byPlayer.entries()) {
   });
 }
 
-out.sort((a, b) => (b.lessEdge ?? -9) - (a.lessEdge ?? -9));
+out.sort((a, b) => {
+  if (a.flags.lessCandidate !== b.flags.lessCandidate) {
+    return a.flags.lessCandidate ? -1 : 1;
+  }
+  return (b.lessEdge ?? -9) - (a.lessEdge ?? -9);
+});
 
 writeJson("outputs/hitter-fantasy-advanced-model.json", out);
 
