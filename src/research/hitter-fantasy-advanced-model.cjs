@@ -75,6 +75,7 @@ for (const [, group] of byPlayer.entries()) {
 
   const line = num(fantasy.line);
   const direct = projection(fantasy);
+  const oddsTier = fantasy.oddsTier || fantasy.specialTier || "standard";
 
   const hits = projection(findMarket(rows, "hits"));
   const bases = projection(findMarket(rows, "bases"));
@@ -171,6 +172,8 @@ for (const [, group] of byPlayer.entries()) {
     team: fantasy.team,
     market: "hitter_fantasy_score",
     line,
+    oddsTier,
+    specialTier: fantasy.specialTier || null,
     directProjection: direct,
     advancedProjection: Number(component.toFixed(3)),
     sd: Number(sd.toFixed(3)),
@@ -194,7 +197,8 @@ for (const [, group] of byPlayer.entries()) {
     },
     flags: {
       lessCandidate:
-        line >= 7.5 &&
+        oddsTier === "standard" &&
+        line >= 5.5 &&
         direct != null &&
         direct > 3 &&
         component > 3 &&
