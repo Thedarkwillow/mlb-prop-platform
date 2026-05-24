@@ -54,8 +54,18 @@ function normTeam(x) {
 
 function teamsFromGame(game) {
   const txt = String(game || "").replace(/\s+/g, " ").trim();
-  const parts = txt.split("@").map(x => normTeam(x.trim()));
-  return parts.length === 2 ? parts : [];
+
+  if (txt.includes("@")) {
+    const parts = txt.split("@").map(x => normTeam(x.trim()));
+    return parts.length === 2 ? parts : [];
+  }
+
+  if (txt.includes("/")) {
+    const parts = txt.split("/").map(x => normTeam(x.trim()));
+    return parts.length === 2 ? parts : [];
+  }
+
+  return [];
 }
 
 async function fetchJson(url) {
