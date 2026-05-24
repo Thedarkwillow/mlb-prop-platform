@@ -23,6 +23,7 @@ function normMarket(x) {
   if (s.includes("pitches thrown") || s.includes("pitch_count") || s.includes("pitches_thrown")) return "pitches_thrown";
   if (s.includes("outs recorded") || s.includes("pitching outs") || s.includes("pitching_outs")) return "pitching_outs";
   if (s.includes("hits allowed")) return "hits_allowed";
+  if (s.includes("earned runs allowed")) return "earned_runs_allowed";
   if (s.includes("runs allowed")) return "runs_allowed";
   if (s.includes("walks allowed")) return "walks_allowed";
 

@@ -35,5 +35,6 @@ echo "Tracked MLB Live rows for $SLATE_DATE: $ROWS"
 npm run live:resolve -- "$SLATE_DATE"
 npm run live:grade -- "$SLATE_DATE"
 npm run live:alerts -- "$SLATE_DATE"
+npm run live:coverage -- "$SLATE_DATE"
 
 echo "LIVE POSTGAME DONE $(date -Is) slate=$SLATE_DATE"
