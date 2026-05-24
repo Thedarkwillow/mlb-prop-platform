@@ -40,7 +40,8 @@ const rows = board
   .filter(r => norm(r.oddsTier || r.tier || r.specialTier) === "goblin")
   .map(r => {
     const market = norm(r.market || r.stat);
-    const side = String(r.recommendedSide || r.side || "NO_SIDE").toUpperCase();
+    const rawSide = String(r.recommendedSide || r.side || "").toUpperCase();
+    const side = (!rawSide || rawSide === "NO_SIDE") ? "MORE" : rawSide; // PrizePicks goblins are MORE-only for evaluation.
     const prob = num(r.calibratedDistributionProb ?? r.recommendedProb ?? r.probability ?? r.prob);
     const books = num(r.sportsbookBookCount ?? r.books);
     const edge = num(r.sportsbookAdjustedEdge ?? r.adjustedEdge ?? r.sportsbookEdge ?? r.edge);
