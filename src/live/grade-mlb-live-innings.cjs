@@ -169,13 +169,14 @@ async function main() {
 
   const graded = rows.map(row => {
     const gamePk = row.resolvedGamePk || row.gamePk;
-    const inning = Number(row.inningWindow);
+    const inningStart = Number(row.inningStart ?? row.inningWindow);
+    const inningEnd = Number(row.inningEnd ?? row.inningWindow);
     const market = String(row.market || "").toLowerCase();
     const playerKey = normName(row.player);
 
     const reasons = [];
     if (!gamePk) reasons.push("missing_gamePk");
-    if (!Number.isFinite(inning)) reasons.push("missing_inningWindow");
+    if (!Number.isFinite(inningStart) || !Number.isFinite(inningEnd)) reasons.push("missing_inning_range");
     if (!playerKey) reasons.push("missing_player");
     if (!market) reasons.push("missing_market");
 
@@ -184,17 +185,27 @@ async function main() {
 
     if (!reasons.length) {
       const gameMap = gameMaps.get(String(gamePk));
-      const statRow = gameMap?.get(`${gamePk}|${playerKey}|${inning}`);
+      let total = 0;
+      let foundAny = false;
+      let unsupported = false;
 
-      if (statRow) {
-        foundPitcher = true;
-        actual = statRow[market];
-
-        if (!Number.isFinite(Number(actual))) {
-          reasons.push("unsupported_market");
+      for (let inn = inningStart; inn <= inningEnd; inn++) {
+        const statRow = gameMap?.get(`${gamePk}|${playerKey}|${inn}`);
+        if (statRow) {
+          foundAny = true;
+          foundPitcher = true;
+          const v = Number(statRow[market]);
+          if (Number.isFinite(v)) total += v;
+          else unsupported = true;
         }
+      }
+
+      if (foundAny && !unsupported) {
+        actual = total;
+      } else if (unsupported) {
+        reasons.push("unsupported_market");
       } else {
-        reasons.push("pitcher_inning_not_found");
+        reasons.push("pitcher_inning_range_not_found");
       }
     }
 
