@@ -196,6 +196,8 @@ for (const [, group] of byPlayer.entries()) {
       lessCandidate:
         line >= 7.5 &&
         direct != null &&
+        direct > 3 &&
+        component > 3 &&
         direct <= line - 0.75 &&
         component <= line - 0.75 &&
         lessProb >= 0.58,
