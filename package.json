@@ -222,7 +222,9 @@
     "prizepicks:live": "node src/scrapers/prizepicks-mlb-live.cjs",
     "slips:leans": "node src/research/build-lean-final-slips.cjs",
     "live:tier-report": "node src/live/live-tier-performance-report.cjs",
-    "shadow:promote": "node src/research/shadow-promotion-audit.cjs"
+    "shadow:promote": "node src/research/shadow-promotion-audit.cjs",
+    "postgame:decision": "npm run live:resolve -- ${npm_config_date:-$(date +%F)} --quiet && npm run live:grade -- ${npm_config_date:-$(date +%F)} && npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run decision:grade -- ${npm_config_date:-$(date +%F)} && npm run shadow:promote -- ${npm_config_date:-$(date +%F)}",
+    "pregame:decision": "npm run prizepicks && npm run board:rebuild && npm run price:board && npm run picks && npm run decision"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
