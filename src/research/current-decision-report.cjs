@@ -32,7 +32,31 @@ function compactPick(row) {
 }
 
 function getSideBias(row) {
-  return row.fullBoardSideBias || row.sideBias || {};
+  if (row.fullBoardSideBias || row.sideBias) return row.fullBoardSideBias || row.sideBias || {};
+
+  const market = String(row.market || "").trim();
+  const side = String(row.side || "").trim().toUpperCase();
+  const bucket = `${market} ${side}`;
+  const rec = fullBoardByMarketSide[bucket];
+
+  if (!rec || typeof rec !== "object") return {};
+
+  const roi = num(rec.roi, null);
+  const hitRate = num(rec.hitRate, null);
+  const count = num(rec.count, 0);
+
+  let tier = "NEUTRAL";
+  if (count >= 50 && roi >= 0.15 && hitRate >= 0.58) tier = "STRONG_POSITIVE";
+  else if (count >= 25 && roi > 0) tier = "POSITIVE";
+  else if (count >= 25 && roi < 0) tier = "NEGATIVE";
+
+  return {
+    key: bucket,
+    count,
+    hitRate,
+    roi,
+    tier
+  };
 }
 
 function isNegativeMoreSide(row) {
@@ -105,6 +129,8 @@ const official = readJson("outputs/playable-final-slips.json", []);
 const leanReport = readJson("outputs/lean-final-slips.json", {});
 const blockedRaw = readJson("outputs/blocked-final-candidates.json", []);
 const enriched = readJson("outputs/slips-distribution-enriched.json", []);
+const fullBoardLearning = readJson("data/learning/full-board-market-learning.json", {});
+const fullBoardByMarketSide = fullBoardLearning.byMarketSide || {};
 
 const enrichedByKey = new Map(enriched.map(row => [key(row), row]));
 
