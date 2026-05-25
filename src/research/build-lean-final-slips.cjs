@@ -7,6 +7,7 @@ const FINAL = "outputs/final-slips.json";
 const BLOCKED = "outputs/blocked-final-candidates.json";
 const ENRICHED = "outputs/slips-distribution-enriched.json";
 const PRICED = "outputs/slips-priced.json";
+const FULL_BOARD_LEARNING = "data/learning/full-board-market-learning.json";
 const OUT = "outputs/lean-final-slips.json";
 const OUT_DATED = `outputs/lean-final-slips-${date}.json`;
 
@@ -177,6 +178,75 @@ function getSupport(row) {
   return lower(row.marketSupportFlag || row.support || row.priceCoverageTier || "");
 }
 
+const fullBoardLearning = readJson(FULL_BOARD_LEARNING, {});
+const fullBoardByMarketSide =
+  fullBoardLearning &&
+  typeof fullBoardLearning === "object" &&
+  fullBoardLearning.byMarketSide &&
+  typeof fullBoardLearning.byMarketSide === "object"
+    ? fullBoardLearning.byMarketSide
+    : {};
+
+function marketSideKey(row) {
+  const market = str(row.market).toLowerCase();
+  const side = str(row.side).toUpperCase();
+  return `${market} ${side}`;
+}
+
+function getFullBoardSideBias(row) {
+  const key = marketSideKey(row);
+  const rec = fullBoardByMarketSide[key] || null;
+  const count = num(rec?.count, 0);
+  const hitRate = num(rec?.hitRate, null);
+  const roi = num(rec?.roi, null);
+
+  if (!rec || count < 50 || roi === null) {
+    return {
+      key,
+      count,
+      hitRate,
+      roi,
+      tier: "UNKNOWN",
+      adjustment: 0,
+      notes: ["full_board_side_bias_unknown_or_low_sample"]
+    };
+  }
+
+  if (roi >= 0.25 && hitRate !== null && hitRate >= 0.62) {
+    return {
+      key,
+      count,
+      hitRate,
+      roi,
+      tier: "STRONG_POSITIVE",
+      adjustment: -0.025,
+      notes: ["full_board_side_bias_positive"]
+    };
+  }
+
+  if (roi <= -0.05 || (hitRate !== null && hitRate < 0.48)) {
+    return {
+      key,
+      count,
+      hitRate,
+      roi,
+      tier: "NEGATIVE",
+      adjustment: 0.06,
+      notes: ["full_board_side_bias_negative"]
+    };
+  }
+
+  return {
+    key,
+    count,
+    hitRate,
+    roi,
+    tier: "NEUTRAL",
+    adjustment: 0,
+    notes: ["full_board_side_bias_neutral"]
+  };
+}
+
 function getGateReasons(row) {
   return [
     ...(Array.isArray(row.finalExecutionGate?.reasons) ? row.finalExecutionGate.reasons : []),
@@ -203,8 +273,15 @@ function classifyLean(row) {
   const books = getBooks(row);
   const support = getSupport(row);
   const reasons = getGateReasons(row);
+  const sideBias = getFullBoardSideBias(row);
 
-  const notes = [];
+  const notes = [...sideBias.notes];
+  if (sideBias.tier === "NEGATIVE") {
+    notes.push(`side_bias_negative:${sideBias.key}:roi=${sideBias.roi}:hitRate=${sideBias.hitRate}`);
+  }
+  if (sideBias.tier === "STRONG_POSITIVE") {
+    notes.push(`side_bias_positive:${sideBias.key}:roi=${sideBias.roi}:hitRate=${sideBias.hitRate}`);
+  }
 
   if (!row.player || !market || !side || line === null) {
     return { eligible: false, tier: "BLOCKED", notes: ["missing_required_fields"] };
@@ -212,6 +289,14 @@ function classifyLean(row) {
 
   if (hasHardBan(row)) {
     return { eligible: false, tier: "BLOCKED", notes: ["hard_ban_or_suppressed"] };
+  }
+
+  if (sideBias.tier === "NEGATIVE" && side === "more") {
+    return {
+      eligible: false,
+      tier: "TRACK_ONLY",
+      notes: [...notes, "negative_full_board_more_side_blocked_from_lean"]
+    };
   }
 
   if (prob === null || edge === null) {
@@ -260,12 +345,15 @@ function classifyLean(row) {
   }
 
   // Standard props
-  if (prob >= 0.56 && edge >= 0.035 && !hasHardBan(row)) {
+  const standardProbMin = Math.max(0.535, 0.56 + sideBias.adjustment);
+  const standardEdgeMin = sideBias.tier === "STRONG_POSITIVE" ? 0.02 : 0.035;
+
+  if (prob >= standardProbMin && edge >= standardEdgeMin && !hasHardBan(row)) {
     if (lowBook && prob < 0.60) {
       return {
         eligible: false,
         tier: "TRACK_ONLY",
-        notes: ["standard_low_book_needs_60_prob"]
+        notes: [...notes, "standard_low_book_needs_60_prob"]
       };
     }
 
@@ -282,7 +370,7 @@ function classifyLean(row) {
   return {
     eligible: false,
     tier: "TRACK_ONLY",
-    notes: ["standard_below_lean_threshold"]
+    notes: [...notes, "standard_below_lean_threshold"]
   };
 }
 
@@ -312,6 +400,7 @@ function normalizeCandidate(row, source) {
     confidence: row.calibratedConfidence?.confidence ?? row.distributionConfidence ?? null,
     officialGatePassed: row.finalExecutionGate?.passed ?? null,
     officialGateReasons: getGateReasons(row),
+    fullBoardSideBias: getFullBoardSideBias(row),
     leanStatus: lean.tier,
     leanEligible: lean.eligible,
     leanNotes: lean.notes
