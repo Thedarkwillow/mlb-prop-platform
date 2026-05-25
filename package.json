@@ -181,7 +181,7 @@
     "mixed": "node src/research/mixed-slip-ev-optimizer.cjs",
     "execution:track": "node src/research/execution-tracker.cjs",
     "track:execution": "node src/research/execution-tracker.cjs",
-    "decision:grade": "node src/research/grade-final-decision-ledger.cjs",
+    "decision:grade": "node src/research/grade-decision-layers.cjs",
     "fantasy:sides": "node src/research/fantasy-side-tracker.cjs",
     "fantasy:less:shadow": "npm run fantasy:sides && node src/research/fantasy-less-shadow-sim.cjs",
     "fantasy:validate": "npm run fantasy:less:shadow && node src/research/fantasy-validation-report.cjs",
@@ -221,7 +221,8 @@
     "live:hrr:1to5:probe": "node src/live/probe-prizepicks-1to5-hrr-endpoints.cjs",
     "prizepicks:live": "node src/scrapers/prizepicks-mlb-live.cjs",
     "slips:leans": "node src/research/build-lean-final-slips.cjs",
-    "live:tier-report": "node src/live/live-tier-performance-report.cjs"
+    "live:tier-report": "node src/live/live-tier-performance-report.cjs",
+    "shadow:promote": "node src/research/shadow-promotion-audit.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
