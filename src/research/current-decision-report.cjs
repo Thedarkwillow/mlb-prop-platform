@@ -73,6 +73,42 @@ function isFade(row) {
   return String(row.grade || row.qualityGrade || "").toUpperCase() === "FADE";
 }
 
+function isShadowPromotedLean(row) {
+  const promotedBuckets = Array.isArray(shadowPromotionAudit.promoted)
+    ? shadowPromotionAudit.promoted.map(r => String(r.bucket || ""))
+    : [];
+
+  const bucket = `${row.oddsTier || "standard"} | ${row.market || ""} ${String(row.side || "").toUpperCase()}`;
+
+  if (!promotedBuckets.includes(bucket)) return false;
+
+  const prob = num(row.calibratedDistributionProb ?? row.prob ?? row.recommendedProb, null);
+  const edge = num(row.sportsbookAdjustedEdge ?? row.sportsbookEdge ?? row.edge, null);
+  const support = String(row.marketSupportFlag || row.support || "").toUpperCase();
+  const grade = String(row.qualityGrade || row.grade || "").toUpperCase();
+
+  if (prob === null || edge === null) return false;
+  if (prob < 0.58) return false;
+  if (edge <= 0) return false;
+  if (support !== "OK") return false;
+  if (grade === "FADE") return false;
+
+  return true;
+}
+
+function normalizeShadowRow(row) {
+  return {
+    ...row,
+    prob: row.calibratedDistributionProb ?? row.prob ?? row.recommendedProb,
+    edge: row.sportsbookAdjustedEdge ?? row.sportsbookEdge ?? row.edge,
+    books: row.sportsbookBookCount ?? row.books,
+    support: row.marketSupportFlag ?? row.support,
+    grade: row.qualityGrade ?? row.grade,
+    fullBoardSideBias: getSideBias(row),
+    shadowPromotion: true
+  };
+}
+
 function isActionableLean(row) {
   const prob = num(row.prob);
   const edge = num(row.edge);
@@ -131,6 +167,8 @@ const blockedRaw = readJson("outputs/blocked-final-candidates.json", []);
 const enriched = readJson("outputs/slips-distribution-enriched.json", []);
 const fullBoardLearning = readJson("data/learning/full-board-market-learning.json", {});
 const fullBoardByMarketSide = fullBoardLearning.byMarketSide || {};
+const shadowPromotionAudit = readJson("outputs/shadow-promotion-audit-latest.json", {});
+const sportsBookEnrichedBoard = readJson("outputs/sportsbook-enriched-board.json", []);
 
 const enrichedByKey = new Map(enriched.map(row => [key(row), row]));
 
@@ -155,9 +193,19 @@ const blocked = blockedRaw.map(row => {
   };
 });
 
+const shadowPromotedLeans = sportsBookEnrichedBoard
+  .filter(isShadowPromotedLean)
+  .map(normalizeShadowRow)
+  .filter((row, idx, arr) => arr.findIndex(x => key(x) === key(row)) === idx)
+  .sort((a, b) =>
+    (num(b.prob, 0) - num(a.prob, 0)) ||
+    (num(b.edge, 0) - num(a.edge, 0))
+  );
+
 const actionableLeans = [
   ...leans,
-  ...blocked.filter(isActionableLean)
+  ...blocked.filter(isActionableLean),
+  ...shadowPromotedLeans
 ]
   .filter((row, idx, arr) => arr.findIndex(x => key(x) === key(row)) === idx)
   .sort((a, b) =>
@@ -182,6 +230,7 @@ console.log("CURRENT MLB PROP DECISION");
 console.log("=========================");
 console.log(`official slips: ${official.length}`);
 console.log(`actionable leans: ${actionableLeans.length}`);
+console.log(`shadow-promoted leans: ${shadowPromotedLeans.length}`);
 console.log(`high-probability avoids: ${highProbAvoids.length}`);
 console.log("");
 
@@ -203,6 +252,17 @@ console.log("ACTIONABLE LEANS");
 console.log("----------------");
 if (actionableLeans.length) {
   for (const row of actionableLeans.slice(0, 8)) {
+    printLeg(row, "-");
+  }
+} else {
+  console.log("none");
+}
+
+console.log("");
+console.log("SHADOW-PROMOTED LEANS");
+console.log("---------------------");
+if (shadowPromotedLeans.length) {
+  for (const row of shadowPromotedLeans.slice(0, 8)) {
     printLeg(row, "-");
   }
 } else {
