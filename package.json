@@ -224,8 +224,9 @@
     "live:tier-report": "node src/live/live-tier-performance-report.cjs",
     "shadow:promote": "node src/research/shadow-promotion-audit.cjs",
     "postgame:decision": "npm run live:resolve -- ${npm_config_date:-$(date +%F)} --quiet && npm run live:grade -- ${npm_config_date:-$(date +%F)} && npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run decision:grade -- ${npm_config_date:-$(date +%F)} && npm run shadow:promote -- ${npm_config_date:-$(date +%F)} && npm run fantasy:readiness",
-    "pregame:decision": "npm run prizepicks && npm run board:rebuild && npm run price:board && npm run picks && npm run decision",
-    "fantasy:readiness": "node src/research/fantasy-readiness-report.cjs"
+    "pregame:decision": "npm run prizepicks && npm run board:rebuild && npm run price:board && npm run picks && npm run decision && npm run production:candidates",
+    "fantasy:readiness": "node src/research/fantasy-readiness-report.cjs",
+    "production:candidates": "node src/research/production-candidate-report.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
