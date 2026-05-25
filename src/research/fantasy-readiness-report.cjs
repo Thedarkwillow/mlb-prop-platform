@@ -191,26 +191,40 @@ function classify(summary, recent7, recent15, recent30) {
   const hitRate = summary.hitRate ?? 0;
   const roi = summary.roi ?? -999;
 
-  const r7roi = recent7.available ? recent7.roi : null;
-  const r15roi = recent15.available ? recent15.roi : null;
-  const r30roi = recent30.available ? recent30.roi : null;
+  const hasRecent7 = recent7.available === true;
+  const hasRecent15 = recent15.available === true;
+  const hasRecent30 = recent30.available === true;
+
+  const r7roi = hasRecent7 ? recent7.roi : null;
+  const r15roi = hasRecent15 ? recent15.roi : null;
+  const r30roi = hasRecent30 ? recent30.roi : null;
 
   const positiveWindows =
-    (r7roi === null || r7roi >= 0) &&
-    (r15roi === null || r15roi >= 0) &&
-    (r30roi === null || r30roi >= 0);
+    hasRecent7 &&
+    hasRecent15 &&
+    hasRecent30 &&
+    r7roi >= 0 &&
+    r15roi >= 0 &&
+    r30roi >= 0;
 
   if (summary.graded >= 300 && hitRate >= 0.57 && roi >= 0.10 && positiveWindows) {
     return {
       status: "OFFICIAL_READY",
-      reason: "300+ graded, 57%+ hit rate, 10%+ ROI, non-negative recent windows"
+      reason: "300+ graded, 57%+ hit rate, 10%+ ROI, positive 7/15/30d windows"
     };
   }
 
-  if (summary.graded >= 100 && hitRate >= 0.55 && roi >= 0.08 && (r7roi === null || r7roi >= 0)) {
+  if (summary.graded >= 100 && hitRate >= 0.55 && roi >= 0.08 && hasRecent7 && r7roi >= 0) {
     return {
       status: "ACTIONABLE_LEAN_READY",
-      reason: "100+ graded, 55%+ hit rate, 8%+ ROI, non-negative 7d"
+      reason: "100+ graded, 55%+ hit rate, 8%+ ROI, positive 7d"
+    };
+  }
+
+  if (summary.graded >= 100 && hitRate >= 0.55 && roi >= 0.08 && !hasRecent7) {
+    return {
+      status: "PROVISIONAL_LEAN_READY",
+      reason: "strong historical bucket but missing dated 7d validation"
     };
   }
 
@@ -295,7 +309,7 @@ const report = {
   exactBuckets,
   promoted: {
     officialReady: exactBuckets.filter(r => r.promotionStatus === "OFFICIAL_READY"),
-    actionableLeanReady: exactBuckets.filter(r => r.promotionStatus === "ACTIONABLE_LEAN_READY")
+    actionableLeanReady: exactBuckets.filter(r => r.promotionStatus === "ACTIONABLE_LEAN_READY"),\n    provisionalLeanReady: exactBuckets.filter(r => r.promotionStatus === "PROVISIONAL_LEAN_READY")
   },
   componentValidationRequired: {
     hitterFantasy: [
