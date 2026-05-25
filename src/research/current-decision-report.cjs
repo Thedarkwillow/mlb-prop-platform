@@ -231,7 +231,7 @@ console.log("=========================");
 console.log(`official slips: ${official.length}`);
 console.log(`actionable leans: ${actionableLeans.length}`);
 console.log(`shadow-promoted leans: ${shadowPromotedLeans.length}`);
-console.log(`high-probability avoids: ${highProbAvoids.length}`);
+console.log(`high-probability watch: ${highProbAvoids.length}`);
 console.log("");
 
 console.log("OFFICIAL PLAYS");
@@ -270,7 +270,7 @@ if (shadowPromotedLeans.length) {
 }
 
 console.log("");
-console.log("HIGH-PROBABILITY AVOIDS");
+console.log("HIGH-PROBABILITY WATCH");
 console.log("-----------------------");
 if (highProbAvoids.length) {
   for (const row of highProbAvoids.slice(0, 8)) {
