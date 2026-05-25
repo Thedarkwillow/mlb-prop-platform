@@ -309,7 +309,8 @@ const report = {
   exactBuckets,
   promoted: {
     officialReady: exactBuckets.filter(r => r.promotionStatus === "OFFICIAL_READY"),
-    actionableLeanReady: exactBuckets.filter(r => r.promotionStatus === "ACTIONABLE_LEAN_READY"),\n    provisionalLeanReady: exactBuckets.filter(r => r.promotionStatus === "PROVISIONAL_LEAN_READY")
+    actionableLeanReady: exactBuckets.filter(r => r.promotionStatus === "ACTIONABLE_LEAN_READY"),
+    provisionalLeanReady: exactBuckets.filter(r => r.promotionStatus === "PROVISIONAL_LEAN_READY")
   },
   componentValidationRequired: {
     hitterFantasy: [
