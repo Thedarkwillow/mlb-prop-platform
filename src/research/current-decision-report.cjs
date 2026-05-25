@@ -13,60 +13,194 @@ function pct(v) {
   return Number.isFinite(n) ? `${(n * 100).toFixed(2)}%` : "n/a";
 }
 
+function num(v, fallback = null) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function key(row) {
+  return [
+    row.player || "",
+    row.market || "",
+    row.side || "",
+    String(row.line ?? "")
+  ].join("|");
+}
+
+function compactPick(row) {
+  return `${row.market || "?"} ${row.side || "?"} ${row.line ?? "?"}`;
+}
+
+function getSideBias(row) {
+  return row.fullBoardSideBias || row.sideBias || {};
+}
+
+function isNegativeMoreSide(row) {
+  const side = String(row.side || "").toUpperCase();
+  const sideBias = getSideBias(row);
+  return side === "MORE" && (
+    sideBias.tier === "NEGATIVE" ||
+    Number(sideBias.roi) < 0 ||
+    (Array.isArray(row.leanNotes) && row.leanNotes.some(n => String(n).includes("negative_full_board_more_side")))
+  );
+}
+
+function isFade(row) {
+  return String(row.grade || row.qualityGrade || "").toUpperCase() === "FADE";
+}
+
+function isActionableLean(row) {
+  const prob = num(row.prob);
+  const edge = num(row.edge);
+  const books = num(row.books ?? row.sportsbookBookCount, 0);
+  const support = String(row.support || row.marketSupportFlag || "").toUpperCase();
+  const sideBias = getSideBias(row);
+  const sideBiasTier = String(sideBias.tier || "").toUpperCase();
+  const sideBiasRoi = num(sideBias.roi, null);
+
+  if (prob === null || edge === null) return false;
+  if (isFade(row)) return false;
+  if (isNegativeMoreSide(row)) return false;
+
+  const supportOk = support === "OK" || books >= 2;
+  const sideBiasOk =
+    sideBiasTier === "STRONG_POSITIVE" ||
+    sideBiasTier === "POSITIVE" ||
+    sideBiasTier === "NEUTRAL" ||
+    sideBiasTier === "" ||
+    sideBiasRoi === null ||
+    sideBiasRoi >= 0;
+
+  if (!supportOk || !sideBiasOk) return false;
+
+  if (prob >= 0.54 && edge >= 0.05) return true;
+  if (prob >= 0.53 && edge >= 0.075 && sideBiasTier.includes("POSITIVE")) return true;
+
+  return false;
+}
+
+function printLeg(row, prefix = "-") {
+  const sideBias = getSideBias(row);
+  const grade = row.grade || row.qualityGrade || "n/a";
+  const support = row.support || row.marketSupportFlag || "n/a";
+  const books = row.books ?? row.sportsbookBookCount ?? "n/a";
+
+  console.log(
+    `${prefix} ${row.player} | ${row.team || ""} | ${compactPick(row)} | ` +
+    `${row.oddsTier || "standard"} | prob=${pct(row.prob)} | edge=${pct(row.edge)} | ` +
+    `books=${books} | support=${support} | grade=${grade} | ` +
+    `sideBias=${sideBias.tier || "n/a"} | sideROI=${pct(sideBias.roi)}`
+  );
+
+  if (Array.isArray(row.leanNotes) && row.leanNotes.length) {
+    console.log(`  notes: ${row.leanNotes.join(", ")}`);
+  }
+
+  if (row.reason || row.disabledReason) {
+    console.log(`  blockedReason: ${row.reason || row.disabledReason}`);
+  }
+}
+
 const official = readJson("outputs/playable-final-slips.json", []);
 const leanReport = readJson("outputs/lean-final-slips.json", {});
-const blocked = readJson("outputs/blocked-final-candidates.json", []);
+const blockedRaw = readJson("outputs/blocked-final-candidates.json", []);
+const enriched = readJson("outputs/slips-distribution-enriched.json", []);
+
+const enrichedByKey = new Map(enriched.map(row => [key(row), row]));
 
 const leans = Array.isArray(leanReport.leans) ? leanReport.leans : [];
+
+const blocked = blockedRaw.map(row => {
+  const e = enrichedByKey.get(key(row)) || {};
+  return {
+    ...e,
+    ...row,
+    team: e.team ?? row.team,
+    game: e.game ?? row.game,
+    oddsTier: e.oddsTier ?? row.oddsTier,
+    prob: row.prob ?? e.calibratedDistributionProb ?? e.prob ?? e.recommendedProb,
+    edge: row.edge ?? e.sportsbookAdjustedEdge ?? e.sportsbookEdge,
+    books: e.sportsbookBookCount ?? row.books,
+    support: e.marketSupportFlag ?? row.support,
+    grade: e.qualityGrade ?? row.grade,
+    fullBoardSideBias: e.fullBoardSideBias ?? row.fullBoardSideBias,
+    projection: e.projection ?? row.projection,
+    contextAdjustedProjection: e.contextAdjustedProjection ?? row.contextAdjustedProjection
+  };
+});
+
+const actionableLeans = [
+  ...leans,
+  ...blocked.filter(isActionableLean)
+]
+  .filter((row, idx, arr) => arr.findIndex(x => key(x) === key(row)) === idx)
+  .sort((a, b) =>
+    (num(b.prob, 0) - num(a.prob, 0)) ||
+    (num(b.edge, 0) - num(a.edge, 0))
+  );
+
+const highProbAvoids = blocked
+  .filter(row => num(row.prob, 0) >= 0.62 && (isFade(row) || isNegativeMoreSide(row)))
+  .sort((a, b) =>
+    (num(b.prob, 0) - num(a.prob, 0)) ||
+    (num(b.edge, 0) - num(a.edge, 0))
+  );
+
+const topBlocked = blocked
+  .sort((a, b) =>
+    (num(b.prob, 0) - num(a.prob, 0)) ||
+    (num(b.edge, 0) - num(a.edge, 0))
+  );
 
 console.log("CURRENT MLB PROP DECISION");
 console.log("=========================");
 console.log(`official slips: ${official.length}`);
-console.log(`leans: ${leans.length}`);
+console.log(`actionable leans: ${actionableLeans.length}`);
+console.log(`high-probability avoids: ${highProbAvoids.length}`);
 console.log("");
 
+console.log("OFFICIAL PLAYS");
+console.log("--------------");
 if (official.length) {
-  console.log("OFFICIAL PLAYS");
-  console.log("--------------");
   for (const slip of official) {
     console.log(`${slip.name || "slip"} | ${slip.status || ""} | EV=${slip.trueEVPct ?? "n/a"}`);
     for (const leg of slip.legs || []) {
-      console.log(`- ${leg.player} | ${leg.market} ${leg.side} ${leg.line} | prob=${pct(leg.prob)} | edge=${pct(leg.edge)}`);
+      printLeg(leg, "-");
     }
   }
 } else {
-  console.log("OFFICIAL PLAYS");
-  console.log("--------------");
   console.log("none");
 }
 
 console.log("");
-console.log("BEST LEANS");
-console.log("----------");
-
-if (!leans.length) {
-  console.log("none");
-} else {
-  for (const l of leans.slice(0, 5)) {
-    const sideBias = l.fullBoardSideBias || {};
-    console.log(
-      `- ${l.player} | ${l.team || ""} | ${l.market} ${l.side} ${l.line} | ` +
-      `${l.oddsTier || "standard"} | prob=${pct(l.prob)} | edge=${pct(l.edge)} | ` +
-      `support=${l.support || "n/a"} | sideBias=${sideBias.tier || "n/a"} | sideROI=${pct(sideBias.roi)}`
-    );
-    if (Array.isArray(l.leanNotes) && l.leanNotes.length) {
-      console.log(`  notes: ${l.leanNotes.join(", ")}`);
-    }
+console.log("ACTIONABLE LEANS");
+console.log("----------------");
+if (actionableLeans.length) {
+  for (const row of actionableLeans.slice(0, 8)) {
+    printLeg(row, "-");
   }
+} else {
+  console.log("none");
+}
+
+console.log("");
+console.log("HIGH-PROBABILITY AVOIDS");
+console.log("-----------------------");
+if (highProbAvoids.length) {
+  for (const row of highProbAvoids.slice(0, 8)) {
+    printLeg(row, "-");
+  }
+} else {
+  console.log("none");
 }
 
 console.log("");
 console.log("TOP BLOCKED");
 console.log("-----------");
-
-for (const b of blocked.slice(0, 10)) {
-  console.log(
-    `- ${b.player} | ${b.market} ${b.side} ${b.line} | ` +
-    `prob=${pct(b.prob)} | edge=${pct(b.edge)} | reason=${b.reason || b.disabledReason || "n/a"}`
-  );
+if (topBlocked.length) {
+  for (const row of topBlocked.slice(0, 10)) {
+    printLeg(row, "-");
+  }
+} else {
+  console.log("none");
 }
