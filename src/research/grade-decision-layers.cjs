@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { execFileSync } = require("child_process");
 
 const date =
   process.argv[2] ||
@@ -14,6 +15,8 @@ const FILES = {
   allMarkets: "outputs/all-markets-graded.json",
   gradedResults: "outputs/graded-results.json",
   liveGraded: `outputs/live/mlb-live-inning-graded-${date}.json`,
+  pricedBoard: "outputs/priced-board.json",
+  finalSlips: `outputs/final-slips-${date}.json`,
   out: `outputs/history/${date}-decision-layer-grades.json`,
   latest: "outputs/decision-layer-grades-latest.json"
 };
@@ -194,6 +197,115 @@ function resolveSameMarketActual(row, indexes) {
   return matches.find(r => getActual(r) !== null) || null;
 }
 
+
+function normalizeName(v) {
+  return String(v ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function parseIpToOuts(ip) {
+  if (ip === null || ip === undefined) return null;
+  const text = String(ip).trim();
+  if (!text) return null;
+
+  const [wholeRaw, fracRaw = "0"] = text.split(".");
+  const whole = Number(wholeRaw);
+  const frac = Number(fracRaw);
+
+  if (!Number.isFinite(whole) || !Number.isFinite(frac)) return null;
+  if (![0, 1, 2].includes(frac)) return null;
+
+  return whole * 3 + frac;
+}
+
+function readUrlJson(url) {
+  try {
+    const raw = execFileSync("curl", ["-fsSL", url], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      timeout: 15000
+    });
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function findGamePkForDecisionRow(row) {
+  const targetPlayer = normalizeName(getPlayer(row));
+  const targetGame = norm(row.game || row.matchup || "");
+
+  const localSources = [
+    flattenRows(readJson(FILES.pricedBoard, [])),
+    flattenRows(readJson(FILES.finalSlips, [])),
+    flattenRows(readJson(FILES.lean, [])),
+    flattenRows(readJson(FILES.production, {}))
+  ];
+
+  for (const rows of localSources) {
+    for (const r of rows) {
+      if (normalizeName(getPlayer(r)) !== targetPlayer) continue;
+
+      const gp = r.gamePk || r.gamePK || r.mlbGamePk || r.mlb_game_pk;
+      if (gp) return gp;
+
+      const rg = norm(r.game || r.matchup || "");
+      if (targetGame && rg && rg === targetGame) {
+        const maybe = r.gamePk || r.gamePK || r.mlbGamePk || r.mlb_game_pk;
+        if (maybe) return maybe;
+      }
+    }
+  }
+
+  return null;
+}
+
+function resolvePitchingOutsFromMlbBoxscore(row) {
+  const k = keyParts(row);
+  if (k.market !== "pitching_outs") return null;
+
+  const gamePk = findGamePkForDecisionRow(row);
+  if (!gamePk) return null;
+
+  const box = readUrlJson(`https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore`);
+  if (!box?.teams) return null;
+
+  const target = normalizeName(getPlayer(row));
+
+  for (const side of ["home", "away"]) {
+    const players = box.teams?.[side]?.players || {};
+    for (const player of Object.values(players)) {
+      const name = normalizeName(player?.person?.fullName);
+      if (name !== target) continue;
+
+      const ip =
+        player?.stats?.pitching?.inningsPitched ??
+        player?.stats?.pitching?.ip ??
+        null;
+
+      const outs = parseIpToOuts(ip);
+      if (outs === null) return null;
+
+      return {
+        player: getPlayer(row),
+        market: "pitching_outs",
+        side: getSide(row),
+        line: getLine(row),
+        actual: outs,
+        gamePk,
+        inningsPitched: ip,
+        __source: `mlb_boxscore:${gamePk}:pitching_outs`
+      };
+    }
+  }
+
+  return null;
+}
+
 function resolveBasesFromHits(row, indexes) {
   const k = keyParts(row);
   if (k.market !== "bases") return null;
@@ -236,6 +348,16 @@ function resolveDecisionRow(row, indexes) {
   if (k.market === "bases" && num(k.line, null) === 0.5) {
     const basesFromHits = resolveBasesFromHits(row, indexes);
     if (basesFromHits) return { match: basesFromHits, method: "derived_bases_from_hits" };
+  }
+
+  /*
+    Pitching outs fallback:
+    MLB innings pitched converts directly to outs.
+    5.0 IP = 15 outs, 5.1 IP = 16 outs, 5.2 IP = 17 outs.
+  */
+  if (k.market === "pitching_outs") {
+    const pitchingOuts = resolvePitchingOutsFromMlbBoxscore(row);
+    if (pitchingOuts) return { match: pitchingOuts, method: "mlb_boxscore_pitching_outs" };
   }
 
   const exact = resolveExact(row, indexes);
