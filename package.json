@@ -228,7 +228,8 @@
     "fantasy:readiness": "node src/research/fantasy-readiness-report.cjs",
     "production:candidates": "node src/research/production-candidate-report.cjs",
     "side-bias:watch": "node src/research/side-bias-override-watch.cjs",
-    "singles:readiness": "node src/research/singles-readiness-report.cjs"
+    "singles:readiness": "node src/research/singles-readiness-report.cjs",
+    "promotion:audit": "node src/research/promotion-audit-report.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
