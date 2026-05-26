@@ -6,10 +6,17 @@ const date =
   process.env.npm_config_date ||
   new Date().toISOString().slice(0, 10);
 
-const DECISION = "outputs/lean-final-slips.json";
-const FULL_BOARD = `outputs/history/${date}-full-board-graded.json`;
-const OUT = `outputs/history/${date}-decision-layer-grades.json`;
-const LATEST = "outputs/decision-layer-grades-latest.json";
+const FILES = {
+  lean: "outputs/lean-final-slips.json",
+  production: "outputs/production-candidates.json",
+  sideBiasWatch: "outputs/side-bias-override-watch-latest.json",
+  fullBoard: `outputs/history/${date}-full-board-graded.json`,
+  allMarkets: "outputs/all-markets-graded.json",
+  gradedResults: "outputs/graded-results.json",
+  liveGraded: `outputs/live/mlb-live-inning-graded-${date}.json`,
+  out: `outputs/history/${date}-decision-layer-grades.json`,
+  latest: "outputs/decision-layer-grades-latest.json"
+};
 
 function readJson(file, fallback) {
   try {
@@ -28,124 +35,392 @@ function norm(v) {
   return String(v ?? "").trim().toLowerCase();
 }
 
+function upper(v) {
+  return String(v ?? "").trim().toUpperCase();
+}
+
 function num(v, fallback = null) {
   const n = Number(v);
   return Number.isFinite(n) ? n : fallback;
 }
 
-function pickKey(row) {
-  return [
-    norm(row.player),
-    norm(row.market),
-    norm(row.side),
-    String(row.line ?? "")
-  ].join("|");
+function firstNumber(...vals) {
+  for (const v of vals) {
+    const n = num(v, null);
+    if (n !== null) return n;
+  }
+  return null;
+}
+
+function getPlayer(row) {
+  return row.player || row.name || row.playerName || row.player_name || row.description || "";
+}
+
+function getMarket(row) {
+  return row.market || row.statType || row.stat_type || row.type || row.normalizedMarket || "";
+}
+
+function getSide(row) {
+  return upper(row.side || row.direction || row.pick || row.recommendation || "");
+}
+
+function getLine(row) {
+  return firstNumber(row.line, row.ppLine, row.projectionLine, row.targetLine);
+}
+
+function getActual(row) {
+  return firstNumber(
+    row.actual,
+    row.actualValue,
+    row.resultValue,
+    row.stat,
+    row.final,
+    row.value,
+    row.boxscoreActual,
+    row.gradedActual
+  );
+}
+
+function getResult(row) {
+  return upper(row.result || row.outcome || row.gradeResult || row.status || "");
+}
+
+function keyParts(row) {
+  return {
+    player: norm(getPlayer(row)),
+    market: norm(getMarket(row)),
+    side: getSide(row),
+    line: getLine(row)
+  };
+}
+
+function exactKey(row) {
+  const k = keyParts(row);
+  return [k.player, k.market, k.side, String(k.line ?? "")].join("|");
+}
+
+function playerMarketKey(row) {
+  const k = keyParts(row);
+  return [k.player, k.market].join("|");
+}
+
+function playerKey(row) {
+  return norm(getPlayer(row));
+}
+
+function gradeByActual(side, line, actual) {
+  const s = upper(side);
+  const l = num(line, null);
+  const a = num(actual, null);
+
+  if (!s || l === null || a === null) return "UNMATCHED";
+  if (a === l) return "PUSH";
+  if (s === "MORE") return a > l ? "HIT" : "MISS";
+  if (s === "LESS") return a < l ? "HIT" : "MISS";
+  return "UNMATCHED";
+}
+
+function normalizeRows(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  if (Array.isArray(raw.rows)) return raw.rows;
+  if (Array.isArray(raw.graded)) return raw.graded;
+  if (Array.isArray(raw.results)) return raw.results;
+  if (Array.isArray(raw.props)) return raw.props;
+  if (Array.isArray(raw.data)) return raw.data;
+  return [];
+}
+
+function flattenRows(raw) {
+  const rows = normalizeRows(raw);
+  const out = [];
+
+  for (const row of rows) {
+    out.push(row);
+
+    if (row && typeof row === "object") {
+      for (const k of ["legs", "entries", "props", "rows", "results"]) {
+        if (Array.isArray(row[k])) {
+          for (const child of row[k]) out.push({ ...child, parent: row.name || row.id || null });
+        }
+      }
+    }
+  }
+
+  return out;
+}
+
+function buildIndexes(sources) {
+  const exact = new Map();
+  const byPlayerMarket = new Map();
+  const byPlayer = new Map();
+
+  for (const source of sources) {
+    for (const raw of source.rows) {
+      const row = { ...raw, __source: source.name };
+      const player = norm(getPlayer(row));
+      const market = norm(getMarket(row));
+      if (!player) continue;
+
+      const eKey = exactKey(row);
+      if (!exact.has(eKey)) exact.set(eKey, []);
+      exact.get(eKey).push(row);
+
+      if (market) {
+        const pmKey = playerMarketKey(row);
+        if (!byPlayerMarket.has(pmKey)) byPlayerMarket.set(pmKey, []);
+        byPlayerMarket.get(pmKey).push(row);
+      }
+
+      if (!byPlayer.has(player)) byPlayer.set(player, []);
+      byPlayer.get(player).push(row);
+    }
+  }
+
+  return { exact, byPlayerMarket, byPlayer };
+}
+
+function usableActualRow(row) {
+  return getActual(row) !== null || ["HIT", "MISS", "PUSH"].includes(getResult(row));
+}
+
+function resolveExact(row, indexes) {
+  const matches = indexes.exact.get(exactKey(row)) || [];
+  return matches.find(usableActualRow) || null;
+}
+
+function resolveSameMarketActual(row, indexes) {
+  const matches = indexes.byPlayerMarket.get(playerMarketKey(row)) || [];
+  return matches.find(r => getActual(r) !== null) || null;
+}
+
+function resolveBasesFromHits(row, indexes) {
+  const k = keyParts(row);
+  if (k.market !== "bases") return null;
+
+  const hitRows = indexes.byPlayerMarket.get([k.player, "hits"].join("|")) || [];
+  const hitActualRow = hitRows.find(r => getActual(r) !== null);
+
+  if (!hitActualRow) return null;
+
+  const hitsActual = getActual(hitActualRow);
+  if (hitsActual === null) return null;
+
+  /*
+    Conservative derived fallback:
+    If hits == 0, bases is definitely 0.
+    If hits > 0, bases is at least 1.
+    This is enough to grade bases MORE 0.5 and bases LESS 0.5.
+    It is not used for higher bases lines.
+  */
+  if (num(row.line, null) === 0.5) {
+    return {
+      ...hitActualRow,
+      market: "bases",
+      actual: hitsActual > 0 ? 1 : 0,
+      __source: `${hitActualRow.__source}:derived_bases_from_hits`
+    };
+  }
+
+  return null;
+}
+
+function resolveDecisionRow(row, indexes) {
+  const k = keyParts(row);
+
+  /*
+    For bases 0.5, hits actual is the safest fallback.
+    One hit guarantees at least one total base.
+    Prefer this before exact stale all-markets bases rows.
+  */
+  if (k.market === "bases" && num(k.line, null) === 0.5) {
+    const basesFromHits = resolveBasesFromHits(row, indexes);
+    if (basesFromHits) return { match: basesFromHits, method: "derived_bases_from_hits" };
+  }
+
+  const exact = resolveExact(row, indexes);
+  if (exact) return { match: exact, method: "exact_player_market_side_line" };
+
+  const sameMarket = resolveSameMarketActual(row, indexes);
+  if (sameMarket) return { match: sameMarket, method: "same_player_market_actual" };
+
+  const basesFromHits = resolveBasesFromHits(row, indexes);
+  if (basesFromHits) return { match: basesFromHits, method: "derived_bases_from_hits" };
+
+  return { match: null, method: "unmatched" };
+}
+
+function compactRow(layer, row, indexes) {
+  const resolved = resolveDecisionRow(row, indexes);
+  const actual = resolved.match ? getActual(resolved.match) : null;
+  const line = getLine(row);
+  const side = getSide(row);
+  let result = "UNMATCHED";
+
+  if (resolved.match) {
+    const directResult = getResult(resolved.match);
+    if (resolved.method === "exact_player_market_side_line" && ["HIT", "MISS", "PUSH"].includes(directResult)) {
+      result = directResult;
+    } else {
+      result = gradeByActual(side, line, actual);
+    }
+  }
+
+  return {
+    layer,
+    player: getPlayer(row),
+    team: row.team || row.teamAbbr || row.team_abbr || null,
+    game: row.game || row.matchup || null,
+    market: getMarket(row),
+    side,
+    line,
+    tier: row.oddsTier || row.tier || null,
+    prob: firstNumber(row.prob, row.calibratedDistributionProb, row.recommendedProb),
+    edge: firstNumber(row.edge, row.sportsbookAdjustedEdge, row.sportsbookEdge),
+    books: firstNumber(row.books, row.sportsbookBookCount),
+    support: row.support || row.marketSupportFlag || null,
+    grade: row.grade || row.qualityGrade || null,
+    sideBias: row.sideBias?.tier || row.fullBoardSideBias?.tier || row.sideBias || null,
+    blockedReason: row.blockedReason || row.reason || null,
+    result,
+    actual,
+    matchMethod: resolved.method,
+    matchedSource: resolved.match?.__source || null,
+    matchedMarket: resolved.match ? getMarket(resolved.match) : null,
+    matchedSide: resolved.match ? getSide(resolved.match) : null,
+    matchedLine: resolved.match ? getLine(resolved.match) : null
+  };
 }
 
 function summarize(rows) {
-  const graded = rows.filter(r => r.result === "HIT" || r.result === "MISS" || r.result === "PUSH");
+  const graded = rows.filter(r => ["HIT", "MISS", "PUSH"].includes(r.result));
   const hits = graded.filter(r => r.result === "HIT").length;
   const misses = graded.filter(r => r.result === "MISS").length;
   const pushes = graded.filter(r => r.result === "PUSH").length;
-  const decisions = hits + misses;
-  const profit = hits - misses;
+  const unmatched = rows.filter(r => r.result === "UNMATCHED").length;
+  const denom = hits + misses;
+
   return {
     rows: rows.length,
     graded: graded.length,
     hits,
     misses,
     pushes,
-    pending: rows.filter(r => r.result === "PENDING").length,
-    unmatched: rows.filter(r => r.result === "UNMATCHED").length,
-    hitRate: decisions ? Number((hits / decisions).toFixed(4)) : null,
-    roi: decisions ? Number((profit / decisions).toFixed(4)) : null
+    unmatched,
+    hitRate: denom ? Number((hits / denom).toFixed(4)) : null,
+    roi: denom ? Number(((hits - misses) / denom).toFixed(4)) : null
   };
 }
 
-function withGrade(row, layer, gradedByKey) {
-  const match = gradedByKey.get(pickKey(row));
-  return {
-    layer,
-    player: row.player,
-    team: row.team ?? null,
-    game: row.game ?? null,
-    market: row.market,
-    side: row.side,
-    line: row.line,
-    oddsTier: row.oddsTier ?? "standard",
-    prob: num(row.prob),
-    edge: num(row.edge),
-    support: row.support ?? row.marketSupportFlag ?? null,
-    grade: row.grade ?? row.qualityGrade ?? null,
-    sideBias: row.fullBoardSideBias ?? row.sideBias ?? null,
-    result: match?.result ?? "UNMATCHED",
-    actual: match?.actual ?? null,
-    source: match?.source ?? null
-  };
+function asArray(v) {
+  return Array.isArray(v) ? v : [];
 }
 
-const decision = readJson(DECISION, {});
-const fullBoard = readJson(FULL_BOARD, []);
-
-const leans = Array.isArray(decision.leans) ? decision.leans : [];
-const trackOnly = Array.isArray(decision.trackOnly) ? decision.trackOnly : [];
-
-const gradedByKey = new Map();
-for (const row of fullBoard) {
-  gradedByKey.set(pickKey(row), row);
+function classOf(row) {
+  return String(row.class || row.candidateClass || row.bucket || row.status || "").toUpperCase();
 }
 
-const leanRows = leans.map(r => withGrade(r, "ACTIONABLE_LEAN", gradedByKey));
+function pushUnique(rows, layer, sourceRows) {
+  for (const r of asArray(sourceRows)) rows.push({ layer, row: r });
+}
 
-const avoidRows = trackOnly
-  .filter(r => {
-    const notes = Array.isArray(r.leanNotes) ? r.leanNotes.join(" ").toLowerCase() : "";
-    const side = norm(r.side);
-    return (
-      notes.includes("negative_full_board_more_side") ||
-      notes.includes("full_board_side_bias_negative") ||
-      String(r.grade || r.qualityGrade || "").toUpperCase() === "FADE" ||
-      (side === "more" && r.fullBoardSideBias && Number(r.fullBoardSideBias.roi) < 0)
-    );
-  })
-  .map(r => withGrade(r, "AVOID", gradedByKey));
+function pickRows() {
+  const leanReport = readJson(FILES.lean, {});
+  const production = readJson(FILES.production, {});
+  const sideBiasWatch = readJson(FILES.sideBiasWatch, {});
 
-const rows = [...leanRows, ...avoidRows];
+  const rows = [];
 
-const report = {
+  pushUnique(rows, "ACTIONABLE_LEAN", leanReport.leans);
+
+  pushUnique(rows, "CORE", production.core);
+  pushUnique(rows, "CORE", production.coreCandidates);
+
+  pushUnique(rows, "WATCHLIST", production.watchlist);
+  pushUnique(rows, "WATCHLIST", production.watchlistCandidates);
+
+  pushUnique(rows, "HIGH_PROBABILITY_WATCH", production.highProbabilityWatch);
+  pushUnique(rows, "HIGH_PROBABILITY_WATCH", production.highProbabilityWatchCandidates);
+
+  pushUnique(rows, "BLOCKED", production.blocked);
+  pushUnique(rows, "BLOCKED", production.blockedCandidates);
+
+  pushUnique(rows, "SIDE_BIAS_OVERRIDE_WATCH", sideBiasWatch.watch);
+
+  const allRows = [
+    ...asArray(production.all),
+    ...asArray(production.candidates),
+    ...asArray(production.rows)
+  ];
+
+  for (const r of allRows) {
+    const c = classOf(r);
+    if (c === "CORE") rows.push({ layer: "CORE", row: r });
+    else if (c === "WATCHLIST") rows.push({ layer: "WATCHLIST", row: r });
+    else if (c === "HIGH_PROBABILITY_WATCH") rows.push({ layer: "HIGH_PROBABILITY_WATCH", row: r });
+    else if (c === "BLOCKED") rows.push({ layer: "BLOCKED", row: r });
+    else if (c === "RESEARCH") rows.push({ layer: "RESEARCH", row: r });
+  }
+
+  const seen = new Set();
+  return rows.filter(({ layer, row }) => {
+    const k = [layer, exactKey(row)].join("|");
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
+const sources = [
+  { name: FILES.fullBoard, rows: flattenRows(readJson(FILES.fullBoard, [])) },
+  { name: FILES.allMarkets, rows: flattenRows(readJson(FILES.allMarkets, [])) },
+  { name: FILES.gradedResults, rows: flattenRows(readJson(FILES.gradedResults, [])) },
+  { name: FILES.liveGraded, rows: flattenRows(readJson(FILES.liveGraded, [])) }
+];
+
+const indexes = buildIndexes(sources);
+const decisionInputs = pickRows();
+const rows = decisionInputs.map(({ layer, row }) => compactRow(layer, row, indexes));
+
+const byLayer = {};
+for (const r of rows) {
+  if (!byLayer[r.layer]) byLayer[r.layer] = [];
+  byLayer[r.layer].push(r);
+}
+
+const summary = Object.fromEntries(
+  Object.entries(byLayer).map(([layer, layerRows]) => [layer, summarize(layerRows)])
+);
+
+const output = {
   date,
   generatedAt: new Date().toISOString(),
-  source: {
-    decision: DECISION,
-    fullBoard: FULL_BOARD
-  },
-  summary: {
-    actionableLean: summarize(leanRows),
-    avoid: summarize(avoidRows),
-    all: summarize(rows)
-  },
+  files: FILES,
+  sourceCounts: Object.fromEntries(sources.map(s => [s.name, s.rows.length])),
+  summary,
   rows
 };
 
-writeJson(OUT, report);
-writeJson(LATEST, report);
+writeJson(FILES.out, output);
+writeJson(FILES.latest, output);
 
 console.log("DECISION LAYER GRADES");
 console.log("---------------------");
 console.log("date:", date);
-console.log("actionable lean:", report.summary.actionableLean);
-console.log("avoid:", report.summary.avoid);
+console.log("sourceCounts:", output.sourceCounts);
+console.log(summary);
 console.table(rows.map(r => ({
   layer: r.layer,
   player: r.player,
   market: r.market,
   side: r.side,
   line: r.line,
-  tier: r.oddsTier,
   prob: r.prob,
   edge: r.edge,
   result: r.result,
-  actual: r.actual
+  actual: r.actual,
+  method: r.matchMethod,
+  source: r.matchedSource
 })));
-console.log("saved:", OUT);
-console.log("saved:", LATEST);
+console.log("saved:", FILES.out);
+console.log("saved:", FILES.latest);
