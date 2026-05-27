@@ -230,7 +230,8 @@
     "side-bias:watch": "node src/research/side-bias-override-watch.cjs",
     "singles:readiness": "node src/research/singles-readiness-report.cjs",
     "promotion:audit": "node src/research/promotion-audit-report.cjs",
-    "fantasy:less:direct": "node src/research/direct-fantasy-less-tracker.cjs"
+    "fantasy:less:direct": "node src/research/direct-fantasy-less-tracker.cjs",
+    "sales:readiness": "node src/research/sales-readiness-report.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
