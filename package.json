@@ -229,7 +229,8 @@
     "production:candidates": "node src/research/production-candidate-report.cjs",
     "side-bias:watch": "node src/research/side-bias-override-watch.cjs",
     "singles:readiness": "node src/research/singles-readiness-report.cjs",
-    "promotion:audit": "node src/research/promotion-audit-report.cjs"
+    "promotion:audit": "node src/research/promotion-audit-report.cjs",
+    "fantasy:less:direct": "node src/research/direct-fantasy-less-tracker.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
