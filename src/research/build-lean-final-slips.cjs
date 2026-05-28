@@ -7,6 +7,7 @@ const FINAL = "outputs/final-slips.json";
 const BLOCKED = "outputs/blocked-final-candidates.json";
 const ENRICHED = "outputs/slips-distribution-enriched.json";
 const PRICED = "outputs/slips-priced.json";
+const SPORTSBOOK_BOARD = "outputs/sportsbook-enriched-board.json";
 const FULL_BOARD_LEARNING = "data/learning/full-board-market-learning.json";
 const OUT = "outputs/lean-final-slips.json";
 const OUT_DATED = `outputs/lean-final-slips-${date}.json`;
@@ -262,6 +263,32 @@ function officialThreshold(row) {
   return 0.56;
 }
 
+
+function isControlledHrrLess(row) {
+  const market = lower(row.market);
+  const side = lower(row.side);
+  const tier = getTier(row);
+  const prob = getProb(row);
+  const edge = getEdge(row);
+  const books = getBooks(row);
+  const support = getSupport(row);
+  const grade = str(row.grade ?? "").toUpperCase();
+
+  return (
+    market === "hrr" &&
+    side === "less" &&
+    tier === "standard" &&
+    prob !== null &&
+    prob >= 0.60 &&
+    edge !== null &&
+    edge >= 0.05 &&
+    books !== null &&
+    books >= 2 &&
+    support === "OK" &&
+    grade !== "FADE"
+  );
+}
+
 function classifyLean(row) {
   const prob = getProb(row);
   const edge = getEdge(row);
@@ -307,6 +334,27 @@ function classifyLean(row) {
   const threshold = officialThreshold(row);
   const withinTinyMargin = prob >= threshold - 0.005;
   const lineHalf = line === 0.5;
+
+  if (isControlledHrrLess(row)) {
+    return {
+      eligible: true,
+      tier: "HRR_CONTROLLED_WATCHLIST",
+      notes: [
+        ...notes,
+        "controlled_hrr_less_standard_only",
+        "not_official_core",
+        "track_3_to_5_slates_before_unlock"
+      ]
+    };
+  }
+
+  if (market === "hrr") {
+    return {
+      eligible: false,
+      tier: "TRACK_ONLY",
+      notes: [...notes, "hrr_not_official_core", "hrr_more_blocked_or_hrr_less_below_controlled_threshold"]
+    };
+  }
 
   if (tier === "goblin") {
     if (prob >= 0.715 && lineHalf && !hasHardBan(row)) {
@@ -412,7 +460,8 @@ const topLegs = Array.isArray(final.topLegs) ? final.topLegs : [];
 const blocked = readJson(BLOCKED, []);
 const enrichmentRows = [
   ...readJson(ENRICHED, []),
-  ...readJson(PRICED, [])
+  ...readJson(PRICED, []),
+  ...readJson(SPORTSBOOK_BOARD, [])
 ];
 const enrichmentIndex = buildEnrichmentIndex(enrichmentRows);
 

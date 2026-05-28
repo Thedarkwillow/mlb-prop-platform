@@ -12,7 +12,8 @@ const SOURCES = {
   playable: "outputs/playable-final-slips.json",
   shadowPromotion: "outputs/shadow-promotion-audit-latest.json",
   fantasyReadiness: "outputs/fantasy-readiness-report.json",
-  fullBoardLearning: "data/learning/full-board-market-learning.json"
+  fullBoardLearning: "data/learning/full-board-market-learning.json",
+  sportsbookBoard: "outputs/sportsbook-enriched-board.json"
 };
 
 function readJson(file, fallback) {
@@ -206,6 +207,32 @@ function cleanRow(row, classification, reasons, fullBoardByMarketSide) {
   };
 }
 
+
+function isControlledHrrLess(row) {
+  const market = lower(row.market);
+  const side = upper(row.side);
+  const tier = getTier(row);
+  const prob = getProb(row);
+  const edge = getEdge(row);
+  const books = getBooks(row);
+  const support = getSupport(row);
+  const grade = getGrade(row);
+
+  return (
+    market === "hrr" &&
+    side === "LESS" &&
+    tier === "standard" &&
+    prob !== null &&
+    prob >= 0.60 &&
+    edge !== null &&
+    edge >= 0.05 &&
+    books !== null &&
+    books >= 2 &&
+    support === "OK" &&
+    grade !== "FADE"
+  );
+}
+
 function classify(row, lookups) {
   const prob = getProb(row);
   const edge = getEdge(row);
@@ -227,6 +254,29 @@ function classify(row, lookups) {
 
   if (isLiveMicro(row)) {
     return { classification: "RESEARCH", reasons: ["live_micro_tracking_only"] };
+  }
+
+  if (market === "hrr" && side === "MORE") {
+    return { classification: "BLOCKED", reasons: ["hrr_more_blocked"] };
+  }
+
+  if (isControlledHrrLess(row)) {
+    return {
+      classification: "WATCHLIST",
+      reasons: [
+        "HRR_CONTROLLED_WATCHLIST",
+        "standard_hrr_less_only",
+        "not_official_core",
+        "track_3_to_5_slates_before_unlock"
+      ]
+    };
+  }
+
+  if (market === "hrr") {
+    return {
+      classification: "RESEARCH",
+      reasons: ["hrr_tracking_only_until_controlled_thresholds_clear"]
+    };
   }
 
   if (isFantasy(row)) {
@@ -320,6 +370,7 @@ function classify(row, lookups) {
 const enriched = readJson(SOURCES.enriched, []);
 const leanReport = readJson(SOURCES.leans, {});
 const blockedRaw = readJson(SOURCES.blocked, []);
+const sportsbookBoard = readJson(SOURCES.sportsbookBoard, []);
 const playable = readJson(SOURCES.playable, []);
 const shadowPromotion = readJson(SOURCES.shadowPromotion, {});
 const fantasyReadiness = readJson(SOURCES.fantasyReadiness, {});
@@ -348,6 +399,31 @@ for (const row of leans) {
 }
 
 for (const row of Array.isArray(blockedRaw) ? blockedRaw : []) {
+  const k = key(row);
+  if (!seen.has(k)) {
+    seen.add(k);
+    baseRows.push(row);
+  }
+}
+
+for (const row of Array.isArray(sportsbookBoard) ? sportsbookBoard : []) {
+  const market = lower(row.market);
+  const side = upper(row.side);
+  const prob = getProb(row);
+  const edge = getEdge(row);
+  const books = getBooks(row);
+
+  // Only import actionable/priced HRR rows from the sportsbook board.
+  // Raw alternate HRR rows often have blank side/prob/books and should not flood
+  // the production report as missing_required_fields.
+  if (market !== "hrr") continue;
+
+  // HRR MORE is globally blocked and should not flood the production report.
+  // Only import priced HRR LESS candidates for controlled watchlist evaluation.
+  if (side !== "LESS") continue;
+
+  if (prob === null || edge === null || books === null) continue;
+
   const k = key(row);
   if (!seen.has(k)) {
     seen.add(k);

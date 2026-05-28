@@ -427,9 +427,10 @@ function playable(r) {
   if (phase6DirectionalBlocked(r)) return false;
   if (r.rankEligible === false) return false;
 
-  // HARD BLOCK: HRR MORE is historically underperforming.
-  // Do not allow it into slips unless we later build a dedicated override.
-  if (market(r) === 'hrr' && sideKey(r) === 'MORE') return false;
+  // CONTROLLED HRR POLICY:
+  // HRR is tracked and may enter lean/watchlist reporting,
+  // but it is not allowed into official slips yet.
+  if (market(r) === 'hrr') return false;
 
   // HARD BLOCK: runs MORE is currently 0-for-11 in graded history.
   // Re-enable only after the market trust engine upgrades it.
