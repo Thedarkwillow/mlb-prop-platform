@@ -64,25 +64,46 @@ function fatigueTier(score) {
   return "FRESH";
 }
 
+async function fetchScheduleRange(startDate, endDate) {
+  try {
+    const sched = await fetchJson(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate=${startDate}&endDate=${endDate}`);
+    const games = [];
+    for (const d of sched.dates || []) {
+      for (const g of d.games || []) games.push({ gamePk: g.gamePk, date: d.date });
+    }
+    if (games.length) return games;
+  } catch (err) {
+    console.warn(`WARN: bullpen multi-date schedule fetch failed: ${err && err.message ? err.message : err}`);
+  }
+
+  const games = [];
+  for (let d = startDate; d <= endDate; d = dateAdd(d, 1)) {
+    try {
+      const sched = await fetchJson(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${d}`);
+      for (const day of sched.dates || []) {
+        for (const g of day.games || []) games.push({ gamePk: g.gamePk, date: day.date || d });
+      }
+    } catch (err) {
+      console.warn(`WARN: bullpen daily schedule fetch failed ${d}: ${err && err.message ? err.message : err}`);
+    }
+  }
+
+  return games;
+}
+
 async function main() {
   const startDate = dateAdd(DATE, -3);
   const endDate = dateAdd(DATE, -1);
 
-  let sched = null;
-  try {
-    sched = await fetchJson(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate=${startDate}&endDate=${endDate}`);
-  } catch (err) {
-    console.warn(`WARN: bullpen schedule fetch failed: ${err && err.message ? err.message : err}`);
+  const games = await fetchScheduleRange(startDate, endDate);
+
+  if (!games.length) {
+    console.warn(`WARN: no bullpen schedule games found for ${startDate} to ${endDate}`);
     if (fs.existsSync("data/context/bullpen-fatigue.json")) {
       console.warn("WARN: keeping existing data/context/bullpen-fatigue.json");
       return;
     }
-    throw err;
-  }
-
-  const games = [];
-  for (const d of sched.dates || []) {
-    for (const g of d.games || []) games.push({ gamePk: g.gamePk, date: d.date });
+    throw new Error(`No bullpen schedule games found and no stale bullpen file exists`);
   }
 
   const teams = {};
