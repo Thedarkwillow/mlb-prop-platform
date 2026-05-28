@@ -44,9 +44,46 @@ function result(actual, side, line) {
 }
 
 async function fetchJson(url) {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`${r.status} ${r.statusText}: ${url}`);
-  return r.json();
+  const variants = [
+    url,
+    url.includes("/api/v1.1/game/") ? url.replace("/api/v1.1/game/", "/api/v1/game/") : null,
+    url.includes("/feed/live") && !url.includes("?") ? `${url}?language=en` : null,
+    url.includes("/api/v1.1/game/") && url.includes("/feed/live") && !url.includes("?")
+      ? `${url.replace("/api/v1.1/game/", "/api/v1/game/")}?language=en`
+      : null
+  ].filter(Boolean);
+
+  let lastErr = null;
+
+  for (const candidate of [...new Set(variants)]) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const r = await fetch(candidate, {
+          headers: {
+            "Accept": "application/json,text/plain,*/*",
+            "User-Agent": "Mozilla/5.0 mlb-prop-platform"
+          }
+        });
+
+        if (r.ok) return await r.json();
+
+        const text = await r.text().catch(() => "");
+        lastErr = new Error(`fetch failed ${r.status}: ${candidate}${text ? ` | ${text.slice(0, 120)}` : ""}`);
+
+        /*
+          406 from MLB Stats API is usually endpoint/content negotiation weirdness.
+          Do not waste retries on same candidate; try fallback URL variant.
+        */
+        if (r.status === 406 || r.status === 404) break;
+      } catch (err) {
+        lastErr = err;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 250 * attempt));
+    }
+  }
+
+  throw lastErr || new Error(`fetch failed: ${url}`);
 }
 
 function isPitchEvent(ev) {
@@ -391,8 +428,18 @@ async function main() {
   const gamePks = [...new Set(rows.map(r => r.resolvedGamePk || r.gamePk).filter(Boolean))];
 
   const gameMaps = new Map();
+  const skippedGames = [];
+
   for (const gamePk of gamePks) {
-    gameMaps.set(String(gamePk), await fetchGameStats(gamePk));
+    try {
+      gameMaps.set(String(gamePk), await fetchGameStats(gamePk));
+    } catch (err) {
+      skippedGames.push({
+        gamePk: String(gamePk),
+        error: err && err.message ? err.message : String(err)
+      });
+      console.warn(`WARN: skipping live gamePk ${gamePk}: ${err && err.message ? err.message : err}`);
+    }
   }
 
 
@@ -445,6 +492,7 @@ async function main() {
 
     const reasons = [];
     if (!gamePk) reasons.push("missing_gamePk");
+    if (gamePk && !gameMaps.has(String(gamePk))) reasons.push("game_feed_unavailable");
     if (!Number.isFinite(inningStart) || !Number.isFinite(inningEnd)) reasons.push("missing_inning_range");
     if (!playerKey) reasons.push("missing_player");
     if (!market) reasons.push("missing_market");
@@ -541,7 +589,10 @@ async function main() {
   console.log("date:", date);
   console.log("input:", INPUT);
   console.log("rows:", rows.length);
-  console.log("games fetched:", gamePks.length);
+  console.log("games requested:", gamePks.length);
+  console.log("games fetched:", gameMaps.size);
+  console.log("games skipped:", skippedGames.length);
+  if (skippedGames.length) console.table(skippedGames.slice(0, 20));
   console.table(Object.entries(summary).map(([bucket, count]) => ({ bucket, count })));
   console.log("saved:", OUT);
   console.log("saved:", LATEST);

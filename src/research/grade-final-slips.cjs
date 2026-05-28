@@ -29,9 +29,46 @@ function result(actual, side, line) {
 }
 
 async function fetchJson(url) {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`fetch failed ${r.status}: ${url}`);
-  return r.json();
+  const variants = [
+    url,
+    url.includes("/api/v1.1/game/") ? url.replace("/api/v1.1/game/", "/api/v1/game/") : null,
+    url.includes("/feed/live") && !url.includes("?") ? `${url}?language=en` : null,
+    url.includes("/api/v1.1/game/") && url.includes("/feed/live") && !url.includes("?")
+      ? `${url.replace("/api/v1.1/game/", "/api/v1/game/")}?language=en`
+      : null
+  ].filter(Boolean);
+
+  let lastErr = null;
+
+  for (const candidate of [...new Set(variants)]) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const r = await fetch(candidate, {
+          headers: {
+            "Accept": "application/json,text/plain,*/*",
+            "User-Agent": "Mozilla/5.0 mlb-prop-platform"
+          }
+        });
+
+        if (r.ok) return await r.json();
+
+        const text = await r.text().catch(() => "");
+        lastErr = new Error(`fetch failed ${r.status}: ${candidate}${text ? ` | ${text.slice(0, 120)}` : ""}`);
+
+        /*
+          406 from MLB Stats API is usually endpoint/content negotiation weirdness.
+          Do not waste retries on same candidate; try fallback URL variant.
+        */
+        if (r.status === 406 || r.status === 404) break;
+      } catch (err) {
+        lastErr = err;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 250 * attempt));
+    }
+  }
+
+  throw lastErr || new Error(`fetch failed: ${url}`);
 }
 
 async function getSchedule(date) {
