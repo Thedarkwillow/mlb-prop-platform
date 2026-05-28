@@ -59,6 +59,48 @@ function dateRange(start, end) {
   return out;
 }
 
+
+function flattenPlayableRows(data) {
+  const out = [];
+
+  function walk(v, context = {}) {
+    if (!v) return;
+
+    if (Array.isArray(v)) {
+      for (const item of v) walk(item, context);
+      return;
+    }
+
+    if (typeof v !== "object") return;
+
+    const nextContext = {
+      ...context,
+      slip: v.slip || v.name || v.slipName || context.slip,
+      slipSize: v.size || v.slipSize || context.slipSize,
+      slipResult: v.result || v.status || context.slipResult
+    };
+
+    const hasLegShape =
+      v.player &&
+      (v.market || v.statType || v.stat_type || v.type) &&
+      (v.result || v.outcome || v.actual !== undefined);
+
+    if (hasLegShape) {
+      out.push({
+        ...v,
+        ...nextContext
+      });
+    }
+
+    for (const key of ["legs", "rows", "entries", "slips", "plays", "picks"]) {
+      if (v[key]) walk(v[key], nextContext);
+    }
+  }
+
+  walk(data);
+  return out;
+}
+
 function getRows(v) {
   if (Array.isArray(v)) return v;
   if (Array.isArray(v?.rows)) return v.rows;
@@ -166,11 +208,15 @@ function collectPlayableSlips(date) {
     `outputs/history/${date}-playable-final-slips-graded.json`,
     date === END_DATE ? "outputs/playable-final-slips.json" : null
   ].filter(Boolean);
+
   for (const f of files) {
     const data = readJson(f, null);
     if (!data) continue;
-    const rows = getRows(data);
-    return rows.map(r => ({
+
+    const rows = flattenPlayableRows(data);
+    if (!rows.length) continue;
+
+    const normalized = rows.map(r => ({
       ...r,
       date,
       layer: "OFFICIAL_PLAYABLE_SLIP",
@@ -180,8 +226,41 @@ function collectPlayableSlips(date) {
       line: lineOf(r),
       sourceFile: f
     }));
+
+    return onlyCompletePlayableLegs(normalized);
   }
+
   return [];
+}
+
+
+function onlyCompletePlayableLegs(rows) {
+  const groups = new Map();
+
+  for (const row of rows) {
+    const slip = row.slip || row.name || row.slipName || "UNKNOWN_SLIP";
+    const key = `${row.date || ""}|${row.sourceFile || ""}|${slip}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(row);
+  }
+
+  const kept = [];
+
+  for (const legs of groups.values()) {
+    const first = legs[0] || {};
+    const expectedSize = num(first.slipSize ?? first.size, null);
+
+    /*
+      If we know the intended slip size, require the graded leg count
+      to meet that size. This removes incomplete duplicate slips like
+      a 3-MAN FLEX that only had the same 2 legs as the official 2-man.
+    */
+    if (expectedSize !== null && legs.length < expectedSize) continue;
+
+    kept.push(...legs);
+  }
+
+  return kept;
 }
 
 function collectCLV(date) {
@@ -224,12 +303,17 @@ function classifyDay(date, rows, playableRows, clv) {
 
   const hasDecisionFile = fileExists(`outputs/history/${date}-decision-layer-grades.json`);
   const pendingOfficialRows = playableRows.filter(r =>
-    String(r.status || "").toUpperCase() === "PLAYABLE" ||
-    String(r.layer || "").toUpperCase().includes("OFFICIAL")
+    !["HIT", "MISS", "PUSH"].includes(resultOf(r)) &&
+    (
+      String(r.status || "").toUpperCase() === "PLAYABLE" ||
+      String(r.layer || "").toUpperCase().includes("OFFICIAL")
+    )
   );
 
   let status = "MISSING_DATA_DAY";
-  if (officialRows.length) status = "OFFICIAL_GRADED_DAY";
+  const gradedPlayableRows = playableRows.filter(r => ["HIT", "MISS", "PUSH"].includes(resultOf(r)));
+
+  if (officialRows.length || gradedPlayableRows.length) status = "OFFICIAL_GRADED_DAY";
   else if (pendingOfficialRows.length) status = "OFFICIAL_PENDING_DAY";
   else if (actionableRows.length) status = "LEAN_ONLY_DAY";
   else if (watchRows.length) status = "WATCH_ONLY_DAY";
@@ -267,10 +351,15 @@ for (const date of dates) {
   daySummaries.push(classifyDay(date, decisionRows, playableRows, clv));
 }
 
-const officialRows = allDecisionRows.filter(r =>
+const officialDecisionRows = allDecisionRows.filter(r =>
   ["OFFICIAL_PLAY", "OFFICIAL", "CORE"].includes(String(r.layer || "").toUpperCase()) ||
   String(r.layer || "").toUpperCase().includes("OFFICIAL")
 );
+
+const officialRows = [
+  ...officialDecisionRows,
+  ...allPlayableRows.map(r => ({ ...r, layer: "OFFICIAL_PLAYABLE_SLIP" }))
+];
 
 const actionableLeanRows = allDecisionRows.filter(r => String(r.layer || "").toUpperCase() === "ACTIONABLE_LEAN");
 
