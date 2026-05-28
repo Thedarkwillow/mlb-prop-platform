@@ -68,10 +68,29 @@ const boardPath = "outputs/priced-board.json";
 const bullpenPath = "data/context/bullpen-fatigue.json";
 
 const board = readJson(boardPath, []);
-const bullpen = readJson(bullpenPath, []);
+const rawBullpen = readJson(bullpenPath, []);
+
+const bullpen = Array.isArray(rawBullpen)
+  ? rawBullpen
+  : Array.isArray(rawBullpen?.teams)
+    ? rawBullpen.teams
+    : Array.isArray(rawBullpen?.data)
+      ? rawBullpen.data
+      : [];
+
+if (!Array.isArray(rawBullpen)) {
+  console.warn("WARN: bullpen fatigue file was not an array; using compatible fallback shape.");
+}
+
+if (!bullpen.length) {
+  console.warn("WARN: no usable bullpen fatigue rows found; continuing with bullpen context unavailable.");
+}
 
 const byTeam = new Map();
-for (const t of bullpen) byTeam.set(normTeam(t.team), t);
+for (const t of bullpen) {
+  if (!t || typeof t !== "object") continue;
+  byTeam.set(normTeam(t.team), t);
+}
 
 let teamMatched = 0;
 let opponentMatched = 0;

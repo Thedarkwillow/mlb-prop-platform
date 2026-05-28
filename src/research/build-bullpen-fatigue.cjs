@@ -7,9 +7,42 @@ function normTeam(s) {
 }
 
 async function fetchJson(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Fetch failed ${res.status}: ${url}`);
-  return res.json();
+  const variants = [
+    url,
+    url.includes("/api/v1/game/") ? url.replace("/api/v1/game/", "/api/v1.1/game/") : null,
+    url.includes("/boxscore") && !url.includes("?") ? `${url}?language=en` : null,
+    url.includes("/api/v1/game/") && url.includes("/boxscore") && !url.includes("?")
+      ? `${url.replace("/api/v1/game/", "/api/v1.1/game/")}?language=en`
+      : null
+  ].filter(Boolean);
+
+  let lastErr = null;
+
+  for (const candidate of [...new Set(variants)]) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const res = await fetch(candidate, {
+          headers: {
+            Accept: "application/json,text/plain,*/*",
+            "User-Agent": "Mozilla/5.0 mlb-prop-platform"
+          }
+        });
+
+        if (res.ok) return res.json();
+
+        const text = await res.text().catch(() => "");
+        lastErr = new Error(`Fetch failed ${res.status}: ${candidate}${text ? ` | ${text.slice(0, 120)}` : ""}`);
+
+        if (res.status === 406 || res.status === 404) break;
+      } catch (err) {
+        lastErr = err;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 250 * attempt));
+    }
+  }
+
+  throw lastErr || new Error(`Fetch failed: ${url}`);
 }
 
 function dateAdd(date, days) {
@@ -35,7 +68,18 @@ async function main() {
   const startDate = dateAdd(DATE, -3);
   const endDate = dateAdd(DATE, -1);
 
-  const sched = await fetchJson(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate=${startDate}&endDate=${endDate}`);
+  let sched = null;
+  try {
+    sched = await fetchJson(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate=${startDate}&endDate=${endDate}`);
+  } catch (err) {
+    console.warn(`WARN: bullpen schedule fetch failed: ${err && err.message ? err.message : err}`);
+    if (fs.existsSync("data/context/bullpen-fatigue.json")) {
+      console.warn("WARN: keeping existing data/context/bullpen-fatigue.json");
+      return;
+    }
+    throw err;
+  }
+
   const games = [];
   for (const d of sched.dates || []) {
     for (const g of d.games || []) games.push({ gamePk: g.gamePk, date: d.date });
@@ -44,7 +88,13 @@ async function main() {
   const teams = {};
 
   for (const g of games) {
-    const box = await fetchJson(`https://statsapi.mlb.com/api/v1/game/${g.gamePk}/boxscore`);
+    let box = null;
+    try {
+      box = await fetchJson(`https://statsapi.mlb.com/api/v1/game/${g.gamePk}/boxscore`);
+    } catch (err) {
+      console.warn(`WARN: skipping bullpen boxscore gamePk ${g.gamePk}: ${err && err.message ? err.message : err}`);
+      continue;
+    }
 
     for (const side of ["home", "away"]) {
       const team = box.teams?.[side]?.team?.abbreviation;

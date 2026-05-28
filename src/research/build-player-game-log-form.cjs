@@ -40,9 +40,42 @@ function seasonStart(date) {
 }
 
 async function fetchJson(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Fetch failed ${res.status}: ${url}`);
-  return res.json();
+  const variants = [
+    url,
+    url.includes("/api/v1/game/") ? url.replace("/api/v1/game/", "/api/v1.1/game/") : null,
+    url.includes("/boxscore") && !url.includes("?") ? `${url}?language=en` : null,
+    url.includes("/api/v1/game/") && url.includes("/boxscore") && !url.includes("?")
+      ? `${url.replace("/api/v1/game/", "/api/v1.1/game/")}?language=en`
+      : null
+  ].filter(Boolean);
+
+  let lastErr = null;
+
+  for (const candidate of [...new Set(variants)]) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const res = await fetch(candidate, {
+          headers: {
+            Accept: "application/json,text/plain,*/*",
+            "User-Agent": "Mozilla/5.0 mlb-prop-platform"
+          }
+        });
+
+        if (res.ok) return res.json();
+
+        const text = await res.text().catch(() => "");
+        lastErr = new Error(`Fetch failed ${res.status}: ${candidate}${text ? ` | ${text.slice(0, 120)}` : ""}`);
+
+        if (res.status === 406 || res.status === 404) break;
+      } catch (err) {
+        lastErr = err;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 250 * attempt));
+    }
+  }
+
+  throw lastErr || new Error(`Fetch failed: ${url}`);
 }
 
 async function scheduleGamePks(startDate, endDate) {
@@ -160,7 +193,18 @@ function pitcherWindow(games) {
 
 async function main() {
   const start = seasonStart(DATE);
-  const games = await scheduleGamePks(start, DATE);
+  let games = [];
+  try {
+    games = await scheduleGamePks(start, DATE);
+  } catch (err) {
+    console.warn(`WARN: schedule fetch failed for player game-log form: ${err && err.message ? err.message : err}`);
+    if (fs.existsSync("data/context/player-game-log-form.json")) {
+      console.warn("WARN: keeping existing data/context/player-game-log-form.json");
+      return;
+    }
+    throw err;
+  }
+
   const players = {};
 
   console.log("PLAYER GAME LOG FORM BUILD");
