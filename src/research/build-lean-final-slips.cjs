@@ -331,9 +331,45 @@ function classifyLean(row) {
   }
 
   const lowBook = support.includes("low") || books === 1;
+  const supportOk = support === "OK";
+  const grade = str(row.grade ?? "").toUpperCase();
   const threshold = officialThreshold(row);
   const withinTinyMargin = prob >= threshold - 0.005;
   const lineHalf = line === 0.5;
+
+  /*
+    Phase 8 tightening:
+    - bases MORE 0.5 was leaking into ACTIONABLE_LEAN too easily.
+    - low-book support leans are watch-only unless truly exceptional.
+    - this protects the paid-product bucket while still preserving research rows.
+  */
+  if (market === "bases" && side === "more") {
+    const strongBasesMore =
+      supportOk &&
+      books !== null &&
+      books >= 2 &&
+      grade === "GREEN" &&
+      prob >= 0.65 &&
+      edge >= 0.10 &&
+      sideBias.tier !== "NEGATIVE" &&
+      sideBias.tier !== "STRONG_NEGATIVE";
+
+    if (!strongBasesMore) {
+      return {
+        eligible: false,
+        tier: "TRACK_ONLY",
+        notes: [...notes, "bases_more_watch_only_until_stronger_validation"]
+      };
+    }
+  }
+
+  if (lowBook && prob < 0.65) {
+    return {
+      eligible: false,
+      tier: "TRACK_ONLY",
+      notes: [...notes, "low_book_support_watch_only_under_65_prob"]
+    };
+  }
 
   if (isControlledHrrLess(row)) {
     return {

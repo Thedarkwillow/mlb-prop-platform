@@ -337,6 +337,60 @@ function resolveBasesFromHits(row, indexes) {
   return null;
 }
 
+function resolveHitsAllowedFromHitsAlias(row, indexes) {
+  const k = keyParts(row);
+
+  /*
+    PrizePicks pitcher "hits" rows are pitcher hits allowed.
+    Some reports normalize them as market=hits, while graded sources
+    store them as hits_allowed. This fallback fixes those unmatched
+    pitcher hits LESS rows without affecting hitter hits rows.
+  */
+  if (k.market !== "hits") return null;
+
+  const candidates = indexes.byPlayerMarket.get([k.player, "hits_allowed"].join("|")) || [];
+  if (!candidates.length) return null;
+
+  const line = num(k.line, null);
+  const side = String(k.side || "").toUpperCase();
+
+  const exact = candidates.find(r =>
+    getActual(r) !== null &&
+    num(getLine(r), null) === line &&
+    String(getSide(r) || "").toUpperCase() === side
+  );
+  if (exact) {
+    return {
+      ...exact,
+      market: "hits_allowed",
+      __source: `${exact.__source || "unknown"}:hits_allowed_alias_from_hits`
+    };
+  }
+
+  const sameLine = candidates.find(r =>
+    getActual(r) !== null &&
+    num(getLine(r), null) === line
+  );
+  if (sameLine) {
+    return {
+      ...sameLine,
+      market: "hits_allowed",
+      __source: `${sameLine.__source || "unknown"}:hits_allowed_alias_from_hits_same_line`
+    };
+  }
+
+  const anyActual = candidates.find(r => getActual(r) !== null);
+  if (anyActual) {
+    return {
+      ...anyActual,
+      market: "hits_allowed",
+      __source: `${anyActual.__source || "unknown"}:hits_allowed_alias_from_hits_any_actual`
+    };
+  }
+
+  return null;
+}
+
 function resolveDecisionRow(row, indexes) {
   const k = keyParts(row);
 
@@ -365,6 +419,9 @@ function resolveDecisionRow(row, indexes) {
 
   const sameMarket = resolveSameMarketActual(row, indexes);
   if (sameMarket) return { match: sameMarket, method: "same_player_market_actual" };
+
+  const hitsAllowedAlias = resolveHitsAllowedFromHitsAlias(row, indexes);
+  if (hitsAllowedAlias) return { match: hitsAllowedAlias, method: "hits_allowed_alias_from_hits" };
 
   const basesFromHits = resolveBasesFromHits(row, indexes);
   if (basesFromHits) return { match: basesFromHits, method: "derived_bases_from_hits" };

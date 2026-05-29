@@ -173,6 +173,41 @@ function groupSummary(rows, keyFn) {
     .sort((a, b) => b.graded - a.graded || (b.roiFlat ?? -99) - (a.roiFlat ?? -99));
 }
 
+function trackingKey(row) {
+  return [
+    row.date || "",
+    String(row.player || "").trim().toLowerCase(),
+    marketOf(row),
+    sideOf(row),
+    String(lineOf(row) ?? "")
+  ].join("|");
+}
+
+function dedupeByProductPriority(rows) {
+  const priority = {
+    OFFICIAL: 0,
+    ACTIONABLE_LEAN: 1,
+    WATCH_SHADOW: 2,
+    BLOCKED: 3,
+    RESEARCH: 4
+  };
+
+  const best = new Map();
+
+  for (const row of rows) {
+    const k = trackingKey(row);
+    const current = best.get(k);
+    const nextPriority = priority[row.productBucket] ?? 99;
+    const currentPriority = current ? (priority[current.productBucket] ?? 99) : 99;
+
+    if (!current || nextPriority < currentPriority) {
+      best.set(k, row);
+    }
+  }
+
+  return [...best.values()];
+}
+
 function normalizeDecisionRows(file, date) {
   const data = readJson(file, null);
   if (!data) return [];
@@ -375,11 +410,13 @@ const officialPlayDays = officialGradedDays + officialPendingDays;
 const leanOnlyDays = daySummaries.filter(d => d.status === "LEAN_ONLY_DAY").length;
 const watchOnlyDays = daySummaries.filter(d => d.status === "WATCH_ONLY_DAY").length;
 
-const allTrackedRows = [
+const allTrackedRowsRaw = [
   ...officialRows.map(r => ({ ...r, productBucket: "OFFICIAL" })),
   ...actionableLeanRows.map(r => ({ ...r, productBucket: "ACTIONABLE_LEAN" })),
   ...watchShadowRows.map(r => ({ ...r, productBucket: "WATCH_SHADOW" }))
 ];
+
+const allTrackedRows = dedupeByProductPriority(allTrackedRowsRaw);
 
 const output = {
   generatedAt: new Date().toISOString(),
