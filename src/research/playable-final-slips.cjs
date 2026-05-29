@@ -77,26 +77,104 @@ function slipQualityStatus(slip) {
   return "PLAYABLE";
 }
 
-async function getSlate(date) {
-  const r = await fetch(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}&hydrate=team`);
-  if (!r.ok) throw new Error(`MLB schedule failed: ${r.status} ${r.statusText}`);
-  const j = await r.json();
+async function fetchScheduleJson(date) {
+  const urls = [
+    `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}&hydrate=team`,
+    `https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate=${date}&endDate=${date}&hydrate=team`,
+    `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}`,
+    `https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate=${date}&endDate=${date}`
+  ];
 
-  const games = new Set();
-  const teams = new Set();
+  let lastErr = null;
 
-  for (const d of j.dates || []) {
-    for (const g of d.games || []) {
-      const away = g.teams?.away?.team?.abbreviation;
-      const home = g.teams?.home?.team?.abbreviation;
-      if (!away || !home) continue;
-      games.add(`${away} @ ${home}`);
-      teams.add(away);
-      teams.add(home);
+  for (const url of urls) {
+    try {
+      const r = await fetch(url, {
+        headers: {
+          "Accept": "application/json",
+          "User-Agent": "mlb-prop-platform/1.0"
+        }
+      });
+
+      if (!r.ok) {
+        const body = await r.text().catch(() => "");
+        throw new Error(`MLB schedule failed: ${r.status} ${r.statusText} ${url} ${body.slice(0, 180)}`);
+      }
+
+      return await r.json();
+    } catch (err) {
+      lastErr = err;
     }
   }
 
-  return { games, teams };
+  throw lastErr || new Error(`MLB schedule failed for ${date}`);
+}
+
+function addSlateGame(slate, away, home) {
+  if (!away || !home) return;
+  slate.games.add(`${away} @ ${home}`);
+  slate.games.add(`${home} @ ${away}`);
+  slate.teams.add(String(away).toUpperCase());
+  slate.teams.add(String(home).toUpperCase());
+}
+
+function inferSlateFromFinalSlips() {
+  const slate = { games: new Set(), teams: new Set(), inferred: true };
+
+  try {
+    const raw = JSON.parse(fs.readFileSync("outputs/final-slips.json", "utf8"));
+    const slips = Array.isArray(raw) ? raw : (raw.slips || raw.finalSlips || []);
+    const legs = slips.flatMap(s => Array.isArray(s.legs) ? s.legs : []);
+
+    for (const leg of legs) {
+      const team = String(leg.team || leg.playerTeam || leg.teamAbbr || "").toUpperCase().trim();
+      if (team) slate.teams.add(team);
+
+      const game = String(leg.resolvedGame || leg.game || leg.matchup || "").trim();
+      if (game) {
+        slate.games.add(game);
+        const parts = game.split("@").map(x => x.trim().toUpperCase()).filter(Boolean);
+        if (parts.length === 2) {
+          slate.teams.add(parts[0]);
+          slate.teams.add(parts[1]);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn(`WARN: could not infer slate from final slips: ${err && err.message ? err.message : err}`);
+  }
+
+  return slate;
+}
+
+async function getSlate(date) {
+  const slate = { games: new Set(), teams: new Set(), inferred: false };
+
+  try {
+    const j = await fetchScheduleJson(date);
+
+    for (const d of j.dates || []) {
+      for (const g of d.games || []) {
+        const away = g.teams?.away?.team?.abbreviation;
+        const home = g.teams?.home?.team?.abbreviation;
+        addSlateGame(slate, away, home);
+      }
+    }
+
+    if (slate.games.size || slate.teams.size) return slate;
+  } catch (err) {
+    console.warn(`WARN: MLB schedule unavailable for playable-final-slips: ${err && err.message ? err.message : err}`);
+  }
+
+  const inferred = inferSlateFromFinalSlips();
+
+  if (inferred.games.size || inferred.teams.size) {
+    console.warn("WARN: using inferred slate from outputs/final-slips.json");
+    return inferred;
+  }
+
+  console.warn("WARN: no slate data available; continuing without off-slate filtering");
+  return { games: new Set(), teams: new Set(), inferred: true, unavailable: true };
 }
 
 function legTeam(leg) {
