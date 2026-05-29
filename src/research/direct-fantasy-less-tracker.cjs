@@ -28,12 +28,12 @@ function readJson(file, fallback) {
 
 function writeJson(file, data) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\\n");
+  fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n");
 }
 
 function writeText(file, text) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, text.endsWith("\\n") ? text : text + "\\n");
+  fs.writeFileSync(file, text.endsWith("\n") ? text : text + "\n");
 }
 
 function num(v, fallback = null) {
