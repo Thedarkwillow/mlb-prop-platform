@@ -370,7 +370,7 @@ function buildBoxscoreIndex() {
       ? `https://statsapi.mlb.com${g.link}`
       : `https://statsapi.mlb.com/api/v1.1/game/${g.gamePk}/feed/live`;
 
-    const boxRaw = fetchJson(feedUrl);
+    const boxRaw = fetchJsonDirect(feedUrl, 8) || fetchJson(feedUrl);
     const box = boxRaw?.teams ? boxRaw : boxRaw?.liveData?.boxscore;
     const gamePlayers = [];
 
@@ -487,7 +487,12 @@ const rows = rawGoblins.map(r => {
     disabled.includes("resolved team not in game") ||
     disabled.includes("source team") ||
     disabled.includes("team unresolved") ||
-    disabled.includes("team conflict");
+    disabled.includes("team conflict") ||
+    (
+      disabled.includes("missing_or_zero_projection") &&
+      !fullBoardMatch &&
+      !boxPlayer
+    );
 
   if (result === "UNMATCHED" && invalidContext) {
     result = "INVALID_CONTEXT";
