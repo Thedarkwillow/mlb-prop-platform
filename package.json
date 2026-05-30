@@ -32,7 +32,7 @@
     "validate": "node src/research/validation-cycle.cjs ${npm_config_date:-$(date +%F)}",
     "calibration:report": "node src/research/calibration-report.cjs ${npm_config_date:-$(date +%F)}",
     "clv:buckets": "NODE_OPTIONS='--max-old-space-size=4096' node src/research/clv-buckets.cjs ${npm_config_date:-$(date +%F)}",
-    "postgame": "npm run warehouse:date-guard $npm_config_date && npm run validation $npm_config_date && npm run decision:grade $npm_config_date && npm run fantasy:grade $npm_config_date && npm run save:history $npm_config_date && npm run warehouse:export $npm_config_date && npm run clean:warehouse && npm run warehouse:calibration && npm run validation:rules && npm run history:intel && npm run market:intel && npm run full-board:cycle --date=${npm_config_date:-$(date +%F)} && npm run live:tier-report -- ${npm_config_date:-$(date +%F)} && npm run mobile $npm_config_date && npm run fantasy:components && npm run fantasy:hitter-advanced && npm run fantasy:validate && npm run unsupported:shadow -- --date=${npm_config_date:-$(date +%F)} && node src/research/context-roi-report.cjs && node src/learning/save-context-roi-history.cjs && node src/research/line-bucket-roi-report.cjs && node src/research/phase8-candidate-audit.cjs",
+    "postgame": "npm run warehouse:date-guard $npm_config_date && npm run validation $npm_config_date && npm run decision:grade $npm_config_date && npm run fantasy:grade $npm_config_date && npm run save:history $npm_config_date && npm run warehouse:export $npm_config_date && npm run clean:warehouse && npm run warehouse:calibration && npm run validation:rules && npm run history:intel && npm run market:intel && npm run full-board:cycle --date=${npm_config_date:-$(date +%F)} && npm run live:tier-report -- ${npm_config_date:-$(date +%F)} && npm run mobile $npm_config_date && npm run fantasy:research --date=${npm_config_date:-$(date +%F)} && npm run fantasy:components && npm run fantasy:hitter-advanced && npm run fantasy:validate && npm run unsupported:shadow -- --date=${npm_config_date:-$(date +%F)} && node src/research/context-roi-report.cjs && node src/learning/save-context-roi-history.cjs && node src/research/line-bucket-roi-report.cjs && node src/research/phase8-candidate-audit.cjs",
     "safe": "npm run snapshot:status && npm run clv:freshness && npm run picks && npm run models:apply && npm run warehouse:calibration && npm run validation:rules && npm run validation:penalties && npm run mobile && npm run decision && npm run clv && npm run clv:buckets",
     "refresh": "npm run odds && npm run snap && npm run picks && npm run mobile && npm run decision",
     "save:history": "node src/research/save-graded-history.cjs ${npm_config_date:-$(date +%F)}",
@@ -223,7 +223,7 @@
     "slips:leans": "node src/research/build-lean-final-slips.cjs",
     "live:tier-report": "node src/live/live-tier-performance-report.cjs",
     "shadow:promote": "node src/research/shadow-promotion-audit.cjs",
-    "postgame:decision": "npm run live:resolve -- ${npm_config_date:-$(date +%F)} --quiet && npm run live:grade -- ${npm_config_date:-$(date +%F)} && npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run decision:grade -- ${npm_config_date:-$(date +%F)} && npm run shadow:promote -- ${npm_config_date:-$(date +%F)} && npm run fantasy:readiness && npm run side-bias:watch -- ${npm_config_date:-$(date +%F)} && npm run singles:readiness -- ${npm_config_date:-$(date +%F)}",
+    "postgame:decision": "npm run live:resolve -- ${npm_config_date:-$(date +%F)} --quiet && npm run live:grade -- ${npm_config_date:-$(date +%F)} && npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run decision:grade -- ${npm_config_date:-$(date +%F)} && npm run shadow:promote -- ${npm_config_date:-$(date +%F)} && npm run fantasy:research --date=${npm_config_date:-$(date +%F)} && npm run fantasy:readiness && npm run side-bias:watch -- ${npm_config_date:-$(date +%F)} && npm run singles:readiness -- ${npm_config_date:-$(date +%F)}",
     "pregame:decision": "npm run prizepicks && npm run board:rebuild && npm run price:board && npm run picks && npm run decision && npm run production:candidates && npm run side-bias:watch && npm run singles:readiness",
     "fantasy:readiness": "node src/research/fantasy-readiness-report.cjs",
     "production:candidates": "node src/research/production-candidate-report.cjs",
@@ -233,7 +233,8 @@
     "fantasy:less:direct": "node src/research/direct-fantasy-less-tracker.cjs",
     "sales:readiness": "node src/research/sales-readiness-report.cjs",
     "fantasy:side-coverage": "node src/research/fantasy-side-coverage-report.cjs",
-    "fantasy:fill-projections": "node src/research/fill-fantasy-projection-coverage.cjs"
+    "fantasy:fill-projections": "node src/research/fill-fantasy-projection-coverage.cjs",
+    "fantasy:research": "npm run fantasy:fill-projections && npm run fantasy:side-coverage -- ${npm_config_date:-$(date +%F)} && npm run fantasy:less:direct -- ${npm_config_date:-$(date +%F)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
