@@ -1,0 +1,91 @@
+[
+  {"date":"2026-05-23_to_2026-05-29","player":"Spencer Horwitz","team":"PIT","market":"hitter_fantasy_score","side":"MORE","line":5,"tier":"standard","result":"HIT","actual":8,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Marcus Semien","team":"NYM","market":"hitter_strikeouts","side":"MORE","line":0.5,"tier":"standard","result":"HIT","actual":1,"played":true,"source":"manual_research","notes":"screenshot import; hitter K MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Mike Trout","team":"LAA","market":"hitter_fantasy_score","side":"MORE","line":5.5,"tier":"standard","result":"HIT","actual":6,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Masyn Winn","team":"STL","market":"hitter_strikeouts","side":"MORE","line":0.5,"tier":"standard","result":"HIT","actual":2,"played":true,"source":"manual_research","notes":"screenshot import; hitter K MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Ozzie Albies","team":"ATL","market":"hitter_fantasy_score","side":"MORE","line":5,"tier":"standard","result":"MISS","actual":3,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Ketel Marte","team":"AZ","market":"hitter_fantasy_score","side":"MORE","line":5.5,"tier":"standard","result":"MISS","actual":4,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+
+  {"date":"2026-05-23_to_2026-05-29","player":"Eugenio Suarez","team":"CIN","market":"hitter_fantasy_score","side":"MORE","line":4.5,"tier":"standard","result":"MISS","actual":0,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"CJ Abrams","team":"WSH","market":"hitter_fantasy_score","side":"MORE","line":5,"tier":"standard","result":"HIT","actual":13,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Munetaka Murakami","team":"CWS","market":"hitter_fantasy_score","side":"MORE","line":4.5,"tier":"standard","result":"REFUND","actual":0,"played":true,"source":"manual_research","notes":"screenshot import; reboot/refund"},
+
+  {"date":"2026-05-30","player":"Jonathan Aranda","team":"TB","market":"hitter_fantasy_score","side":"MORE","line":5,"tier":"standard","result":"HIT","actual":19,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Vladimir Guerrero Jr.","team":"TOR","market":"hitter_fantasy_score","side":"MORE","line":6.5,"tier":"standard","result":"HIT","actual":14,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Willson Contreras","team":"BOS","market":"hitter_fantasy_score","side":"MORE","line":5,"tier":"standard","result":"HIT","actual":6,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Michael Busch","team":"CHC","market":"hitter_fantasy_score","side":"MORE","line":5,"tier":"standard","result":"HIT","actual":15,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+
+  {"date":"2026-05-23_to_2026-05-29","player":"George Springer","team":"TOR","market":"hrr","side":"MORE","line":1.5,"tier":"standard","result":"HIT","actual":2,"played":true,"source":"manual_research","notes":"screenshot import; HRR MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Christian Walker","team":"HOU","market":"hitter_fantasy_score","side":"MORE","line":4.5,"tier":"standard","result":"REFUND","actual":0,"played":true,"source":"manual_research","notes":"screenshot import; DNP/refund"},
+
+  {"date":"2026-05-23_to_2026-05-29","player":"Davis Martin","team":"CWS","market":"strikeouts","side":"MORE","line":5,"tier":"standard","result":"PUSH","actual":5,"played":true,"source":"manual_research","notes":"screenshot import; pitcher K MORE push"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Payton Tolle","team":"BOS","market":"hits_allowed","side":"LESS","line":4.5,"tier":"standard","result":"MISS","actual":5,"played":true,"source":"manual_research","notes":"screenshot import; hits allowed LESS"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Moises Ballesteros","team":"CHC","market":"total_bases","side":"MORE","line":0.5,"tier":"standard","result":"REFUND","actual":0,"played":true,"source":"manual_research","notes":"screenshot import; reboot/refund"},
+
+  {"date":"2026-05-23_to_2026-05-29","player":"Sal Stewart","team":"CIN","market":"hitter_fantasy_score","side":"MORE","line":5,"tier":"standard","result":"HIT","actual":7,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Shohei Ohtani","team":"LAD","market":"ks_plus_total_bases","side":"MORE","line":9,"tier":"standard","result":"HIT","actual":11,"played":true,"source":"manual_research","notes":"screenshot import; Ks+TB MORE"},
+
+  {"date":"2026-05-30","player":"Travis Bazzana","team":"CLE","market":"hitter_fantasy_score","side":"MORE","line":5,"tier":"standard","result":"HIT","actual":12,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-30","player":"Willy Adames","team":"SF","market":"hitter_fantasy_score","side":"MORE","line":5,"tier":"standard","result":"HIT","actual":12,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-30","player":"Willson Contreras","team":"BOS","market":"hitter_fantasy_score","side":"MORE","line":5,"tier":"standard","result":"MISS","actual":3,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-30","player":"Juan Soto","team":"NYM","market":"hitter_fantasy_score","side":"MORE","line":5.5,"tier":"standard","result":"HIT","actual":17,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-30","player":"Teoscar Hernandez","team":"LAD","market":"hitter_fantasy_score","side":"MORE","line":4.5,"tier":"standard","result":"REFUND","actual":0,"played":true,"source":"manual_research","notes":"screenshot import; reboot/refund"},
+
+  {"date":"2026-05-23_to_2026-05-29","player":"Kevin Gausman","team":"TOR","market":"walks_allowed","side":"LESS","line":1.5,"tier":"standard","result":"MISS","actual":2,"played":true,"source":"manual_research","notes":"screenshot import; walks allowed LESS"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Gavin Williams","team":"CLE","market":"walks_allowed","side":"LESS","line":1.5,"tier":"standard","result":"MISS","actual":2,"played":true,"source":"manual_research","notes":"screenshot import; walks allowed LESS"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Michael Soroka","team":"AZ","market":"pitching_outs","side":"LESS","line":17.5,"tier":"standard","result":"MISS","actual":18,"played":true,"source":"manual_research","notes":"screenshot import; pitching outs LESS"},
+
+  {"date":"2026-05-23_to_2026-05-29","player":"Kevin Gausman","team":"TOR","market":"strikeouts","side":"LESS","line":5.5,"tier":"standard","result":"HIT","actual":5,"played":true,"source":"manual_research","notes":"screenshot import; pitcher K LESS"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Connor Prielipp","team":"MIN","market":"hits_allowed","side":"LESS","line":4.5,"tier":"standard","result":"MISS","actual":8,"played":true,"source":"manual_research","notes":"screenshot import; hits allowed LESS"},
+
+  {"date":"2026-05-23_to_2026-05-29","player":"Griffin Jax","team":"TB","market":"walks_allowed","side":"LESS","line":1.5,"tier":"standard","result":"HIT","actual":0,"played":true,"source":"manual_research","notes":"screenshot import; walks allowed LESS"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Junior Caminero","team":"TB","market":"total_bases","side":"MORE","line":0.5,"tier":"goblin","result":"HIT","actual":1,"played":true,"source":"manual_research","notes":"screenshot import; goblin TB MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Aaron Judge","team":"NYY","market":"total_bases","side":"MORE","line":0.5,"tier":"goblin","result":"HIT","actual":3,"played":true,"source":"manual_research","notes":"screenshot import; goblin TB MORE"},
+
+  {"date":"2026-05-23_to_2026-05-29","player":"Shane McClanahan","team":"TB","market":"strikeouts","side":"MORE","line":4.5,"tier":"goblin","result":"MISS","actual":3,"played":true,"source":"manual_research","notes":"screenshot import; goblin pitcher K MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Jacob Misiorowski","team":"MIL","market":"strikeouts","side":"MORE","line":6.5,"tier":"goblin","result":"HIT","actual":12,"played":true,"source":"manual_research","notes":"screenshot import; goblin pitcher K MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Matthew Liberatore","team":"STL","market":"pitching_outs","side":"LESS","line":15.5,"tier":"standard","result":"HIT","actual":15,"played":true,"source":"manual_research","notes":"screenshot import; pitching outs LESS"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Nolan McLean","team":"NYM","market":"strikeouts","side":"MORE","line":5.5,"tier":"goblin","result":"HIT","actual":6,"played":true,"source":"manual_research","notes":"screenshot import; goblin pitcher K MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Trey Yesavage","team":"TOR","market":"strikeouts","side":"MORE","line":5.5,"tier":"goblin","result":"HIT","actual":6,"played":true,"source":"manual_research","notes":"screenshot import; goblin pitcher K MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Nick Kurtz","team":"ATH","market":"hitter_fantasy_score","side":"MORE","line":6,"tier":"standard","result":"MISS","actual":2,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+
+  {"date":"2026-05-23_to_2026-05-29","player":"Yandy Diaz","team":"TB","market":"hitter_fantasy_score","side":"MORE","line":6.5,"tier":"standard","result":"MISS","actual":5,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Ivan Herrera","team":"STL","market":"hitter_fantasy_score","side":"MORE","line":5,"tier":"standard","result":"MISS","actual":2,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Miguel Vargas","team":"CWS","market":"hitter_fantasy_score","side":"MORE","line":5,"tier":"standard","result":"MISS","actual":0,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Luis Castillo","team":"SEA","market":"strikeouts","side":"MORE","line":4,"tier":"standard","result":"HIT","actual":6,"played":true,"source":"manual_research","notes":"screenshot import; pitcher K MORE"},
+
+  {"date":"2026-05-23_to_2026-05-29","player":"Ketel Marte","team":"AZ","market":"singles","side":"MORE","line":0.5,"tier":"standard","result":"HIT","actual":3,"played":true,"source":"manual_research","notes":"screenshot import; singles MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Alec Bohm","team":"PHI","market":"hrr","side":"MORE","line":1.5,"tier":"standard","result":"MISS","actual":0,"played":true,"source":"manual_research","notes":"screenshot import; HRR MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Shohei Ohtani","team":"LAD","market":"hrr","side":"MORE","line":2.5,"tier":"standard","result":"HIT","actual":3,"played":true,"source":"manual_research","notes":"screenshot import; HRR MORE"},
+
+  {"date":"2026-05-23_to_2026-05-29","player":"Daylen Lile","team":"WSH","market":"hitter_fantasy_score","side":"MORE","line":5,"tier":"standard","result":"MISS","actual":4,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Teoscar Hernandez","team":"LAD","market":"hitter_fantasy_score","side":"MORE","line":4.5,"tier":"standard","result":"HIT","actual":8,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Spencer Steer","team":"CIN","market":"hitter_fantasy_score","side":"MORE","line":4.5,"tier":"standard","result":"HIT","actual":11,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Teoscar Hernandez","team":"LAD","market":"hrr","side":"MORE","line":1.5,"tier":"standard","result":"MISS","actual":1,"played":true,"source":"manual_research","notes":"screenshot import; HRR MORE"},
+
+  {"date":"2026-05-23_to_2026-05-29","player":"Bobby Witt Jr.","team":"KC","market":"total_bases","side":"MORE","line":0.5,"tier":"goblin","result":"HIT","actual":4,"played":true,"source":"manual_research","notes":"screenshot import; goblin TB MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Brett Baty","team":"NYM","market":"total_bases","side":"MORE","line":0.5,"tier":"standard","result":"HIT","actual":2,"played":true,"source":"manual_research","notes":"screenshot import; TB MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Ben Rice","team":"NYY","market":"total_bases","side":"MORE","line":0.5,"tier":"goblin","result":"MISS","actual":0,"played":true,"source":"manual_research","notes":"screenshot import; goblin TB MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Juan Soto","team":"NYM","market":"total_bases","side":"MORE","line":0.5,"tier":"goblin","result":"REFUND","actual":0,"played":true,"source":"manual_research","notes":"screenshot import; DNP/refund"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Ketel Marte","team":"AZ","market":"walks","side":"LESS","line":0.5,"tier":"standard","result":"HIT","actual":0,"played":true,"source":"manual_research","notes":"screenshot import; walks LESS"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Travis Bazzana","team":"CLE","market":"runs","side":"LESS","line":0.5,"tier":"standard","result":"HIT","actual":0,"played":true,"source":"manual_research","notes":"screenshot import; runs LESS"},
+
+  {"date":"2026-05-23_to_2026-05-29","player":"Sonny Gray","team":"BOS","market":"strikeouts","side":"LESS","line":5.5,"tier":"standard","result":"HIT","actual":4,"played":true,"source":"manual_research","notes":"screenshot import; pitcher K LESS"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Xander Bogaerts","team":"SD","market":"hitter_strikeouts","side":"MORE","line":0.5,"tier":"standard","result":"MISS","actual":0,"played":true,"source":"manual_research","notes":"screenshot import; hitter K MORE"},
+
+  {"date":"2026-05-23_to_2026-05-29","player":"Jose Caballero","team":"NYY","market":"total_bases","side":"MORE","line":0.5,"tier":"goblin","result":"MISS","actual":0,"played":true,"source":"manual_research","notes":"screenshot import; goblin TB MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Jackson Chourio","team":"MIL","market":"hitter_fantasy_score","side":"MORE","line":4.5,"tier":"standard","result":"MISS","actual":3,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Sam Haggerty","team":"TEX","market":"total_bases","side":"MORE","line":0.5,"tier":"standard","result":"MISS","actual":0,"played":true,"source":"manual_research","notes":"screenshot import; TB MORE"},
+
+  {"date":"2026-05-23_to_2026-05-29","player":"Nick Kurtz","team":"ATH","market":"hitter_fantasy_score","side":"MORE","line":5.5,"tier":"standard","result":"HIT","actual":8,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Daylen Lile","team":"WSH","market":"hitter_fantasy_score","side":"MORE","line":5,"tier":"standard","result":"HIT","actual":7,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Pete Alonso","team":"BAL","market":"hrr","side":"MORE","line":1.5,"tier":"standard","result":"MISS","actual":0,"played":true,"source":"manual_research","notes":"screenshot import; HRR MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Taylor Ward","team":"BAL","market":"hrr","side":"MORE","line":1.5,"tier":"standard","result":"HIT","actual":2,"played":true,"source":"manual_research","notes":"screenshot import; HRR MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Luke Raley","team":"SEA","market":"hrr","side":"MORE","line":0.5,"tier":"goblin","result":"MISS","actual":0,"played":true,"source":"manual_research","notes":"screenshot import; goblin HRR MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Alex Bregman","team":"CHC","market":"hrr","side":"MORE","line":1.5,"tier":"standard","result":"MISS","actual":1,"played":true,"source":"manual_research","notes":"screenshot import; HRR MORE"},
+
+  {"date":"2026-05-23_to_2026-05-29","player":"Jake Burger","team":"TEX","market":"hitter_fantasy_score","side":"MORE","line":5,"tier":"standard","result":"MISS","actual":2,"played":true,"source":"manual_research","notes":"screenshot import; hitter FS MORE"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Zac Gallen","team":"AZ","market":"1st_inning_pitches_thrown","side":"MORE","line":14.5,"tier":"standard","result":"MISS","actual":9,"played":true,"source":"manual_research","notes":"screenshot import; MLB live 1st inning pitches"},
+  {"date":"2026-05-23_to_2026-05-29","player":"Slade Cecconi","team":"CLE","market":"pitching_outs","side":"LESS","line":16.5,"tier":"standard","result":"HIT","actual":15,"played":true,"source":"manual_research","notes":"screenshot import; pitching outs LESS"},
+  {"date":"2026-05-23_to_2026-05-29","player":"J.T. Ginn","team":"ATH","market":"pitching_outs","side":"LESS","line":17.5,"tier":"standard","result":"HIT","actual":7,"played":true,"source":"manual_research","notes":"screenshot import; pitching outs LESS"}
+]
