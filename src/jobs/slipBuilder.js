@@ -21,6 +21,14 @@ const GOBLIN_MARKET_TRUST_MAP = new Map(
   ])
 );
 
+const DEMON_MARKET_TRUST = readJsonSafeGoblinTrust('data/learning/demon-market-trust.json', { markets: [] });
+const DEMON_MARKET_TRUST_MAP = new Map(
+  (DEMON_MARKET_TRUST.markets || []).map(r => [
+    `${String(r.market || '').toLowerCase()}|${String(r.side || 'MORE').toUpperCase()}`,
+    r
+  ])
+);
+
 const MODE = String(process.argv[2] || process.env.SLIP_MODE || 'mixed').toLowerCase();
 // modes:
 // standard = standard props only
@@ -379,6 +387,42 @@ function goblinMarketTrustDisabledReason(r) {
   return null;
 }
 
+function demonMarketTrustRule(r) {
+  if (tier(r) !== 'demon') return null;
+
+  const key = `${market(r)}|${sideKey(r) || 'MORE'}`;
+  return DEMON_MARKET_TRUST_MAP.get(key) || null;
+}
+
+function demonMarketTrustBlockedForSlip(r) {
+  const rule = demonMarketTrustRule(r);
+  if (!rule) return false;
+
+  if (String(rule.action || '').toUpperCase() === 'SUPPRESS') return true;
+
+  // Demons are hard lines. WATCH requires extreme model confirmation.
+  if (String(rule.action || '').toUpperCase() === 'WATCH') {
+    return !(
+      n(r.recommendedProb) >= 0.70 &&
+      n(r.expectedValue) >= 0.20 &&
+      String(r.confidenceBucket || '').toLowerCase() === 'elite' &&
+      n(r.sportsbookBookCount || r.books) >= 3
+    );
+  }
+
+  return false;
+}
+
+function demonMarketTrustDisabledReason(r) {
+  const rule = demonMarketTrustRule(r);
+  if (!rule) return null;
+
+  const action = String(rule.action || '').toUpperCase();
+  if (action === 'SUPPRESS') return `demon_market_trust_suppressed:${rule.market}:${rule.reason || 'no_reason'}`;
+  if (action === 'WATCH') return `demon_market_trust_watch:${rule.market}:${rule.reason || 'no_reason'}`;
+  return null;
+}
+
 function normalizeForOptimizer(r) {
   if (invalidProjectionRow(r)) {
     return {
@@ -408,6 +452,14 @@ function normalizeForOptimizer(r) {
       ...r,
       rankEligible: false,
       disabledReason: goblinMarketTrustDisabledReason(r) || "goblin_market_trust_blocked"
+    };
+  }
+
+  if (demonMarketTrustBlockedForSlip(r)) {
+    return {
+      ...r,
+      rankEligible: false,
+      disabledReason: demonMarketTrustDisabledReason(r) || "demon_market_trust_blocked"
     };
   }
   const rawMarketText = String(r.market || r.stat || "").toLowerCase();
@@ -501,6 +553,7 @@ function playable(r) {
   if (specialTierLessBlockedForSlip(r)) return false;
   if (goblinStrikeoutsMoreBlockedForSlip(r)) return false;
   if (goblinMarketTrustBlockedForSlip(r)) return false;
+  if (demonMarketTrustBlockedForSlip(r)) return false;
   if (phase6DirectionalBlocked(r)) return false;
   if (r.rankEligible === false) return false;
 

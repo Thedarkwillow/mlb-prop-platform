@@ -1,0 +1,202 @@
+{
+  "generatedAt": "2026-05-30T14:48:23.504Z",
+  "source": "outputs/history/*-demon-raw-performance.json",
+  "reports": 1,
+  "gradedRows": 4435,
+  "policy": {
+    "suppressBelowHitRate": 0.35,
+    "watchBelowHitRate": 0.45,
+    "minSampleForAllow": 30,
+    "hardSuppress": [
+      {
+        "market": "strikeouts",
+        "side": "MORE",
+        "reason": "raw demon strikeouts MORE has been extremely poor"
+      }
+    ]
+  },
+  "markets": [
+    {
+      "market": "bases",
+      "side": "MORE",
+      "sample": 954,
+      "hits": 242,
+      "misses": 712,
+      "pushes": 0,
+      "hitRate": 0.2537,
+      "action": "SUPPRESS",
+      "reason": "raw_demon_hit_rate_below_threshold",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "hrr",
+      "side": "MORE",
+      "sample": 921,
+      "hits": 221,
+      "misses": 700,
+      "pushes": 0,
+      "hitRate": 0.24,
+      "action": "SUPPRESS",
+      "reason": "raw_demon_hit_rate_below_threshold",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "rbis",
+      "side": "MORE",
+      "sample": 514,
+      "hits": 126,
+      "misses": 388,
+      "pushes": 0,
+      "hitRate": 0.2451,
+      "action": "SUPPRESS",
+      "reason": "raw_demon_hit_rate_below_threshold",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "strikeouts",
+      "side": "MORE",
+      "sample": 383,
+      "hits": 8,
+      "misses": 375,
+      "pushes": 0,
+      "hitRate": 0.0209,
+      "action": "SUPPRESS",
+      "reason": "raw_demon_strikeouts_more_extremely_bad",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "runs",
+      "side": "MORE",
+      "sample": 353,
+      "hits": 106,
+      "misses": 247,
+      "pushes": 0,
+      "hitRate": 0.3003,
+      "action": "SUPPRESS",
+      "reason": "raw_demon_hit_rate_below_threshold",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "hits",
+      "side": "MORE",
+      "sample": 308,
+      "hits": 71,
+      "misses": 237,
+      "pushes": 0,
+      "hitRate": 0.2305,
+      "action": "SUPPRESS",
+      "reason": "raw_demon_hit_rate_below_threshold",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "singles",
+      "side": "MORE",
+      "sample": 276,
+      "hits": 71,
+      "misses": 205,
+      "pushes": 0,
+      "hitRate": 0.2572,
+      "action": "SUPPRESS",
+      "reason": "raw_demon_hit_rate_below_threshold",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "walks",
+      "side": "MORE",
+      "sample": 271,
+      "hits": 67,
+      "misses": 204,
+      "pushes": 0,
+      "hitRate": 0.2472,
+      "action": "SUPPRESS",
+      "reason": "raw_demon_hit_rate_below_threshold",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "hitter_fantasy_score",
+      "side": "MORE",
+      "sample": 265,
+      "hits": 82,
+      "misses": 183,
+      "pushes": 0,
+      "hitRate": 0.3094,
+      "action": "SUPPRESS",
+      "reason": "raw_demon_hit_rate_below_threshold",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "hits_allowed",
+      "side": "MORE",
+      "sample": 76,
+      "hits": 17,
+      "misses": 59,
+      "pushes": 0,
+      "hitRate": 0.2237,
+      "action": "SUPPRESS",
+      "reason": "raw_demon_hit_rate_below_threshold",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "earned_runs_allowed",
+      "side": "MORE",
+      "sample": 74,
+      "hits": 23,
+      "misses": 51,
+      "pushes": 0,
+      "hitRate": 0.3108,
+      "action": "SUPPRESS",
+      "reason": "raw_demon_hit_rate_below_threshold",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "walks_allowed",
+      "side": "MORE",
+      "sample": 33,
+      "hits": 7,
+      "misses": 26,
+      "pushes": 0,
+      "hitRate": 0.2121,
+      "action": "SUPPRESS",
+      "reason": "raw_demon_hit_rate_below_threshold",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "pitching_outs",
+      "side": "MORE",
+      "sample": 7,
+      "hits": 2,
+      "misses": 5,
+      "pushes": 0,
+      "hitRate": 0.2857,
+      "action": "WATCH",
+      "reason": "low_sample",
+      "dates": [
+        "2026-05-29"
+      ]
+    }
+  ]
+}
