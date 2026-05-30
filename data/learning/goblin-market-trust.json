@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-05-30T13:44:06.688Z",
+  "generatedAt": "2026-05-30T13:46:32.521Z",
   "source": "outputs/history/*-goblin-raw-performance.json",
   "reports": 1,
-  "gradedRows": 1462,
+  "gradedRows": 1524,
   "policy": {
     "suppressBelowHitRate": 0.54,
     "watchBelowHitRate": 0.6,
@@ -19,11 +19,11 @@
     {
       "market": "strikeouts",
       "side": "MORE",
-      "sample": 232,
-      "hits": 19,
-      "misses": 213,
+      "sample": 250,
+      "hits": 20,
+      "misses": 230,
       "pushes": 0,
-      "hitRate": 0.0819,
+      "hitRate": 0.08,
       "action": "SUPPRESS",
       "reason": "raw_goblin_strikeouts_more_extremely_bad",
       "dates": [
@@ -47,11 +47,11 @@
     {
       "market": "walks_allowed",
       "side": "MORE",
-      "sample": 16,
-      "hits": 7,
-      "misses": 9,
+      "sample": 18,
+      "hits": 8,
+      "misses": 10,
       "pushes": 0,
-      "hitRate": 0.4375,
+      "hitRate": 0.4444,
       "action": "WATCH",
       "reason": "low_sample",
       "dates": [
@@ -103,11 +103,11 @@
     {
       "market": "hitter_fantasy_score",
       "side": "MORE",
-      "sample": 317,
-      "hits": 192,
-      "misses": 125,
+      "sample": 341,
+      "hits": 211,
+      "misses": 130,
       "pushes": 0,
-      "hitRate": 0.6057,
+      "hitRate": 0.6188,
       "action": "ALLOW",
       "reason": "raw_goblin_hit_rate_60_plus",
       "dates": [
@@ -117,11 +117,11 @@
     {
       "market": "hrr",
       "side": "MORE",
-      "sample": 298,
-      "hits": 196,
-      "misses": 102,
+      "sample": 311,
+      "hits": 207,
+      "misses": 104,
       "pushes": 0,
-      "hitRate": 0.6577,
+      "hitRate": 0.6656,
       "action": "ALLOW",
       "reason": "raw_goblin_hit_rate_60_plus",
       "dates": [
@@ -131,11 +131,11 @@
     {
       "market": "bases",
       "side": "MORE",
-      "sample": 241,
-      "hits": 147,
+      "sample": 242,
+      "hits": 148,
       "misses": 94,
       "pushes": 0,
-      "hitRate": 0.61,
+      "hitRate": 0.6116,
       "action": "ALLOW",
       "reason": "raw_goblin_hit_rate_60_plus",
       "dates": [
@@ -145,11 +145,11 @@
     {
       "market": "hits_allowed",
       "side": "MORE",
-      "sample": 38,
-      "hits": 29,
+      "sample": 40,
+      "hits": 31,
       "misses": 9,
       "pushes": 0,
-      "hitRate": 0.7632,
+      "hitRate": 0.775,
       "action": "ALLOW",
       "reason": "raw_goblin_hit_rate_60_plus",
       "dates": [
@@ -159,11 +159,11 @@
     {
       "market": "earned_runs_allowed",
       "side": "MORE",
-      "sample": 29,
-      "hits": 21,
+      "sample": 31,
+      "hits": 23,
       "misses": 8,
       "pushes": 0,
-      "hitRate": 0.7241,
+      "hitRate": 0.7419,
       "action": "ALLOW",
       "reason": "raw_goblin_hit_rate_60_plus",
       "dates": [

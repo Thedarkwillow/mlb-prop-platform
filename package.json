@@ -64,7 +64,7 @@
     "safe-mobile": "npm run freshness && npm run sharp-mobile",
     "live": "npm run prizepicks && npm run board:rebuild && node src/jobs/slipBuilder.js && npm run picks && npm run sharp-mobile",
     "official": "node src/research/official-slip-summary.cjs && npm run audit:final",
-    "nightly": "npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run official && npm run rolling:roi --date=${npm_config_date:-$(date +%F)} && npm run regime && npm run learn:phase6:all && node src/research/context-roi-report.cjs && npm run learn:goblins",
+    "nightly": "npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run official && npm run rolling:roi --date=${npm_config_date:-$(date +%F)} && npm run regime && npm run learn:phase6:all && node src/research/context-roi-report.cjs && npm run postgame:goblins --date=${npm_config_date:-$(date +%F)} && npm run learn:goblins",
     "learn:markets": "node src/reports/grade-all-markets.js && node src/learning/build-market-learning.js",
     "learn:report": "node src/learning/report-market-learning.js",
     "grade:all-markets": "node src/reports/grade-all-markets.js",
@@ -236,7 +236,8 @@
     "fantasy:fill-projections": "node src/research/fill-fantasy-projection-coverage.cjs",
     "fantasy:research": "npm run fantasy:fill-projections && npm run fantasy:side-coverage -- ${npm_config_date:-$(date +%F)} && npm run fantasy:less:direct -- ${npm_config_date:-$(date +%F)}",
     "goblin:raw": "node src/research/goblin-raw-performance-report.cjs",
-    "learn:goblins": "node src/learning/build-goblin-market-trust.cjs"
+    "learn:goblins": "node src/learning/build-goblin-market-trust.cjs",
+    "postgame:goblins": "npm run goblin:raw -- ${npm_config_date:-$(date +%F)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
