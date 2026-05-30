@@ -232,7 +232,8 @@
     "promotion:audit": "node src/research/promotion-audit-report.cjs",
     "fantasy:less:direct": "node src/research/direct-fantasy-less-tracker.cjs",
     "sales:readiness": "node src/research/sales-readiness-report.cjs",
-    "fantasy:side-coverage": "node src/research/fantasy-side-coverage-report.cjs"
+    "fantasy:side-coverage": "node src/research/fantasy-side-coverage-report.cjs",
+    "fantasy:fill-projections": "node src/research/fill-fantasy-projection-coverage.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
