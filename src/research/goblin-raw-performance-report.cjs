@@ -260,6 +260,9 @@ function summarize(rows) {
   const hits = graded.filter(r => r.result === "HIT").length;
   const misses = graded.filter(r => r.result === "MISS").length;
   const pushes = graded.filter(r => r.result === "PUSH").length;
+  const unmatched = rows.filter(r => r.result === "UNMATCHED").length;
+  const invalidContext = rows.filter(r => r.result === "INVALID_CONTEXT").length;
+  const unavailable = rows.filter(r => r.result === "UNAVAILABLE").length;
   const denom = hits + misses;
 
   return {
@@ -268,7 +271,9 @@ function summarize(rows) {
     hits,
     misses,
     pushes,
-    unmatched: rows.length - graded.length,
+    unmatched,
+    invalidContext,
+    unavailable,
     hitRate: denom ? Number((hits / denom).toFixed(4)) : null
   };
 }
@@ -288,45 +293,84 @@ function groupSummary(rows, keyFn) {
   );
 }
 
-function buildBoxscoreIndex() {
-  const schedule = JSON.parse(execFileSync("curl", [
-    "-sSL",
-    "-H", "accept: application/json,text/plain,*/*",
-    "-H", "user-agent: Mozilla/5.0 mlb-prop-platform",
-    `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}`
-  ], {
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "ignore"],
-    timeout: 30000
-  }));
+function fetchJsonDirect(url, attempts = 5) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const raw = execFileSync("curl", [
+        "-sSL",
+        "--retry", "2",
+        "--retry-delay", "1",
+        "-H", "accept: application/json,text/plain,*/*",
+        "-H", "user-agent: Mozilla/5.0 mlb-prop-platform",
+        url
+      ], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+        timeout: 30000
+      });
 
-  const games = [];
+      if (!raw || !raw.trim()) continue;
 
-
-  if (!schedule || !Array.isArray(schedule.dates)) {
-    throw new Error(`No MLB schedule returned for ${date}`);
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.status && parsed.error) continue;
+      return parsed;
+    } catch {
+      // Retry.
+    }
   }
 
-  for (const d of schedule.dates || []) {
-    for (const g of d.games || []) {
+  return null;
+}
+
+function buildBoxscoreIndex() {
+  const schedule = fetchJsonDirect(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}`, 5);
+  const games = [];
+
+  if (schedule && Array.isArray(schedule.dates)) {
+    for (const d of schedule.dates || []) {
+      for (const g of d.games || []) {
+        games.push({
+          gamePk: g.gamePk,
+          link: g.link || `/api/v1.1/game/${g.gamePk}/feed/live`,
+          away: g.teams?.away?.team?.name,
+          home: g.teams?.home?.team?.name
+        });
+      }
+    }
+  }
+
+  if (!games.length) {
+    const fallbackGamePks = [
+      ...new Set(
+        flatten(readJson(fullBoardFile, []))
+          .map(r => rowGamePk(r))
+          .filter(Boolean)
+      )
+    ];
+
+    for (const gamePk of fallbackGamePks) {
       games.push({
-        gamePk: g.gamePk,
-        link: g.link || null,
-        away: g.teams?.away?.team?.name,
-        home: g.teams?.home?.team?.name
+        gamePk,
+        link: `/api/v1.1/game/${gamePk}/feed/live`,
+        away: null,
+        home: null
       });
     }
+  }
+
+  if (!games.length) {
+    throw new Error(`No MLB games available for ${date}`);
   }
 
   const byGame = new Map();
   const all = [];
 
   for (const g of games) {
-    const boxRaw = fetchJson(
-      g.link
-        ? `https://statsapi.mlb.com${g.link}`
-        : `https://statsapi.mlb.com/api/v1.1/game/${g.gamePk}/feed/live`
-    );
+    const feedUrl = g.link
+      ? `https://statsapi.mlb.com${g.link}`
+      : `https://statsapi.mlb.com/api/v1.1/game/${g.gamePk}/feed/live`;
+
+    const boxRaw = fetchJson(feedUrl);
     const box = boxRaw?.teams ? boxRaw : boxRaw?.liveData?.boxscore;
     const gamePlayers = [];
 
@@ -337,8 +381,13 @@ function buildBoxscoreIndex() {
     }
 
     for (const side of ["away", "home"]) {
-      const team = box.teams?.[side]?.team || {};
-      const teamAbbr = upper(team.abbreviation || team.fileCode || team.teamCode || "");
+      const team =
+        boxRaw?.gameData?.teams?.[side]?.abbreviation ||
+        box.teams?.[side]?.team?.abbreviation ||
+        box.teams?.[side]?.team?.fileCode ||
+        box.teams?.[side]?.team?.teamCode ||
+        "";
+      const teamAbbr = upper(team);
       const players = box.teams?.[side]?.players || {};
 
       for (const x of Object.values(players)) {
@@ -432,6 +481,18 @@ const rows = rawGoblins.map(r => {
     result = gradeMore(actual, line);
   }
 
+  const disabled = String(r.disabledReason || "");
+  const invalidContext =
+    disabled.includes("player/team unresolved or mismatch") ||
+    disabled.includes("resolved team not in game") ||
+    disabled.includes("source team") ||
+    disabled.includes("team unresolved") ||
+    disabled.includes("team conflict");
+
+  if (result === "UNMATCHED" && invalidContext) {
+    result = "INVALID_CONTEXT";
+  }
+
   return {
     player: playerName(r),
     team: rowTeam(r) || null,
@@ -476,6 +537,7 @@ const output = {
     targetMarkets: summarize(rows.filter(r => targetMarkets.includes(r.market))),
     byMarket: groupSummary(rows, r => r.market),
     unmatchedByMarket: groupSummary(rows.filter(r => r.result === "UNMATCHED"), r => r.market),
+    invalidContextByMarket: groupSummary(rows.filter(r => r.result === "INVALID_CONTEXT"), r => r.market),
     targetMarketBreakdown: groupSummary(rows.filter(r => targetMarkets.includes(r.market)), r => r.market)
   },
   rows
