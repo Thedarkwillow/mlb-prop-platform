@@ -4,6 +4,23 @@ import { applyPhase5ContextAdjustments } from '../lib/phase5ContextEngine.js';
 
 const rows = JSON.parse(fs.readFileSync('outputs/priced-board.json', 'utf8'));
 
+function readJsonSafeGoblinTrust(path, fallback = {}) {
+  try {
+    if (!fs.existsSync(path)) return fallback;
+    return JSON.parse(fs.readFileSync(path, 'utf8'));
+  } catch {
+    return fallback;
+  }
+}
+
+const GOBLIN_MARKET_TRUST = readJsonSafeGoblinTrust('data/learning/goblin-market-trust.json', { markets: [] });
+const GOBLIN_MARKET_TRUST_MAP = new Map(
+  (GOBLIN_MARKET_TRUST.markets || []).map(r => [
+    `${String(r.market || '').toLowerCase()}|${String(r.side || 'MORE').toUpperCase()}`,
+    r
+  ])
+);
+
 const MODE = String(process.argv[2] || process.env.SLIP_MODE || 'mixed').toLowerCase();
 // modes:
 // standard = standard props only
@@ -328,6 +345,40 @@ function goblinStrikeoutsMoreBlockedForSlip(r) {
   return oddsTier === "goblin" && m === "strikeouts" && resolvedSide === "MORE";
 }
 
+function goblinMarketTrustRule(r) {
+  if (tier(r) !== 'goblin') return null;
+
+  const key = `${market(r)}|${sideKey(r) || 'MORE'}`;
+  return GOBLIN_MARKET_TRUST_MAP.get(key) || null;
+}
+
+function goblinMarketTrustBlockedForSlip(r) {
+  const rule = goblinMarketTrustRule(r);
+  if (!rule) return false;
+
+  if (String(rule.action || '').toUpperCase() === 'SUPPRESS') return true;
+
+  if (String(rule.action || '').toUpperCase() === 'WATCH') {
+    return !(
+      n(r.recommendedProb) >= 0.64 &&
+      n(r.expectedValue) >= 0.08 &&
+      String(r.confidenceBucket || '').toLowerCase() === 'elite'
+    );
+  }
+
+  return false;
+}
+
+function goblinMarketTrustDisabledReason(r) {
+  const rule = goblinMarketTrustRule(r);
+  if (!rule) return null;
+
+  const action = String(rule.action || '').toUpperCase();
+  if (action === 'SUPPRESS') return `goblin_market_trust_suppressed:${rule.market}:${rule.reason || 'no_reason'}`;
+  if (action === 'WATCH') return `goblin_market_trust_watch:${rule.market}:${rule.reason || 'no_reason'}`;
+  return null;
+}
+
 function normalizeForOptimizer(r) {
   if (invalidProjectionRow(r)) {
     return {
@@ -349,6 +400,14 @@ function normalizeForOptimizer(r) {
       ...r,
       rankEligible: false,
       disabledReason: "goblin_strikeouts_more_suppressed"
+    };
+  }
+
+  if (goblinMarketTrustBlockedForSlip(r)) {
+    return {
+      ...r,
+      rankEligible: false,
+      disabledReason: goblinMarketTrustDisabledReason(r) || "goblin_market_trust_blocked"
     };
   }
   const rawMarketText = String(r.market || r.stat || "").toLowerCase();
@@ -441,6 +500,7 @@ function playable(r) {
   if (invalidProjectionRow(r)) return false;
   if (specialTierLessBlockedForSlip(r)) return false;
   if (goblinStrikeoutsMoreBlockedForSlip(r)) return false;
+  if (goblinMarketTrustBlockedForSlip(r)) return false;
   if (phase6DirectionalBlocked(r)) return false;
   if (r.rankEligible === false) return false;
 
