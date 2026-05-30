@@ -64,7 +64,7 @@
     "safe-mobile": "npm run freshness && npm run sharp-mobile",
     "live": "npm run prizepicks && npm run board:rebuild && node src/jobs/slipBuilder.js && npm run picks && npm run sharp-mobile",
     "official": "node src/research/official-slip-summary.cjs && npm run audit:final",
-    "nightly": "npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run official && npm run rolling:roi --date=${npm_config_date:-$(date +%F)} && npm run regime && npm run learn:phase6:all && node src/research/context-roi-report.cjs && npm run postgame:goblins --date=${npm_config_date:-$(date +%F)} && npm run learn:goblins && npm run postgame:demons --date=${npm_config_date:-$(date +%F)} && npm run learn:demons",
+    "nightly": "npm run postgame --date=${npm_config_date:-$(date +%F)} && npm run official && npm run rolling:roi --date=${npm_config_date:-$(date +%F)} && npm run regime && npm run learn:phase6:all && node src/research/context-roi-report.cjs && npm run postgame:goblins --date=${npm_config_date:-$(date +%F)} && npm run learn:goblins && npm run postgame:demons --date=${npm_config_date:-$(date +%F)} && npm run learn:demons && npm run postgame:runs --date=${npm_config_date:-$(date +%F)}",
     "learn:markets": "node src/reports/grade-all-markets.js && node src/learning/build-market-learning.js",
     "learn:report": "node src/learning/report-market-learning.js",
     "grade:all-markets": "node src/reports/grade-all-markets.js",
@@ -242,7 +242,8 @@
     "learn:demons": "node src/learning/build-demon-market-trust.cjs",
     "postgame:demons": "npm run demon:raw -- ${npm_config_date:-$(date +%F)}",
     "runs:cards": "node src/research/run-level-card-report.cjs",
-    "runs:grade": "node src/research/grade-run-level-cards.cjs"
+    "runs:grade": "node src/research/grade-run-level-cards.cjs",
+    "postgame:runs": "npm run runs:cards -- ${npm_config_date:-$(date +%F)} && npm run runs:grade -- ${npm_config_date:-$(date +%F)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
