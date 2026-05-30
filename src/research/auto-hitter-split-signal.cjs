@@ -162,6 +162,79 @@ function compactCurrent(row, file) {
   };
 }
 
+
+function currentKey(row) {
+  return [
+    norm(row.player),
+    row.market,
+    row.side,
+    row.line,
+    row.tier
+  ].join("|");
+}
+
+function histKey(row) {
+  return [
+    row.date,
+    norm(row.player),
+    row.market,
+    row.side,
+    row.line,
+    row.tier,
+    row.actual,
+    row.result
+  ].join("|");
+}
+
+function sourceRank(file) {
+  if (file.includes("lean-final-slips")) return 1;
+  if (file.includes("final-slips")) return 2;
+  if (file.includes("playable-final-slips")) return 3;
+  if (file.includes("blocked-final-candidates")) return 4;
+  return 9;
+}
+
+function dedupeCurrent(rows) {
+  const map = new Map();
+
+  for (const row of rows) {
+    const key = currentKey(row);
+    const existing = map.get(key);
+
+    if (!existing) {
+      map.set(key, row);
+      continue;
+    }
+
+    const existingRank = sourceRank(existing.sourceFile || "");
+    const rowRank = sourceRank(row.sourceFile || "");
+
+    if (rowRank < existingRank) {
+      map.set(key, row);
+      continue;
+    }
+
+    if (rowRank === existingRank) {
+      const existingEdge = n(existing.edge) ?? -999;
+      const rowEdge = n(row.edge) ?? -999;
+      if (rowEdge > existingEdge) map.set(key, row);
+    }
+  }
+
+  return [...map.values()];
+}
+
+function dedupeHistory(rows) {
+  const map = new Map();
+
+  for (const row of rows) {
+    const key = histKey(row);
+    if (!map.has(key)) map.set(key, row);
+  }
+
+  return [...map.values()].sort((a, b) => String(a.date).localeCompare(String(b.date)));
+}
+
 function historicalFiles() {
   const files = [];
 
@@ -210,7 +283,7 @@ function currentRows() {
     }
   }
 
-  return rows;
+  return dedupeCurrent(rows);
 }
 
 function historicalRows() {
@@ -322,8 +395,7 @@ function scoreSignal(cur, splits) {
   }
 
   if (cur.market === "hrr" && cur.side === "MORE") {
-    score -= 0.5;
-    warnings.push("hrr_more_manual_bucket_has_been_weak");
+    reasons.push("hrr_more_auto_signal_included_report_only");
   }
 
   if (cur.market === "hitter_fantasy_score" && cur.side === "MORE") {
