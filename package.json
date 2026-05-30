@@ -252,7 +252,8 @@
     "manual:quick": "node src/research/manual-quick-entry.cjs",
     "manual:pending": "node src/research/manual-pending-shortcut.cjs",
     "manual:csv": "node src/research/import-manual-csv.cjs",
-    "manual:signal": "node src/research/manual-signal-report.cjs"
+    "manual:signal": "node src/research/manual-signal-report.cjs",
+    "auto:hitter-signal": "node src/research/auto-hitter-split-signal.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
