@@ -231,7 +231,8 @@
     "singles:readiness": "node src/research/singles-readiness-report.cjs",
     "promotion:audit": "node src/research/promotion-audit-report.cjs",
     "fantasy:less:direct": "node src/research/direct-fantasy-less-tracker.cjs",
-    "sales:readiness": "node src/research/sales-readiness-report.cjs"
+    "sales:readiness": "node src/research/sales-readiness-report.cjs",
+    "fantasy:side-coverage": "node src/research/fantasy-side-coverage-report.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
