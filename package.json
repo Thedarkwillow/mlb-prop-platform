@@ -248,13 +248,14 @@
     "manual:import": "node src/research/import-manual-research.cjs",
     "manual:compare": "node src/research/manual-model-compare.cjs",
     "manual:add": "node src/research/add-manual-research-row.cjs",
-    "manual": "npm run manual:report && npm run manual:compare && npm run manual:signal",
+    "manual": "npm run manual:report && npm run manual:compare && npm run manual:signal && npm run manual:mine",
     "manual:quick": "node src/research/manual-quick-entry.cjs",
     "manual:pending": "node src/research/manual-pending-shortcut.cjs",
     "manual:csv": "node src/research/import-manual-csv.cjs",
     "manual:signal": "node src/research/manual-signal-report.cjs",
     "auto:hitter-signal": "node src/research/auto-hitter-split-signal.cjs",
-    "decision:auto-notes": "node src/research/decision-auto-signal-notes.cjs"
+    "decision:auto-notes": "node src/research/decision-auto-signal-notes.cjs",
+    "manual:mine": "node src/research/manual-edge-mining-report.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
