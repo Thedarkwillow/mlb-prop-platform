@@ -241,7 +241,8 @@
     "demon:raw": "node src/research/demon-raw-performance-report.cjs",
     "learn:demons": "node src/learning/build-demon-market-trust.cjs",
     "postgame:demons": "npm run demon:raw -- ${npm_config_date:-$(date +%F)}",
-    "runs:cards": "node src/research/run-level-card-report.cjs"
+    "runs:cards": "node src/research/run-level-card-report.cjs",
+    "runs:grade": "node src/research/grade-run-level-cards.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
