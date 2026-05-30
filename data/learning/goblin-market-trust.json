@@ -1,0 +1,188 @@
+{
+  "generatedAt": "2026-05-30T13:39:30.950Z",
+  "source": "outputs/history/*-goblin-raw-performance.json",
+  "reports": 1,
+  "gradedRows": 1462,
+  "policy": {
+    "suppressBelowHitRate": 0.54,
+    "watchBelowHitRate": 0.6,
+    "minSampleForAllow": 20,
+    "hardSuppress": [
+      {
+        "market": "strikeouts",
+        "side": "MORE",
+        "reason": "raw goblin strikeouts MORE has been extremely poor"
+      }
+    ]
+  },
+  "markets": [
+    {
+      "market": "strikeouts",
+      "side": "MORE",
+      "sample": 232,
+      "hits": 19,
+      "misses": 213,
+      "pushes": 0,
+      "hitRate": 0.0819,
+      "action": "SUPPRESS",
+      "reason": "raw_goblin_strikeouts_more_extremely_bad",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "hits",
+      "side": "MORE",
+      "sample": 255,
+      "hits": 151,
+      "misses": 104,
+      "pushes": 0,
+      "hitRate": 0.5922,
+      "action": "WATCH",
+      "reason": "raw_goblin_hit_rate_watch",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "walks_allowed",
+      "side": "MORE",
+      "sample": 16,
+      "hits": 7,
+      "misses": 9,
+      "pushes": 0,
+      "hitRate": 0.4375,
+      "action": "WATCH",
+      "reason": "low_sample",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "pitching_outs",
+      "side": "MORE",
+      "sample": 8,
+      "hits": 5,
+      "misses": 3,
+      "pushes": 0,
+      "hitRate": 0.625,
+      "action": "WATCH",
+      "reason": "low_sample",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "runs",
+      "side": "MORE",
+      "sample": 5,
+      "hits": 3,
+      "misses": 2,
+      "pushes": 0,
+      "hitRate": 0.6,
+      "action": "WATCH",
+      "reason": "low_sample",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "walks",
+      "side": "MORE",
+      "sample": 2,
+      "hits": 1,
+      "misses": 1,
+      "pushes": 0,
+      "hitRate": 0.5,
+      "action": "WATCH",
+      "reason": "low_sample",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "hitter_fantasy_score",
+      "side": "MORE",
+      "sample": 317,
+      "hits": 192,
+      "misses": 125,
+      "pushes": 0,
+      "hitRate": 0.6057,
+      "action": "ALLOW",
+      "reason": "raw_goblin_hit_rate_60_plus",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "hrr",
+      "side": "MORE",
+      "sample": 298,
+      "hits": 196,
+      "misses": 102,
+      "pushes": 0,
+      "hitRate": 0.6577,
+      "action": "ALLOW",
+      "reason": "raw_goblin_hit_rate_60_plus",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "bases",
+      "side": "MORE",
+      "sample": 241,
+      "hits": 147,
+      "misses": 94,
+      "pushes": 0,
+      "hitRate": 0.61,
+      "action": "ALLOW",
+      "reason": "raw_goblin_hit_rate_60_plus",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "hits_allowed",
+      "side": "MORE",
+      "sample": 38,
+      "hits": 29,
+      "misses": 9,
+      "pushes": 0,
+      "hitRate": 0.7632,
+      "action": "ALLOW",
+      "reason": "raw_goblin_hit_rate_60_plus",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "earned_runs_allowed",
+      "side": "MORE",
+      "sample": 29,
+      "hits": 21,
+      "misses": 8,
+      "pushes": 0,
+      "hitRate": 0.7241,
+      "action": "ALLOW",
+      "reason": "raw_goblin_hit_rate_60_plus",
+      "dates": [
+        "2026-05-29"
+      ]
+    },
+    {
+      "market": "singles",
+      "side": "MORE",
+      "sample": 21,
+      "hits": 14,
+      "misses": 7,
+      "pushes": 0,
+      "hitRate": 0.6667,
+      "action": "ALLOW",
+      "reason": "raw_goblin_hit_rate_60_plus",
+      "dates": [
+        "2026-05-29"
+      ]
+    }
+  ]
+}
