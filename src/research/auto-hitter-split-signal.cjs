@@ -48,6 +48,97 @@ function normMarket(m) {
   return x;
 }
 
+
+function firstValue(row, keys) {
+  for (const key of keys) {
+    if (row[key] !== undefined && row[key] !== null && row[key] !== "") return row[key];
+  }
+
+  for (const key of keys) {
+    const parts = key.split(".");
+    let cur = row;
+    let ok = true;
+    for (const part of parts) {
+      if (!cur || typeof cur !== "object" || !(part in cur)) {
+        ok = false;
+        break;
+      }
+      cur = cur[part];
+    }
+    if (ok && cur !== undefined && cur !== null && cur !== "") return cur;
+  }
+
+  return "";
+}
+
+function normalizeHomeAway(v) {
+  const x = norm(v);
+  if (!x) return "";
+
+  if (["home", "h"].includes(x)) return "home";
+  if (["away", "road", "a"].includes(x)) return "away";
+
+  return x;
+}
+
+function normalizeHand(v) {
+  const x = norm(v);
+  if (!x) return "";
+
+  if (["r", "rh", "rhp", "right", "righty", "right handed", "right hand"].includes(x)) return "RHP";
+  if (["l", "lh", "lhp", "left", "lefty", "left handed", "left hand"].includes(x)) return "LHP";
+
+  return String(v).toUpperCase();
+}
+
+function extractHomeAway(row) {
+  return normalizeHomeAway(firstValue(row, [
+    "homeAway",
+    "home_away",
+    "location",
+    "venueSide",
+    "gameLocation",
+    "splitHomeAway",
+    "context.homeAway",
+    "context.location",
+    "splits.homeAway"
+  ]));
+}
+
+function extractPitcherHand(row) {
+  return normalizeHand(firstValue(row, [
+    "pitcherHand",
+    "opposingPitcherHand",
+    "starterHand",
+    "probablePitcherHand",
+    "opponentPitcherHand",
+    "oppPitcherHand",
+    "pitcher_hand",
+    "throws",
+    "throwsHand",
+    "context.pitcherHand",
+    "context.opposingPitcherHand",
+    "splits.pitcherHand"
+  ]));
+}
+
+function extractOpposingPitcher(row) {
+  return String(firstValue(row, [
+    "opposingPitcher",
+    "probablePitcher",
+    "starter",
+    "opponentPitcher",
+    "oppPitcher",
+    "pitcher",
+    "pitcherName",
+    "opposingStarter",
+    "context.opposingPitcher",
+    "context.probablePitcher",
+    "splits.opposingPitcher"
+  ]) || "").trim();
+}
+
+
 function isHitterMarket(m) {
   return [
     "hitter_fantasy_score",
@@ -131,9 +222,9 @@ function compactHistorical(row, file) {
     actual,
     result,
     file,
-    homeAway: row.homeAway || row.home_away || row.location || "",
-    pitcherHand: row.pitcherHand || row.opposingPitcherHand || row.starterHand || "",
-    opposingPitcher: row.opposingPitcher || row.pitcher || row.probablePitcher || ""
+    homeAway: extractHomeAway(row),
+    pitcherHand: extractPitcherHand(row),
+    opposingPitcher: extractOpposingPitcher(row)
   };
 }
 
@@ -156,9 +247,9 @@ function compactCurrent(row, file) {
     grade: row.grade || "",
     finalExecutionPassed: row.finalExecutionGate?.passed ?? row.finalExecutionPassed ?? null,
     blockedReason: row.blockedReason || row.disabledReason || row.reason || "",
-    homeAway: row.homeAway || row.home_away || row.location || "",
-    pitcherHand: row.pitcherHand || row.opposingPitcherHand || row.starterHand || "",
-    opposingPitcher: row.opposingPitcher || row.pitcher || row.probablePitcher || ""
+    homeAway: extractHomeAway(row),
+    pitcherHand: extractPitcherHand(row),
+    opposingPitcher: extractOpposingPitcher(row)
   };
 }
 
@@ -438,14 +529,33 @@ function buildForCurrent(cur, hist) {
     season: summarizeSample(pool)
   };
 
+  const splitAvailability = {
+    currentHomeAway: cur.homeAway || "",
+    currentPitcherHand: cur.pitcherHand || "",
+    currentOpposingPitcher: cur.opposingPitcher || "",
+    historyRowsWithHomeAway: pool.filter(h => h.homeAway).length,
+    historyRowsWithPitcherHand: pool.filter(h => h.pitcherHand).length,
+    historyRowsWithOpposingPitcher: pool.filter(h => h.opposingPitcher).length,
+    homeAwaySplitAvailable: false,
+    handednessSplitAvailable: false,
+    homeAwayHandSplitAvailable: false,
+    vsPitcherSplitAvailable: false
+  };
+
   if (cur.homeAway) {
     const locPool = pool.filter(h => norm(h.homeAway) === norm(cur.homeAway));
-    if (locPool.length) splits.homeAway = summarizeSample(locPool);
+    if (locPool.length) {
+      splits.homeAway = summarizeSample(locPool);
+      splitAvailability.homeAwaySplitAvailable = true;
+    }
   }
 
   if (cur.pitcherHand) {
     const handPool = pool.filter(h => norm(h.pitcherHand) === norm(cur.pitcherHand));
-    if (handPool.length) splits.handedness = summarizeSample(handPool);
+    if (handPool.length) {
+      splits.handedness = summarizeSample(handPool);
+      splitAvailability.handednessSplitAvailable = true;
+    }
   }
 
   if (cur.homeAway && cur.pitcherHand) {
@@ -453,12 +563,18 @@ function buildForCurrent(cur, hist) {
       norm(h.homeAway) === norm(cur.homeAway) &&
       norm(h.pitcherHand) === norm(cur.pitcherHand)
     );
-    if (comboPool.length) splits.homeAwayHand = summarizeSample(comboPool);
+    if (comboPool.length) {
+      splits.homeAwayHand = summarizeSample(comboPool);
+      splitAvailability.homeAwayHandSplitAvailable = true;
+    }
   }
 
   if (cur.opposingPitcher) {
     const vpPool = pool.filter(h => norm(h.opposingPitcher) && norm(h.opposingPitcher) === norm(cur.opposingPitcher));
-    if (vpPool.length) splits.vsPitcher = summarizeSample(vpPool);
+    if (vpPool.length) {
+      splits.vsPitcher = summarizeSample(vpPool);
+      splitAvailability.vsPitcherSplitAvailable = true;
+    }
   }
 
   const signal = scoreSignal(cur, splits);
@@ -467,6 +583,7 @@ function buildForCurrent(cur, hist) {
     ...cur,
     historySample: pool.length,
     usedTierSpecificPool: tierPool.length >= 3,
+    splitAvailability,
     splits,
     autoManualSignalScore: signal.score,
     autoManualSignalClass: signal.class,
@@ -533,6 +650,14 @@ for (const r of scored
   lines.push(`- ${r.player} | ${r.market} ${r.side} ${r.line} | ${r.tier} | signal=${r.autoManualSignalClass} score=${r.autoManualSignalScore} | sample=${r.historySample} | source=${r.sourceFile}`);
   if (r.autoManualSignalReasons?.length) lines.push(`  reasons: ${r.autoManualSignalReasons.slice(0, 10).join(", ")}`);
   if (r.autoManualSignalWarnings?.length) lines.push(`  warnings: ${r.autoManualSignalWarnings.join(", ")}`);
+}
+
+lines.push("");
+lines.push("SPLIT FIELD AVAILABILITY");
+lines.push("------------------------");
+for (const r of scored.slice(0, 80)) {
+  const a = r.splitAvailability || {};
+  lines.push(`- ${r.player} | ${r.market} ${r.side} ${r.line} | homeAway=${a.currentHomeAway || "missing"} hand=${a.currentPitcherHand || "missing"} vsPitcher=${a.currentOpposingPitcher || "missing"} | homeAwaySplit=${a.homeAwaySplitAvailable ? "yes" : "no"} handednessSplit=${a.handednessSplitAvailable ? "yes" : "no"} homeAwayHand=${a.homeAwayHandSplitAvailable ? "yes" : "no"} vsPitcher=${a.vsPitcherSplitAvailable ? "yes" : "no"}`);
 }
 
 lines.push("");
