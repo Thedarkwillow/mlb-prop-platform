@@ -223,17 +223,110 @@ function parseIpToOuts(ip) {
 }
 
 function readUrlJson(url) {
-  try {
-    const raw = execFileSync("curl", ["-fsSL", url], {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-      timeout: 15000
-    });
-    return JSON.parse(raw);
-  } catch {
-    return null;
+  const variants = [
+    url,
+    url.includes("/api/v1/game/") ? url.replace("/api/v1/game/", "/api/v1.1/game/") : null,
+    url.includes("/boxscore") && !url.includes("?") ? `${url}?language=en` : null,
+    url.includes("/api/v1/game/") && url.includes("/boxscore") && !url.includes("?")
+      ? `${url.replace("/api/v1/game/", "/api/v1.1/game/")}?language=en`
+      : null
+  ].filter(Boolean);
+
+  for (const candidate of [...new Set(variants)]) {
+    try {
+      const raw = execFileSync("curl", [
+        "-fsSL",
+        "-H", "accept: application/json,text/plain,*/*",
+        "-H", "user-agent: Mozilla/5.0 mlb-prop-platform decision-grader",
+        candidate
+      ], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+        timeout: 15000
+      });
+      return JSON.parse(raw);
+    } catch {
+      // Try next MLB endpoint variant.
+    }
   }
+
+  return null;
 }
+
+function resolveFromPlayableSlipGrades(row) {
+  const k = keyParts(row);
+
+  const files = [
+    `outputs/playable-final-slips-graded-${date}.json`,
+    `outputs/history/${date}-playable-final-slips-graded.json`
+  ];
+
+  for (const file of files) {
+    const data = readJson(file, null);
+    if (!data) continue;
+
+    const slips = Array.isArray(data)
+      ? data
+      : Array.isArray(data.slips)
+        ? data.slips
+        : [];
+
+    const legs = [];
+
+    for (const slip of slips) {
+      for (const leg of Array.isArray(slip.legs) ? slip.legs : []) {
+        legs.push({
+          ...leg,
+          slipName: slip.name || null,
+          slipResult: slip.graded?.result || slip.result || null
+        });
+      }
+    }
+
+    for (const leg of legs) {
+      const player = normalizeName(leg.player || leg.playerName || leg.name);
+      const market = String(leg.market || leg.stat || "").toLowerCase().trim();
+      const side = String(leg.side || leg.recommendedSide || leg.pickSide || "").toUpperCase().trim();
+      const line = num(leg.line ?? leg.ppLine ?? leg.projectionLine, null);
+
+      if (player !== k.player) continue;
+      if (market !== k.market) continue;
+      if (side !== String(k.side || "").toUpperCase()) continue;
+      if (line !== num(k.line, null)) continue;
+
+      const actual = firstNumber(
+        leg.actual,
+        leg.statActual,
+        leg.actualValue,
+        leg.finalActual,
+        leg.gradedActual
+      );
+
+      const result = String(
+        leg.result ||
+        leg.gradeResult ||
+        leg.outcome ||
+        ""
+      ).toUpperCase();
+
+      if (actual === null && !["HIT", "MISS", "PUSH"].includes(result)) continue;
+
+      return {
+        ...leg,
+        player: getPlayer(row),
+        market: k.market,
+        side: k.side,
+        line: k.line,
+        actual,
+        result,
+        __source: `${file}:playable_slip_grade`
+      };
+    }
+  }
+
+  return null;
+}
+
 
 function findGamePkForDecisionRow(row) {
   const targetPlayer = normalizeName(getPlayer(row));
@@ -405,11 +498,14 @@ function resolveDecisionRow(row, indexes) {
   }
 
   /*
-    Pitching outs fallback:
-    MLB innings pitched converts directly to outs.
-    5.0 IP = 15 outs, 5.1 IP = 16 outs, 5.2 IP = 17 outs.
+    Prefer already-graded playable slips when available.
+    This avoids re-fetching MLB boxscores and keeps decision-layer grading
+    aligned with grade-final-slips.cjs.
   */
   if (k.market === "pitching_outs") {
+    const playableGrade = resolveFromPlayableSlipGrades(row);
+    if (playableGrade) return { match: playableGrade, method: "playable_slip_grade" };
+
     const pitchingOuts = resolvePitchingOutsFromMlbBoxscore(row);
     if (pitchingOuts) return { match: pitchingOuts, method: "mlb_boxscore_pitching_outs" };
   }

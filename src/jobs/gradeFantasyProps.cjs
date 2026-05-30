@@ -139,9 +139,45 @@ function flattenFantasyRows() {
 }
 
 async function fetchJson(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Fetch failed ${res.status}: ${url}`);
-  return res.json();
+  const variants = [
+    url,
+    url.includes("/api/v1/game/") ? url.replace("/api/v1/game/", "/api/v1.1/game/") : null,
+    url.includes("/boxscore") && !url.includes("?") ? `${url}?language=en` : null,
+    url.includes("/api/v1/game/") && url.includes("/boxscore") && !url.includes("?")
+      ? `${url.replace("/api/v1/game/", "/api/v1.1/game/")}?language=en`
+      : null,
+    url.includes("/schedule?") && !url.includes("hydrate=")
+      ? `${url}&hydrate=team`
+      : null
+  ].filter(Boolean);
+
+  let lastErr = null;
+
+  for (const candidate of [...new Set(variants)]) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const res = await fetch(candidate, {
+          headers: {
+            "accept": "application/json,text/plain,*/*",
+            "user-agent": "Mozilla/5.0 mlb-prop-platform fantasy-grader"
+          }
+        });
+
+        if (res.ok) return res.json();
+
+        const body = await res.text().catch(() => "");
+        lastErr = new Error(`Fetch failed ${res.status}: ${candidate}${body ? ` | ${body.slice(0, 180)}` : ""}`);
+
+        if (![403, 406, 429, 500, 502, 503, 504].includes(res.status)) break;
+      } catch (err) {
+        lastErr = err;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 150 * attempt));
+    }
+  }
+
+  throw lastErr || new Error(`Fetch failed: ${url}`);
 }
 
 async function getSchedule(date) {
@@ -294,10 +330,29 @@ async function main() {
     const gamePk = game.gamePk;
 
     if (!boxscores.has(gamePk)) {
-      boxscores.set(gamePk, await getBoxscore(gamePk));
+      try {
+        boxscores.set(gamePk, await getBoxscore(gamePk));
+      } catch (err) {
+        console.warn(`WARN: skipping fantasy boxscore gamePk ${gamePk}: ${err && err.message ? err.message : err}`);
+        boxscores.set(gamePk, null);
+      }
     }
 
     const box = boxscores.get(gamePk);
+    if (!box) {
+      grades.push({
+        player: p,
+        team: t,
+        market: row.market || row.stat,
+        line,
+        side,
+        actual: null,
+        result: "PENDING",
+        reason: "boxscore_fetch_failed",
+        gamePk,
+      });
+      continue;
+    }
     const found = getPlayerStatsFromBoxscore(box, p);
 
     if (!found) {
