@@ -1,2 +1,11 @@
 date,player,team,market,side,line,tier,result,actual,played,notes,last5HitRate,last5Avg,last10HitRate,last10Avg,last15HitRate,last15Avg,seasonHitRate,seasonAvg,homeAwaySplit,homeAwayHitRate,homeAwayAvg,pitcherHand,handednessHitRate,handednessAvg,homeAwayHandHitRate,homeAwayHandAvg,vsPitcherHitRate,vsPitcherAvg,vsPitcherSample,vsPitcherNotes
 2026-05-30,Juan Soto,NYM,hitter_fantasy_score,MORE,5.5,standard,PENDING,,true,"Soto PickFinder example; line-specific hitter split signal",100,14,100,13.9,80,11.53,53,8.31,home,56,8.96,RHP,,,63,9.37,67,12.44,9,"vs pitcher if available; H2H/team is lower priority"
+2026-05-30,James Wood,,hitter_fantasy_score,MORE,5.5,standard,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
+2026-05-30,Mitch Keller,,pitching_outs,LESS,17.5,standard,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
+2026-05-30,Juan Soto,,bases,MORE,0.5,goblin,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
+2026-05-30,Junior Caminero,,bases,MORE,0.5,goblin,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
+2026-05-30,Aaron Judge,,bases,MORE,0.5,goblin,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
+2026-05-30,Jonathan Aranda,,hitter_fantasy_score,MORE,4.5,standard,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
+2026-05-30,Sal Stewart,,hitter_fantasy_score,MORE,4.5,standard,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
+2026-05-30,Josh Bell,,hitter_fantasy_score,MORE,5,standard,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
+2026-05-30,Xavier Edwards,,hitter_fantasy_score,MORE,6.5,standard,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
