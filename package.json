@@ -240,7 +240,8 @@
     "postgame:goblins": "npm run goblin:raw -- ${npm_config_date:-$(date +%F)}",
     "demon:raw": "node src/research/demon-raw-performance-report.cjs",
     "learn:demons": "node src/learning/build-demon-market-trust.cjs",
-    "postgame:demons": "npm run demon:raw -- ${npm_config_date:-$(date +%F)}"
+    "postgame:demons": "npm run demon:raw -- ${npm_config_date:-$(date +%F)}",
+    "runs:cards": "node src/research/run-level-card-report.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
