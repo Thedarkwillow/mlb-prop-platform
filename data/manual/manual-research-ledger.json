@@ -1004,7 +1004,7 @@
     "result": "PENDING",
     "actual": null,
     "played": false,
-    "source": "model_lean",
+    "source": "manual_research",
     "notes": "model lean; keep separate from manual research"
   },
   {
@@ -1034,6 +1034,20 @@
     "played": true,
     "source": "manual_research",
     "notes": "manual screenshot import; goblin TB MORE 0.5"
+  },
+  {
+    "date": "2026-05-30",
+    "player": "Juan Soto",
+    "team": "NYM",
+    "market": "total_bases",
+    "side": "MORE",
+    "line": 0.5,
+    "tier": "goblin",
+    "result": "PENDING",
+    "actual": null,
+    "played": true,
+    "source": "manual_research",
+    "notes": "elite bat low TB goblin"
   },
   {
     "date": "2026-05-30",

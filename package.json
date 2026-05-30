@@ -247,7 +247,11 @@
     "manual:report": "node src/research/manual-research-report.cjs",
     "manual:import": "node src/research/import-manual-research.cjs",
     "manual:compare": "node src/research/manual-model-compare.cjs",
-    "manual:add": "node src/research/add-manual-research-row.cjs"
+    "manual:add": "node src/research/add-manual-research-row.cjs",
+    "manual": "npm run manual:report && npm run manual:compare",
+    "manual:quick": "node src/research/manual-quick-entry.cjs",
+    "manual:pending": "node src/research/manual-pending-shortcut.cjs",
+    "manual:csv": "node src/research/import-manual-csv.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
