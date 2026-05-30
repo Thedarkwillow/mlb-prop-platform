@@ -32,14 +32,14 @@ function writeJson(file, data) {
 
 function fetchJson(url) {
   const variants = [
-    url,
-    url.includes("/api/v1/game/") ? url.replace("/api/v1/game/", "/api/v1.1/game/") : null,
     url.includes("/boxscore")
       ? url.replace("/api/v1/game/", "/api/v1.1/game/").replace("/boxscore", "/feed/live")
       : null,
     url.includes("/boxscore")
       ? url.replace("/api/v1/game/", "/api/v1/game/").replace("/boxscore", "/feed/live")
-      : null
+      : null,
+    url,
+    url.includes("/api/v1/game/") ? url.replace("/api/v1/game/", "/api/v1.1/game/") : null
   ].filter(Boolean);
 
   for (const candidate of [...new Set(variants)]) {
@@ -58,7 +58,12 @@ function fetchJson(url) {
       if (!raw || !raw.trim()) continue;
 
       const parsed = JSON.parse(raw);
-      if (parsed) return parsed;
+
+      if (parsed && parsed.status && parsed.error) continue;
+      if (parsed && parsed.liveData) return parsed;
+      if (parsed && parsed.teams) return parsed;
+      if (parsed && parsed.dates) return parsed;
+      if (parsed && parsed.gameData) return parsed;
     } catch {
       // Try next MLB endpoint variant.
     }
@@ -284,8 +289,19 @@ function groupSummary(rows, keyFn) {
 }
 
 function buildBoxscoreIndex() {
-  const schedule = fetchJson(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}`);
+  const schedule = JSON.parse(execFileSync("curl", [
+    "-sSL",
+    "-H", "accept: application/json,text/plain,*/*",
+    "-H", "user-agent: Mozilla/5.0 mlb-prop-platform",
+    `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}`
+  ], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "ignore"],
+    timeout: 30000
+  }));
+
   const games = [];
+
 
   if (!schedule || !Array.isArray(schedule.dates)) {
     throw new Error(`No MLB schedule returned for ${date}`);
@@ -295,6 +311,7 @@ function buildBoxscoreIndex() {
     for (const g of d.games || []) {
       games.push({
         gamePk: g.gamePk,
+        link: g.link || null,
         away: g.teams?.away?.team?.name,
         home: g.teams?.home?.team?.name
       });
@@ -305,7 +322,11 @@ function buildBoxscoreIndex() {
   const all = [];
 
   for (const g of games) {
-    const boxRaw = fetchJson(`https://statsapi.mlb.com/api/v1/game/${g.gamePk}/boxscore`);
+    const boxRaw = fetchJson(
+      g.link
+        ? `https://statsapi.mlb.com${g.link}`
+        : `https://statsapi.mlb.com/api/v1.1/game/${g.gamePk}/feed/live`
+    );
     const box = boxRaw?.teams ? boxRaw : boxRaw?.liveData?.boxscore;
     const gamePlayers = [];
 
