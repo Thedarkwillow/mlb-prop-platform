@@ -42,9 +42,45 @@ function normName(s) {
 }
 
 async function fetchJson(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}: ${url}`);
-  return res.json();
+  const variants = [
+    url,
+    url.includes("/api/v1/game/") ? url.replace("/api/v1/game/", "/api/v1.1/game/") : null,
+    url.includes("/boxscore") && !url.includes("?") ? `${url}?language=en` : null,
+    url.includes("/api/v1/game/") && url.includes("/boxscore") && !url.includes("?")
+      ? `${url.replace("/api/v1/game/", "/api/v1.1/game/")}?language=en`
+      : null,
+    url.includes("/schedule?") && !url.includes("hydrate=")
+      ? `${url}&hydrate=team`
+      : null
+  ].filter(Boolean);
+
+  let lastErr = null;
+
+  for (const candidate of [...new Set(variants)]) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const res = await fetch(candidate, {
+          headers: {
+            "accept": "application/json,text/plain,*/*",
+            "user-agent": "Mozilla/5.0 mlb-prop-platform full-board-grader"
+          }
+        });
+
+        if (res.ok) return res.json();
+
+        const body = await res.text().catch(() => "");
+        lastErr = new Error(`${res.status} ${res.statusText}: ${candidate}${body ? ` | ${body.slice(0, 180)}` : ""}`);
+
+        if (![403, 406, 429, 500, 502, 503, 504].includes(res.status)) break;
+      } catch (err) {
+        lastErr = err;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 150 * attempt));
+    }
+  }
+
+  throw lastErr || new Error(`Fetch failed: ${url}`);
 }
 
 function normalizeMarket(v) {
@@ -184,12 +220,28 @@ function pickOneSidePerProp(rows) {
 }
 
 async function buildPlayerStats(date) {
-  const schedule = await fetchJson(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}`);
+  let schedule = null;
+
+  try {
+    schedule = await fetchJson(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}`);
+  } catch (err) {
+    console.warn(`WARN: full-board schedule fetch failed: ${err && err.message ? err.message : err}`);
+    return new Map();
+  }
+
   const map = new Map();
 
   for (const d of schedule.dates || []) {
     for (const g of d.games || []) {
-      const box = await fetchJson(`https://statsapi.mlb.com/api/v1/game/${g.gamePk}/boxscore`);
+      let box = null;
+
+      try {
+        box = await fetchJson(`https://statsapi.mlb.com/api/v1/game/${g.gamePk}/boxscore`);
+      } catch (err) {
+        console.warn(`WARN: skipping full-board boxscore gamePk ${g.gamePk}: ${err && err.message ? err.message : err}`);
+        continue;
+      }
+
       for (const side of ["away", "home"]) {
         const players = box.teams?.[side]?.players || {};
         for (const p of Object.values(players)) {
