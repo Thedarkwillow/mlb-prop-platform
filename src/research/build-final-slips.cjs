@@ -187,6 +187,171 @@ function teamKey(x) {
   return String(x.team || "").toUpperCase().trim();
 }
 
+
+const TEAM_FULL_NAMES = {
+  ARI: "arizona diamondbacks",
+  AZ: "arizona diamondbacks",
+  ATH: "athletics",
+  ATL: "atlanta braves",
+  BAL: "baltimore orioles",
+  BOS: "boston red sox",
+  CHC: "chicago cubs",
+  CWS: "chicago white sox",
+  CHW: "chicago white sox",
+  CIN: "cincinnati reds",
+  CLE: "cleveland guardians",
+  COL: "colorado rockies",
+  DET: "detroit tigers",
+  HOU: "houston astros",
+  KC: "kansas city royals",
+  KCR: "kansas city royals",
+  LAA: "los angeles angels",
+  LAD: "los angeles dodgers",
+  MIA: "miami marlins",
+  MIL: "milwaukee brewers",
+  MIN: "minnesota twins",
+  NYM: "new york mets",
+  NYY: "new york yankees",
+  OAK: "athletics",
+  PHI: "philadelphia phillies",
+  PIT: "pittsburgh pirates",
+  SD: "san diego padres",
+  SDP: "san diego padres",
+  SEA: "seattle mariners",
+  SF: "san francisco giants",
+  SFG: "san francisco giants",
+  STL: "st louis cardinals",
+  TB: "tampa bay rays",
+  TBR: "tampa bay rays",
+  TEX: "texas rangers",
+  TOR: "toronto blue jays",
+  WSH: "washington nationals",
+  WAS: "washington nationals"
+};
+
+function textNorm(v) {
+  return String(v || "")
+    .toLowerCase()
+    .replace(/\./g, "")
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function firstContextValue(x, keys) {
+  for (const key of keys) {
+    if (x && x[key] !== undefined && x[key] !== null && x[key] !== "") return x[key];
+  }
+
+  for (const key of keys) {
+    const parts = key.split(".");
+    let cur = x;
+    let ok = true;
+
+    for (const part of parts) {
+      if (!cur || typeof cur !== "object" || !(part in cur)) {
+        ok = false;
+        break;
+      }
+      cur = cur[part];
+    }
+
+    if (ok && cur !== undefined && cur !== null && cur !== "") return cur;
+  }
+
+  return "";
+}
+
+function normalizeHomeAway(v) {
+  const x = textNorm(v);
+  if (!x) return "";
+  if (["home", "h"].includes(x)) return "home";
+  if (["away", "road", "a"].includes(x)) return "away";
+  return x;
+}
+
+function normalizePitcherHand(v) {
+  const x = textNorm(v);
+  if (!x) return "";
+  if (["r", "rh", "rhp", "right", "righty", "right handed", "right hand"].includes(x)) return "RHP";
+  if (["l", "lh", "lhp", "left", "lefty", "left handed", "left hand"].includes(x)) return "LHP";
+  return String(v).toUpperCase();
+}
+
+function deriveHomeAwayFromGame(x) {
+  const existing = normalizeHomeAway(firstContextValue(x, [
+    "homeAway",
+    "home_away",
+    "location",
+    "venueSide",
+    "gameLocation",
+    "splitHomeAway",
+    "context.homeAway",
+    "context.location",
+    "splits.homeAway"
+  ]));
+  if (existing) return existing;
+
+  const game = String(x.game || x.resolvedGame || x.sportsbookGame || "");
+  const team = teamKey(x);
+  const full = TEAM_FULL_NAMES[team] || "";
+
+  if (!game || !full) return "";
+
+  const parts = game.split(/\s+@\s+|\s+ at \s+/i);
+  if (parts.length !== 2) return "";
+
+  const away = textNorm(parts[0]);
+  const home = textNorm(parts[1]);
+  const teamName = textNorm(full);
+
+  if (away.includes(teamName) || teamName.includes(away)) return "away";
+  if (home.includes(teamName) || teamName.includes(home)) return "home";
+
+  return "";
+}
+
+function deriveOpposingPitcher(x) {
+  return String(firstContextValue(x, [
+    "opposingPitcher",
+    "probablePitcher",
+    "starter",
+    "opponentPitcher",
+    "oppPitcher",
+    "pitcherName",
+    "opposingStarter",
+    "context.opposingPitcher",
+    "context.probablePitcher",
+    "splits.opposingPitcher"
+  ]) || "").trim();
+}
+
+function derivePitcherHand(x) {
+  return normalizePitcherHand(firstContextValue(x, [
+    "pitcherHand",
+    "opposingPitcherHand",
+    "starterHand",
+    "probablePitcherHand",
+    "opponentPitcherHand",
+    "oppPitcherHand",
+    "pitcher_hand",
+    "throws",
+    "throwsHand",
+    "context.pitcherHand",
+    "context.opposingPitcherHand",
+    "splits.pitcherHand"
+  ]));
+}
+
+function splitContextFields(x) {
+  return {
+    homeAway: deriveHomeAwayFromGame(x) || null,
+    pitcherHand: derivePitcherHand(x) || null,
+    opposingPitcher: deriveOpposingPitcher(x) || null
+  };
+}
+
 function isCheapHrrHalf(x) {
   const market = String(x.market || x.stat || "").toLowerCase();
   return market === "hrr" && Number(x.line) === 0.5;
@@ -670,6 +835,7 @@ function cleanLeg(x) {
     contextProjectionNotes: x.contextProjectionNotes ?? [],
     teamTotal: x.teamTotal ?? null,
     opponent: x.opponent ?? null,
+    ...splitContextFields(x),
     opponentBullpenWeak: x.opponentBullpenWeak ?? null,
     opponentBullpenElite: x.opponentBullpenElite ?? null,
     handednessAdvantage: x.handednessAdvantage ?? null,
@@ -1173,6 +1339,13 @@ const top = priced
 
       blockedCandidates.push({
         player: x.player,
+        team: x.team ?? null,
+        game: x.game || x.sportsbookGame || x.resolvedGame || null,
+        gamePk: x.gamePk || x.resolvedGamePk || null,
+        resolvedTeam: x.resolvedTeam ?? null,
+        resolvedGame: x.resolvedGame ?? null,
+        resolvedGamePk: x.resolvedGamePk ?? null,
+        ...splitContextFields(x),
         market: x.market,
         side: x.side,
         line: x.line,
@@ -1204,6 +1377,13 @@ for (const x of top) {
 
     blockedCandidates.push({
       player: x.player,
+      team: x.team ?? null,
+      game: x.game || x.sportsbookGame || x.resolvedGame || null,
+      gamePk: x.gamePk || x.resolvedGamePk || null,
+      resolvedTeam: x.resolvedTeam ?? null,
+      resolvedGame: x.resolvedGame ?? null,
+      resolvedGamePk: x.resolvedGamePk ?? null,
+      ...splitContextFields(x),
       market: x.market,
       side: x.side,
       line: x.line,
