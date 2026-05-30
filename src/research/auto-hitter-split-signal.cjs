@@ -71,6 +71,106 @@ function firstValue(row, keys) {
   return "";
 }
 
+
+const TEAM_FULL_NAMES = {
+  ARI: "arizona diamondbacks",
+  AZ: "arizona diamondbacks",
+  ATH: "athletics",
+  ATL: "atlanta braves",
+  BAL: "baltimore orioles",
+  BOS: "boston red sox",
+  CHC: "chicago cubs",
+  CWS: "chicago white sox",
+  CHW: "chicago white sox",
+  CIN: "cincinnati reds",
+  CLE: "cleveland guardians",
+  COL: "colorado rockies",
+  DET: "detroit tigers",
+  HOU: "houston astros",
+  KC: "kansas city royals",
+  KCR: "kansas city royals",
+  LAA: "los angeles angels",
+  LAD: "los angeles dodgers",
+  MIA: "miami marlins",
+  MIL: "milwaukee brewers",
+  MIN: "minnesota twins",
+  NYM: "new york mets",
+  NYY: "new york yankees",
+  OAK: "athletics",
+  PHI: "philadelphia phillies",
+  PIT: "pittsburgh pirates",
+  SD: "san diego padres",
+  SDP: "san diego padres",
+  SEA: "seattle mariners",
+  SF: "san francisco giants",
+  SFG: "san francisco giants",
+  STL: "st louis cardinals",
+  TB: "tampa bay rays",
+  TBR: "tampa bay rays",
+  TEX: "texas rangers",
+  TOR: "toronto blue jays",
+  WSH: "washington nationals",
+  WAS: "washington nationals"
+};
+
+function teamCode(v) {
+  const t = String(v || "").toUpperCase().trim();
+  if (t === "AZ") return "ARI";
+  if (t === "WAS") return "WSH";
+  if (t === "SDP") return "SD";
+  if (t === "SFG") return "SF";
+  if (t === "TBR") return "TB";
+  if (t === "KCR") return "KC";
+  if (t === "CHW") return "CWS";
+  if (t === "OAK") return "ATH";
+  return t;
+}
+
+function deriveHomeAwayFromGame(row) {
+  const existing = normalizeHomeAway(firstValue(row, [
+    "homeAway",
+    "home_away",
+    "location",
+    "venueSide",
+    "gameLocation",
+    "splitHomeAway",
+    "context.homeAway",
+    "context.location",
+    "splits.homeAway"
+  ]));
+  if (existing) return existing;
+
+  const game = String(row.game || row.resolvedGame || row.sportsbookGame || "");
+  const team = teamCode(row.team || row.resolvedTeam);
+  const full = TEAM_FULL_NAMES[team] || "";
+
+  if (!game || !team) return "";
+
+  // Abbrev format: NYY @ ATH
+  const abbrev = game.match(/^\s*([A-Z]{2,3})\s*@\s*([A-Z]{2,3})\s*$/);
+  if (abbrev) {
+    const away = teamCode(abbrev[1]);
+    const home = teamCode(abbrev[2]);
+    if (team === away) return "away";
+    if (team === home) return "home";
+  }
+
+  // Full-name format: New York Yankees @ Athletics
+  if (!full) return "";
+  const parts = game.split(/\s+@\s+|\s+ at \s+/i);
+  if (parts.length !== 2) return "";
+
+  const away = norm(parts[0]);
+  const home = norm(parts[1]);
+  const teamName = norm(full);
+
+  if (away.includes(teamName) || teamName.includes(away)) return "away";
+  if (home.includes(teamName) || teamName.includes(home)) return "home";
+
+  return "";
+}
+
+
 function normalizeHomeAway(v) {
   const x = norm(v);
   if (!x) return "";
@@ -222,7 +322,7 @@ function compactHistorical(row, file) {
     actual,
     result,
     file,
-    homeAway: extractHomeAway(row),
+    homeAway: deriveHomeAwayFromGame(row),
     pitcherHand: extractPitcherHand(row),
     opposingPitcher: extractOpposingPitcher(row)
   };
@@ -247,7 +347,7 @@ function compactCurrent(row, file) {
     grade: row.grade || "",
     finalExecutionPassed: row.finalExecutionGate?.passed ?? row.finalExecutionPassed ?? null,
     blockedReason: row.blockedReason || row.disabledReason || row.reason || "",
-    homeAway: extractHomeAway(row),
+    homeAway: deriveHomeAwayFromGame(row),
     pitcherHand: extractPitcherHand(row),
     opposingPitcher: extractOpposingPitcher(row)
   };
