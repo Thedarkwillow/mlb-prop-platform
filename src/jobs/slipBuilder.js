@@ -320,6 +320,14 @@ function specialTierLessBlockedForSlip(r) {
   return (oddsTier === 'demon' || oddsTier === 'goblin') && resolvedSide === 'LESS';
 }
 
+function goblinStrikeoutsMoreBlockedForSlip(r) {
+  const oddsTier = String(r.oddsTier || r.odds_tier || r.tier || '').toLowerCase();
+  const resolvedSide = String(r.side || r.recommendedSide || '').toUpperCase();
+  const m = String(r.market || r.stat || "").toLowerCase();
+
+  return oddsTier === "goblin" && m === "strikeouts" && resolvedSide === "MORE";
+}
+
 function normalizeForOptimizer(r) {
   if (invalidProjectionRow(r)) {
     return {
@@ -333,6 +341,14 @@ function normalizeForOptimizer(r) {
       ...r,
       rankEligible: false,
       disabledReason: "special_tier_less_not_allowed"
+    };
+  }
+
+  if (goblinStrikeoutsMoreBlockedForSlip(r)) {
+    return {
+      ...r,
+      rankEligible: false,
+      disabledReason: "goblin_strikeouts_more_suppressed"
     };
   }
   const rawMarketText = String(r.market || r.stat || "").toLowerCase();
@@ -424,6 +440,7 @@ function hrrMoreAllowed(r) {
 function playable(r) {
   if (invalidProjectionRow(r)) return false;
   if (specialTierLessBlockedForSlip(r)) return false;
+  if (goblinStrikeoutsMoreBlockedForSlip(r)) return false;
   if (phase6DirectionalBlocked(r)) return false;
   if (r.rankEligible === false) return false;
 
