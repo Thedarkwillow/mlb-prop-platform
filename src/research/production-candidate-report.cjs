@@ -257,7 +257,10 @@ function classify(row, lookups) {
   }
 
   if (market === "hrr" && side === "MORE") {
-    return { classification: "BLOCKED", reasons: ["hrr_more_blocked"] };
+    return {
+      classification: "RESEARCH",
+      reasons: ["hrr_more_research_only_until_tighter_rules_clear"]
+    };
   }
 
   if (isControlledHrrLess(row)) {
@@ -290,7 +293,10 @@ function classify(row, lookups) {
       return { classification: "RESEARCH", reasons: ["fantasy_provisional_low_line_hitter_more"] };
     }
 
-    return { classification: "BLOCKED", reasons: ["fantasy_not_ready_or_suppressed"] };
+    return {
+      classification: "RESEARCH",
+      reasons: ["fantasy_research_only_until_component_validation_clears"]
+    };
   }
 
   if (grade === "FADE") {

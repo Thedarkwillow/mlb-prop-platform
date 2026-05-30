@@ -394,7 +394,7 @@ function classifyLean(row) {
     return {
       eligible: false,
       tier: "TRACK_ONLY",
-      notes: [...notes, "hrr_not_official_core", "hrr_more_blocked_or_hrr_less_below_controlled_threshold"]
+      notes: [...notes, "hrr_not_official_core", "hrr_research_only_until_tighter_rules_clear"]
     };
   }
 
