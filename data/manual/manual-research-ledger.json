@@ -1,0 +1,58 @@
+[
+  {
+    "date": "2026-05-30",
+    "player": "Juan Soto",
+    "team": "NYM",
+    "market": "total_bases",
+    "side": "MORE",
+    "line": 0.5,
+    "tier": "goblin",
+    "result": "HIT",
+    "actual": 1,
+    "played": true,
+    "source": "manual_research",
+    "notes": "manual screenshot import; goblin TB MORE 0.5"
+  },
+  {
+    "date": "2026-05-30",
+    "player": "Aaron Judge",
+    "team": "NYY",
+    "market": "total_bases",
+    "side": "MORE",
+    "line": 0.5,
+    "tier": "goblin",
+    "result": "HIT",
+    "actual": 1,
+    "played": true,
+    "source": "manual_research",
+    "notes": "manual screenshot import; goblin TB MORE 0.5"
+  },
+  {
+    "date": "2026-05-30",
+    "player": "Junior Caminero",
+    "team": "TB",
+    "market": "total_bases",
+    "side": "MORE",
+    "line": 0.5,
+    "tier": "goblin",
+    "result": "HIT",
+    "actual": 1,
+    "played": true,
+    "source": "manual_research",
+    "notes": "manual screenshot import; goblin TB MORE 0.5"
+  },
+  {
+    "date": "2026-05-30",
+    "player": "Mitch Keller",
+    "team": "PIT",
+    "market": "pitching_outs",
+    "side": "LESS",
+    "line": 17.5,
+    "tier": "standard",
+    "result": "PENDING",
+    "actual": null,
+    "played": false,
+    "source": "model_lean",
+    "notes": "model lean; keep separate from manual research"
+  }
+]
