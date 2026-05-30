@@ -234,7 +234,7 @@
     "sales:readiness": "node src/research/sales-readiness-report.cjs",
     "fantasy:side-coverage": "node src/research/fantasy-side-coverage-report.cjs",
     "fantasy:fill-projections": "node src/research/fill-fantasy-projection-coverage.cjs",
-    "fantasy:research": "npm run fantasy:fill-projections && npm run fantasy:side-coverage -- ${npm_config_date:-$(date +%F)} && npm run fantasy:less:direct -- ${npm_config_date:-$(date +%F)}",
+    "fantasy:research": "npm run fantasy:fill-projections && npm run fantasy:side-coverage -- ${npm_config_date:-$(date +%F)} && npm run fantasy:less:direct -- ${npm_config_date:-$(date +%F)} && npm run fantasy:mine",
     "goblin:raw": "node src/research/goblin-raw-performance-report.cjs",
     "learn:goblins": "node src/learning/build-goblin-market-trust.cjs",
     "postgame:goblins": "npm run goblin:raw -- ${npm_config_date:-$(date +%F)}",
@@ -256,7 +256,8 @@
     "auto:hitter-signal": "node src/research/auto-hitter-split-signal.cjs",
     "decision:auto-notes": "node src/research/decision-auto-signal-notes.cjs",
     "manual:mine": "node src/research/manual-edge-mining-report.cjs",
-    "manual:protected": "node src/research/protected-bucket-tracker.cjs"
+    "manual:protected": "node src/research/protected-bucket-tracker.cjs",
+    "fantasy:mine": "node src/research/fantasy-edge-mining-report.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
