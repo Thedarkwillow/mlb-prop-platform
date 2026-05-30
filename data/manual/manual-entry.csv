@@ -1,11 +1,104 @@
-date,player,team,market,side,line,tier,result,actual,played,notes,last5HitRate,last5Avg,last10HitRate,last10Avg,last15HitRate,last15Avg,seasonHitRate,seasonAvg,homeAwaySplit,homeAwayHitRate,homeAwayAvg,pitcherHand,handednessHitRate,handednessAvg,homeAwayHandHitRate,homeAwayHandAvg,vsPitcherHitRate,vsPitcherAvg,vsPitcherSample,vsPitcherNotes
-2026-05-30,Juan Soto,NYM,hitter_fantasy_score,MORE,5.5,standard,PENDING,,true,"Soto PickFinder example; line-specific hitter split signal",100,14,100,13.9,80,11.53,53,8.31,home,56,8.96,RHP,,,63,9.37,67,12.44,9,"vs pitcher if available; H2H/team is lower priority"
-2026-05-30,James Wood,,hitter_fantasy_score,MORE,5.5,standard,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
-2026-05-30,Mitch Keller,,pitching_outs,LESS,17.5,standard,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
-2026-05-30,Juan Soto,,bases,MORE,0.5,goblin,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
-2026-05-30,Junior Caminero,,bases,MORE,0.5,goblin,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
-2026-05-30,Aaron Judge,,bases,MORE,0.5,goblin,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
-2026-05-30,Jonathan Aranda,,hitter_fantasy_score,MORE,4.5,standard,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
-2026-05-30,Sal Stewart,,hitter_fantasy_score,MORE,4.5,standard,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
-2026-05-30,Josh Bell,,hitter_fantasy_score,MORE,5,standard,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
-2026-05-30,Xavier Edwards,,hitter_fantasy_score,MORE,6.5,standard,,,,manual_pick,,,,,,,,,,,,,,,,,,,,
+date,player,market,side,line,tier,result,actual,source,notes
+2026-05-30,Juan Soto,hitter_fantasy_score,MORE,5.5,standard,PENDING,,,Soto PickFinder example; line-specific hitter split signal
+2026-05-30,James Wood,hitter_fantasy_score,MORE,5.5,standard,,,,manual_pick
+2026-05-30,Mitch Keller,pitching_outs,LESS,17.5,standard,,,,manual_pick
+2026-05-30,Juan Soto,bases,MORE,0.5,goblin,,,,manual_pick
+2026-05-30,Junior Caminero,bases,MORE,0.5,goblin,,,,manual_pick
+2026-05-30,Aaron Judge,bases,MORE,0.5,goblin,,,,manual_pick
+2026-05-30,Jonathan Aranda,hitter_fantasy_score,MORE,4.5,standard,,,,manual_pick
+2026-05-30,Sal Stewart,hitter_fantasy_score,MORE,4.5,standard,,,,manual_pick
+2026-05-30,Josh Bell,hitter_fantasy_score,MORE,5,standard,,,,manual_pick
+2026-05-30,Xavier Edwards,hitter_fantasy_score,MORE,6.5,standard,,,,manual_pick
+2026-05-30,Carson Benge,singles,MORE,0.5,standard,MISS,0,past_prizepicks_slip,screenshot_batch
+2026-05-30,Kyle Stowers,hitter_fantasy_score,MORE,4.5,standard,MISS,0,past_prizepicks_slip,screenshot_batch
+2026-05-30,Bobby Witt Jr.,hitter_fantasy_score,MORE,6.5,standard,MISS,0,past_prizepicks_slip,screenshot_batch
+2026-05-30,Grayson Rodriguez,strikeouts,MORE,5.5,standard,MISS,5,past_prizepicks_slip,screenshot_batch
+2026-05-30,Jeffrey Springs,1st_inning_pitches_thrown,MORE,15.5,standard,HIT,16,past_prizepicks_slip,screenshot_batch
+2026-05-30,Davis Martin,first_3_innings_strikeouts,MORE,2.5,standard,HIT,5,past_prizepicks_slip,screenshot_batch
+2026-05-30,Jameson Taillon,1st_inning_pitches_thrown,MORE,14.5,standard,HIT,21,past_prizepicks_slip,screenshot_batch
+2026-05-30,Yordan Alvarez,hrr,MORE,1.5,standard,MISS,1,past_prizepicks_slip,screenshot_batch
+2026-05-30,Jose Tena,singles,LESS,0.5,standard,REFUND,0,past_prizepicks_slip,did_not_play
+2026-05-30,Xavier Edwards,hrr,MORE,1.5,standard,MISS,0,past_prizepicks_slip,screenshot_batch
+2026-05-30,Kevin McGonigle,hrr,MORE,1.5,standard,HIT,3,past_prizepicks_slip,screenshot_batch
+2026-05-30,Nick Martinez,earned_runs_allowed,LESS,2.5,standard,HIT,1,past_prizepicks_slip,screenshot_batch
+2026-05-30,Connor Prielipp,hits_allowed,LESS,4.5,standard,MISS,7,past_prizepicks_slip,screenshot_batch
+2026-05-30,Spencer Horwitz,hitter_fantasy_score,MORE,5,standard,MISS,2,past_prizepicks_slip,screenshot_batch
+2026-05-30,Nick Kurtz,hitter_fantasy_score,MORE,5.5,standard,HIT,13,past_prizepicks_slip,screenshot_batch
+2026-05-30,CJ Abrams,hitter_fantasy_score,MORE,5.5,standard,HIT,26,past_prizepicks_slip,screenshot_batch
+2026-05-30,Samuel Basallo,hitter_fantasy_score,MORE,5,standard,MISS,0,past_prizepicks_slip,screenshot_batch
+2026-05-30,Lawrence Butler,hits,MORE,0.5,standard,MISS,0,past_prizepicks_slip,screenshot_batch
+2026-05-30,Zach Neto,hrr,MORE,1.5,standard,MISS,0,past_prizepicks_slip,screenshot_batch
+2026-05-30,Nolan Arenado,hitter_fantasy_score,MORE,5.5,standard,MISS,2,past_prizepicks_slip,screenshot_batch
+2026-05-30,Spencer Strider,hits_allowed,LESS,4.5,standard,HIT,4,past_prizepicks_slip,screenshot_batch
+2026-05-30,Carlos Rodon,hits_allowed,LESS,4.5,standard,HIT,3,past_prizepicks_slip,screenshot_batch
+2026-05-30,JJ Wetherholt,hitter_fantasy_score,MORE,5.5,standard,MISS,0,past_prizepicks_slip,screenshot_batch
+2026-05-30,Nolan Arenado,hitter_fantasy_score,MORE,5,standard,MISS,2,past_prizepicks_slip,screenshot_batch
+2026-05-30,Vladimir Guerrero Jr.,hrr,MORE,1.5,standard,HIT,2,past_prizepicks_slip,screenshot_batch
+2026-05-30,Mike Trout,hrr,MORE,1.5,standard,HIT,2,past_prizepicks_slip,screenshot_batch
+2026-05-30,Ivan Herrera,hrr,MORE,1.5,standard,HIT,5,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,Jose Ramirez,hrr,MORE,1.5,standard,HIT,2,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,Nolan Gorman,bases,MORE,0.5,standard,MISS,0,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,Juan Soto,hrr,MORE,1.5,standard,MISS,0,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,William Contreras,hitter_fantasy_score,MORE,5,standard,HIT,18,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,Connelly Early,strikeouts,MORE,3.5,goblin,HIT,5,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,Trey Yesavage,strikeouts,MORE,4.5,goblin,HIT,8,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,Aaron Nola,pitching_outs,LESS,17,standard,HIT,15,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,Joe Ryan,strikeouts,LESS,6,standard,MISS,9,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,Elly De La Cruz,hitter_fantasy_score,MORE,7,standard,MISS,0,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,Travis Bazzana,hitter_fantasy_score,MORE,5,standard,REFUND,0,past_prizepicks_slip,did_not_play
+2026-05-30,Josh Naylor,hrr,MORE,1.5,standard,MISS,0,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,Spencer Steer,hrr,MORE,1.5,standard,HIT,3,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,Jake Bauers,hits,MORE,0.5,standard,HIT,1,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,Jesus Sanchez,hits,MORE,0.5,standard,HIT,2,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,Nolan McLean,strikeouts,MORE,4,goblin,HIT,5,past_prizepicks_slip,taco
+2026-05-30,Freddy Fermin,bases,MORE,0.5,standard,MISS,0,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,Ozzie Albies,hitter_fantasy_score,MORE,5.5,standard,HIT,6,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,Elly De La Cruz,hrr,MORE,1.5,standard,HIT,3,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,Kyle Schwarber,hitter_fantasy_score,MORE,5.5,standard,REFUND,0,past_prizepicks_slip,did_not_play
+2026-05-30,Samuel Basallo,hitter_fantasy_score,MORE,4.5,standard,MISS,0,past_prizepicks_slip,screenshot_batch_2
+2026-05-30,Chase Burns,strikeouts,MORE,6,standard,HIT,9,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,Nolan McLean,pitcher_fantasy_score,MORE,32.5,standard,MISS,14,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,Kyle Schwarber,walks,MORE,0.5,standard,REFUND,0,past_prizepicks_slip,did_not_play
+2026-05-30,Yandy Diaz,hrr,MORE,1.5,standard,HIT,5,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,Bryan Woo,pitches_thrown,LESS,95.5,standard,HIT,90,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,Pedro Pages,hits,MORE,0.5,standard,HIT,1,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,Walbert Urena,1st_inning_pitches_thrown,LESS,16.5,standard,MISS,20,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,Robbie Ray,strikeouts,MORE,4,standard,MISS,1,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,MacKenzie Gore,strikeouts,LESS,6,standard,HIT,2,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,Drake Baldwin,hitter_fantasy_score,MORE,6.5,standard,MISS,5,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,Miguel Vargas,hitter_fantasy_score,MORE,4.5,standard,MISS,0,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,Drake Baldwin,hitter_fantasy_score,MORE,5.5,standard,HIT,8,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,Jordan Walker,hitter_fantasy_score,MORE,5.5,standard,MISS,0,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,Chase DeLauter,singles,MORE,0.5,standard,HIT,1,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,Josh Jung,singles,MORE,0.5,standard,MISS,0,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,Miguel Andujar,singles,MORE,0.5,goblin,MISS,0,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,Miguel Vargas,hitter_fantasy_score,MORE,5,standard,HIT,13,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,Mickey Moniak,bases,MORE,0.5,goblin,MISS,0,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,Jonathan Aranda,hitter_fantasy_score,MORE,5,standard,MISS,0,past_prizepicks_slip,screenshot_batch_3
+2026-05-30,Kyle Manzardo,hitter_fantasy_score,MORE,4.5,standard,HIT,30,past_prizepicks_slip,screenshot_batch_3
+2026-05-15_to_2026-05-22,Otto Lopez,hitter_fantasy_score,MORE,5.5,standard,HIT,24,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,JJ Bleday,hits,MORE,0.5,standard,MISS,0,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Miguel Vargas,hrr,MORE,1.5,standard,HIT,4,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Yordan Alvarez,hrr,MORE,1.5,standard,HIT,3,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Alex Bregman,hrr,MORE,1.5,standard,HIT,2,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Davis Martin,pitcher_fantasy_score,MORE,27.5,standard,HIT,46,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Randy Arozarena,hitter_fantasy_score,MORE,4.5,standard,HIT,7,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Nick Kurtz,bases,MORE,1.5,standard,MISS,0,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Travis Bazzana,hitter_fantasy_score,MORE,4.5,standard,MISS,3,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Kai-Wei Teng,pitcher_fantasy_score,LESS,20.5,standard,MISS,42,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Davis Martin,earned_runs_allowed,LESS,2.5,standard,HIT,1,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Miguel Vargas,hitter_fantasy_score,MORE,5,standard,HIT,18,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Jose Soriano,1st_inning_pitches_thrown,MORE,15.5,standard,MISS,15,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Trevor McDonald,1st_inning_pitches_thrown,LESS,16.5,standard,HIT,15,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Vladimir Guerrero Jr.,hrr,MORE,1.5,standard,MISS,1,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Eduardo Rodriguez,hits_allowed,LESS,6.5,standard,MISS,9,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Kyle Schwarber,hitter_fantasy_score,MORE,2.5,goblin,HIT,11,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Brendan Donovan,hitter_fantasy_score,MORE,5.5,standard,REFUND,0,past_prizepicks_slip,did_not_play
+2026-05-15_to_2026-05-22,Nolan Arenado,hrr,LESS,2.5,standard,HIT,0,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Aaron Judge,bases,MORE,0.5,goblin,HIT,3,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Juan Soto,bases,MORE,0.5,goblin,HIT,2,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Aaron Judge,bases,MORE,0.5,goblin,HIT,1,past_prizepicks_slip,screenshot_batch_4_alt
+2026-05-15_to_2026-05-22,Juan Soto,bases,MORE,0.5,goblin,HIT,4,past_prizepicks_slip,screenshot_batch_4_alt
+2026-05-15_to_2026-05-22,Miguel Vargas,hitter_fantasy_score,MORE,5,standard,HIT,19,past_prizepicks_slip,screenshot_batch_4_alt
+2026-05-15_to_2026-05-22,Spencer Arrighetti,earned_runs_allowed,LESS,2.5,standard,HIT,0,past_prizepicks_slip,screenshot_batch_4
+2026-05-15_to_2026-05-22,Bobby Witt Jr.,hitter_fantasy_score,MORE,6.5,standard,HIT,10,past_prizepicks_slip,screenshot_batch_4

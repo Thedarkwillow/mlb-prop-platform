@@ -1,0 +1,131 @@
+MANUAL VS MODEL COMPARE
+=======================
+manual rows: 180
+model rows scanned: 186
+
+BY MODEL CLASS
+--------------
+- MODEL_MISSING: total=151 graded=137 hits=76 misses=60 pushes=1 refunds=9 pending=5 hitRate=55.47%
+- MODEL_LEAN: total=20 graded=13 hits=12 misses=1 pushes=0 refunds=1 pending=6 hitRate=92.31%
+- MODEL_EXECUTION_PASSED: total=3 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=2 hitRate=100.00%
+- MODEL_SAW_PLAYER: total=3 graded=3 hits=1 misses=2 pushes=0 refunds=0 pending=0 hitRate=33.33%
+- MODEL_SAW_EXACT: total=3 graded=3 hits=1 misses=2 pushes=0 refunds=0 pending=0 hitRate=33.33%
+
+BY MARKET/SIDE + MODEL CLASS
+----------------------------
+- hitter_fantasy_score MORE | MODEL_MISSING: total=61 graded=50 hits=26 misses=24 pushes=0 refunds=6 pending=5 hitRate=52.00%
+- hrr MORE | MODEL_MISSING: total=23 graded=23 hits=13 misses=10 pushes=0 refunds=0 pending=0 hitRate=56.52%
+- bases MORE | MODEL_LEAN: total=14 graded=9 hits=9 misses=0 pushes=0 refunds=1 pending=4 hitRate=100.00%
+- strikeouts MORE | MODEL_MISSING: total=12 graded=12 hits=8 misses=3 pushes=1 refunds=0 pending=0 hitRate=66.67%
+- bases MORE | MODEL_MISSING: total=7 graded=6 hits=1 misses=5 pushes=0 refunds=1 pending=0 hitRate=16.67%
+- hits_allowed LESS | MODEL_MISSING: total=6 graded=6 hits=2 misses=4 pushes=0 refunds=0 pending=0 hitRate=33.33%
+- hits MORE | MODEL_MISSING: total=5 graded=5 hits=3 misses=2 pushes=0 refunds=0 pending=0 hitRate=60.00%
+- singles MORE | MODEL_MISSING: total=5 graded=5 hits=2 misses=3 pushes=0 refunds=0 pending=0 hitRate=40.00%
+- pitching_outs LESS | MODEL_MISSING: total=4 graded=4 hits=3 misses=1 pushes=0 refunds=0 pending=0 hitRate=75.00%
+- earned_runs_allowed LESS | MODEL_MISSING: total=3 graded=3 hits=3 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- hitter_fantasy_score MORE | MODEL_LEAN: total=3 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=2 hitRate=100.00%
+- 1st_inning_pitches_thrown MORE | MODEL_MISSING: total=3 graded=3 hits=2 misses=1 pushes=0 refunds=0 pending=0 hitRate=66.67%
+- hitter_strikeouts MORE | MODEL_MISSING: total=3 graded=3 hits=2 misses=1 pushes=0 refunds=0 pending=0 hitRate=66.67%
+- strikeouts LESS | MODEL_MISSING: total=3 graded=3 hits=2 misses=1 pushes=0 refunds=0 pending=0 hitRate=66.67%
+- bases MORE | MODEL_SAW_EXACT: total=3 graded=3 hits=1 misses=2 pushes=0 refunds=0 pending=0 hitRate=33.33%
+- walks_allowed LESS | MODEL_MISSING: total=3 graded=3 hits=1 misses=2 pushes=0 refunds=0 pending=0 hitRate=33.33%
+- 1st_inning_pitches_thrown LESS | MODEL_MISSING: total=2 graded=2 hits=1 misses=1 pushes=0 refunds=0 pending=0 hitRate=50.00%
+- hitter_fantasy_score MORE | MODEL_SAW_PLAYER: total=2 graded=2 hits=1 misses=1 pushes=0 refunds=0 pending=0 hitRate=50.00%
+- pitcher_fantasy_score MORE | MODEL_MISSING: total=2 graded=2 hits=1 misses=1 pushes=0 refunds=0 pending=0 hitRate=50.00%
+- hrr MORE | MODEL_LEAN: total=2 graded=2 hits=1 misses=1 pushes=0 refunds=0 pending=0 hitRate=50.00%
+- pitching_outs LESS | MODEL_EXECUTION_PASSED: total=2 graded=0 hits=0 misses=0 pushes=0 refunds=0 pending=2 hitRate=n/a
+- hrr LESS | MODEL_MISSING: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- ks_plus_total_bases MORE | MODEL_MISSING: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- pitching_outs LESS | MODEL_LEAN: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- runs LESS | MODEL_MISSING: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- walks LESS | MODEL_MISSING: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- first_3_innings_strikeouts MORE | MODEL_MISSING: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- pitches_thrown LESS | MODEL_MISSING: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- strikeouts LESS | MODEL_EXECUTION_PASSED: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- pitcher_fantasy_score LESS | MODEL_MISSING: total=1 graded=1 hits=0 misses=1 pushes=0 refunds=0 pending=0 hitRate=0.00%
+- 1st_inning_pitches_thrown MORE | MODEL_SAW_PLAYER: total=1 graded=1 hits=0 misses=1 pushes=0 refunds=0 pending=0 hitRate=0.00%
+- singles LESS | MODEL_MISSING: total=1 graded=0 hits=0 misses=0 pushes=0 refunds=1 pending=0 hitRate=n/a
+- walks MORE | MODEL_MISSING: total=1 graded=0 hits=0 misses=0 pushes=0 refunds=1 pending=0 hitRate=n/a
+
+MANUAL ROWS MODEL DID NOT SEE
+-----------------------------
+- 2026-05-15_to_2026-05-22 | Jose Soriano | 1st_inning_pitches_thrown MORE 15.5 | standard | result=MISS actual=15
+- 2026-05-15_to_2026-05-22 | Trevor McDonald | 1st_inning_pitches_thrown LESS 16.5 | standard | result=HIT actual=15
+- 2026-05-15_to_2026-05-22 | Nick Kurtz | bases MORE 1.5 | standard | result=MISS actual=0
+- 2026-05-15_to_2026-05-22 | Davis Martin | earned_runs_allowed LESS 2.5 | standard | result=HIT actual=1
+- 2026-05-15_to_2026-05-22 | Spencer Arrighetti | earned_runs_allowed LESS 2.5 | standard | result=HIT actual=0
+- 2026-05-15_to_2026-05-22 | JJ Bleday | hits MORE 0.5 | standard | result=MISS actual=0
+- 2026-05-15_to_2026-05-22 | Eduardo Rodriguez | hits_allowed LESS 6.5 | standard | result=MISS actual=9
+- 2026-05-15_to_2026-05-22 | Brendan Donovan | hitter_fantasy_score MORE 5.5 | standard | result=REFUND actual=0
+- 2026-05-15_to_2026-05-22 | Kyle Schwarber | hitter_fantasy_score MORE 2.5 | goblin | result=HIT actual=11
+- 2026-05-15_to_2026-05-22 | Miguel Vargas | hitter_fantasy_score MORE 5 | standard | result=HIT actual=18
+- 2026-05-15_to_2026-05-22 | Miguel Vargas | hitter_fantasy_score MORE 5 | standard | result=HIT actual=19
+- 2026-05-15_to_2026-05-22 | Otto Lopez | hitter_fantasy_score MORE 5.5 | standard | result=HIT actual=24
+- 2026-05-15_to_2026-05-22 | Randy Arozarena | hitter_fantasy_score MORE 4.5 | standard | result=HIT actual=7
+- 2026-05-15_to_2026-05-22 | Travis Bazzana | hitter_fantasy_score MORE 4.5 | standard | result=MISS actual=3
+- 2026-05-15_to_2026-05-22 | Alex Bregman | hrr MORE 1.5 | standard | result=HIT actual=2
+- 2026-05-15_to_2026-05-22 | Miguel Vargas | hrr MORE 1.5 | standard | result=HIT actual=4
+- 2026-05-15_to_2026-05-22 | Nolan Arenado | hrr LESS 2.5 | standard | result=HIT actual=0
+- 2026-05-15_to_2026-05-22 | Vladimir Guerrero Jr. | hrr MORE 1.5 | standard | result=MISS actual=1
+- 2026-05-15_to_2026-05-22 | Yordan Alvarez | hrr MORE 1.5 | standard | result=HIT actual=3
+- 2026-05-15_to_2026-05-22 | Davis Martin | pitcher_fantasy_score MORE 27.5 | standard | result=HIT actual=46
+- 2026-05-15_to_2026-05-22 | Kai-Wei Teng | pitcher_fantasy_score LESS 20.5 | standard | result=MISS actual=42
+- 2026-05-23_to_2026-05-29 | Connor Prielipp | hits_allowed LESS 4.5 | standard | result=MISS actual=8
+- 2026-05-23_to_2026-05-29 | Payton Tolle | hits_allowed LESS 4.5 | standard | result=MISS actual=5
+- 2026-05-23_to_2026-05-29 | Christian Walker | hitter_fantasy_score MORE 4.5 | standard | result=REFUND actual=0
+- 2026-05-23_to_2026-05-29 | CJ Abrams | hitter_fantasy_score MORE 5 | standard | result=HIT actual=13
+- 2026-05-23_to_2026-05-29 | Daylen Lile | hitter_fantasy_score MORE 5 | standard | result=MISS actual=4
+- 2026-05-23_to_2026-05-29 | Daylen Lile | hitter_fantasy_score MORE 5 | standard | result=HIT actual=7
+- 2026-05-23_to_2026-05-29 | Eugenio Suarez | hitter_fantasy_score MORE 4.5 | standard | result=MISS actual=0
+- 2026-05-23_to_2026-05-29 | Ivan Herrera | hitter_fantasy_score MORE 5 | standard | result=MISS actual=2
+- 2026-05-23_to_2026-05-29 | Jackson Chourio | hitter_fantasy_score MORE 4.5 | standard | result=MISS actual=3
+- 2026-05-23_to_2026-05-29 | Jake Burger | hitter_fantasy_score MORE 5 | standard | result=MISS actual=2
+- 2026-05-23_to_2026-05-29 | Ketel Marte | hitter_fantasy_score MORE 5.5 | standard | result=MISS actual=4
+- 2026-05-23_to_2026-05-29 | Michael Busch | hitter_fantasy_score MORE 5 | standard | result=HIT actual=15
+- 2026-05-23_to_2026-05-29 | Miguel Vargas | hitter_fantasy_score MORE 5 | standard | result=MISS actual=0
+- 2026-05-23_to_2026-05-29 | Mike Trout | hitter_fantasy_score MORE 5.5 | standard | result=HIT actual=6
+- 2026-05-23_to_2026-05-29 | Munetaka Murakami | hitter_fantasy_score MORE 4.5 | standard | result=REFUND actual=0
+- 2026-05-23_to_2026-05-29 | Nick Kurtz | hitter_fantasy_score MORE 6 | standard | result=MISS actual=2
+- 2026-05-23_to_2026-05-29 | Nick Kurtz | hitter_fantasy_score MORE 5.5 | standard | result=HIT actual=8
+- 2026-05-23_to_2026-05-29 | Ozzie Albies | hitter_fantasy_score MORE 5 | standard | result=MISS actual=3
+- 2026-05-23_to_2026-05-29 | Sal Stewart | hitter_fantasy_score MORE 5 | standard | result=HIT actual=7
+- 2026-05-23_to_2026-05-29 | Spencer Horwitz | hitter_fantasy_score MORE 5 | standard | result=HIT actual=8
+- 2026-05-23_to_2026-05-29 | Spencer Steer | hitter_fantasy_score MORE 4.5 | standard | result=HIT actual=11
+- 2026-05-23_to_2026-05-29 | Teoscar Hernandez | hitter_fantasy_score MORE 4.5 | standard | result=HIT actual=8
+- 2026-05-23_to_2026-05-29 | Vladimir Guerrero Jr. | hitter_fantasy_score MORE 6.5 | standard | result=HIT actual=14
+- 2026-05-23_to_2026-05-29 | Willson Contreras | hitter_fantasy_score MORE 5 | standard | result=HIT actual=6
+- 2026-05-23_to_2026-05-29 | Yandy Diaz | hitter_fantasy_score MORE 6.5 | standard | result=MISS actual=5
+- 2026-05-23_to_2026-05-29 | Marcus Semien | hitter_strikeouts MORE 0.5 | standard | result=HIT actual=1
+- 2026-05-23_to_2026-05-29 | Masyn Winn | hitter_strikeouts MORE 0.5 | standard | result=HIT actual=2
+- 2026-05-23_to_2026-05-29 | Xander Bogaerts | hitter_strikeouts MORE 0.5 | standard | result=MISS actual=0
+- 2026-05-23_to_2026-05-29 | Alec Bohm | hrr MORE 1.5 | standard | result=MISS actual=0
+- 2026-05-23_to_2026-05-29 | Alex Bregman | hrr MORE 1.5 | standard | result=MISS actual=1
+- 2026-05-23_to_2026-05-29 | George Springer | hrr MORE 1.5 | standard | result=HIT actual=2
+- 2026-05-23_to_2026-05-29 | Luke Raley | hrr MORE 0.5 | goblin | result=MISS actual=0
+- 2026-05-23_to_2026-05-29 | Pete Alonso | hrr MORE 1.5 | standard | result=MISS actual=0
+- 2026-05-23_to_2026-05-29 | Shohei Ohtani | hrr MORE 2.5 | standard | result=HIT actual=3
+- 2026-05-23_to_2026-05-29 | Teoscar Hernandez | hrr MORE 1.5 | standard | result=MISS actual=1
+- 2026-05-23_to_2026-05-29 | Shohei Ohtani | ks_plus_total_bases MORE 9 | standard | result=HIT actual=11
+- 2026-05-23_to_2026-05-29 | Matthew Liberatore | pitching_outs LESS 15.5 | standard | result=HIT actual=15
+- 2026-05-23_to_2026-05-29 | Michael Soroka | pitching_outs LESS 17.5 | standard | result=MISS actual=18
+- 2026-05-23_to_2026-05-29 | Slade Cecconi | pitching_outs LESS 16.5 | standard | result=HIT actual=15
+- 2026-05-23_to_2026-05-29 | Travis Bazzana | runs LESS 0.5 | standard | result=HIT actual=0
+- 2026-05-23_to_2026-05-29 | Ketel Marte | singles MORE 0.5 | standard | result=HIT actual=3
+- 2026-05-23_to_2026-05-29 | Davis Martin | strikeouts MORE 5 | standard | result=PUSH actual=5
+- 2026-05-23_to_2026-05-29 | Jacob Misiorowski | strikeouts MORE 6.5 | goblin | result=HIT actual=12
+- 2026-05-23_to_2026-05-29 | Kevin Gausman | strikeouts LESS 5.5 | standard | result=HIT actual=5
+- 2026-05-23_to_2026-05-29 | Luis Castillo | strikeouts MORE 4 | standard | result=HIT actual=6
+- 2026-05-23_to_2026-05-29 | Nolan McLean | strikeouts MORE 5.5 | goblin | result=HIT actual=6
+- 2026-05-23_to_2026-05-29 | Shane McClanahan | strikeouts MORE 4.5 | goblin | result=MISS actual=3
+- 2026-05-23_to_2026-05-29 | Sonny Gray | strikeouts LESS 5.5 | standard | result=HIT actual=4
+- 2026-05-23_to_2026-05-29 | Trey Yesavage | strikeouts MORE 5.5 | goblin | result=HIT actual=6
+- 2026-05-23_to_2026-05-29 | Brett Baty | bases MORE 0.5 | standard | result=HIT actual=2
+- 2026-05-23_to_2026-05-29 | Jose Caballero | bases MORE 0.5 | goblin | result=MISS actual=0
+- 2026-05-23_to_2026-05-29 | Moises Ballesteros | bases MORE 0.5 | standard | result=REFUND actual=0
+- 2026-05-23_to_2026-05-29 | Sam Haggerty | bases MORE 0.5 | standard | result=MISS actual=0
+- 2026-05-23_to_2026-05-29 | Ketel Marte | walks LESS 0.5 | standard | result=HIT actual=0
+- 2026-05-23_to_2026-05-29 | Gavin Williams | walks_allowed LESS 1.5 | standard | result=MISS actual=2
+- 2026-05-23_to_2026-05-29 | Griffin Jax | walks_allowed LESS 1.5 | standard | result=HIT actual=0
+- 2026-05-23_to_2026-05-29 | Kevin Gausman | walks_allowed LESS 1.5 | standard | result=MISS actual=2
+- 2026-05-30 | Jameson Taillon | 1st_inning_pitches_thrown MORE 14.5 | standard | result=HIT actual=21
+- 2026-05-30 | Jeffrey Springs | 1st_inning_pitches_thrown MORE 15.5 | standard | result=HIT actual=16

@@ -1,0 +1,43 @@
+MANUAL HITTER SIGNAL REPORT
+===========================
+rows: 180
+hitter rows: 129
+
+BY SIGNAL CLASS
+---------------
+- WEAK: total=128 graded=108 hits=61 misses=47 pushes=0 refunds=10 pending=10 hitRate=56.48%
+- NOT_HITTER_SIGNAL: total=51 graded=49 hits=30 misses=18 pushes=1 refunds=0 pending=2 hitRate=61.22%
+- ELITE_MANUAL_SIGNAL: total=1 graded=0 hits=0 misses=0 pushes=0 refunds=0 pending=1 hitRate=n/a
+
+BY MARKET + SIGNAL CLASS
+------------------------
+- hitter_fantasy_score MORE | WEAK: total=65 graded=53 hits=28 misses=25 pushes=0 refunds=6 pending=6 hitRate=52.83%
+- hrr MORE | WEAK: total=25 graded=25 hits=14 misses=11 pushes=0 refunds=0 pending=0 hitRate=56.00%
+- bases MORE | WEAK: total=24 graded=18 hits=11 misses=7 pushes=0 refunds=2 pending=4 hitRate=61.11%
+- strikeouts MORE | NOT_HITTER_SIGNAL: total=12 graded=12 hits=8 misses=3 pushes=1 refunds=0 pending=0 hitRate=66.67%
+- pitching_outs LESS | NOT_HITTER_SIGNAL: total=7 graded=5 hits=4 misses=1 pushes=0 refunds=0 pending=2 hitRate=80.00%
+- hits_allowed LESS | NOT_HITTER_SIGNAL: total=6 graded=6 hits=2 misses=4 pushes=0 refunds=0 pending=0 hitRate=33.33%
+- hits MORE | NOT_HITTER_SIGNAL: total=5 graded=5 hits=3 misses=2 pushes=0 refunds=0 pending=0 hitRate=60.00%
+- singles MORE | WEAK: total=5 graded=5 hits=2 misses=3 pushes=0 refunds=0 pending=0 hitRate=40.00%
+- strikeouts LESS | NOT_HITTER_SIGNAL: total=4 graded=4 hits=3 misses=1 pushes=0 refunds=0 pending=0 hitRate=75.00%
+- 1st_inning_pitches_thrown MORE | NOT_HITTER_SIGNAL: total=4 graded=4 hits=2 misses=2 pushes=0 refunds=0 pending=0 hitRate=50.00%
+- earned_runs_allowed LESS | NOT_HITTER_SIGNAL: total=3 graded=3 hits=3 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- hitter_strikeouts MORE | WEAK: total=3 graded=3 hits=2 misses=1 pushes=0 refunds=0 pending=0 hitRate=66.67%
+- walks_allowed LESS | NOT_HITTER_SIGNAL: total=3 graded=3 hits=1 misses=2 pushes=0 refunds=0 pending=0 hitRate=33.33%
+- 1st_inning_pitches_thrown LESS | NOT_HITTER_SIGNAL: total=2 graded=2 hits=1 misses=1 pushes=0 refunds=0 pending=0 hitRate=50.00%
+- pitcher_fantasy_score MORE | NOT_HITTER_SIGNAL: total=2 graded=2 hits=1 misses=1 pushes=0 refunds=0 pending=0 hitRate=50.00%
+- hrr LESS | WEAK: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- ks_plus_total_bases MORE | WEAK: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- runs LESS | WEAK: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- walks LESS | WEAK: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- first_3_innings_strikeouts MORE | NOT_HITTER_SIGNAL: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- pitches_thrown LESS | NOT_HITTER_SIGNAL: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- pitcher_fantasy_score LESS | NOT_HITTER_SIGNAL: total=1 graded=1 hits=0 misses=1 pushes=0 refunds=0 pending=0 hitRate=0.00%
+- hitter_fantasy_score MORE | ELITE_MANUAL_SIGNAL: total=1 graded=0 hits=0 misses=0 pushes=0 refunds=0 pending=1 hitRate=n/a
+- singles LESS | WEAK: total=1 graded=0 hits=0 misses=0 pushes=0 refunds=1 pending=0 hitRate=n/a
+- walks MORE | WEAK: total=1 graded=0 hits=0 misses=0 pushes=0 refunds=1 pending=0 hitRate=n/a
+
+TOP MANUAL SIGNAL ROWS
+----------------------
+- 2026-05-30 | Juan Soto | hitter_fantasy_score MORE 5.5 | standard | signal=ELITE_MANUAL_SIGNAL score=16.1 | result=PENDING actual=n/a
+  reasons: L5:elite_70_plus:100.0%, L10:elite_70_plus:100.0%, L15:elite_70_plus:80.0%, season:positive_50_plus:53.0%, home_away:solid_55_plus:56.0%, home_away_hand:strong_60_plus:63.0%, vs_pitcher:very_strong_65_plus:67.0%, L5_avg:avg_far_above_line:14

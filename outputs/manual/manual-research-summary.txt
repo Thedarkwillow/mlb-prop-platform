@@ -1,0 +1,81 @@
+MANUAL RESEARCH REPORT
+======================
+rows: 180
+graded: 157
+hits: 91
+misses: 65
+pushes: 1
+pending: 13
+refunds: 10
+hitRate: 57.96%
+
+BY DATE
+-------
+- 2026-05-30: total=89 graded=71 hits=39 misses=32 pushes=0 refunds=5 pending=13 hitRate=54.93%
+- 2026-05-23_to_2026-05-29: total=65 graded=61 hits=34 misses=26 pushes=1 refunds=4 pending=0 hitRate=55.74%
+- 2026-05-15_to_2026-05-22: total=26 graded=25 hits=18 misses=7 pushes=0 refunds=1 pending=0 hitRate=72.00%
+
+BY SOURCE
+---------
+- past_prizepicks_slip: total=93 graded=88 hits=50 misses=38 pushes=0 refunds=5 pending=0 hitRate=56.82%
+- manual_research: total=87 graded=69 hits=41 misses=27 pushes=1 refunds=5 pending=13 hitRate=59.42%
+
+BY MARKET/SIDE
+--------------
+- hitter_fantasy_score | MORE: total=66 graded=53 hits=28 misses=25 pushes=0 refunds=6 pending=7 hitRate=52.83%
+- hrr | MORE: total=25 graded=25 hits=14 misses=11 pushes=0 refunds=0 pending=0 hitRate=56.00%
+- bases | MORE: total=24 graded=18 hits=11 misses=7 pushes=0 refunds=2 pending=4 hitRate=61.11%
+- strikeouts | MORE: total=12 graded=12 hits=8 misses=3 pushes=1 refunds=0 pending=0 hitRate=66.67%
+- hits_allowed | LESS: total=6 graded=6 hits=2 misses=4 pushes=0 refunds=0 pending=0 hitRate=33.33%
+- pitching_outs | LESS: total=7 graded=5 hits=4 misses=1 pushes=0 refunds=0 pending=2 hitRate=80.00%
+- hits | MORE: total=5 graded=5 hits=3 misses=2 pushes=0 refunds=0 pending=0 hitRate=60.00%
+- singles | MORE: total=5 graded=5 hits=2 misses=3 pushes=0 refunds=0 pending=0 hitRate=40.00%
+- strikeouts | LESS: total=4 graded=4 hits=3 misses=1 pushes=0 refunds=0 pending=0 hitRate=75.00%
+- 1st_inning_pitches_thrown | MORE: total=4 graded=4 hits=2 misses=2 pushes=0 refunds=0 pending=0 hitRate=50.00%
+- earned_runs_allowed | LESS: total=3 graded=3 hits=3 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- hitter_strikeouts | MORE: total=3 graded=3 hits=2 misses=1 pushes=0 refunds=0 pending=0 hitRate=66.67%
+- walks_allowed | LESS: total=3 graded=3 hits=1 misses=2 pushes=0 refunds=0 pending=0 hitRate=33.33%
+- 1st_inning_pitches_thrown | LESS: total=2 graded=2 hits=1 misses=1 pushes=0 refunds=0 pending=0 hitRate=50.00%
+- pitcher_fantasy_score | MORE: total=2 graded=2 hits=1 misses=1 pushes=0 refunds=0 pending=0 hitRate=50.00%
+- hrr | LESS: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- ks_plus_total_bases | MORE: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- runs | LESS: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- walks | LESS: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- first_3_innings_strikeouts | MORE: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- pitches_thrown | LESS: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- pitcher_fantasy_score | LESS: total=1 graded=1 hits=0 misses=1 pushes=0 refunds=0 pending=0 hitRate=0.00%
+- singles | LESS: total=1 graded=0 hits=0 misses=0 pushes=0 refunds=1 pending=0 hitRate=n/a
+- walks | MORE: total=1 graded=0 hits=0 misses=0 pushes=0 refunds=1 pending=0 hitRate=n/a
+
+BY MARKET/SIDE/TIER
+-------------------
+- hitter_fantasy_score | MORE | standard: total=65 graded=52 hits=27 misses=25 pushes=0 refunds=6 pending=7 hitRate=51.92%
+- hrr | MORE | standard: total=24 graded=24 hits=14 misses=10 pushes=0 refunds=0 pending=0 hitRate=58.33%
+- bases | MORE | goblin: total=18 graded=13 hits=10 misses=3 pushes=0 refunds=1 pending=4 hitRate=76.92%
+- strikeouts | MORE | goblin: total=7 graded=7 hits=6 misses=1 pushes=0 refunds=0 pending=0 hitRate=85.71%
+- hits_allowed | LESS | standard: total=6 graded=6 hits=2 misses=4 pushes=0 refunds=0 pending=0 hitRate=33.33%
+- pitching_outs | LESS | standard: total=7 graded=5 hits=4 misses=1 pushes=0 refunds=0 pending=2 hitRate=80.00%
+- hits | MORE | standard: total=5 graded=5 hits=3 misses=2 pushes=0 refunds=0 pending=0 hitRate=60.00%
+- strikeouts | MORE | standard: total=5 graded=5 hits=2 misses=2 pushes=1 refunds=0 pending=0 hitRate=40.00%
+- bases | MORE | standard: total=6 graded=5 hits=1 misses=4 pushes=0 refunds=1 pending=0 hitRate=20.00%
+- strikeouts | LESS | standard: total=4 graded=4 hits=3 misses=1 pushes=0 refunds=0 pending=0 hitRate=75.00%
+- 1st_inning_pitches_thrown | MORE | standard: total=4 graded=4 hits=2 misses=2 pushes=0 refunds=0 pending=0 hitRate=50.00%
+- singles | MORE | standard: total=4 graded=4 hits=2 misses=2 pushes=0 refunds=0 pending=0 hitRate=50.00%
+- earned_runs_allowed | LESS | standard: total=3 graded=3 hits=3 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- hitter_strikeouts | MORE | standard: total=3 graded=3 hits=2 misses=1 pushes=0 refunds=0 pending=0 hitRate=66.67%
+- walks_allowed | LESS | standard: total=3 graded=3 hits=1 misses=2 pushes=0 refunds=0 pending=0 hitRate=33.33%
+- 1st_inning_pitches_thrown | LESS | standard: total=2 graded=2 hits=1 misses=1 pushes=0 refunds=0 pending=0 hitRate=50.00%
+- pitcher_fantasy_score | MORE | standard: total=2 graded=2 hits=1 misses=1 pushes=0 refunds=0 pending=0 hitRate=50.00%
+- hitter_fantasy_score | MORE | goblin: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- hrr | LESS | standard: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- ks_plus_total_bases | MORE | standard: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- runs | LESS | standard: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- walks | LESS | standard: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- first_3_innings_strikeouts | MORE | standard: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- pitches_thrown | LESS | standard: total=1 graded=1 hits=1 misses=0 pushes=0 refunds=0 pending=0 hitRate=100.00%
+- pitcher_fantasy_score | LESS | standard: total=1 graded=1 hits=0 misses=1 pushes=0 refunds=0 pending=0 hitRate=0.00%
+- hrr | MORE | goblin: total=1 graded=1 hits=0 misses=1 pushes=0 refunds=0 pending=0 hitRate=0.00%
+- singles | MORE | goblin: total=1 graded=1 hits=0 misses=1 pushes=0 refunds=0 pending=0 hitRate=0.00%
+- singles | LESS | standard: total=1 graded=0 hits=0 misses=0 pushes=0 refunds=1 pending=0 hitRate=n/a
+- walks | MORE | standard: total=1 graded=0 hits=0 misses=0 pushes=0 refunds=1 pending=0 hitRate=n/a
+
