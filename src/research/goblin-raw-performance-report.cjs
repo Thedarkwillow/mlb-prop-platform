@@ -34,18 +34,25 @@ function fetchJson(url) {
   const variants = [
     url,
     url.includes("/api/v1/game/") ? url.replace("/api/v1/game/", "/api/v1.1/game/") : null,
-    url.includes("/boxscore") && !url.includes("?") ? `${url}?language=en` : null,
-    url.includes("/api/v1/game/") && url.includes("/boxscore") && !url.includes("?")
-      ? `${url.replace("/api/v1/game/", "/api/v1.1/game/")}?language=en`
+    url.includes("/boxscore")
+      ? url.replace("/api/v1/game/", "/api/v1.1/game/").replace("/boxscore", "/feed/live")
+      : null,
+    url.includes("/boxscore")
+      ? url.replace("/api/v1/game/", "/api/v1/game/").replace("/boxscore", "/feed/live")
       : null
   ].filter(Boolean);
 
   for (const candidate of [...new Set(variants)]) {
     try {
-      const raw = execFileSync("curl", ["-sSL", candidate], {
+      const raw = execFileSync("curl", [
+        "-sSL",
+        "-H", "accept: application/json,text/plain,*/*",
+        "-H", "user-agent: Mozilla/5.0 mlb-prop-platform",
+        candidate
+      ], {
         encoding: "utf8",
         stdio: ["ignore", "pipe", "ignore"],
-        timeout: 20000
+        timeout: 30000
       });
 
       if (!raw || !raw.trim()) continue;
@@ -298,7 +305,8 @@ function buildBoxscoreIndex() {
   const all = [];
 
   for (const g of games) {
-    const box = fetchJson(`https://statsapi.mlb.com/api/v1/game/${g.gamePk}/boxscore`);
+    const boxRaw = fetchJson(`https://statsapi.mlb.com/api/v1/game/${g.gamePk}/boxscore`);
+    const box = boxRaw?.teams ? boxRaw : boxRaw?.liveData?.boxscore;
     const gamePlayers = [];
 
     if (!box || !box.teams) {
