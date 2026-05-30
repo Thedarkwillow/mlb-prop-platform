@@ -345,10 +345,160 @@ function derivePitcherHand(x) {
 }
 
 function splitContextFields(x) {
+  const matchup = pitcherMatchupContext(x);
   return {
     homeAway: deriveHomeAwayFromGame(x) || null,
-    pitcherHand: derivePitcherHand(x) || null,
-    opposingPitcher: deriveOpposingPitcher(x) || null
+    pitcherHand: derivePitcherHand(x) || matchup.pitcherHand || null,
+    opposingPitcher: deriveOpposingPitcher(x) || matchup.opposingPitcher || null,
+    opposingPitcherId: matchup.opposingPitcherId || null,
+    pitcherMatchupSource: matchup.pitcherMatchupSource || null
+  };
+}
+
+
+const PROBABLE_PITCHER_CONTEXT = readJson("data/context/probable-pitcher-hands.json", {});
+const CONTEXT_DEPTH_PACK = readJson("data/context/context-depth-pack.json", {});
+const GAME_MODEL_CONTEXT = readJson("data/context/game-model-context.json", {});
+
+function normTeamCode(v) {
+  const t = String(v || "").toUpperCase().trim();
+  if (t === "AZ") return "ARI";
+  if (t === "WSH") return "WSH";
+  if (t === "WAS") return "WSH";
+  if (t === "SDP") return "SD";
+  if (t === "SFG") return "SF";
+  if (t === "TBR") return "TB";
+  if (t === "KCR") return "KC";
+  if (t === "CHW") return "CWS";
+  if (t === "OAK") return "ATH";
+  return t;
+}
+
+function gameCandidatesFromPack(pack) {
+  if (!pack || typeof pack !== "object" || !pack.games || typeof pack.games !== "object") return [];
+  return Object.values(pack.games).filter(g => g && typeof g === "object");
+}
+
+function probableGames() {
+  return gameCandidatesFromPack(PROBABLE_PITCHER_CONTEXT);
+}
+
+function richContextGames() {
+  return [
+    ...gameCandidatesFromPack(CONTEXT_DEPTH_PACK),
+    ...gameCandidatesFromPack(GAME_MODEL_CONTEXT)
+  ];
+}
+
+function sameGameByPk(g, x) {
+  const a = Number(g?.gamePk);
+  const b = Number(x.gamePk ?? x.resolvedGamePk);
+  return Number.isFinite(a) && Number.isFinite(b) && a === b;
+}
+
+function sameGameByTeams(g, x) {
+  const team = normTeamCode(teamKey(x));
+  const away = normTeamCode(g.awayTeam);
+  const home = normTeamCode(g.homeTeam);
+  if (!team || !away || !home) return false;
+
+  const game = String(x.game || x.resolvedGame || x.sportsbookGame || "");
+  const compact = textNorm(game);
+
+  if (game && compact) {
+    const awayFull = textNorm(TEAM_FULL_NAMES[away] || away);
+    const homeFull = textNorm(TEAM_FULL_NAMES[home] || home);
+    if (compact.includes(awayFull) && compact.includes(homeFull)) return true;
+    if (compact.includes(textNorm(`${away} ${home}`))) return true;
+  }
+
+  return team === away || team === home;
+}
+
+function findProbableGame(x) {
+  const games = probableGames();
+  return (
+    games.find(g => sameGameByPk(g, x)) ||
+    games.find(g => sameGameByTeams(g, x)) ||
+    null
+  );
+}
+
+function findRichGame(x) {
+  const games = richContextGames();
+  return (
+    games.find(g => sameGameByPk(g, x)) ||
+    games.find(g => sameGameByTeams(g, x)) ||
+    null
+  );
+}
+
+function sideForTeam(game, x) {
+  const team = normTeamCode(teamKey(x));
+  const away = normTeamCode(game?.awayTeam);
+  const home = normTeamCode(game?.homeTeam);
+  if (!team || !away || !home) return "";
+  if (team === away) return "away";
+  if (team === home) return "home";
+  return "";
+}
+
+function probableOpposingPitcherFromGame(game, x) {
+  const side = sideForTeam(game, x);
+  if (side === "away") {
+    return {
+      opposingPitcher: game.homeProbablePitcher || null,
+      opposingPitcherId: game.homePitcherId || null,
+      pitcherHand: normalizePitcherHand(game.homePitcherHand) || null
+    };
+  }
+  if (side === "home") {
+    return {
+      opposingPitcher: game.awayProbablePitcher || null,
+      opposingPitcherId: game.awayPitcherId || null,
+      pitcherHand: normalizePitcherHand(game.awayPitcherHand) || null
+    };
+  }
+  return { opposingPitcher: null, opposingPitcherId: null, pitcherHand: null };
+}
+
+function richOpposingPitcherFromGame(game, x) {
+  const side = sideForTeam(game, x);
+  if (side === "away") {
+    const sp = game.home?.startingPitcher || null;
+    return {
+      opposingPitcher: sp?.name || null,
+      opposingPitcherId: sp?.id || null,
+      pitcherHand: normalizePitcherHand(sp?.hand) || null
+    };
+  }
+  if (side === "home") {
+    const sp = game.away?.startingPitcher || null;
+    return {
+      opposingPitcher: sp?.name || null,
+      opposingPitcherId: sp?.id || null,
+      pitcherHand: normalizePitcherHand(sp?.hand) || null
+    };
+  }
+  return { opposingPitcher: null, opposingPitcherId: null, pitcherHand: null };
+}
+
+function pitcherMatchupContext(x) {
+  const probable = findProbableGame(x);
+  const rich = findRichGame(x);
+
+  const probableCtx = probable ? probableOpposingPitcherFromGame(probable, x) : {};
+  const richCtx = rich ? richOpposingPitcherFromGame(rich, x) : {};
+
+  return {
+    opposingPitcher: probableCtx.opposingPitcher || richCtx.opposingPitcher || null,
+    opposingPitcherId: probableCtx.opposingPitcherId || richCtx.opposingPitcherId || null,
+    pitcherHand: richCtx.pitcherHand || probableCtx.pitcherHand || null,
+    pitcherMatchupSource: rich
+      ? "context_depth_or_game_model"
+      : probable
+        ? "probable_pitcher_hands"
+        : null
   };
 }
 
