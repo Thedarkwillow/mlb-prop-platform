@@ -1218,6 +1218,41 @@ if (recommendedSide === 'MORE') {
   };
 });
 
+function normalizeSpecialTierSide(row) {
+  const oddsTier = String(row.oddsTier || row.odds_tier || row.tier || '').toLowerCase();
+  const market = String(row.market || row.stat || '').toLowerCase();
+  const isSpecial = oddsTier === 'goblin' || oddsTier === 'demon';
+  const isFantasy = market.includes('fantasy');
+
+  if (!isSpecial && !isFantasy) return row;
+
+  const rawSide = row.rawSide ?? row.side ?? row.recommendedSide ?? row.pick ?? row.direction ?? null;
+
+  const next = {
+    ...row,
+    rawSide,
+    specialTier: isSpecial || row.specialTier === true
+  };
+
+  if (isSpecial) {
+    next.side = 'MORE';
+    next.recommendedSide = 'MORE';
+    next.playableSide = 'MORE';
+  }
+
+  if (isFantasy) {
+    next.trackingOnly = true;
+    next.rankEligible = false;
+    next.playableEligible = false;
+    next.playable = false;
+    next.disabledReason = 'fantasy scale not verified';
+  }
+
+  return next;
+}
+
+const normalizedPriced = priced.map(normalizeSpecialTierSide);
+
 const summary = {
   recordType: 'pricing_summary',
   createdAt: new Date().toISOString(),
@@ -1238,7 +1273,7 @@ const summary = {
   pass: priced.filter(r => r.confidenceBucket === 'pass').length
 };
 
-fs.writeFileSync(OUT_FILE, JSON.stringify([summary, ...priced], null, 2));
+fs.writeFileSync(OUT_FILE, JSON.stringify([summary, ...normalizedPriced], null, 2));
 
 console.log(summary);
 console.log(`Saved ${OUT_FILE}`);
