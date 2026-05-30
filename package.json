@@ -22,7 +22,7 @@
     "grade:watchlist": "node src/research/grade-watchlist-slips.cjs ${npm_config_date:-$(date +%F)}",
     "history": "node src/research/show-history.cjs ${npm_config_date:-$(date +%F)}",
     "summary": "node src/research/daily-summary.cjs ${npm_config_date:-$(date +%F)}",
-    "decision": "node src/research/current-decision-report.cjs && npm run auto:hitter-signal && npm run decision:auto-notes",
+    "decision": "node src/research/current-decision-report.cjs && npm run auto:hitter-signal && npm run decision:auto-notes && npm run auto:reverse-hitter",
     "markets": "node src/research/check-market-roadmap.cjs",
     "market:exposure": "node src/research/market-exposure-report.cjs",
     "odds": "node src/research/oddsapi-dk-mlb-props.cjs && node src/research/convert-oddsapi-props.cjs && node src/research/odds-api-summary.cjs",
@@ -257,7 +257,8 @@
     "decision:auto-notes": "node src/research/decision-auto-signal-notes.cjs",
     "manual:mine": "node src/research/manual-edge-mining-report.cjs",
     "manual:protected": "node src/research/protected-bucket-tracker.cjs",
-    "fantasy:mine": "node src/research/fantasy-edge-mining-report.cjs"
+    "fantasy:mine": "node src/research/fantasy-edge-mining-report.cjs",
+    "auto:reverse-hitter": "node src/research/auto-reverse-hitter-signal.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
