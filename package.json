@@ -245,7 +245,9 @@
     "runs:grade": "node src/research/grade-run-level-cards.cjs",
     "postgame:runs": "npm run runs:cards -- ${npm_config_date:-$(date +%F)} && npm run runs:grade -- ${npm_config_date:-$(date +%F)}",
     "manual:report": "node src/research/manual-research-report.cjs",
-    "manual:import": "node src/research/import-manual-research.cjs"
+    "manual:import": "node src/research/import-manual-research.cjs",
+    "manual:compare": "node src/research/manual-model-compare.cjs",
+    "manual:add": "node src/research/add-manual-research-row.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
