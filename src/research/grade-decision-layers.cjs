@@ -488,14 +488,11 @@ function resolveDecisionRow(row, indexes) {
   const k = keyParts(row);
 
   /*
-    For bases 0.5, hits actual is the safest fallback.
-    One hit guarantees at least one total base.
-    Prefer this before exact stale all-markets bases rows.
+    Exact already-graded rows must come first.
+    fullBoard is source #1, so this uses correct MLB grading before weaker fallbacks.
   */
-  if (k.market === "bases" && num(k.line, null) === 0.5) {
-    const basesFromHits = resolveBasesFromHits(row, indexes);
-    if (basesFromHits) return { match: basesFromHits, method: "derived_bases_from_hits" };
-  }
+  const exact = resolveExact(row, indexes);
+  if (exact) return { match: exact, method: "exact_player_market_side_line" };
 
   /*
     Prefer already-graded playable slips when available.
@@ -510,15 +507,16 @@ function resolveDecisionRow(row, indexes) {
     if (pitchingOuts) return { match: pitchingOuts, method: "mlb_boxscore_pitching_outs" };
   }
 
-  const exact = resolveExact(row, indexes);
-  if (exact) return { match: exact, method: "exact_player_market_side_line" };
-
   const sameMarket = resolveSameMarketActual(row, indexes);
   if (sameMarket) return { match: sameMarket, method: "same_player_market_actual" };
 
   const hitsAllowedAlias = resolveHitsAllowedFromHitsAlias(row, indexes);
   if (hitsAllowedAlias) return { match: hitsAllowedAlias, method: "hits_allowed_alias_from_hits" };
 
+  /*
+    Bases from hits is fallback only.
+    It must not override exact full-board bases grades.
+  */
   const basesFromHits = resolveBasesFromHits(row, indexes);
   if (basesFromHits) return { match: basesFromHits, method: "derived_bases_from_hits" };
 
@@ -546,6 +544,9 @@ function compactRow(layer, row, indexes) {
     player: getPlayer(row),
     team: row.team || row.teamAbbr || row.team_abbr || null,
     game: row.game || row.matchup || null,
+    gamePk: resolved.match
+      ? (resolved.match.gamePk || resolved.match.gamePK || resolved.match.mlbGamePk || resolved.match.mlb_game_pk || null)
+      : (row.gamePk || row.gamePK || row.mlbGamePk || row.mlb_game_pk || null),
     market: getMarket(row),
     side,
     line,
@@ -687,6 +688,7 @@ console.log(summary);
 console.table(rows.map(r => ({
   layer: r.layer,
   player: r.player,
+  gamePk: r.gamePk,
   market: r.market,
   side: r.side,
   line: r.line,
