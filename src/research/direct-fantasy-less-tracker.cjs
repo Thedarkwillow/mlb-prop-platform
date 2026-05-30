@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { execFileSync } = require("child_process");
 
 const date =
   process.argv[2] ||
@@ -7,11 +8,8 @@ const date =
   new Date().toISOString().slice(0, 10);
 
 const FILES = {
-  board: "outputs/sportsbook-enriched-board.json",
   pricedBoard: "outputs/priced-board.json",
-  fullBoardGraded: `outputs/history/${date}-full-board-graded.json`,
   fantasyGrades: `outputs/history/${date}-fantasy-grades.json`,
-  gradedResults: "outputs/graded-results.json",
   out: `outputs/direct-fantasy-less-tracker-${date}.json`,
   latest: "outputs/direct-fantasy-less-tracker-latest.json",
   txt: `outputs/direct-fantasy-less-tracker-${date}.txt`,
@@ -52,8 +50,11 @@ function norm(v) {
 
 function normName(v) {
   return norm(v)
-    .replace(/jr\\.?|sr\\.?|ii|iii|iv/g, "")
-    .replace(/[^a-z0-9]/g, "");
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[.'’\-]/g, "")
+    .replace(/\b(jr|sr|ii|iii|iv)\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function marketOf(row) {
@@ -65,37 +66,31 @@ function marketOf(row) {
 }
 
 function sideOf(row) {
-  return String(row.side ?? row.recommendedSide ?? row.pick ?? "").trim().toUpperCase();
+  const raw = String(
+    row.side ??
+    row.recommendedSide ??
+    row.direction ??
+    row.pick ??
+    row.projectionSide ??
+    row.recommendation ??
+    ""
+  ).trim().toUpperCase();
+
+  if (raw === "OVER") return "MORE";
+  if (raw === "UNDER") return "LESS";
+  return raw;
 }
 
 function lineOf(row) {
   return num(row.line ?? row.ppLine ?? row.target ?? row.projectionLine, null);
 }
 
-function resultOf(row) {
-  return String(row.result ?? row.outcome ?? row.gradeResult ?? "").trim().toUpperCase();
-}
-
-function actualOf(row) {
-  return num(
-    row.actual ??
-    row.actualValue ??
-    row.finalValue ??
-    row.score ??
-    row.fantasyScore ??
-    row.hitter_fantasy_score ??
-    row.pitcher_fantasy_score,
-    null
-  );
-}
-
-function roleOf(row) {
-  const market = marketOf(row);
-  if (market === "pitcher_fantasy_score") return "pitcher";
-  if (market === "hitter_fantasy_score") return "hitter";
-  const raw = norm(row.role ?? row.playerType ?? row.positionType ?? row.type);
-  if (raw.includes("pitch")) return "pitcher";
-  return "hitter";
+function resultFor(actual, line, side) {
+  if (!Number.isFinite(actual) || !Number.isFinite(line)) return "UNMATCHED";
+  if (actual === line) return "PUSH";
+  if (side === "MORE") return actual > line ? "HIT" : "MISS";
+  if (side === "LESS") return actual < line ? "HIT" : "MISS";
+  return "UNMATCHED";
 }
 
 function lineBucket(line) {
@@ -110,108 +105,186 @@ function lineBucket(line) {
   return "13+";
 }
 
-function flatten(v, out = []) {
-  if (!v) return out;
-  if (Array.isArray(v)) {
-    for (const x of v) flatten(x, out);
-    return out;
+function readUrlJson(url) {
+  const variants = [
+    url,
+    url.includes("/api/v1/game/") ? url.replace("/api/v1/game/", "/api/v1.1/game/") : null,
+    url.includes("/boxscore") && !url.includes("?") ? `${url}?language=en` : null,
+    url.includes("/api/v1/game/") && url.includes("/boxscore") && !url.includes("?")
+      ? `${url.replace("/api/v1/game/", "/api/v1.1/game/")}?language=en`
+      : null
+  ].filter(Boolean);
+
+  for (const candidate of [...new Set(variants)]) {
+    try {
+      const raw = execFileSync("curl", [
+        "-fsSL",
+        "-H", "accept: application/json,text/plain,*/*",
+        "-H", "user-agent: Mozilla/5.0 mlb-prop-platform fantasy-less-tracker",
+        candidate
+      ], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+        timeout: 15000
+      });
+      return JSON.parse(raw);
+    } catch {
+      // Try next endpoint variant.
+    }
   }
-  if (typeof v !== "object") return out;
 
-  const looksLikeRow =
-    v.player ||
-    v.playerName ||
-    v.market ||
-    v.stat ||
-    v.type ||
-    v.statType ||
-    v.result ||
-    v.outcome;
-
-  if (looksLikeRow) out.push(v);
-
-  for (const key of ["rows", "data", "results", "grades", "items", "legs"]) {
-    if (v[key]) flatten(v[key], out);
-  }
-
-  return out;
+  return null;
 }
 
-function fantasyScoringFromBoxLike(row) {
+function pitcherFantasyScore(stats = {}) {
+  const win = num(stats.wins ?? stats.win, 0);
+  const qualityStart = num(stats.qualityStarts ?? stats.qualityStart, 0);
+  const earnedRuns = num(stats.earnedRuns, 0);
+  const strikeouts = num(stats.strikeOuts ?? stats.strikeouts, 0);
+
+  let outs = num(stats.outs, null);
+  if (outs === null) outs = parseIpToOuts(stats.inningsPitched ?? stats.ip);
+
+  if (outs === null) return null;
+
+  return (
+    win * 6 +
+    qualityStart * 4 +
+    earnedRuns * -3 +
+    strikeouts * 3 +
+    outs * 1
+  );
+}
+
+function hitterFantasyScore(stats = {}) {
+  const hits = num(stats.hits, 0);
+  const doubles = num(stats.doubles, 0);
+  const triples = num(stats.triples, 0);
+  const homeRuns = num(stats.homeRuns, 0);
+  const singles = Math.max(0, hits - doubles - triples - homeRuns);
+
+  return (
+    singles * 3 +
+    doubles * 5 +
+    triples * 8 +
+    homeRuns * 10 +
+    num(stats.runs, 0) * 2 +
+    num(stats.rbi ?? stats.rbis, 0) * 2 +
+    num(stats.baseOnBalls ?? stats.walks, 0) * 2 +
+    num(stats.hitByPitch, 0) * 2 +
+    num(stats.stolenBases, 0) * 5
+  );
+}
+
+function parseIpToOuts(ip) {
+  if (ip === null || ip === undefined || ip === "") return null;
+  const s = String(ip);
+  const [wholeRaw, fracRaw = "0"] = s.split(".");
+  const whole = Number(wholeRaw);
+  const frac = Number(fracRaw);
+  if (!Number.isFinite(whole) || !Number.isFinite(frac)) return null;
+  if (![0, 1, 2].includes(frac)) return null;
+  return whole * 3 + frac;
+}
+
+function getPlayerStatsFromBoxscore(box, playerName) {
+  const target = normName(playerName);
+  const teams = [box?.teams?.away, box?.teams?.home].filter(Boolean);
+
+  for (const tm of teams) {
+    for (const p of Object.values(tm.players || {})) {
+      const fullName = p.person?.fullName || "";
+      if (normName(fullName) !== target) continue;
+
+      return {
+        fullName,
+        batting: p.stats?.batting || {},
+        pitching: p.stats?.pitching || {}
+      };
+    }
+  }
+
+  return null;
+}
+
+function directBoxscoreFantasy(row, boxCache) {
+  const gamePk = row.resolvedGamePk || row.gamePk || row.mlbGamePk;
+  if (!gamePk) return null;
+
+  if (!boxCache.has(gamePk)) {
+    boxCache.set(gamePk, readUrlJson(`https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore`));
+  }
+
+  const box = boxCache.get(gamePk);
+  if (!box) return null;
+
+  const found = getPlayerStatsFromBoxscore(box, row.player);
+  if (!found) return null;
+
   const market = marketOf(row);
+  const actual =
+    market === "pitcher_fantasy_score"
+      ? pitcherFantasyScore(found.pitching)
+      : market === "hitter_fantasy_score"
+        ? hitterFantasyScore(found.batting)
+        : null;
 
-  if (market === "hitter_fantasy_score") {
-    const singles = num(row.singles, 0);
-    const doubles = num(row.doubles, 0);
-    const triples = num(row.triples, 0);
-    const homeRuns = num(row.home_runs ?? row.homeRuns, 0);
-    const runs = num(row.runs, 0);
-    const rbis = num(row.rbis ?? row.rbi, 0);
-    const walks = num(row.walks ?? row.baseOnBalls, 0);
-    const hbp = num(row.hit_by_pitch ?? row.hitByPitch, 0);
-    const sb = num(row.stolen_bases ?? row.stolenBases, 0);
+  if (actual === null) return null;
 
-    const hasAny = [
-      singles,
-      doubles,
-      triples,
-      homeRuns,
-      runs,
-      rbis,
-      walks,
-      hbp,
-      sb
-    ].some(x => Number(x) > 0);
-
-    if (!hasAny && actualOf(row) === null) return null;
-
-    return (
-      singles * 3 +
-      doubles * 5 +
-      triples * 8 +
-      homeRuns * 10 +
-      runs * 2 +
-      rbis * 2 +
-      walks * 2 +
-      hbp * 2 +
-      sb * 5
-    );
-  }
-
-  if (market === "pitcher_fantasy_score") {
-    const wins = num(row.wins ?? row.win, 0);
-    const qualityStarts = num(row.quality_starts ?? row.qualityStart, 0);
-    const earnedRuns = num(row.earned_runs ?? row.earnedRuns, 0);
-    const strikeouts = num(row.strikeouts, 0);
-    const outs = num(row.outs ?? row.pitching_outs, null);
-
-    if (outs === null && actualOf(row) === null) return null;
-
-    return (
-      wins * 6 +
-      qualityStarts * 4 +
-      earnedRuns * -3 +
-      strikeouts * 3 +
-      num(outs, 0)
-    );
-  }
-
-  return actualOf(row);
+  return {
+    actual: Number(actual.toFixed(2)),
+    matchedName: found.fullName,
+    matchStatus: "BOX_SCORE_DIRECT"
+  };
 }
 
-function makeKey(row) {
-  return [
-    normName(row.player ?? row.playerName),
-    marketOf(row),
-    String(lineOf(row) ?? "")
-  ].join("|");
-}
+function pickFantasyLessRows() {
+  const priced = readJson(FILES.pricedBoard, []);
+  const rows = Array.isArray(priced) ? priced : [];
 
-function makeLooseKey(row) {
-  return [
-    normName(row.player ?? row.playerName),
-    marketOf(row)
-  ].join("|");
+  const picked = [];
+  const seen = new Set();
+
+  for (const row of rows) {
+    const market = marketOf(row);
+    const side = sideOf(row);
+    const line = lineOf(row);
+
+    if (!["pitcher_fantasy_score", "hitter_fantasy_score"].includes(market)) continue;
+    if (side !== "LESS") continue;
+    if (line === null) continue;
+
+    const key = [
+      normName(row.player),
+      market,
+      side,
+      line,
+      row.resolvedGamePk || row.gamePk || ""
+    ].join("|");
+
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    picked.push({
+      player: row.player ?? null,
+      team: row.team ?? row.resolvedTeam ?? null,
+      market,
+      stat: row.stat ?? row.market ?? null,
+      side,
+      line,
+      oddsTier: row.oddsTier ?? row.tier ?? row.specialTier ?? "standard",
+      projection: num(row.projection, null),
+      recommendedProb: num(row.recommendedProb ?? row.prob ?? row.probability, null),
+      expectedValue: num(row.expectedValue ?? row.edge, null),
+      game: row.resolvedGame ?? row.game ?? null,
+      gamePk: row.resolvedGamePk ?? row.gamePk ?? row.mlbGamePk ?? null,
+      resolvedGame: row.resolvedGame ?? row.game ?? null,
+      resolvedGamePk: row.resolvedGamePk ?? row.gamePk ?? row.mlbGamePk ?? null,
+      source: FILES.pricedBoard
+    });
+  }
+
+  return picked;
 }
 
 function summarize(rows) {
@@ -219,112 +292,50 @@ function summarize(rows) {
   const hits = graded.filter(r => r.result === "HIT").length;
   const misses = graded.filter(r => r.result === "MISS").length;
   const pushes = graded.filter(r => r.result === "PUSH").length;
+  const unmatched = rows.filter(r => r.result === "UNMATCHED").length;
+  const denom = hits + misses;
+
   return {
     rows: rows.length,
     graded: graded.length,
     hits,
     misses,
     pushes,
-    unmatched: rows.filter(r => r.result === "UNMATCHED").length,
-    hitRate: graded.length ? Number((hits / (hits + misses || 1)).toFixed(4)) : null,
-    roi: graded.length ? Number(((hits - misses) / (hits + misses || 1)).toFixed(4)) : null
+    unmatched,
+    hitRate: denom ? Number((hits / denom).toFixed(4)) : 0,
+    roi: denom ? Number(((hits - misses) / denom).toFixed(4)) : 0
   };
 }
 
-function groupSummary(rows, fn) {
+function groupSummary(rows, keyFn) {
   const m = new Map();
   for (const row of rows) {
-    const k = fn(row);
+    const k = keyFn(row);
     if (!m.has(k)) m.set(k, []);
     m.get(k).push(row);
   }
+
   return [...m.entries()]
     .map(([key, rows]) => ({ key, ...summarize(rows) }))
-    .sort((a, b) => b.graded - a.graded || (b.hitRate ?? -1) - (a.hitRate ?? -1));
+    .sort((a, b) => b.rows - a.rows || String(a.key).localeCompare(String(b.key)));
 }
 
-const boardRows = [
-  ...flatten(readJson(FILES.board, [])),
-  ...flatten(readJson(FILES.pricedBoard, []))
-];
+const boxCache = new Map();
 
-const directLessRows = boardRows.filter(row => {
-  const market = marketOf(row);
-  return (
-    ["hitter_fantasy_score", "pitcher_fantasy_score"].includes(market) &&
-    sideOf(row) === "LESS"
-  );
-});
-
-const gradeSources = [
-  { source: FILES.fantasyGrades, rows: flatten(readJson(FILES.fantasyGrades, [])) },
-  { source: FILES.fullBoardGraded, rows: flatten(readJson(FILES.fullBoardGraded, [])) },
-  { source: FILES.gradedResults, rows: flatten(readJson(FILES.gradedResults, [])) }
-];
-
-const exactIndex = new Map();
-const looseIndex = new Map();
-
-for (const src of gradeSources) {
-  for (const row of src.rows) {
-    const market = marketOf(row);
-    if (!["hitter_fantasy_score", "pitcher_fantasy_score"].includes(market)) continue;
-
-    const actual = fantasyScoringFromBoxLike(row);
-    const normalized = {
-      ...row,
-      sourceFile: src.source,
-      player: row.player ?? row.playerName,
-      market,
-      line: lineOf(row),
-      actual
-    };
-
-    const k = makeKey(normalized);
-    const lk = makeLooseKey(normalized);
-    if (!exactIndex.has(k)) exactIndex.set(k, normalized);
-    if (!looseIndex.has(lk)) looseIndex.set(lk, normalized);
-  }
-}
-
-const tracked = directLessRows.map(row => {
-  const market = marketOf(row);
-  const line = lineOf(row);
-  const base = {
-    date,
-    player: row.player ?? row.playerName ?? null,
-    team: row.team ?? row.resolvedTeam ?? null,
-    market,
-    role: roleOf(row),
-    side: "LESS",
-    line,
-    oddsTier: row.oddsTier ?? row.tier ?? row.specialTier ?? "standard",
-    prob: num(row.prob ?? row.recommendedProb ?? row.calibratedDistributionProb, null),
-    edge: num(row.edge ?? row.expectedValue ?? row.adjustedEdge, null),
-    books: num(row.books ?? row.bookCount ?? row.sportsbookBookCount, null),
-    support: row.support ?? row.marketSupportFlag ?? row.priceCoverageTier ?? null,
-    lineBucket: lineBucket(line),
-    playable: false
-  };
-
-  const exact = exactIndex.get(makeKey(base));
-  const loose = looseIndex.get(makeLooseKey(base));
-  const match = exact || loose || null;
-  const actual = match ? fantasyScoringFromBoxLike({ ...match, market }) : null;
-
-  let result = "UNMATCHED";
-  if (actual !== null && line !== null) {
-    if (actual < line) result = "HIT";
-    else if (actual > line) result = "MISS";
-    else result = "PUSH";
-  }
+const rows = pickFantasyLessRows().map(row => {
+  const direct = directBoxscoreFantasy(row, boxCache);
+  const actual = direct?.actual ?? null;
+  const result = actual === null ? "UNMATCHED" : resultFor(actual, row.line, row.side);
 
   return {
-    ...base,
+    ...row,
     actual,
     result,
-    matchType: exact ? "EXACT_PLAYER_MARKET_LINE" : loose ? "LOOSE_PLAYER_MARKET" : "UNMATCHED",
-    sourceFile: match?.sourceFile ?? null
+    matchStatus: direct?.matchStatus ?? "UNMATCHED",
+    matchedName: direct?.matchedName ?? null,
+    lineBucket: lineBucket(row.line),
+    playable: false,
+    policy: "DIRECT_TRACK_ONLY"
   };
 });
 
@@ -333,21 +344,19 @@ const output = {
   generatedAt: new Date().toISOString(),
   policy: {
     playable: false,
-    reason: "Fantasy LESS remains direct-tracked only. Do not feed official/actionable until direct sample and ROI stabilize.",
-    standardFantasyLess: "DIRECT_TRACK_ONLY",
-    goblinDemonFantasyLess: "NOT_ALLOWED_OR_TRACK_ONLY"
+    note: "Fantasy LESS is direct-tracked only. Do not feed official/actionable until direct sample and ROI stabilize."
   },
-  files: FILES,
-  summary: summarize(tracked),
-  byMarket: groupSummary(tracked, r => r.market),
-  byRole: groupSummary(tracked, r => r.role),
-  byLineBucket: groupSummary(tracked, r => `${r.market}|${r.lineBucket}`),
-  byTier: groupSummary(tracked, r => r.oddsTier),
-  rows: tracked
+  summary: summarize(rows),
+  byMarket: groupSummary(rows, r => r.market),
+  byLineBucket: groupSummary(rows, r => `${r.market}|${r.lineBucket}`),
+  rows
 };
 
+writeJson(FILES.out, output);
+writeJson(FILES.latest, output);
+
 const lines = [];
-lines.push("DIRECT FANTASY LESS TRACKER v2");
+lines.push("DIRECT FANTASY LESS TRACKER v4");
 lines.push("==============================");
 lines.push(`date: ${date}`);
 lines.push(`generatedAt: ${output.generatedAt}`);
@@ -356,39 +365,32 @@ lines.push("POLICY");
 lines.push("------");
 lines.push("Fantasy LESS = direct tracked only");
 lines.push("Playable = false");
-lines.push(output.policy.reason);
+lines.push(output.policy.note);
 lines.push("");
 lines.push("SUMMARY");
 lines.push("-------");
-lines.push(`rows=${output.summary.rows}`);
-lines.push(`graded=${output.summary.graded}`);
-lines.push(`hits=${output.summary.hits}`);
-lines.push(`misses=${output.summary.misses}`);
-lines.push(`pushes=${output.summary.pushes}`);
-lines.push(`unmatched=${output.summary.unmatched}`);
-lines.push(`hitRate=${pct(output.summary.hitRate)}`);
-lines.push(`roi=${pct(output.summary.roi)}`);
+for (const [k, v] of Object.entries(output.summary)) {
+  lines.push(`${k}=${v}`);
+}
 lines.push("");
 lines.push("BY MARKET");
 lines.push("---------");
-for (const b of output.byMarket) {
-  lines.push(`${b.key}: rows=${b.rows} graded=${b.graded} hits=${b.hits} misses=${b.misses} pushes=${b.pushes} unmatched=${b.unmatched} hitRate=${pct(b.hitRate)} roi=${pct(b.roi)}`);
+for (const r of output.byMarket) {
+  lines.push(`${r.key}: rows=${r.rows} graded=${r.graded} hits=${r.hits} misses=${r.misses} pushes=${r.pushes} unmatched=${r.unmatched} hitRate=${pct(r.hitRate)} roi=${pct(r.roi)}`);
 }
 lines.push("");
 lines.push("BY LINE BUCKET");
 lines.push("--------------");
-for (const b of output.byLineBucket) {
-  lines.push(`${b.key}: rows=${b.rows} graded=${b.graded} hits=${b.hits} misses=${b.misses} pushes=${b.pushes} unmatched=${b.unmatched} hitRate=${pct(b.hitRate)} roi=${pct(b.roi)}`);
+for (const r of output.byLineBucket) {
+  lines.push(`${r.key}: rows=${r.rows} graded=${r.graded} hits=${r.hits} misses=${r.misses} pushes=${r.pushes} unmatched=${r.unmatched} hitRate=${pct(r.hitRate)} roi=${pct(r.roi)}`);
 }
 lines.push("");
 lines.push("SAMPLE ROWS");
 lines.push("-----------");
-for (const r of tracked.slice(0, 25)) {
-  lines.push(`- ${r.player} | ${r.market} LESS ${r.line} | actual=${r.actual ?? "n/a"} | result=${r.result} | bucket=${r.lineBucket} | match=${r.matchType}`);
+for (const r of rows.slice(0, 25)) {
+  lines.push(`- ${r.player} | ${r.market} ${r.side} ${r.line} | actual=${r.actual ?? "n/a"} | result=${r.result} | bucket=${r.lineBucket} | match=${r.matchStatus}`);
 }
 
-writeJson(FILES.out, output);
-writeJson(FILES.latest, output);
 writeText(FILES.txt, lines.join("\n"));
 writeText(FILES.latestTxt, lines.join("\n"));
 
