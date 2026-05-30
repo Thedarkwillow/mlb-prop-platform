@@ -107,6 +107,76 @@ function playerMarketKey(row) {
   return [k.player, k.market].join("|");
 }
 
+
+function contextKeyForRow(row) {
+  const k = keyParts(row);
+  return [k.player, k.market, k.side, String(k.line ?? "")].join("|");
+}
+
+function flattenRows(v, out = []) {
+  if (!v) return out;
+  if (Array.isArray(v)) {
+    for (const x of v) flattenRows(x, out);
+    return out;
+  }
+  if (typeof v !== "object") return out;
+  if (v.player || v.playerName || v.name) out.push(v);
+  for (const val of Object.values(v)) {
+    if (val && typeof val === "object") flattenRows(val, out);
+  }
+  return out;
+}
+
+function buildContextIndex() {
+  const files = [
+    "outputs/lean-final-slips.json",
+    "outputs/blocked-final-candidates.json",
+    "outputs/final-slips.json",
+    "outputs/playable-final-slips.json"
+  ];
+
+  const idx = new Map();
+
+  for (const file of files) {
+    const raw = readJson(file, null);
+    if (!raw) continue;
+
+    for (const row of flattenRows(raw)) {
+      const k = contextKeyForRow(row);
+      if (!k || k === "|||") continue;
+
+      const payload = {
+        resolvedTeam: row.resolvedTeam || row.team || null,
+        resolvedGame: row.resolvedGame || row.game || row.matchup || null,
+        resolvedGamePk: row.resolvedGamePk || row.gamePk || row.gamePK || row.mlbGamePk || row.mlb_game_pk || null,
+        homeAway: row.homeAway || row.home_away || null,
+        pitcherHand: row.pitcherHand || row.opposingPitcherHand || null,
+        opposingPitcher: row.opposingPitcher || row.probablePitcher || null,
+        opposingPitcherId: row.opposingPitcherId || row.probablePitcherId || null,
+        pitcherMatchupSource: row.pitcherMatchupSource || null
+      };
+
+      const hasContext =
+        payload.homeAway ||
+        payload.pitcherHand ||
+        payload.opposingPitcher ||
+        payload.opposingPitcherId;
+
+      if (!hasContext) continue;
+      if (!idx.has(k)) idx.set(k, payload);
+    }
+  }
+
+  return idx;
+}
+
+const MATCHUP_CONTEXT_INDEX = buildContextIndex();
+
+function matchupContextForRow(row) {
+  return MATCHUP_CONTEXT_INDEX.get(contextKeyForRow(row)) || {};
+}
+
+
 function playerKey(row) {
   return norm(getPlayer(row));
 }
@@ -528,6 +598,7 @@ function compactRow(layer, row, indexes) {
   const actual = resolved.match ? getActual(resolved.match) : null;
   const line = getLine(row);
   const side = getSide(row);
+  const matchupContext = matchupContextForRow(row);
   let result = "UNMATCHED";
 
   if (resolved.match) {
@@ -547,6 +618,14 @@ function compactRow(layer, row, indexes) {
     gamePk: resolved.match
       ? (resolved.match.gamePk || resolved.match.gamePK || resolved.match.mlbGamePk || resolved.match.mlb_game_pk || null)
       : (row.gamePk || row.gamePK || row.mlbGamePk || row.mlb_game_pk || null),
+    resolvedTeam: row.resolvedTeam || matchupContext.resolvedTeam || row.team || row.teamAbbr || row.team_abbr || null,
+    resolvedGame: row.resolvedGame || matchupContext.resolvedGame || row.game || row.matchup || null,
+    resolvedGamePk: row.resolvedGamePk || matchupContext.resolvedGamePk || row.gamePk || row.gamePK || row.mlbGamePk || row.mlb_game_pk || null,
+    homeAway: row.homeAway || row.home_away || matchupContext.homeAway || null,
+    pitcherHand: row.pitcherHand || row.opposingPitcherHand || matchupContext.pitcherHand || null,
+    opposingPitcher: row.opposingPitcher || row.probablePitcher || matchupContext.opposingPitcher || null,
+    opposingPitcherId: row.opposingPitcherId || row.probablePitcherId || matchupContext.opposingPitcherId || null,
+    pitcherMatchupSource: row.pitcherMatchupSource || matchupContext.pitcherMatchupSource || null,
     market: getMarket(row),
     side,
     line,
