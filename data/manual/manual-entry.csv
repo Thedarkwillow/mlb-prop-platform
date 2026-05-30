@@ -1,2 +1,2 @@
-date,player,team,market,side,line,tier,result,actual,played,notes
-2026-05-30,Juan Soto,NYM,total_bases,MORE,0.5,goblin,PENDING,,true,elite bat low TB goblin
+date,player,team,market,side,line,tier,result,actual,played,notes,last5HitRate,last5Avg,last10HitRate,last10Avg,last15HitRate,last15Avg,seasonHitRate,seasonAvg,homeAwaySplit,homeAwayHitRate,homeAwayAvg,pitcherHand,handednessHitRate,handednessAvg,homeAwayHandHitRate,homeAwayHandAvg,vsPitcherHitRate,vsPitcherAvg,vsPitcherSample,vsPitcherNotes
+2026-05-30,Juan Soto,NYM,hitter_fantasy_score,MORE,5.5,standard,PENDING,,true,"Soto PickFinder example; line-specific hitter split signal",100,14,100,13.9,80,11.53,53,8.31,home,56,8.96,RHP,,,63,9.37,67,12.44,9,"vs pitcher if available; H2H/team is lower priority"
