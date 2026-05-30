@@ -129,6 +129,71 @@ function fetchJson(url) {
   return null;
 }
 
+
+function normalizeGame(v) {
+  return String(v || "")
+    .replace(/\s+/g, " ")
+    .replace(/\s*@\s*/g, " @ ")
+    .trim()
+    .toUpperCase();
+}
+
+function reverseGameKey(game) {
+  const g = normalizeGame(game);
+  const parts = g.split(" @ ").map(x => x.trim()).filter(Boolean);
+  if (parts.length !== 2) return g;
+  return `${parts[1]} @ ${parts[0]}`;
+}
+
+function buildGamePkRepairMap(board) {
+  const map = new Map();
+
+  for (const row of board) {
+    const gamePk = row.gamePk || row.resolvedGamePk || row.mlbGamePk;
+    if (!gamePk) continue;
+
+    const games = [
+      row.game,
+      row.resolvedGame,
+      row.matchup,
+      row.rawGame
+    ].filter(Boolean);
+
+    for (const game of games) {
+      const key = normalizeGame(game);
+      if (key) map.set(key, gamePk);
+
+      const rev = reverseGameKey(game);
+      if (rev) map.set(rev, gamePk);
+    }
+  }
+
+  return map;
+}
+
+function repairGamePk(row, gamePkRepairMap) {
+  const direct = row.gamePk || row.resolvedGamePk || row.mlbGamePk;
+  if (direct) return direct;
+
+  const games = [
+    row.game,
+    row.resolvedGame,
+    row.matchup,
+    row.rawGame
+  ].filter(Boolean);
+
+  for (const game of games) {
+    const key = normalizeGame(game);
+    if (gamePkRepairMap.has(key)) return gamePkRepairMap.get(key);
+
+    const rev = reverseGameKey(game);
+    if (gamePkRepairMap.has(rev)) return gamePkRepairMap.get(rev);
+  }
+
+  return null;
+}
+
+
 function buildGameStatusMap(date) {
   const schedule = fetchJson(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}&hydrate=team,linescore,probablePitcher`);
   const map = new Map();
@@ -302,6 +367,7 @@ function groupSummary(rows, keyFn) {
 function main() {
   const board = readJson(FILES.pricedBoard, []);
   const gameStatuses = buildGameStatusMap(date);
+  const gamePkRepairMap = buildGamePkRepairMap(board);
   const boxscores = new Map();
 
   const candidates = board
@@ -317,7 +383,7 @@ function main() {
     .filter(row => row.line !== null);
 
   const rows = candidates.map(row => {
-    const gamePk = row.gamePk || row.resolvedGamePk || row.mlbGamePk || null;
+    const gamePk = repairGamePk(row, gamePkRepairMap);
     const status = gamePk ? gameStatuses.get(String(gamePk)) : null;
 
     let actual = null;
@@ -369,6 +435,7 @@ function main() {
       team: row.team || row.resolvedTeam || null,
       game: row.game || row.resolvedGame || null,
       gamePk,
+      gamePkRepaired: Boolean(gamePk && !(row.gamePk || row.resolvedGamePk || row.mlbGamePk)),
       market: row.market,
       side: row.side,
       line: row.line,
