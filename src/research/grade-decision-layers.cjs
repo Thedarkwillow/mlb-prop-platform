@@ -399,6 +399,14 @@ function resolveFromPlayableSlipGrades(row) {
 
 
 function findGamePkForDecisionRow(row) {
+  const directGamePk =
+    row.gamePk ||
+    row.gamePK ||
+    row.mlbGamePk ||
+    row.mlb_game_pk ||
+    row.resolvedGamePk;
+  if (directGamePk) return directGamePk;
+
   const targetPlayer = normalizeName(getPlayer(row));
   const targetGame = norm(row.game || row.matchup || "");
 
@@ -466,6 +474,130 @@ function resolvePitchingOutsFromMlbBoxscore(row) {
     }
   }
 
+  return null;
+}
+
+
+function resolvePitcherRunsFromMlbBoxscore(row) {
+  const k = keyParts(row);
+  if (k.market !== "runs" && k.market !== "earned_runs_allowed" && k.market !== "runs_allowed") return null;
+
+  const gamePk = findGamePkForDecisionRow(row);
+  if (!gamePk) return null;
+
+  const box = readUrlJson(`https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore`);
+  if (!box?.teams) return null;
+
+  const target = normalizeName(getPlayer(row));
+  for (const side of ["home", "away"]) {
+    const players = box.teams?.[side]?.players || {};
+    for (const player of Object.values(players)) {
+      const name = normalizeName(player?.person?.fullName);
+      if (name !== target) continue;
+
+      const pitching = player?.stats?.pitching || {};
+      if (!pitching || !Object.keys(pitching).length) continue;
+
+      const actual = firstNumber(pitching.earnedRuns, pitching.er, pitching.runs);
+      if (actual === null) return null;
+
+      return {
+        player: getPlayer(row),
+        market: k.market,
+        side: getSide(row),
+        line: getLine(row),
+        actual,
+        gamePk,
+        earnedRuns: firstNumber(pitching.earnedRuns, pitching.er),
+        runsAllowed: firstNumber(pitching.runs),
+        inningsPitched: pitching.inningsPitched ?? pitching.ip ?? null,
+        __source: `mlb_boxscore:${gamePk}:pitcher_runs`
+      };
+    }
+  }
+  return null;
+}
+
+function resolvePitcherWalksFromMlbBoxscore(row) {
+  const k = keyParts(row);
+  if (k.market !== "walks" && k.market !== "walks_allowed") return null;
+
+  const gamePk = findGamePkForDecisionRow(row);
+  if (!gamePk) return null;
+
+  const box = readUrlJson(`https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore`);
+  if (!box?.teams) return null;
+
+  const target = normalizeName(getPlayer(row));
+  for (const side of ["home", "away"]) {
+    const players = box.teams?.[side]?.players || {};
+    for (const player of Object.values(players)) {
+      const name = normalizeName(player?.person?.fullName);
+      if (name !== target) continue;
+
+      const pitching = player?.stats?.pitching || {};
+      if (!pitching || !Object.keys(pitching).length) continue;
+
+      const actual = firstNumber(pitching.baseOnBalls, pitching.walks, pitching.bb);
+      if (actual === null) return null;
+
+      return {
+        player: getPlayer(row),
+        market: k.market,
+        side: getSide(row),
+        line: getLine(row),
+        actual,
+        gamePk,
+        walksAllowed: actual,
+        inningsPitched: pitching.inningsPitched ?? pitching.ip ?? null,
+        __source: `mlb_boxscore:${gamePk}:pitcher_walks`
+      };
+    }
+  }
+  return null;
+}
+
+function resolveHitterBasesFromMlbBoxscore(row) {
+  const k = keyParts(row);
+  if (k.market !== "bases") return null;
+
+  const gamePk = findGamePkForDecisionRow(row);
+  if (!gamePk) return null;
+
+  const box = readUrlJson(`https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore`);
+  if (!box?.teams) return null;
+
+  const target = normalizeName(getPlayer(row));
+  for (const side of ["home", "away"]) {
+    const players = box.teams?.[side]?.players || {};
+    for (const player of Object.values(players)) {
+      const name = normalizeName(player?.person?.fullName);
+      if (name !== target) continue;
+
+      const batting = player?.stats?.batting || {};
+      if (!batting || !Object.keys(batting).length) continue;
+
+      let actual = firstNumber(batting.totalBases, batting.tb);
+      if (actual === null) {
+        const hits = firstNumber(batting.hits);
+        if (hits !== null && num(getLine(row), null) === 0.5) actual = hits > 0 ? 1 : 0;
+      }
+
+      if (actual === null) return null;
+
+      return {
+        player: getPlayer(row),
+        market: "bases",
+        side: getSide(row),
+        line: getLine(row),
+        actual,
+        gamePk,
+        hits: firstNumber(batting.hits),
+        totalBases: actual,
+        __source: `mlb_boxscore:${gamePk}:hitter_bases`
+      };
+    }
+  }
   return null;
 }
 
@@ -575,6 +707,21 @@ function resolveDecisionRow(row, indexes) {
 
     const pitchingOuts = resolvePitchingOutsFromMlbBoxscore(row);
     if (pitchingOuts) return { match: pitchingOuts, method: "mlb_boxscore_pitching_outs" };
+  }
+
+  if (k.market === "runs" || k.market === "earned_runs_allowed" || k.market === "runs_allowed") {
+    const pitcherRuns = resolvePitcherRunsFromMlbBoxscore(row);
+    if (pitcherRuns) return { match: pitcherRuns, method: "mlb_boxscore_pitcher_runs" };
+  }
+
+  if (k.market === "walks" || k.market === "walks_allowed") {
+    const pitcherWalks = resolvePitcherWalksFromMlbBoxscore(row);
+    if (pitcherWalks) return { match: pitcherWalks, method: "mlb_boxscore_pitcher_walks" };
+  }
+
+  if (k.market === "bases") {
+    const hitterBases = resolveHitterBasesFromMlbBoxscore(row);
+    if (hitterBases) return { match: hitterBases, method: "mlb_boxscore_hitter_bases" };
   }
 
   const sameMarket = resolveSameMarketActual(row, indexes);
