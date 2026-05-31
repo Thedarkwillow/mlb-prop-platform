@@ -21,6 +21,13 @@ const FILES = {
   latest: "outputs/decision-layer-grades-latest.json"
 };
 
+const today = new Date().toISOString().slice(0, 10);
+const FORCE_OVERWRITE =
+  process.argv.includes("--force") ||
+  String(process.env.npm_config_force || "").toLowerCase() === "true" ||
+  String(process.env.FORCE_DECISION_GRADE_OVERWRITE || "").toLowerCase() === "true";
+const IS_HISTORICAL_DATE = date !== today;
+
 function readJson(file, fallback) {
   try {
     return JSON.parse(fs.readFileSync(file, "utf8"));
@@ -902,6 +909,19 @@ const output = {
   summary,
   rows
 };
+
+if (
+  IS_HISTORICAL_DATE &&
+  fs.existsSync(FILES.out) &&
+  !FORCE_OVERWRITE
+) {
+  console.error("REFUSING TO OVERWRITE HISTORICAL DECISION GRADE");
+  console.error(`date: ${date}`);
+  console.error(`file: ${FILES.out}`);
+  console.error("reason: historical file already exists");
+  console.error("use --force or FORCE_DECISION_GRADE_OVERWRITE=true to overwrite intentionally");
+  process.exit(2);
+}
 
 writeJson(FILES.out, output);
 writeJson(FILES.latest, output);
