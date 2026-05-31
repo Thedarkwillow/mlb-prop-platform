@@ -26,7 +26,14 @@ const FORCE_OVERWRITE =
   process.argv.includes("--force") ||
   String(process.env.npm_config_force || "").toLowerCase() === "true" ||
   String(process.env.FORCE_DECISION_GRADE_OVERWRITE || "").toLowerCase() === "true";
+const PREVIEW_MODE =
+  process.argv.includes("--preview") ||
+  String(process.env.npm_config_preview || "").toLowerCase() === "true" ||
+  String(process.env.DECISION_GRADE_PREVIEW || "").toLowerCase() === "true";
 const IS_HISTORICAL_DATE = date !== today;
+function previewDecisionGradeFile(file) {
+  return String(file || "").replace(/\.json$/i, "-preview.json");
+}
 
 function readJson(file, fallback) {
   try {
@@ -915,16 +922,24 @@ if (
   fs.existsSync(FILES.out) &&
   !FORCE_OVERWRITE
 ) {
-  console.error("REFUSING TO OVERWRITE HISTORICAL DECISION GRADE");
-  console.error(`date: ${date}`);
-  console.error(`file: ${FILES.out}`);
-  console.error("reason: historical file already exists");
-  console.error("use --force or FORCE_DECISION_GRADE_OVERWRITE=true to overwrite intentionally");
-  process.exit(2);
-}
+  if (!PREVIEW_MODE) {
+    console.error("REFUSING TO OVERWRITE HISTORICAL DECISION GRADE");
+    console.error(`date: ${date}`);
+    console.error(`file: ${FILES.out}`);
+    console.error("reason: historical file already exists");
+    console.error("use --preview to write a preview file, or --force / FORCE_DECISION_GRADE_OVERWRITE=true to overwrite intentionally");
+    process.exit(2);
+  }
 
-writeJson(FILES.out, output);
-writeJson(FILES.latest, output);
+  const previewOut = previewDecisionGradeFile(FILES.out);
+  writeJson(previewOut, output);
+  console.log("saved preview:", previewOut);
+} else {
+  writeJson(FILES.out, output);
+  if (!IS_HISTORICAL_DATE || FORCE_OVERWRITE) {
+    writeJson(FILES.latest, output);
+  }
+}
 
 console.log("DECISION LAYER GRADES");
 console.log("---------------------");
@@ -946,4 +961,6 @@ console.table(rows.map(r => ({
   source: r.matchedSource
 })));
 console.log("saved:", FILES.out);
-console.log("saved:", FILES.latest);
+if (!IS_HISTORICAL_DATE || FORCE_OVERWRITE) {
+  console.log("saved:", FILES.latest);
+}
