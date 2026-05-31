@@ -257,6 +257,125 @@ function market(r) {
 function pitcher(r) {
   return market(r).includes('strikeout') || market(r).includes('pitcher');
 }
+function normPitcherRestName(v) {
+  return String(v || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+function yesterdayDateIso() {
+  const d = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  return d.toISOString().slice(0, 10);
+}
+function flattenPitcherRestRows(v, out = []) {
+  if (!v) return out;
+  if (Array.isArray(v)) {
+    for (const x of v) flattenPitcherRestRows(x, out);
+    return out;
+  }
+  if (typeof v !== "object") return out;
+  if (v.player || v.playerName || v.name || v.pitcher) out.push(v);
+  for (const val of Object.values(v)) {
+    if (val && typeof val === "object") flattenPitcherRestRows(val, out);
+  }
+  return out;
+}
+function pitcherRestReadJson(file, fallback = null) {
+  try { return JSON.parse(fs.readFileSync(file, "utf8")); }
+  catch { return fallback; }
+}
+function buildYesterdayPitcherAppearanceSet() {
+  const y = yesterdayDateIso();
+  const files = [
+    `outputs/live/mlb-live-inning-graded-${y}.json`,
+    `outputs/history/${y}-full-board-graded.json`,
+    "outputs/graded-results.json"
+  ];
+  const names = new Set();
+  const pitcherMarkets = new Set([
+    "strikeouts",
+    "pitching_outs",
+    "pitcher_outs",
+    "outs",
+    "earned_runs_allowed",
+    "runs_allowed",
+    "hits_allowed",
+    "walks_allowed",
+    "pitches_thrown",
+    "pitcher_fantasy_score"
+  ]);
+
+  for (const file of files) {
+    const raw = pitcherRestReadJson(file, null);
+    if (!raw) continue;
+    for (const r of flattenPitcherRestRows(raw)) {
+      const m = String(r.market || r.stat || r.type || "").toLowerCase().trim();
+      const actual = Number(r.actual ?? r.actualValue ?? r.resultValue);
+      const result = String(r.result || r.status || "").toUpperCase();
+      if (!pitcherMarkets.has(m) && !m.includes("pitcher") && !m.includes("strikeout")) continue;
+      if (!Number.isFinite(actual) && !["HIT", "MISS", "PUSH"].includes(result)) continue;
+      const player = normPitcherRestName(r.player || r.playerName || r.name || r.pitcher);
+      if (player) names.add(player);
+    }
+  }
+  return names;
+}
+function buildTodayProbablePitcherSet() {
+  const raw = pitcherRestReadJson("data/context/probable-pitcher-hands.json", {});
+  const names = new Set();
+  const add = v => {
+    const n = normPitcherRestName(v);
+    if (n) names.add(n);
+  };
+
+  for (const g of Object.values(raw.games || {})) {
+    add(g.awayProbablePitcher);
+    add(g.homeProbablePitcher);
+    add(g.awayPitcher);
+    add(g.homePitcher);
+  }
+
+  for (const obj of [raw.pitcherByTeam || {}, raw.opponentPitcherByTeam || {}]) {
+    for (const p of Object.values(obj)) {
+      if (p && typeof p === "object") add(p.pitcher || p.name || p.player || p.fullName);
+      else add(p);
+    }
+  }
+
+  return names;
+}
+const YESTERDAY_PITCHER_APPEARANCES = buildYesterdayPitcherAppearanceSet();
+const TODAY_PROBABLE_PITCHERS = buildTodayProbablePitcherSet();
+
+function pitcherRestBlocked(r) {
+  const m = market(r);
+  const pitcherLike =
+    pitcher(r) ||
+    [
+      "strikeouts",
+      "pitching_outs",
+      "pitcher_outs",
+      "outs",
+      "earned_runs_allowed",
+      "runs_allowed",
+      "hits_allowed",
+      "walks_allowed",
+      "pitches_thrown",
+      "pitcher_fantasy_score",
+      "runs",
+      "walks",
+      "hits"
+    ].includes(m);
+
+  if (!pitcherLike) return false;
+
+  const player = normPitcherRestName(r.player || r.playerName || r.name);
+  if (!player) return false;
+  if (!YESTERDAY_PITCHER_APPEARANCES.has(player)) return false;
+  if (TODAY_PROBABLE_PITCHERS.has(player)) return false;
+  return true;
+}
 
 function propKey(r) {
   return [
@@ -471,6 +590,13 @@ function normalizeForOptimizer(r) {
       disabledReason: "fantasy scale not verified"
     };
   }
+  if (pitcherRestBlocked(r)) {
+    return {
+      ...r,
+      rankEligible: false,
+      disabledReason: "pitcher_pitched_yesterday_not_probable_today"
+    };
+  }
 
   const line = clampProb(null) ?? Number(r.line);
   const proj = Number(r.projection);
@@ -555,6 +681,7 @@ function playable(r) {
   if (goblinMarketTrustBlockedForSlip(r)) return false;
   if (demonMarketTrustBlockedForSlip(r)) return false;
   if (phase6DirectionalBlocked(r)) return false;
+  if (pitcherRestBlocked(r)) return false;
   if (r.rankEligible === false) return false;
 
   // CONTROLLED HRR POLICY:
