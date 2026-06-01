@@ -23,6 +23,7 @@ const STAFFS = "data/context/pitching-staffs.json";
 const BOARD = "outputs/priced-board.json";
 const TARGETS = "outputs/context/real-pitch-type-target-list-latest.json";
 const ID_REPAIR = "outputs/context/pitch-type-target-mlb-id-repair-latest.json";
+const MANUAL_IDS = "data/context/manual-mlbam-ids.json";
 const OUT = "data/savant/pitcher-velocity-trends.json";
 const RAW_DIR = "data/savant/velocity-raw";
 
@@ -77,6 +78,13 @@ function collectPitchers() {
   const board = read(BOARD, []);
   const out = new Map();
   const idByName = new Map();
+
+  const manualIds = read(MANUAL_IDS, {});
+  for (const [key, rec] of Object.entries(manualIds.players || {})) {
+    if (!rec?.mlbamId) continue;
+    idByName.set(norm(rec.name || key), rec.mlbamId);
+    idByName.set(norm(key), rec.mlbamId);
+  }
 
   function addIdName(name, id) {
     if (!name || !id) return;
@@ -327,7 +335,7 @@ function collectPitchers() {
       });
     }
 
-  const max = Number(process.env.SAVANT_MAX_PITCHERS || 180);
+  const max = Number(process.env.SAVANT_MAX_PITCHERS || 260);
   const values = [...out.values()];
 
   const prioritySource = p => {

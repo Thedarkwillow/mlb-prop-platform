@@ -67,6 +67,46 @@
       "name": "Shane Baz",
       "mlbamId": 669358,
       "team": "BAL"
+    },
+    "nolanmclean": {
+      "name": "Nolan McLean",
+      "mlbamId": 690997
+    },
+    "tatsuyaimai": {
+      "name": "Tatsuya Imai",
+      "mlbamId": 837227
+    },
+    "spencerstrider": {
+      "name": "Spencer Strider",
+      "mlbamId": 675911
+    },
+    "braxtonashcraft": {
+      "name": "Braxton Ashcraft",
+      "mlbamId": 677952
+    },
+    "jackleiter": {
+      "name": "Jack Leiter",
+      "mlbamId": 683004
+    },
+    "merrillkelly": {
+      "name": "Merrill Kelly",
+      "mlbamId": 518876
+    },
+    "seanburke": {
+      "name": "Sean Burke",
+      "mlbamId": 680732
+    },
+    "jansonjunk": {
+      "name": "Janson Junk",
+      "mlbamId": 676083
+    },
+    "tannerbibee": {
+      "name": "Tanner Bibee",
+      "mlbamId": 676440
+    },
+    "shanemcclanahan": {
+      "name": "Shane McClanahan",
+      "mlbamId": 663556
     }
   }
 }

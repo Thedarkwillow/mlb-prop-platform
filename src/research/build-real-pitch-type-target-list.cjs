@@ -108,48 +108,49 @@ function isLikelyHitterStrikeoutRow(row) {
 }
 
 function isPitcherMarket(row) {
-  const m = market(row);
+  const m = String(row.market || row.stat || row.stat_short || "").toLowerCase();
+  const stat = String(row.stat || row.stat_short || "").toLowerCase();
   const sourceType = String(row.sourceType || row.playerType || row.recordSourceType || "").toLowerCase();
-  const stat = String(row.stat || row.stat_short || row.market || "").toLowerCase();
+  const player = clean(row.player || row.playerName || row.name);
 
-  if (sourceType === "pitcher") return true;
-  if (sourceType === "batter" || sourceType === "hitter") return false;
+  const pitcherMarkets = [
+    "pitching_outs",
+    "hits_allowed",
+    "earned_runs_allowed",
+    "walks_allowed",
+    "pitcher_fantasy",
+    "pitches_thrown"
+  ];
 
-  // These are true pitcher stat markets.
-  if (
-    m.includes("pitching_outs") ||
-    m.includes("hits_allowed") ||
-    m.includes("earned_runs_allowed") ||
-    m.includes("walks_allowed") ||
-    m.includes("pitcher_fantasy") ||
-    stat.includes("pitching_outs") ||
-    stat.includes("hits_allowed") ||
-    stat.includes("earned_runs_allowed") ||
-    stat.includes("walks_allowed") ||
-    stat.includes("pitcher_fantasy")
-  ) {
-    return true;
-  }
+  if (pitcherMarkets.some(x => m.includes(x) || stat.includes(x))) return true;
 
-  // Strikeouts can be pitcher Ks or hitter strikeouts.
-  // If source type is unknown, only treat as pitcher when the row has pitcher identifiers.
-  if (m.includes("strikeout") || stat.includes("strikeout")) {
-    const hasPitcherIdentity =
+  // Plain strikeouts can be hitter Ks or pitcher Ks.
+  // Do not trust dirty sourceType alone for this market.
+  if (m === "strikeouts" || stat === "strikeouts" || m.includes("strikeout") || stat.includes("strikeout")) {
+    const hasPitcherId =
       row.pitcherId ||
       row.playerPitcherId ||
-      row.mlbamId ||
-      row.playerMlbamId ||
       row.pitcherMlbamId ||
-      row.sourceType === "pitcher" ||
-      row.playerType === "pitcher";
-    const hasHitterContext =
+      row.playerMlbamId ||
+      row.mlbamId;
+
+    const hasOpposingPitcher =
+      row.pitchTypeOpponentPitcher ||
       row.opponentPitcher ||
       row.opposingPitcher ||
       row.probablePitcher ||
       row.handednessContext?.opposingPitcher ||
       row.handednessAdjustment?.opposingPitcher;
-    return Boolean(hasPitcherIdentity && !hasHitterContext);
+
+    // If the row has an opposing pitcher, it is a batter strikeout matchup.
+    if (hasOpposingPitcher) return false;
+
+    // SourceType can be dirty, so require either pitcher ID or no hitter-style context.
+    return Boolean(hasPitcherId && sourceType === "pitcher");
   }
+
+  if (sourceType === "batter" || sourceType === "hitter") return false;
+  if (sourceType === "pitcher") return true;
 
   return false;
 }
@@ -159,7 +160,16 @@ function reason(row) {
   const joined = flags.join(" | ");
   if (joined.includes("COMBO_OR_TEAM_ROW")) return "COMBO_OR_TEAM_ROW";
   if (joined.includes("MISSING_OPPOSING_PITCHER")) return "MISSING_OPPOSING_PITCHER";
-  if (joined.includes("MISSING_PITCHER_PROP_ARSENAL")) return "MISSING_PITCHER_PROP_ARSENAL";
+
+  // Do not trust stale/dirty pitcher-arsenal flags on hitter rows.
+  // Some PrizePicks batter strikeout rows arrive with sourceType="pitcher".
+  // Reclassify those as hitter matchup targets unless isPitcherMarket(row) confirms true.
+  if (joined.includes("MISSING_PITCHER_PROP_ARSENAL")) {
+    return isPitcherMarket(row)
+      ? "MISSING_PITCHER_PROP_ARSENAL"
+      : "MISSING_HITTER_OR_MATCHUP";
+  }
+
   if (joined.includes("MISSING_HITTER_OR_MATCHUP")) return "MISSING_HITTER_OR_MATCHUP";
   if (isPitcherMarket(row)) return "MISSING_PITCHER_PROP_ARSENAL";
   if (!clean(row.pitchTypeOpponentPitcher || row.opponentPitcher || row.probablePitcher || row.opposingPitcher)) {

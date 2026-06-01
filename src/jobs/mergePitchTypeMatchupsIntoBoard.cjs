@@ -48,8 +48,20 @@ function inferOpponent(row) {
 
 function isPitcherMarket(row) {
   const m = String(row.market || row.stat || "").toLowerCase();
+  const sourceType = String(row.sourceType || row.playerType || row.recordSourceType || "").toLowerCase();
+  const position = String(row.position || row.playerPosition || "").toUpperCase();
+  const player = row.player || row.playerName || row.name;
+
+  // Plain "strikeouts" can be batter Ks or pitcher Ks.
+  // Trust pitcher arsenal identity over PrizePicks sourceType because sourceType is dirty on some K rows.
+  if (m === "strikeouts") {
+    return arsenalByName.has(norm(player));
+  }
+
+  if (sourceType === "batter" || sourceType === "hitter") return false;
+  if (sourceType === "pitcher" || position === "P") return true;
+
   return (
-    m.includes("strikeout") ||
     m.includes("pitching") ||
     m.includes("outs") ||
     m.includes("earned_runs_allowed") ||
@@ -148,6 +160,7 @@ function compactPitchTypes(arm) {
 
 const hitterMarkets = new Set([
   "hits",
+  "strikeouts",
   "bases",
   "hrr",
   "runs",
@@ -177,6 +190,15 @@ let eligibleRows = 0;
 
 const out = board.map(row => {
   if (row.recordType && row.recordType !== "merged_prop") return row;
+
+  row = {
+    ...row,
+    pitchTypeNeutralFallback: false,
+    pitchTypeMatchupSource: null,
+    pitchTypeSource: null,
+    pitchTypeContextNote: null,
+    pitchTypeMatchupFlags: []
+  };
 
   const player = row.player || row.playerName || row.name;
   const market = String(row.market || row.stat || "").toLowerCase();
@@ -223,22 +245,31 @@ const out = board.map(row => {
 
     return {
       ...row,
-      pitchTypeMatchupEligible: true,
-      pitchTypeMatchupAvailable: true,
-      pitchTypeMatchupReady: true,
-      pitchTypeMatchupScored: true,
-      pitchTypePitcherArsenalReady: true,
-      pitchTypeOpponentPitcher: arm.pitcher || arm.player || player,
-      pitchTypeOpponentPitcherHand: arm.hand || null,
-      pitchTypeMatchupScore: row.pitchTypeMatchupScore ?? 0,
-      pitchTypeMatchupTier: row.pitchTypeMatchupTier || "pitcher_arsenal_ready",
-      pitchTypeMatchupFlags: [
-        ...(row.pitchTypeMatchupFlags || []),
-        "PITCHER_PROP_ARSENAL_READY"
-      ],
-      pitchTypePrimaryPitches: compactPitchTypes(arm)
-    };
-  }
+        pitchTypeMatchupEligible: true,
+        pitchTypeMatchupAvailable: true,
+        pitchTypeMatchupReady: true,
+        pitchTypeMatchupScored: true,
+        pitchTypePitcherArsenalReady: true,
+        pitchTypeNeutralFallback: false,
+        pitchTypeMatchupSource: "REAL_PITCHER_ARSENAL",
+        pitchTypeSource: "REAL_PITCHER_ARSENAL",
+        pitchTypeOpponentPitcher: arm.pitcher || arm.player || player,
+        pitchTypeOpponentPitcherHand: arm.hand || null,
+        pitchTypeMatchupScore: row.pitchTypeMatchupScore ?? 0,
+        pitchTypeMatchupTier: row.pitchTypeMatchupTier || "pitcher_arsenal_ready",
+        pitchTypeMatchupFlags: [
+          ...new Set([
+            ...(row.pitchTypeMatchupFlags || []).filter(f => ![
+              "MISSING_PITCHER_PROP_ARSENAL",
+              "PITCH_TYPE_NEUTRAL_FALLBACK_MISSING_PITCHER_ARSENAL",
+              "PITCH_TYPE_NEUTRAL_FALLBACK"
+            ].includes(String(f || ""))),
+            "PITCHER_PROP_ARSENAL_READY"
+          ])
+        ],
+        pitchTypePrimaryPitches: compactPitchTypes(arm)
+      };
+    }
 
   const oppPitcher =
     row.opponentPitcher ||

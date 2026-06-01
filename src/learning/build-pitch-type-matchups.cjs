@@ -8,6 +8,7 @@ const OUT = "data/savant/pitch-type-matchups.json";
 
 const HITTER_MARKETS = new Set([
   "hits",
+  "strikeouts",
   "bases",
   "hrr",
   "runs",
