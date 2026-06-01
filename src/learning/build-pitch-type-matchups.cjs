@@ -13,7 +13,12 @@ const HITTER_MARKETS = new Set([
   "runs",
   "rbis",
   "hr",
-  "home_runs"
+  "home_runs",
+  "singles",
+  "doubles",
+  "walks",
+  "stolen_bases",
+  "hitter_fantasy_score"
 ]);
 
 function read(path, fallback = {}) {
@@ -53,8 +58,42 @@ function team(row) {
   return String(row.resolvedTeam || row.team || "").toUpperCase().trim();
 }
 
-function opponentPitcherForTeam(teamKey, probable) {
-  return probable.opponentPitcherByTeam?.[teamKey] || null;
+function opponentPitcherFromRow(row, probable) {
+  const teamKey = team(row);
+  const fromBoard =
+    row.opposingPitcher ||
+    row.opponentPitcher ||
+    row.probablePitcher ||
+    row.handednessContext?.opposingPitcher ||
+    row.handednessAdjustment?.opposingPitcher ||
+    row.pitchTypeOpponentPitcher ||
+    row.starter ||
+    row.opponentStarter ||
+    null;
+
+  if (fromBoard) {
+    return {
+      pitcher: fromBoard,
+      hand:
+        row.opposingPitcherHand ||
+        row.pitcherHand ||
+        row.handednessContext?.opposingPitcherHand ||
+        row.handednessAdjustment?.opposingPitcherHand ||
+        null,
+      opponent: row.opponent || row.opponentTeam || null,
+      source: "board_row"
+    };
+  }
+
+  const fromProbable = probable.opponentPitcherByTeam?.[teamKey] || null;
+  if (fromProbable?.pitcher) {
+    return {
+      ...fromProbable,
+      source: "probable_pitcher_hands"
+    };
+  }
+
+  return null;
 }
 
 function buildHitterIndex(rows) {
@@ -219,7 +258,7 @@ for (const r of props) {
   if (!isHitterMarket(r)) continue;
 
   const t = team(r);
-  const opp = opponentPitcherForTeam(t, probable);
+  const opp = opponentPitcherFromRow(r, probable);
   if (!opp?.pitcher) continue;
 
   const hitter = hitters[norm(r.player)];
@@ -238,6 +277,7 @@ for (const r of props) {
       opponentPitcher: opp.pitcher,
       opponentPitcherHand: opp.hand || null,
       opponent: opp.opponent || null,
+      pitcherSource: opp.source || null,
       ...result
     };
   }
@@ -248,6 +288,7 @@ for (const r of props) {
     market: market(r),
     side: side(r),
     opponentPitcher: opp.pitcher,
+    pitcherSource: opp.source || null,
     tier: result.tier,
     score: result.score,
     matched: result.matched

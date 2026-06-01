@@ -69,27 +69,34 @@ const out = board.map(row => {
 
   const pitcherKey = `${norm(player)}__${norm(oppPitcher)}`;
   const opponentTeamKey = `${norm(player)}__${normTeam(opponentTeam)}`;
-
   const m = byPitcherKey.get(pitcherKey) || byOpponentTeamKey.get(opponentTeamKey);
 
   if (!eligible || !m) {
     return {
       ...row,
       pitchTypeMatchupEligible: eligible,
-      pitchTypeMatchupReady: false
+      pitchTypeMatchupAvailable: false,
+      pitchTypeMatchupReady: false,
+      pitchTypeMatchupScored: false,
+      pitchTypeMatchupTier: null,
+      pitchTypeMatchupScore: null
     };
   }
 
-  matched++;
+  const tier = String(m.tier || "").toLowerCase();
+  const scored = m.matched === true && tier !== "unknown";
+  if (scored) matched++;
 
   return {
     ...row,
     pitchTypeMatchupEligible: true,
-    pitchTypeMatchupReady: true,
+    pitchTypeMatchupAvailable: true,
+    pitchTypeMatchupReady: scored,
+    pitchTypeMatchupScored: scored,
     pitchTypeOpponentPitcher: m.opponentPitcher,
     pitchTypeOpponentPitcherHand: m.opponentPitcherHand,
-    pitchTypeMatchupScore: m.score,
-    pitchTypeMatchupTier: m.tier,
+    pitchTypeMatchupScore: scored ? m.score : null,
+    pitchTypeMatchupTier: scored ? m.tier : "unknown",
     pitchTypeMatchupFlags: m.flags || [],
     pitchTypePrimaryPitches: (m.pitchTypes || []).slice(0, 5).map(p => ({
       pitchType: p.pitchType,
@@ -103,7 +110,6 @@ const out = board.map(row => {
     }))
   };
 });
-
 fs.writeFileSync(boardPath, JSON.stringify(out, null, 2));
 
 console.log("PITCH TYPE MATCHUP MERGE REPORT");
