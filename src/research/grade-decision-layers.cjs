@@ -337,6 +337,53 @@ function readUrlJson(url) {
   return null;
 }
 
+function readMlbGameJson(gamePk, endpoint) {
+  const base = `https://statsapi.mlb.com/api/v1.1/game/${gamePk}/${endpoint}`;
+  return readUrlJson(base) ||
+    readUrlJson(`https://statsapi.mlb.com/api/v1/game/${gamePk}/${endpoint}`) ||
+    readUrlJson(`${base}?language=en`) ||
+    readUrlJson(`https://statsapi.mlb.com/api/v1/game/${gamePk}/${endpoint}?language=en`);
+}
+
+function findMlbPlayerInGame(gamePk, playerName) {
+  const target = normalizeName(playerName);
+
+  const box = readMlbGameJson(gamePk, "boxscore");
+  for (const side of ["home", "away"]) {
+    const players = box?.teams?.[side]?.players || {};
+    for (const player of Object.values(players)) {
+      if (normalizeName(player?.person?.fullName) === target) {
+        return {
+          player,
+          side,
+          source: `mlb_boxscore:${gamePk}`
+        };
+      }
+    }
+  }
+
+  const live = readMlbGameJson(gamePk, "feed/live");
+  const players = live?.gameData?.players || {};
+  for (const player of Object.values(players)) {
+    if (normalizeName(player?.fullName) !== target) continue;
+    const id = player?.id;
+    const boxPlayers = live?.liveData?.boxscore?.teams || {};
+    for (const side of ["home", "away"]) {
+      const keyed = boxPlayers?.[side]?.players?.[`ID${id}`];
+      if (keyed) {
+        return {
+          player: keyed,
+          side,
+          source: `mlb_feed_live:${gamePk}`
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
+
 function resolveFromPlayableSlipGrades(row) {
   const k = keyParts(row);
 
@@ -428,7 +475,14 @@ function findGamePkForDecisionRow(row) {
     flattenRows(readJson(FILES.pricedBoard, [])),
     flattenRows(readJson(FILES.finalSlips, [])),
     flattenRows(readJson(FILES.lean, [])),
-    flattenRows(readJson(FILES.production, {}))
+    flattenRows(readJson(FILES.production, {})),
+    ...(IS_HISTORICAL_DATE ? [
+      historicalSnapshotRows("priced-board.json"),
+      historicalSnapshotRows("final-slips.json"),
+      historicalSnapshotRows("blocked-final-candidates.json"),
+      historicalSnapshotRows("playable-final-slips.json"),
+      flattenRows(readJson(`outputs/lean-final-slips-${date}.json`, {}))
+    ] : [])
   ];
 
   for (const rows of localSources) {
@@ -452,125 +506,89 @@ function findGamePkForDecisionRow(row) {
 function resolvePitchingOutsFromMlbBoxscore(row) {
   const k = keyParts(row);
   if (k.market !== "pitching_outs") return null;
-
   const gamePk = findGamePkForDecisionRow(row);
   if (!gamePk) return null;
 
-  const box = readUrlJson(`https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore`);
-  if (!box?.teams) return null;
+  const found = findMlbPlayerInGame(gamePk, getPlayer(row));
+  if (!found) return null;
 
-  const target = normalizeName(getPlayer(row));
+  const pitching = found.player?.stats?.pitching || {};
+  if (!pitching || !Object.keys(pitching).length) return null;
 
-  for (const side of ["home", "away"]) {
-    const players = box.teams?.[side]?.players || {};
-    for (const player of Object.values(players)) {
-      const name = normalizeName(player?.person?.fullName);
-      if (name !== target) continue;
+  const ip = pitching.inningsPitched ?? pitching.ip ?? null;
+  const outs = parseIpToOuts(ip);
+  if (outs === null) return null;
 
-      const ip =
-        player?.stats?.pitching?.inningsPitched ??
-        player?.stats?.pitching?.ip ??
-        null;
-
-      const outs = parseIpToOuts(ip);
-      if (outs === null) return null;
-
-      return {
-        player: getPlayer(row),
-        market: "pitching_outs",
-        side: getSide(row),
-        line: getLine(row),
-        actual: outs,
-        gamePk,
-        inningsPitched: ip,
-        __source: `mlb_boxscore:${gamePk}:pitching_outs`
-      };
-    }
-  }
-
-  return null;
+  return {
+    player: getPlayer(row),
+    market: "pitching_outs",
+    side: getSide(row),
+    line: getLine(row),
+    actual: outs,
+    gamePk,
+    inningsPitched: ip,
+    __source: `${found.source}:pitching_outs`
+  };
 }
-
-
 function resolvePitcherRunsFromMlbBoxscore(row) {
   const k = keyParts(row);
   if (k.market !== "runs" && k.market !== "earned_runs_allowed" && k.market !== "runs_allowed") return null;
-
   const gamePk = findGamePkForDecisionRow(row);
   if (!gamePk) return null;
 
-  const box = readUrlJson(`https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore`);
-  if (!box?.teams) return null;
+  const found = findMlbPlayerInGame(gamePk, getPlayer(row));
+  if (!found) return null;
 
-  const target = normalizeName(getPlayer(row));
-  for (const side of ["home", "away"]) {
-    const players = box.teams?.[side]?.players || {};
-    for (const player of Object.values(players)) {
-      const name = normalizeName(player?.person?.fullName);
-      if (name !== target) continue;
+  const pitching = found.player?.stats?.pitching || {};
+  if (!pitching || !Object.keys(pitching).length) return null;
 
-      const pitching = player?.stats?.pitching || {};
-      if (!pitching || !Object.keys(pitching).length) continue;
+  const actual =
+    k.market === "earned_runs_allowed"
+      ? firstNumber(pitching.earnedRuns, pitching.er, pitching.runs)
+      : firstNumber(pitching.runs, pitching.r, pitching.earnedRuns, pitching.er);
 
-      const actual = firstNumber(pitching.earnedRuns, pitching.er, pitching.runs);
-      if (actual === null) return null;
+  if (actual === null) return null;
 
-      return {
-        player: getPlayer(row),
-        market: k.market,
-        side: getSide(row),
-        line: getLine(row),
-        actual,
-        gamePk,
-        earnedRuns: firstNumber(pitching.earnedRuns, pitching.er),
-        runsAllowed: firstNumber(pitching.runs),
-        inningsPitched: pitching.inningsPitched ?? pitching.ip ?? null,
-        __source: `mlb_boxscore:${gamePk}:pitcher_runs`
-      };
-    }
-  }
-  return null;
+  return {
+    player: getPlayer(row),
+    market: k.market,
+    side: getSide(row),
+    line: getLine(row),
+    actual,
+    gamePk,
+    earnedRuns: firstNumber(pitching.earnedRuns, pitching.er),
+    runsAllowed: firstNumber(pitching.runs, pitching.r),
+    inningsPitched: pitching.inningsPitched ?? pitching.ip ?? null,
+    __source: `${found.source}:pitcher_runs`
+  };
 }
-
 function resolvePitcherWalksFromMlbBoxscore(row) {
   const k = keyParts(row);
   if (k.market !== "walks" && k.market !== "walks_allowed") return null;
-
   const gamePk = findGamePkForDecisionRow(row);
   if (!gamePk) return null;
 
-  const box = readUrlJson(`https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore`);
-  if (!box?.teams) return null;
+  const found = findMlbPlayerInGame(gamePk, getPlayer(row));
+  if (!found) return null;
 
-  const target = normalizeName(getPlayer(row));
-  for (const side of ["home", "away"]) {
-    const players = box.teams?.[side]?.players || {};
-    for (const player of Object.values(players)) {
-      const name = normalizeName(player?.person?.fullName);
-      if (name !== target) continue;
+  const pitching = found.player?.stats?.pitching || {};
+  if (!pitching || !Object.keys(pitching).length) return null;
 
-      const pitching = player?.stats?.pitching || {};
-      if (!pitching || !Object.keys(pitching).length) continue;
+  const actual = firstNumber(pitching.baseOnBalls, pitching.walks, pitching.bb);
+  if (actual === null) return null;
 
-      const actual = firstNumber(pitching.baseOnBalls, pitching.walks, pitching.bb);
-      if (actual === null) return null;
-
-      return {
-        player: getPlayer(row),
-        market: k.market,
-        side: getSide(row),
-        line: getLine(row),
-        actual,
-        gamePk,
-        walksAllowed: actual,
-        inningsPitched: pitching.inningsPitched ?? pitching.ip ?? null,
-        __source: `mlb_boxscore:${gamePk}:pitcher_walks`
-      };
-    }
-  }
-  return null;
+  return {
+    player: getPlayer(row),
+    market: k.market,
+    side: getSide(row),
+    line: getLine(row),
+    actual,
+    gamePk,
+    walksAllowed: actual,
+    inningsPitched: pitching.inningsPitched ?? pitching.ip ?? null,
+    __source: `${found.source}:pitcher_walks`
+  };
 }
-
 function resolveHitterBasesFromMlbBoxscore(row) {
   const k = keyParts(row);
   if (k.market !== "bases") return null;
@@ -700,6 +718,36 @@ function resolveHitsAllowedFromHitsAlias(row, indexes) {
   return null;
 }
 
+
+function resolveSavedHistoricalExactProp(row) {
+  if (!IS_HISTORICAL_DATE || !fs.existsSync(FILES.out)) return null;
+
+  const savedRows = flattenRows(readJson(FILES.out, []));
+  const k = keyParts(row);
+  const line = num(k.line, null);
+  const side = String(k.side || "").toUpperCase();
+
+  const exact = savedRows.find(r =>
+    norm(getPlayer(r)) === k.player &&
+    norm(getMarket(r)) === k.market &&
+    String(getSide(r) || "").toUpperCase() === side &&
+    num(getLine(r), null) === line &&
+    getActual(r) !== null &&
+    ["HIT", "MISS", "PUSH"].includes(getResult(r))
+  );
+
+  if (!exact) return null;
+
+  return {
+    ...exact,
+    player: getPlayer(row),
+    market: k.market,
+    side,
+    line,
+    __source: `${FILES.out}:saved_historical_exact_prop`
+  };
+}
+
 function resolveDecisionRow(row, indexes) {
   const k = keyParts(row);
 
@@ -707,6 +755,11 @@ function resolveDecisionRow(row, indexes) {
     Exact already-graded rows must come first.
     fullBoard is source #1, so this uses correct MLB grading before weaker fallbacks.
   */
+  const savedHistoricalExact = resolveSavedHistoricalExactProp(row);
+  if (savedHistoricalExact) {
+    return { match: savedHistoricalExact, method: "saved_historical_exact_prop" };
+  }
+
   const exact = resolveExact(row, indexes);
   if (exact) return { match: exact, method: "exact_player_market_side_line" };
 
@@ -840,10 +893,72 @@ function pushUnique(rows, layer, sourceRows) {
   for (const r of asArray(sourceRows)) rows.push({ layer, row: r });
 }
 
+
+function historicalRunDirs() {
+  const dir = `outputs/history/runs/${date}`;
+  try {
+    return fs.readdirSync(dir)
+      .filter(name => /^\d{4}-\d{2}-\d{2}-\d{6}$/.test(name))
+      .sort();
+  } catch {
+    return [];
+  }
+}
+
+function historicalSnapshotRows(fileName) {
+  const out = [];
+  const dir = `outputs/history/runs/${date}`;
+  for (const runId of historicalRunDirs()) {
+    const file = `${dir}/${runId}/${fileName}`;
+    const rows = flattenRows(readJson(file, []));
+    for (const row of rows) {
+      out.push({
+        ...row,
+        historicalRunId: runId,
+        historicalSourceFile: file
+      });
+    }
+  }
+  return out;
+}
+
+function historicalDecisionInputs() {
+  if (!IS_HISTORICAL_DATE) {
+    return {
+      leanReport: readJson(FILES.lean, {}),
+      production: readJson(FILES.production, {}),
+      sideBiasWatch: readJson(FILES.sideBiasWatch, {})
+    };
+  }
+
+  const datedLeanFile = `outputs/lean-final-slips-${date}.json`;
+  const leanReport = readJson(datedLeanFile, {});
+
+  const blockedRows = historicalSnapshotRows("blocked-final-candidates.json");
+  const finalRows = historicalSnapshotRows("final-slips.json");
+  const playableRows = historicalSnapshotRows("playable-final-slips.json");
+
+  return {
+    leanReport,
+    production: {
+      blocked: blockedRows,
+      blockedCandidates: blockedRows,
+      candidates: finalRows,
+      rows: [
+        ...blockedRows,
+        ...finalRows,
+        ...playableRows
+      ]
+    },
+    sideBiasWatch: {}
+  };
+}
+
 function pickRows() {
-  const leanReport = readJson(FILES.lean, {});
-  const production = readJson(FILES.production, {});
-  const sideBiasWatch = readJson(FILES.sideBiasWatch, {});
+  const decisionInputState = historicalDecisionInputs();
+  const leanReport = decisionInputState.leanReport;
+  const production = decisionInputState.production;
+  const sideBiasWatch = decisionInputState.sideBiasWatch;
 
   const rows = [];
 
