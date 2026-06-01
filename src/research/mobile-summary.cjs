@@ -526,3 +526,140 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
   }
 })();
 
+
+// SHADOW_WATCHLIST_MOBILE_SECTION_V1
+(function printShadowWatchlistMobileSection() {
+  const fs = require("fs");
+  const path = require("path");
+
+  function readJson(file, fallback) {
+    try {
+      return JSON.parse(fs.readFileSync(file, "utf8"));
+    } catch {
+      return fallback;
+    }
+  }
+
+  function pct(v) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return "n/a";
+    return `${(n * 100).toFixed(1)}%`;
+  }
+
+  function fmtRow(row) {
+    const graded = Number(row.graded ?? row.totalGraded ?? row.count ?? 0);
+    const hits = Number(row.hits ?? 0);
+    const misses = Number(row.misses ?? 0);
+    const pushes = Number(row.pushes ?? 0);
+    const pending = Number(row.pending ?? 0);
+    const hitRate = row.hitRate ?? (graded ? hits / graded : null);
+    const roi = row.roi ?? (graded ? (hits - misses) / graded : null);
+    return `graded=${graded} hits=${hits} misses=${misses} pushes=${pushes} pending=${pending} hitRate=${pct(hitRate)} roi=${pct(roi)}`;
+  }
+
+  function fileDateFromName(file) {
+    const m = String(file).match(/(\d{4}-\d{2}-\d{2})/);
+    return m ? m[1] : null;
+  }
+
+  function latestHistoryFile(kind) {
+    const dir = "outputs/history";
+    if (!fs.existsSync(dir)) return null;
+    const files = fs.readdirSync(dir)
+      .filter(f => f.endsWith(`-${kind}.json`))
+      .map(f => path.join(dir, f))
+      .sort((a, b) => String(fileDateFromName(b) || "").localeCompare(String(fileDateFromName(a) || "")));
+    return files[0] || null;
+  }
+
+  function countRows(v) {
+    if (!v) return 0;
+    if (Array.isArray(v)) return v.length;
+    if (Array.isArray(v.rows)) return v.rows.length;
+    if (Array.isArray(v.watch)) return v.watch.length;
+    if (Array.isArray(v.promoted)) return v.promoted.length;
+    return 0;
+  }
+
+  function topRows(rows, minGraded = 3, limit = 5) {
+    return (rows || [])
+      .filter(r => Number(r.graded ?? 0) >= minGraded)
+      .sort((a, b) =>
+        Number(b.roi ?? -999) - Number(a.roi ?? -999) ||
+        Number(b.hitRate ?? -999) - Number(a.hitRate ?? -999) ||
+        Number(b.graded ?? 0) - Number(a.graded ?? 0)
+      )
+      .slice(0, limit);
+  }
+
+  console.log("");
+  console.log("SHADOW / WATCHLIST SUMMARY");
+  console.log("--------------------------");
+
+  const auditFile = "outputs/shadow-promotion-audit-latest.json";
+  const audit = readJson(auditFile, null);
+
+  if (!audit) {
+    console.log("No shadow promotion audit found. Run the shadow promotion audit script before trusting shadow buckets.");
+  } else {
+    const auditDate = audit.date || "unknown";
+    const promoted = Array.isArray(audit.promoted) ? audit.promoted : [];
+    const watch = Array.isArray(audit.watch)
+      ? audit.watch
+      : (Array.isArray(audit.rows) ? audit.rows : []);
+
+    console.log(`Promotion audit date: ${auditDate}`);
+    console.log(`Promoted buckets: ${promoted.length}`);
+    console.log(`Watch buckets: ${watch.length}`);
+
+    if (auditDate !== "unknown") {
+      console.log(`Audit source: ${audit.source || auditFile}`);
+    }
+
+    const topWatch = topRows(watch, 3, 5);
+    if (topWatch.length) {
+      console.log("Top shadow watch buckets:");
+      for (const row of topWatch) {
+        console.log(`- ${row.bucket || row.key || "unknown"}: ${fmtRow(row)} | action=${row.action || "TRACK_ONLY"} | reason=${row.reason || "n/a"}`);
+      }
+    } else {
+      console.log("Top shadow watch buckets: none with enough graded sample.");
+    }
+  }
+
+  const unsupportedFile = "outputs/unsupported-market-shadow-report.json";
+  const unsupported = readJson(unsupportedFile, null);
+  if (unsupported) {
+    const summary = Array.isArray(unsupported.summary) ? unsupported.summary : [];
+    console.log(`Unsupported shadow date: ${unsupported.date || "unknown"}`);
+    if (summary.length) {
+      console.log("Unsupported market shadow:");
+      for (const row of summary.slice(0, 5)) {
+        const bucket = `${row.market || "unknown"} ${row.side || ""}`.trim();
+        console.log(`- ${bucket}: plays=${row.plays ?? row.totalRows ?? 0} graded=${row.graded ?? 0} hits=${row.hits ?? 0} misses=${row.misses ?? 0} hitRate=${pct(row.hitRate)} action=${row.action || "n/a"}`);
+      }
+    }
+  } else {
+    console.log("Unsupported market shadow: missing.");
+  }
+
+  const latestCandidatesFile = latestHistoryFile("shadow-candidates");
+  const latestGradedFile = latestHistoryFile("shadow-graded");
+
+  if (latestCandidatesFile) {
+    const rows = readJson(latestCandidatesFile, []);
+    console.log(`Latest shadow candidates: ${fileDateFromName(latestCandidatesFile)} rows=${countRows(rows)} file=${latestCandidatesFile}`);
+  } else {
+    console.log("Latest shadow candidates: missing.");
+  }
+
+  if (latestGradedFile) {
+    const rows = readJson(latestGradedFile, []);
+    console.log(`Latest shadow graded: ${fileDateFromName(latestGradedFile)} rows=${countRows(rows)} file=${latestGradedFile}`);
+  } else {
+    console.log("Latest shadow graded: missing.");
+  }
+
+  console.log("Shadow policy: track-only unless separately promoted by validated thresholds.");
+})();
+
