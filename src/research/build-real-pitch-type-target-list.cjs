@@ -75,31 +75,45 @@ function isRealPitchTypeScored(row) {
 function isPitcherMarket(row) {
   const m = market(row);
   const sourceType = String(row.sourceType || row.playerType || row.recordSourceType || "").toLowerCase();
-  const rawStat = String(row.stat || row.stat_short || row.market || "").toLowerCase();
+  const stat = String(row.stat || row.stat_short || row.market || "").toLowerCase();
 
   if (sourceType === "pitcher") return true;
   if (sourceType === "batter" || sourceType === "hitter") return false;
 
+  // These are true pitcher stat markets.
   if (
     m.includes("pitching_outs") ||
     m.includes("hits_allowed") ||
     m.includes("earned_runs_allowed") ||
     m.includes("walks_allowed") ||
-    m.includes("pitches_thrown") ||
-    m.includes("pitcher_fantasy")
+    m.includes("pitcher_fantasy") ||
+    stat.includes("pitching_outs") ||
+    stat.includes("hits_allowed") ||
+    stat.includes("earned_runs_allowed") ||
+    stat.includes("walks_allowed") ||
+    stat.includes("pitcher_fantasy")
   ) {
     return true;
   }
 
-  if (m === "strikeouts" || m === "pitcher_strikeouts") {
-    if (
-      rawStat.includes("hitter") ||
-      rawStat.includes("batter") ||
-      String(row.projectionSource || "").toLowerCase().includes("hitter")
-    ) {
-      return false;
-    }
-    return true;
+  // Strikeouts can be pitcher Ks or hitter strikeouts.
+  // If source type is unknown, only treat as pitcher when the row has pitcher identifiers.
+  if (m.includes("strikeout") || stat.includes("strikeout")) {
+    const hasPitcherIdentity =
+      row.pitcherId ||
+      row.playerPitcherId ||
+      row.mlbamId ||
+      row.playerMlbamId ||
+      row.pitcherMlbamId ||
+      row.sourceType === "pitcher" ||
+      row.playerType === "pitcher";
+    const hasHitterContext =
+      row.opponentPitcher ||
+      row.opposingPitcher ||
+      row.probablePitcher ||
+      row.handednessContext?.opposingPitcher ||
+      row.handednessAdjustment?.opposingPitcher;
+    return Boolean(hasPitcherIdentity && !hasHitterContext);
   }
 
   return false;
