@@ -188,7 +188,7 @@
     "unsupported:shadow": "node src/research/unsupported-market-shadow-report.cjs",
     "context:rolling-form": "node src/research/build-rolling-form.cjs ${npm_config_date:-$(date +%F)} && node src/jobs/mergeRollingFormIntoBoard.cjs",
     "context:game-log-form": "node src/research/build-player-game-log-form.cjs ${npm_config_date:-$(date +%F)} && node src/jobs/mergePlayerGameLogFormIntoBoard.cjs",
-    "context:phase6": "npm run context:rolling-form --date=${npm_config_date:-$(date +%F)} && npm run context:game-log-form --date=${npm_config_date:-$(date +%F)} && npm run context:lineup && npm run context:pitcher-game-repair --date=${npm_config_date:-$(date +%F)} && npm run context:bullpen --date=${npm_config_date:-$(date +%F)} && npm run context:bullpen:merge && npm run context:catcher-framing && npm run context:umpires --date=${npm_config_date:-$(date +%F)} && npm run context:pitch-type && npm run context:pitch-type:fallbacks && npm run context:neutral-fallbacks && npm run context:pitch-type:real-coverage --date=${npm_config_date:-$(date +%F)} && npm run context:pitch-type:targets --date=${npm_config_date:-$(date +%F)}",
+    "context:phase6": "npm run context:rolling-form --date=${npm_config_date:-$(date +%F)} && npm run context:game-log-form --date=${npm_config_date:-$(date +%F)} && npm run context:lineup && npm run context:pitcher-game-repair --date=${npm_config_date:-$(date +%F)} && npm run context:bullpen --date=${npm_config_date:-$(date +%F)} && npm run context:bullpen:merge && npm run context:catcher-framing && npm run context:umpires --date=${npm_config_date:-$(date +%F)} && npm run context:pitch-type && npm run context:pitch-type:fallbacks && npm run context:neutral-fallbacks && npm run context:pitch-type:real-coverage --date=${npm_config_date:-$(date +%F)} && npm run context:pitch-type:targets --date=${npm_config_date:-$(date +%F)} && npm run context:pitch-type:targets:sanitize --date=${npm_config_date:-$(date +%F)}",
     "context:lineup": "node src/research/build-lineup-strength.cjs && node src/jobs/mergeLineupStrengthIntoBoard.cjs",
     "context:bullpen": "node src/research/build-bullpen-fatigue.cjs ${npm_config_date:-$(date +%F)} && node src/jobs/mergeBullpenFatigueIntoBoard.cjs",
     "context:pitcher-game-repair": "node src/jobs/repairPitcherGameContext.cjs ${npm_config_date:-$(date +%F)}",
@@ -278,7 +278,8 @@
     "context:pitch-type:fallbacks": "node src/jobs/attachNeutralPitchTypeFallbacks.cjs",
     "context:pitch-type:real-coverage": "node src/research/real-pitch-type-coverage-report.cjs",
     "context:pitch-type:targets": "node src/research/build-real-pitch-type-target-list.cjs",
-    "context:pitch-type:repair-ids": "node src/research/repair-pitch-type-target-mlb-ids.cjs"
+    "context:pitch-type:repair-ids": "node src/research/repair-pitch-type-target-mlb-ids.cjs",
+    "context:pitch-type:targets:sanitize": "node src/research/sanitize-real-pitch-type-target-list.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
