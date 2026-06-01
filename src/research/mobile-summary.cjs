@@ -372,3 +372,157 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
     }
   }
 })();
+
+// MANUAL_PROPS_MOBILE_SECTION_V1
+(function printManualPropsMobileSection() {
+  const fs = require("fs");
+
+  const summaryFile = "outputs/manual/manual-research-summary.json";
+  const edgeFile = "outputs/manual/manual-edge-mining-report.json";
+
+  function readJson(file, fallback) {
+    try {
+      return JSON.parse(fs.readFileSync(file, "utf8"));
+    } catch {
+      return fallback;
+    }
+  }
+
+  function arr(v) {
+    if (!v) return [];
+    if (Array.isArray(v)) return v;
+    if (typeof v === "object") {
+      return Object.entries(v).map(([key, x]) => ({
+        key,
+        ...(x && typeof x === "object" ? x : {})
+      }));
+    }
+    return [];
+  }
+
+  function pct(v) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return "n/a";
+    return `${(n * 100).toFixed(1)}%`;
+  }
+
+  function roiProxy(x) {
+    const hits = Number(x?.hits ?? 0);
+    const misses = Number(x?.misses ?? 0);
+    const denom = hits + misses;
+    if (!denom) return null;
+    return (hits - misses) / denom;
+  }
+
+  function fmt(x) {
+    if (!x) return "n/a";
+    const total = Number(x.total ?? x.rows ?? 0);
+    const graded = Number(x.graded ?? x.gradedRows ?? 0);
+    const hits = Number(x.hits ?? 0);
+    const misses = Number(x.misses ?? 0);
+    const pushes = Number(x.pushes ?? 0);
+    const pending = Number(x.pending ?? 0);
+    const refunds = Number(x.refunds ?? 0);
+    const hitRate = x.hitRate ?? (hits + misses ? hits / (hits + misses) : null);
+    const roi = x.roiProxy ?? x.roi ?? roiProxy(x);
+    return `total=${total} graded=${graded} hits=${hits} misses=${misses} pushes=${pushes} pending=${pending} refunds=${refunds} hitRate=${pct(hitRate)} roiProxy=${pct(roi)}`;
+  }
+
+  function keyOf(x) {
+    return String(x.key ?? x.bucket ?? x.market ?? x.name ?? "unknown");
+  }
+
+  function eligible(rows, minGraded = 3) {
+    return arr(rows).filter(x => Number(x.graded ?? x.gradedRows ?? 0) >= minGraded);
+  }
+
+  function best(rows, minGraded = 3, limit = 5) {
+    return eligible(rows, minGraded)
+      .sort((a, b) => {
+        const ar = Number(a.roiProxy ?? a.roi ?? roiProxy(a) ?? -999);
+        const br = Number(b.roiProxy ?? b.roi ?? roiProxy(b) ?? -999);
+        return br - ar;
+      })
+      .slice(0, limit);
+  }
+
+  function weak(rows, minGraded = 3, limit = 5) {
+    return eligible(rows, minGraded)
+      .sort((a, b) => {
+        const ar = Number(a.roiProxy ?? a.roi ?? roiProxy(a) ?? 999);
+        const br = Number(b.roiProxy ?? b.roi ?? roiProxy(b) ?? 999);
+        return ar - br;
+      })
+      .slice(0, limit);
+  }
+
+  const summary = readJson(summaryFile, null);
+  const edge = readJson(edgeFile, null);
+
+  console.log("");
+  console.log("MANUAL PROPS SUMMARY");
+  console.log("--------------------");
+
+  if (!summary) {
+    console.log("No manual summary yet. Run: npm run manual");
+    return;
+  }
+
+  if (summary.overall) {
+    console.log(`Overall: ${fmt(summary.overall)}`);
+  }
+
+  const bySource = arr(summary.bySource);
+  if (bySource.length) {
+    console.log("By source:");
+    for (const row of bySource) {
+      console.log(`- ${keyOf(row)}: ${fmt(row)}`);
+    }
+  }
+
+  const bestMarkets = best(summary.byMarketSide, 3, 5);
+  if (bestMarkets.length) {
+    console.log("Best manual markets:");
+    for (const row of bestMarkets) {
+      console.log(`- ${keyOf(row)}: ${fmt(row)}`);
+    }
+  }
+
+  const weakMarkets = weak(summary.byMarketSide, 3, 5);
+  if (weakMarkets.length) {
+    console.log("Weak manual markets:");
+    for (const row of weakMarkets) {
+      console.log(`- ${keyOf(row)}: ${fmt(row)}`);
+    }
+  }
+
+  const bestTiers = best(summary.byMarketSideTier, 3, 5);
+  if (bestTiers.length) {
+    console.log("Best manual market/tier buckets:");
+    for (const row of bestTiers) {
+      console.log(`- ${keyOf(row)}: ${fmt(row)}`);
+    }
+  }
+
+  if (edge?.automationCandidates?.length) {
+    console.log("Automation candidates:");
+    for (const row of edge.automationCandidates.slice(0, 5)) {
+      console.log(`- ${keyOf(row)}: graded=${row.graded} hits=${row.hits} misses=${row.misses} hitRate=${pct(Number(row.hitRate) / 100)} roiProxy=${pct(row.roiProxy)}`);
+    }
+  }
+
+  if (edge?.watchMoreSample?.length) {
+    console.log("Watch more sample:");
+    for (const row of edge.watchMoreSample.slice(0, 5)) {
+      console.log(`- ${keyOf(row)}: graded=${row.graded} hits=${row.hits} misses=${row.misses} hitRate=${pct(Number(row.hitRate) / 100)} roiProxy=${pct(row.roiProxy)}`);
+    }
+  }
+
+  if (edge?.avoidOrDowngrade?.length) {
+    console.log("Avoid / downgrade:");
+    for (const row of edge.avoidOrDowngrade.slice(0, 5)) {
+      console.log(`- ${keyOf(row)}: graded=${row.graded} hits=${row.hits} misses=${row.misses} hitRate=${pct(Number(row.hitRate) / 100)} roiProxy=${pct(row.roiProxy)}`);
+    }
+  }
+})();
+
