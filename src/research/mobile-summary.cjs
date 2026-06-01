@@ -724,11 +724,11 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
   const handednessCoverage = pick(coverage, ["percentages.handednessCoverage", "handednessCoverage"], null);
   const contextAdjustedCoverage = pick(coverage, ["percentages.contextAdjustedCoverage", "contextAdjustedCoverage"], null);
 
-  const sourcePitchers = pick(arsenal, ["sourcePitchers", "summary.sourcePitchers"], 0);
-  const compactPitchers = pick(arsenal, ["compactPitchers", "summary.compactPitchers"], 0);
-  const starters = pick(arsenal, ["starters", "summary.starters"], 0);
-  const bullpen = pick(arsenal, ["bullpen", "summary.bullpen"], 0);
-  const unknownRole = pick(arsenal, ["unknownRole", "summary.unknownRole"], 0);
+  const sourcePitchers = pick(arsenal, ["sourcePitchers", "counts.sourcePitchers", "summary.sourcePitchers"], 0);
+  const compactPitchers = pick(arsenal, ["compactPitchers", "counts.compactPitchers", "summary.compactPitchers"], 0);
+  const starters = pick(arsenal, ["starters", "counts.starters", "summary.starters"], 0);
+  const bullpen = pick(arsenal, ["bullpen", "counts.bullpen", "summary.bullpen"], 0);
+  const unknownRole = pick(arsenal, ["unknownRole", "counts.unknownRole", "summary.unknownRole"], 0);
   const cleanup = pick(arsenal, ["cleanup", "rawCleanup"], {});
   const rawDeleted = pick(cleanup, ["deleted"], 0);
   const rawKept = pick(cleanup, ["kept"], 0);
