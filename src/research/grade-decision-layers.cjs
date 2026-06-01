@@ -9,6 +9,7 @@ const date =
 
 const FILES = {
   lean: "outputs/lean-final-slips.json",
+  leanWatchlist: "outputs/lean-watchlist-candidates.json",
   production: "outputs/production-candidates.json",
   sideBiasWatch: "outputs/side-bias-override-watch-latest.json",
   fullBoard: `outputs/history/${date}-full-board-graded.json`,
@@ -144,6 +145,7 @@ function flattenRows(v, out = []) {
 function buildContextIndex() {
   const files = [
     "outputs/lean-final-slips.json",
+    "outputs/lean-watchlist-candidates.json",
     "outputs/blocked-final-candidates.json",
     "outputs/final-slips.json",
     "outputs/playable-final-slips.json"
@@ -546,6 +548,7 @@ function findGamePkForDecisionRow(row) {
     flattenRows(readJson(FILES.pricedBoard, [])),
     flattenRows(readJson(FILES.finalSlips, [])),
     flattenRows(readJson(FILES.lean, [])),
+    flattenRows(readJson(FILES.leanWatchlist, [])),
     flattenRows(readJson(FILES.production, {})),
     ...(IS_HISTORICAL_DATE ? [
       historicalSnapshotRows("priced-board.json"),
@@ -1077,15 +1080,22 @@ function historicalSnapshotRows(fileName) {
 
 function historicalDecisionInputs() {
   if (!IS_HISTORICAL_DATE) {
+    const production = readJson(FILES.production, {});
+    const leanWatchlistRows = readJson(FILES.leanWatchlist, []);
+    if (production && typeof production === "object") {
+      production.leanWatchlist = leanWatchlistRows;
+      production.leanWatchlistCandidates = leanWatchlistRows;
+    }
     return {
       leanReport: readJson(FILES.lean, {}),
-      production: readJson(FILES.production, {}),
+      production,
       sideBiasWatch: readJson(FILES.sideBiasWatch, {})
     };
   }
 
   const datedLeanFile = `outputs/lean-final-slips-${date}.json`;
   const leanReport = readJson(datedLeanFile, {});
+  const leanWatchlistRows = historicalSnapshotRows("lean-watchlist-candidates.json");
 
   const blockedRows = historicalSnapshotRows("blocked-final-candidates.json");
   const finalRows = historicalSnapshotRows("final-slips.json");
@@ -1097,7 +1107,10 @@ function historicalDecisionInputs() {
       blocked: blockedRows,
       blockedCandidates: blockedRows,
       candidates: finalRows,
+      leanWatchlist: leanWatchlistRows,
+      leanWatchlistCandidates: leanWatchlistRows,
       rows: [
+        ...leanWatchlistRows,
         ...blockedRows,
         ...finalRows,
         ...playableRows
@@ -1116,6 +1129,8 @@ function pickRows() {
   const rows = [];
 
   pushUnique(rows, "ACTIONABLE_LEAN", leanReport.leans);
+  pushUnique(rows, "LEAN_WATCHLIST", production.leanWatchlist);
+  pushUnique(rows, "LEAN_WATCHLIST", production.leanWatchlistCandidates);
 
   pushUnique(rows, "CORE", production.core);
   pushUnique(rows, "CORE", production.coreCandidates);
@@ -1140,6 +1155,7 @@ function pickRows() {
   for (const r of allRows) {
     const c = classOf(r);
     if (c === "CORE") rows.push({ layer: "CORE", row: r });
+    else if (c === "LEAN" || c === "LEAN_WATCHLIST") rows.push({ layer: "LEAN_WATCHLIST", row: r });
     else if (c === "WATCHLIST") rows.push({ layer: "WATCHLIST", row: r });
     else if (c === "HIGH_PROBABILITY_WATCH") rows.push({ layer: "HIGH_PROBABILITY_WATCH", row: r });
     else if (c === "BLOCKED") rows.push({ layer: "BLOCKED", row: r });
