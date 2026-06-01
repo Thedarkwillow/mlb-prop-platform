@@ -66,23 +66,27 @@ function unlockRule(row) {
   if (!row.genericMarketPenalty) return null;
 
   // Elite 0.5 hitter-style MORE unlock.
+  // WATCHLIST ONLY: this does not make the prop official/playable.
+  // Purpose: track high-prob 0.5 hitter lines that are being blocked by broad market/score gates.
   if (
     ["bases", "hits", "hrr"].includes(market) &&
     side === "MORE" &&
     line === 0.5 &&
     prob >= 0.70 &&
-    edge >= 0.15
+    edge >= 0.08
   ) {
     return {
       action: "CONTROLLED_WATCHLIST",
-      rule: `${market}_MORE_0.5_elite_unlock`,
-      reason: "generic market penalty may be too broad for elite 0.5 hitter line",
+      rule: `${market}_MORE_0.5_controlled_watch_unlock`,
+      reason: "high-prob 0.5 hitter line blocked by broad market/score gate; manual review only",
       required: {
         market,
         side,
         line,
         minProb: 0.70,
-        minEdge: 0.15
+        minEdge: 0.08,
+        playable: false,
+        officialEligible: false
       }
     };
   }
