@@ -86,27 +86,35 @@ function patchLeanFile(file, controlledRows) {
   report.trackOnly = Array.isArray(report.trackOnly) ? report.trackOnly : [];
   report.blocked = Array.isArray(report.blocked) ? report.blocked : [];
 
-  const existing = new Set([
-    ...report.leans.map(keyOf),
-    ...report.trackOnly.map(keyOf),
-    ...report.blocked.map(keyOf)
-  ]);
+  const existingLeans = new Set(report.leans.map(keyOf));
+  const existingBlocked = new Set(report.blocked.map(keyOf));
 
   const added = [];
+  const promoted = [];
+
   for (const row of controlledRows) {
     const k = keyOf(row);
-    if (!k || existing.has(k)) continue;
+    if (!k || existingLeans.has(k) || existingBlocked.has(k)) continue;
+
     const lean = normalizeControlledRow(row);
+
+    const beforeTrackOnly = report.trackOnly.length;
+    report.trackOnly = report.trackOnly.filter(r => keyOf(r) !== k);
+    const wasTrackOnly = report.trackOnly.length !== beforeTrackOnly;
+
     report.leans.push(lean);
-    existing.add(k);
-    added.push(lean);
+    existingLeans.add(k);
+
+    if (wasTrackOnly) promoted.push(lean);
+    else added.push(lean);
   }
 
   report.controlledUnlockManualReviewInjected = {
     date,
     generatedAt: new Date().toISOString(),
     source: CONTROLLED,
-    added: added.length
+    added: added.length,
+    promotedFromTrackOnly: promoted.length
   };
 
   report.counts = {
@@ -118,7 +126,7 @@ function patchLeanFile(file, controlledRows) {
   };
 
   writeJson(file, report);
-  return { file, patched: true, added: added.length };
+  return { file, patched: true, added: added.length, promotedFromTrackOnly: promoted.length };
 }
 
 const controlled = readJson(CONTROLLED, {});
