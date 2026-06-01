@@ -270,16 +270,30 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
     return String(x.bucket ?? x.layer ?? x.key ?? x.date ?? x.name ?? "unknown");
   }
 
-  function topByRoi(rows, minGraded = 2, limit = 5) {
-    return rows
+  function uniqueByBucket(rows) {
+    const seen = new Set();
+    const out = [];
+    for (const row of rows || []) {
+      const key = bucketName(row);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(row);
+    }
+    return out;
+  }
+
+  function topByRoi(rows, minGraded = 2, limit = 5, exclude = new Set()) {
+    return uniqueByBucket(rows)
       .filter(x => Number(x.graded ?? x.count ?? 0) >= minGraded)
+      .filter(x => !exclude.has(bucketName(x)))
       .sort((a, b) => Number(b.roi ?? -999) - Number(a.roi ?? -999))
       .slice(0, limit);
   }
 
-  function bottomByRoi(rows, minGraded = 2, limit = 5) {
-    return rows
+  function bottomByRoi(rows, minGraded = 2, limit = 5, exclude = new Set()) {
+    return uniqueByBucket(rows)
       .filter(x => Number(x.graded ?? x.count ?? 0) >= minGraded)
+      .filter(x => !exclude.has(bucketName(x)))
       .sort((a, b) => Number(a.roi ?? 999) - Number(b.roi ?? 999))
       .slice(0, limit);
   }
@@ -324,7 +338,8 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
     }
   }
 
-  const weakLayers = bottomByRoi(byLayer, 2, 4);
+  const bestLayerNames = new Set(bestLayers.map(bucketName));
+  const weakLayers = bottomByRoi(byLayer, 2, 4, bestLayerNames);
   if (weakLayers.length) {
     console.log("Weak layers:");
     for (const row of weakLayers) {
@@ -332,12 +347,13 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
     }
   }
 
-  const bestBuckets = [
-    ...topByRoi(byMarketSide, 3, 3),
-    ...topByRoi(bySideBias, 3, 3),
-    ...topByRoi(byTier, 3, 3),
-    ...topByRoi(byProbBucket, 3, 3)
-  ].slice(0, 8);
+  const bucketRows = [
+    ...byMarketSide,
+    ...bySideBias,
+    ...byTier,
+    ...byProbBucket
+  ];
+  const bestBuckets = topByRoi(bucketRows, 3, 8);
 
   if (bestBuckets.length) {
     console.log("Best candidate buckets:");
@@ -346,12 +362,8 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
     }
   }
 
-  const weakBuckets = [
-    ...bottomByRoi(byMarketSide, 3, 3),
-    ...bottomByRoi(bySideBias, 3, 3),
-    ...bottomByRoi(byTier, 3, 3),
-    ...bottomByRoi(byProbBucket, 3, 3)
-  ].slice(0, 8);
+  const bestBucketNames = new Set(bestBuckets.map(bucketName));
+  const weakBuckets = bottomByRoi(bucketRows, 3, 8, bestBucketNames);
 
   if (weakBuckets.length) {
     console.log("Weak candidate buckets:");
