@@ -15,6 +15,17 @@ npm run prizepicks
 
 echo "=== 3) REBUILD PRICED BOARD ==="
 npm run board:rebuild
+
+echo "=== 3B) REFRESH PITCH-TYPE / ARSENAL CONTEXT IF AVAILABLE ==="
+if npm run | grep -q "savant:velo:full"; then
+  npm run savant:velo:full || echo "WARN: savant:velo:full failed; continuing with existing arsenal cache"
+elif npm run | grep -q "savant:arsenal:compact"; then
+  npm run savant:arsenal:compact || echo "WARN: savant:arsenal:compact failed; continuing with existing arsenal cache"
+fi
+
+npm run context:pitch-type || echo "WARN: context:pitch-type failed; continuing with existing board context"
+npm run context:coverage || echo "WARN: context:coverage failed; continuing"
+
 npm run price:board
 
 echo "=== 4) BUILD SLIPS / LEANS / WATCHLIST ==="

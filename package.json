@@ -267,7 +267,8 @@
     "context:coverage": "node src/research/context-coverage-report.cjs",
     "unlocks:readiness": "node src/research/controlled-unlock-readiness.cjs",
     "savant:arsenal:compact": "node src/learning/compact-savant-arsenal-cache.cjs",
-    "savant:velo:compact": "npm run savant:velo && npm run savant:arsenal:compact"
+    "savant:velo:compact": "npm run savant:velo && npm run savant:arsenal:compact",
+    "savant:velo:full": "npm run savant:velo && npm run savant:arsenal:compact"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
