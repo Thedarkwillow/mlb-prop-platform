@@ -823,13 +823,69 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
   if (Number(compactPitchers || 0) < 60) warnings.push("arsenal_cache_low_pitcher_count");
   if (Number(bullpen || 0) < 30) warnings.push("bullpen_arsenal_low_count");
 
-  if (warnings.length) {
-    console.log("CONTEXT WARNINGS");
-    console.log("----------------");
-    for (const w of warnings) console.log(`- ${w}`);
-  } else {
-    console.log("Context warnings: none");
+  console.log("");
+  console.log("REAL CONTEXT QUALITY");
+  console.log("--------------------");
+  console.log("Note: CONTEXT HEALTH is field/fallback coverage. This section separates real signal from fallback where available.");
+
+  const pricedBoard = readJson("outputs/priced-board.json", []);
+  const boardRows = Array.isArray(pricedBoard)
+    ? pricedBoard.filter(r => r && typeof r === "object" && r.recordType !== "pricing_summary")
+    : [];
+  const boardTotal = boardRows.length || Number(totalRows || 0) || 0;
+
+  const pitchReport = readJson("outputs/context/real-pitch-type-coverage-latest.json", null);
+  const pitchCounts = pitchReport?.counts || pitchReport || {};
+  const pitchRows = Number(pitchCounts.rows || pitchCounts.totalRows || 0);
+  const realPitchScored = Number(pitchCounts.realScored || pitchCounts.realScoredRows || 0);
+  const neutralPitchFallback = Number(pitchCounts.neutralFallback || pitchCounts.neutralFallbackRows || 0);
+
+  function isRealUmpireValue(v) {
+    if (v === undefined || v === null || v === "") return false;
+    if (typeof v === "object") {
+      const source = String(v.source || "").toUpperCase();
+      if (source.includes("NEUTRAL") || source.includes("FALLBACK")) return false;
+      const name =
+        v.name ||
+        v.umpire ||
+        v.plateUmpire ||
+        v.homePlateUmpire ||
+        v.fullName ||
+        "";
+      return isRealUmpireValue(name);
+    }
+    const s = String(v).trim().toLowerCase();
+    if (!s) return false;
+    if (["unknown", "neutral", "fallback", "missing", "default", "n/a", "na", "null"].includes(s)) return false;
+    if (s.includes("unknown") || s.includes("neutral") || s.includes("fallback") || s.includes("missing")) return false;
+    return /[a-z]/i.test(s);
   }
+
+  const realUmpireRows = boardRows.filter(r =>
+    isRealUmpireValue(r.plateUmpire) ||
+    isRealUmpireValue(r.umpire)
+  ).length;
+  const umpireDenom = boardTotal || Number(totalRows || 0) || 0;
+  const missingUmpireRows = Math.max(0, umpireDenom - realUmpireRows);
+
+  console.table([
+    {
+      layer: "Pitch type",
+      contextFieldCoverage: pct(pitchTypeCoverage),
+      realSignal: pitchRows ? pct(realPitchScored / pitchRows) : "n/a",
+      neutralFallback: pitchRows ? pct(neutralPitchFallback / pitchRows) : "n/a",
+      realRows: pitchRows ? `${realPitchScored}/${pitchRows}` : "n/a",
+      note: "100% context coverage can still include neutral fallback."
+    },
+    {
+      layer: "Umpire",
+      contextFieldCoverage: pct(umpireCoverage),
+      realSignal: umpireDenom ? pct(realUmpireRows / umpireDenom) : "n/a",
+      neutralFallback: umpireDenom ? pct(missingUmpireRows / umpireDenom) : "n/a",
+      realRows: umpireDenom ? `${realUmpireRows}/${umpireDenom}` : "n/a",
+      note: "Real umpire field only; missing rows are treated as fallback/neutral risk."
+    }
+  ]);
 })();
 
 // REAL_PITCH_TYPE_QUALITY_SECTION_V1
