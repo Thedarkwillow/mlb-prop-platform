@@ -218,7 +218,7 @@ if (!validationRules) {
     console.log("No low-sample warnings.");
   } else {
     lowSampleRules.slice(0, 8).forEach(r => {
-      console.log(`${r.type} ${r.bucket}: count=${r.count}, action=${r.action}, edge=${num(r.calibrationEdge)}, heldAdjustment=${num(r.adjustment)}` + "\n");
+      console.log(`${r.type} ${r.bucket}: count=${r.count}, action=${r.action}, edge=${num(r.calibrationEdge)}, heldAdjustment=${num(r.adjustment)}`);
     });
   }
 }
@@ -1013,16 +1013,14 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
     return `${((Number(n || 0) / Number(d || 0)) * 100).toFixed(1)}%`;
   }
 
-  const report = readJson("outputs/context/real-pitch-type-coverage-latest.json", null);
+  const report = readJson("outputs/context/pitch-type-real-coverage-reconcile-latest.json", null);
   const targets = readJson("outputs/context/real-pitch-type-target-list-latest.json", null);
-
   if (!report && !targets) return;
-
-  const counts = report?.counts || report || {};
-  const rows = counts.rows || counts.totalRows || 0;
-  const realScored = counts.realScored || counts.realScoredRows || 0;
-  const fallback = counts.neutralFallback || counts.neutralFallbackRows || 0;
-  const missing = counts.notRealScored || counts.missingRows || fallback || 0;
+  const summary = report?.summary || report || {};
+  const rows = summary.rows || report?.rows || 0;
+  const realScored = summary.coverageStyleReal || summary.strictReal || 0;
+  const fallback = rows ? rows - realScored : 0;
+  const missing = fallback;
 
   console.log("");
   console.log("REAL PITCH TYPE QUALITY");
