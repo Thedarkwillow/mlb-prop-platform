@@ -54,6 +54,21 @@ function isHitterMarket(row) {
   const m = market(row);
   return HITTER_MARKETS.has(m) || HITTER_MARKETS.has(m.replace("home_runs", "hr"));
 }
+function isLikelyPitcherRow(row) {
+  const m = market(row);
+  const sourceType = String(row.sourceType || row.playerType || row.recordSourceType || "").toLowerCase();
+  const position = String(row.position || row.playerPosition || "").toUpperCase();
+  if (sourceType === "pitcher" || position === "P") return true;
+  return (
+    m.includes("pitching") ||
+    m.includes("outs") ||
+    m.includes("earned_runs_allowed") ||
+    m.includes("hits_allowed") ||
+    m.includes("walks_allowed") ||
+    m.includes("pitches_thrown") ||
+    m.includes("pitcher_fantasy")
+  );
+}
 
 function team(row) {
   return String(row.resolvedTeam || row.team || "").toUpperCase().trim();
@@ -226,11 +241,16 @@ function scoreMatchup(hitter, pitcherRec) {
   const pitchTypes = topPitchTypes(pitcherRec);
 
   if (!hitter || !pitchTypes.length) {
+    const flags = [];
+    if (!hitter) flags.push("MISSING_HITTER_PROFILE");
+    if (!pitchTypes.length) flags.push("MISSING_PITCHER_ARSENAL");
     return {
       matched: false,
       score: 0,
       tier: "unknown",
-      flags: ["MISSING_HITTER_OR_PITCHER_ARSENAL"],
+      flags,
+      missingHitterProfile: !hitter,
+      missingPitcherArsenal: !pitchTypes.length,
       pitchTypes
     };
   }
@@ -405,6 +425,7 @@ const matchups = {};
 const rows = [];
 
 for (const r of props) {
+  if (isLikelyPitcherRow(r)) continue;
   if (!isHitterMarket(r)) continue;
 
   const t = team(r);
@@ -428,6 +449,8 @@ for (const r of props) {
       opponentPitcherHand: opp.hand || null,
       opponent: opp.opponent || null,
       pitcherSource: opp.source || null,
+      missingHitterProfile: result.missingHitterProfile || false,
+      missingPitcherArsenal: result.missingPitcherArsenal || false,
       ...result
     };
   }
