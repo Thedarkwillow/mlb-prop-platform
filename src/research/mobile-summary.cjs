@@ -834,11 +834,46 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
     : [];
   const boardTotal = boardRows.length || Number(totalRows || 0) || 0;
 
+  function qPct(n, d) {
+    if (!d) return "n/a";
+    return `${((Number(n || 0) / Number(d || 0)) * 100).toFixed(1)}%`;
+  }
+
+  function isBadText(v) {
+    const s = String(v ?? "").trim().toLowerCase();
+    return (
+      !s ||
+      ["unknown", "neutral", "fallback", "missing", "default", "n/a", "na", "null"].includes(s) ||
+      s.includes("unknown") ||
+      s.includes("neutral") ||
+      s.includes("fallback") ||
+      s.includes("missing")
+    );
+  }
+
   const pitchReport = readJson("outputs/context/real-pitch-type-coverage-latest.json", null);
   const pitchCounts = pitchReport?.counts || pitchReport || {};
   const pitchRows = Number(pitchCounts.rows || pitchCounts.totalRows || 0);
   const realPitchScored = Number(pitchCounts.realScored || pitchCounts.realScoredRows || 0);
   const neutralPitchFallback = Number(pitchCounts.neutralFallback || pitchCounts.neutralFallbackRows || 0);
+
+  const lineupProjectionRows = boardRows.filter(r => r.lineupStrengthReady === true).length;
+
+  const confirmedLineupRows = boardRows.filter(r => {
+    const vals = [r.lineupStatus, r.confirmedLineup, r.isConfirmedLineup, r.lineupConfirmed]
+      .map(v => String(v ?? "").toLowerCase());
+    return vals.some(v => v === "true" || v === "confirmed" || v.includes("confirmed"));
+  }).length;
+
+  const handednessMatchedRows = boardRows.filter(r => r.handednessMatched === true || r.handednessContext).length;
+  const handednessReadyRows = boardRows.filter(r => r.handednessReady === true).length;
+
+  const realCatcherRows = boardRows.filter(r =>
+    String(r.opponentCatcherFramingSource || "").toUpperCase() !== "NEUTRAL_FALLBACK" &&
+    !isBadText(r.opponentCatcher) &&
+    String(r.opponentCatcherFramingTier || "").toUpperCase() !== "NEUTRAL" &&
+    r.opponentCatcherFramingReady === true
+  ).length;
 
   function isRealUmpireValue(v) {
     if (v === undefined || v === null || v === "") return false;
@@ -854,36 +889,95 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
         "";
       return isRealUmpireValue(name);
     }
-    const s = String(v).trim().toLowerCase();
-    if (!s) return false;
-    if (["unknown", "neutral", "fallback", "missing", "default", "n/a", "na", "null"].includes(s)) return false;
-    if (s.includes("unknown") || s.includes("neutral") || s.includes("fallback") || s.includes("missing")) return false;
-    return /[a-z]/i.test(s);
+    return !isBadText(v);
   }
 
   const realUmpireRows = boardRows.filter(r =>
-    isRealUmpireValue(r.plateUmpire) ||
-    isRealUmpireValue(r.umpire)
+    r.umpireFramingAdjusted === true &&
+    (
+      isRealUmpireValue(r.plateUmpire) ||
+      isRealUmpireValue(r.umpire)
+    )
   ).length;
-  const umpireDenom = boardTotal || Number(totalRows || 0) || 0;
-  const missingUmpireRows = Math.max(0, umpireDenom - realUmpireRows);
+
+  const realBullpenRows = boardRows.filter(r =>
+    r.ownBullpenFatigueReady === true ||
+    r.opponentBullpenFatigueReady === true ||
+    r.ownBullpenFatigueTier ||
+    r.opponentBullpenFatigueTier
+  ).length;
+
+  const contextAdjustmentRows = boardRows.filter(r =>
+    r.contextAdjustment &&
+    typeof r.contextAdjustment === "object" &&
+    Array.isArray(r.contextAdjustment.flags) &&
+    r.contextAdjustment.flags.length > 0
+  ).length;
 
   console.table([
     {
-      layer: "Pitch type",
+      layer: "Lineup projection",
+      contextFieldCoverage: pct(lineupCoverage),
+      realSignal: qPct(lineupProjectionRows, boardTotal),
+      neutralFallback: qPct(boardTotal - lineupProjectionRows, boardTotal),
+      realRows: `${lineupProjectionRows}/${boardTotal}`,
+      note: "Lineup strength/projection context; not confirmed lineup status."
+    },
+    {
+      layer: "Confirmed lineup",
+      contextFieldCoverage: "n/a",
+      realSignal: qPct(confirmedLineupRows, boardTotal),
+      neutralFallback: qPct(boardTotal - confirmedLineupRows, boardTotal),
+      realRows: `${confirmedLineupRows}/${boardTotal}`,
+      note: "Confirmed lineup fields are not currently attached to priced-board."
+    },
+    {
+      layer: "Handedness",
+      contextFieldCoverage: pct(handednessCoverage),
+      realSignal: qPct(handednessMatchedRows, boardTotal),
+      neutralFallback: qPct(boardTotal - handednessMatchedRows, boardTotal),
+      realRows: `${handednessMatchedRows}/${boardTotal}`,
+      note: `Ready rows: ${handednessReadyRows}/${boardTotal}. Matched/context rows shown as real signal.`
+    },
+    {
+      layer: "Pitch type scored",
       contextFieldCoverage: pct(pitchTypeCoverage),
-      realSignal: pitchRows ? pct(realPitchScored / pitchRows) : "n/a",
-      neutralFallback: pitchRows ? pct(neutralPitchFallback / pitchRows) : "n/a",
+      realSignal: pitchRows ? qPct(realPitchScored, pitchRows) : "n/a",
+      neutralFallback: pitchRows ? qPct(neutralPitchFallback, pitchRows) : "n/a",
       realRows: pitchRows ? `${realPitchScored}/${pitchRows}` : "n/a",
-      note: "100% context coverage can still include neutral fallback."
+      note: "Dedicated real pitch-type report; 100% field coverage can still include fallback."
+    },
+    {
+      layer: "Catcher framing",
+      contextFieldCoverage: pct(catcherCoverage),
+      realSignal: qPct(realCatcherRows, boardTotal),
+      neutralFallback: qPct(boardTotal - realCatcherRows, boardTotal),
+      realRows: `${realCatcherRows}/${boardTotal}`,
+      note: "Neutral/Unknown catcher rows excluded from real signal."
     },
     {
       layer: "Umpire",
       contextFieldCoverage: pct(umpireCoverage),
-      realSignal: umpireDenom ? pct(realUmpireRows / umpireDenom) : "n/a",
-      neutralFallback: umpireDenom ? pct(missingUmpireRows / umpireDenom) : "n/a",
-      realRows: umpireDenom ? `${realUmpireRows}/${umpireDenom}` : "n/a",
-      note: "Real umpire field only; missing rows are treated as fallback/neutral risk."
+      realSignal: qPct(realUmpireRows, boardTotal),
+      neutralFallback: qPct(boardTotal - realUmpireRows, boardTotal),
+      realRows: `${realUmpireRows}/${boardTotal}`,
+      note: "Confirmed plate umpire context is currently unavailable/fallback-only."
+    },
+    {
+      layer: "Bullpen fatigue",
+      contextFieldCoverage: pct(bullpenCoverage),
+      realSignal: qPct(realBullpenRows, boardTotal),
+      neutralFallback: qPct(boardTotal - realBullpenRows, boardTotal),
+      realRows: `${realBullpenRows}/${boardTotal}`,
+      note: "Bullpen fatigue tiers/ready flags are populated."
+    },
+    {
+      layer: "Context adjustment",
+      contextFieldCoverage: pct(contextAdjustedCoverage),
+      realSignal: qPct(contextAdjustmentRows, boardTotal),
+      neutralFallback: qPct(boardTotal - contextAdjustmentRows, boardTotal),
+      realRows: `${contextAdjustmentRows}/${boardTotal}`,
+      note: "Rows with non-empty contextAdjustment flags; contextAdjustedReady alone is fallback/ready state."
     }
   ]);
 })();
