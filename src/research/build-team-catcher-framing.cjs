@@ -1,3 +1,43 @@
+
+// LINEUP_CATCHER_FILL_V1
+function loadConfirmedLineupCatchers(existingTeams) {
+  const fs = require("fs");
+
+  function readJson(file, fallback) {
+    try {
+      if (!fs.existsSync(file)) return fallback;
+      return JSON.parse(fs.readFileSync(file, "utf8"));
+    } catch {
+      return fallback;
+    }
+  }
+
+  const lineups = readJson("data/context/lineups.json", { players: {}, teams: {} });
+  const players = Object.values(lineups.players || {});
+  const out = [];
+
+  for (const p of players) {
+    const team = String(p.team || "").toUpperCase().trim();
+    const pos = String(p.position || "").toUpperCase().trim();
+    if (!team || pos !== "C") continue;
+    if (existingTeams.has(team)) continue;
+
+    out.push({
+      team,
+      primaryCatcher: p.player,
+      catcherFramingTier: "NEUTRAL",
+      catcherFramingRunValue: 0,
+      catcherFramingPct: null,
+      catcherFramingSource: "CONFIRMED_LINEUP_CATCHER_NEUTRAL",
+      lineupStatus: "confirmed",
+      note: "Confirmed catcher found from MLB live lineup, but no framing profile found; using neutral real catcher fallback."
+    });
+    existingTeams.add(team);
+  }
+
+  return out;
+}
+
 const fs = require("fs");
 
 function readJson(p, fallback) {
@@ -87,6 +127,11 @@ for (const [team, catchersMap] of teamCatchers.entries()) {
 out.sort((a, b) => String(a.team).localeCompare(String(b.team)));
 
 fs.mkdirSync("data/context", { recursive: true });
+const existingTeamsForLineupFill = new Set(out.map(x => String(x.team || "").toUpperCase().trim()));
+const lineupCatcherFills = loadConfirmedLineupCatchers(existingTeamsForLineupFill);
+if (lineupCatcherFills.length) {
+  out.push(...lineupCatcherFills);
+}
 fs.writeFileSync("data/context/team-catcher-framing.json", JSON.stringify(out, null, 2));
 
 console.log("TEAM CATCHER FRAMING REPORT");

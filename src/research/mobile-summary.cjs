@@ -882,10 +882,9 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
   const handednessReadyRows = boardRows.filter(r => r.handednessReady === true).length;
 
   const realCatcherRows = boardRows.filter(r =>
+    r.opponentCatcherFramingReady === true &&
     String(r.opponentCatcherFramingSource || "").toUpperCase() !== "NEUTRAL_FALLBACK" &&
-    !isBadText(r.opponentCatcher) &&
-    String(r.opponentCatcherFramingTier || "").toUpperCase() !== "NEUTRAL" &&
-    r.opponentCatcherFramingReady === true
+    !isBadText(r.opponentCatcher)
   ).length;
 
   function isRealUmpireValue(v) {
@@ -966,7 +965,7 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
       realSignal: qPct(realCatcherRows, boardTotal),
       neutralFallback: qPct(boardTotal - realCatcherRows, boardTotal),
       realRows: `${realCatcherRows}/${boardTotal}`,
-      note: "Neutral/Unknown catcher rows excluded from real signal."
+      note: "Real catcher identity attached; neutral tier can still be a real confirmed catcher with no strong framing edge."
     },
     {
       layer: "Umpire",
