@@ -40,14 +40,53 @@ function market(row) {
   return String(row.market || row.stat || '').toLowerCase().replace(/\s+/g, '_').trim();
 }
 
-function isPitcherMarket(row) {
-  const m = market(row);
+function isExplicitPitcherStrikeout(row) {
+  const raw = String(
+    row.stat ||
+    row.market ||
+    row.displayStat ||
+    row.statType ||
+    row.projectionType ||
+    row.description ||
+    row.name ||
+    ''
+  ).toLowerCase();
+
   return (
-    m.includes('strikeout') ||
+    raw.includes('pitcher strikeout') ||
+    raw.includes('pitching strikeout') ||
+    raw.includes('pitcher_k') ||
+    raw.includes('pitcher k')
+  );
+}
+
+function isPitcherMarket(row, splits = { pitchers: {} }) {
+  const m = market(row);
+  const sourceType = String(row.sourceType || row.playerType || row.recordSourceType || '').toLowerCase();
+  const position = String(row.position || row.playerPosition || '').toUpperCase();
+  const key = playerKey(row);
+
+  // Plain "strikeouts" can be hitter strikeouts or pitcher strikeouts.
+  // Do not trust dirty playerType/sourceType alone for strikeouts.
+  if (m === 'strikeouts') {
+    return (
+      Boolean(splits.pitchers?.[key]) ||
+      position === 'P' ||
+      isExplicitPitcherStrikeout(row)
+    );
+  }
+
+  if (sourceType === 'batter' || sourceType === 'hitter') return false;
+  if (sourceType === 'pitcher' || position === 'P') return true;
+
+  return (
     m.includes('pitching') ||
     m.includes('outs') ||
     m.includes('earned_runs_allowed') ||
-    m.includes('hits_allowed')
+    m.includes('hits_allowed') ||
+    m.includes('walks_allowed') ||
+    m.includes('pitches_thrown') ||
+    m.includes('pitcher_fantasy')
   );
 }
 
@@ -133,7 +172,7 @@ function splitSummary(split) {
 
 function attachHandedness(row, splits, probables) {
   const key = playerKey(row);
-  const pitcherMarket = isPitcherMarket(row);
+  const pitcherMarket = isPitcherMarket(row, splits);
 
   if (pitcherMarket) {
     const rec = splits.pitchers?.[key];
