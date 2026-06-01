@@ -188,7 +188,7 @@
     "unsupported:shadow": "node src/research/unsupported-market-shadow-report.cjs",
     "context:rolling-form": "node src/research/build-rolling-form.cjs ${npm_config_date:-$(date +%F)} && node src/jobs/mergeRollingFormIntoBoard.cjs",
     "context:game-log-form": "node src/research/build-player-game-log-form.cjs ${npm_config_date:-$(date +%F)} && node src/jobs/mergePlayerGameLogFormIntoBoard.cjs",
-    "context:phase6": "npm run context:rolling-form --date=${npm_config_date:-$(date +%F)} && npm run context:game-log-form --date=${npm_config_date:-$(date +%F)} && npm run context:lineup && npm run context:pitcher-game-repair --date=${npm_config_date:-$(date +%F)} && npm run context:bullpen --date=${npm_config_date:-$(date +%F)} && npm run context:catcher-framing && npm run context:umpires --date=${npm_config_date:-$(date +%F)} && npm run context:pitch-type",
+    "context:phase6": "npm run context:rolling-form --date=${npm_config_date:-$(date +%F)} && npm run context:game-log-form --date=${npm_config_date:-$(date +%F)} && npm run context:lineup && npm run context:pitcher-game-repair --date=${npm_config_date:-$(date +%F)} && npm run context:bullpen --date=${npm_config_date:-$(date +%F)} && npm run context:bullpen:merge && npm run context:catcher-framing && npm run context:umpires --date=${npm_config_date:-$(date +%F)} && npm run context:pitch-type",
     "context:lineup": "node src/research/build-lineup-strength.cjs && node src/jobs/mergeLineupStrengthIntoBoard.cjs",
     "context:bullpen": "node src/research/build-bullpen-fatigue.cjs ${npm_config_date:-$(date +%F)} && node src/jobs/mergeBullpenFatigueIntoBoard.cjs",
     "context:pitcher-game-repair": "node src/jobs/repairPitcherGameContext.cjs ${npm_config_date:-$(date +%F)}",
@@ -268,7 +268,8 @@
     "unlocks:readiness": "node src/research/controlled-unlock-readiness.cjs",
     "savant:arsenal:compact": "node src/learning/compact-savant-arsenal-cache.cjs",
     "savant:velo:compact": "npm run savant:velo && npm run savant:arsenal:compact",
-    "savant:velo:full": "npm run savant:velo && npm run savant:arsenal:compact"
+    "savant:velo:full": "npm run savant:velo && npm run savant:arsenal:compact",
+    "context:bullpen:merge": "node src/jobs/mergeBullpenContextIntoBoard.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
