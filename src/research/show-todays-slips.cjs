@@ -153,7 +153,7 @@ console.log("==============");
 printSlipTable("Playable", playableSlips);
 
 console.log("");
-printLegTable("ACTIONABLE LEAN / LEAN LEGS", leanRows);
+printLegTable("LEAN / MANUAL REVIEW LEGS", leanRows);
 
 console.log("");
 printLegTable("CONTROLLED UNLOCK WATCH", controlledUnlockRows);
