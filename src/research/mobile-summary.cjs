@@ -663,3 +663,147 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
   console.log("Shadow policy: track-only unless separately promoted by validated thresholds.");
 })();
 
+
+// MOBILE_CONTEXT_HEALTH_SECTION_V1
+(function printContextHealthSection() {
+  const fs = require("fs");
+
+  function readJson(file, fallback = null) {
+    try {
+      if (!fs.existsSync(file)) return fallback;
+      return JSON.parse(fs.readFileSync(file, "utf8"));
+    } catch {
+      return fallback;
+    }
+  }
+
+  function pick(obj, paths, fallback = null) {
+    for (const path of paths) {
+      const parts = path.split(".");
+      let cur = obj;
+      let ok = true;
+      for (const part of parts) {
+        if (!cur || typeof cur !== "object" || !(part in cur)) {
+          ok = false;
+          break;
+        }
+        cur = cur[part];
+      }
+      if (ok && cur !== undefined && cur !== null && cur !== "") return cur;
+    }
+    return fallback;
+  }
+
+  function pct(v) {
+    if (v === null || v === undefined || v === "") return "n/a";
+    if (typeof v === "string") return v;
+    const n = Number(v);
+    if (!Number.isFinite(n)) return "n/a";
+    if (n <= 1) return `${(n * 100).toFixed(1)}%`;
+    return `${n.toFixed(1)}%`;
+  }
+
+  function statusFromPct(value, good = 80, warn = 50) {
+    const raw = typeof value === "string" ? Number(value.replace("%", "")) : Number(value);
+    if (!Number.isFinite(raw)) return "UNKNOWN";
+    const n = raw <= 1 ? raw * 100 : raw;
+    if (n >= good) return "GOOD";
+    if (n >= warn) return "PARTIAL";
+    return "WEAK";
+  }
+
+  const coverage = readJson("outputs/context/context-coverage-report-latest.json", {});
+  const arsenal = readJson("outputs/context/arsenal-cache-report-latest.json", {});
+
+  const totalRows = pick(coverage, ["coverage.totalRows", "totalRows"], 0);
+  const lineupCoverage = pick(coverage, ["percentages.lineupCoverage", "lineupCoverage"], null);
+  const bullpenCoverage = pick(coverage, ["percentages.bullpenCoverage", "bullpenCoverage"], null);
+  const catcherCoverage = pick(coverage, ["percentages.catcherCoverage", "catcherCoverage"], null);
+  const umpireCoverage = pick(coverage, ["percentages.umpireCoverage", "umpireCoverage"], null);
+  const pitchTypeCoverage = pick(coverage, ["percentages.pitchTypeCoverage", "pitchTypeCoverage"], null);
+  const handednessCoverage = pick(coverage, ["percentages.handednessCoverage", "handednessCoverage"], null);
+  const contextAdjustedCoverage = pick(coverage, ["percentages.contextAdjustedCoverage", "contextAdjustedCoverage"], null);
+
+  const sourcePitchers = pick(arsenal, ["sourcePitchers", "summary.sourcePitchers"], 0);
+  const compactPitchers = pick(arsenal, ["compactPitchers", "summary.compactPitchers"], 0);
+  const starters = pick(arsenal, ["starters", "summary.starters"], 0);
+  const bullpen = pick(arsenal, ["bullpen", "summary.bullpen"], 0);
+  const unknownRole = pick(arsenal, ["unknownRole", "summary.unknownRole"], 0);
+  const cleanup = pick(arsenal, ["cleanup", "rawCleanup"], {});
+  const rawDeleted = pick(cleanup, ["deleted"], 0);
+  const rawKept = pick(cleanup, ["kept"], 0);
+  const retentionDays = pick(cleanup, ["retentionDays"], "n/a");
+
+  console.log("");
+  console.log("CONTEXT HEALTH");
+  console.log("--------------");
+  console.log(`Board rows checked: ${totalRows || "n/a"}`);
+  console.table([
+    {
+      layer: "Lineup",
+      coverage: pct(lineupCoverage),
+      status: statusFromPct(lineupCoverage, 90, 70)
+    },
+    {
+      layer: "Handedness",
+      coverage: pct(handednessCoverage),
+      status: statusFromPct(handednessCoverage, 90, 70)
+    },
+    {
+      layer: "Pitch type",
+      coverage: pct(pitchTypeCoverage),
+      status: statusFromPct(pitchTypeCoverage, 70, 40)
+    },
+    {
+      layer: "Catcher framing",
+      coverage: pct(catcherCoverage),
+      status: statusFromPct(catcherCoverage, 80, 55)
+    },
+    {
+      layer: "Umpire",
+      coverage: pct(umpireCoverage),
+      status: statusFromPct(umpireCoverage, 70, 40)
+    },
+    {
+      layer: "Bullpen fatigue",
+      coverage: pct(bullpenCoverage),
+      status: statusFromPct(bullpenCoverage, 70, 40)
+    },
+    {
+      layer: "Context adjusted",
+      coverage: pct(contextAdjustedCoverage),
+      status: statusFromPct(contextAdjustedCoverage, 70, 40)
+    }
+  ]);
+
+  console.log("ARSENAL CACHE");
+  console.log("-------------");
+  console.table([
+    {
+      sourcePitchers,
+      compactPitchers,
+      starters,
+      bullpen,
+      unknownRole,
+      rawKept,
+      rawDeleted,
+      retentionDays
+    }
+  ]);
+
+  const warnings = [];
+  if (statusFromPct(pitchTypeCoverage, 70, 40) === "WEAK") warnings.push("pitch_type_context_weak");
+  if (statusFromPct(bullpenCoverage, 70, 40) === "WEAK") warnings.push("bullpen_context_weak");
+  if (statusFromPct(umpireCoverage, 70, 40) === "WEAK") warnings.push("umpire_context_weak");
+  if (Number(compactPitchers || 0) < 60) warnings.push("arsenal_cache_low_pitcher_count");
+  if (Number(bullpen || 0) < 30) warnings.push("bullpen_arsenal_low_count");
+
+  if (warnings.length) {
+    console.log("CONTEXT WARNINGS");
+    console.log("----------------");
+    for (const w of warnings) console.log(`- ${w}`);
+  } else {
+    console.log("Context warnings: none");
+  }
+})();
+
