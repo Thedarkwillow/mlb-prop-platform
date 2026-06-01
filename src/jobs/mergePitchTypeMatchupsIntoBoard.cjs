@@ -4,6 +4,7 @@ const BOARD = "outputs/priced-board.json";
 const MATCHUPS = "data/savant/pitch-type-matchups.json";
 const ARSENAL = "data/savant/pitcher-arsenal-compact.json";
 const PROBABLE = "data/context/probable-pitcher-hands.json";
+const SAVANT = "data/savant-latest.json";
 
 function readJson(file, fallback) {
   try {
@@ -169,14 +170,12 @@ function isExplicitPitcherMarket(row, arsenalByName) {
   const sourceType = String(row.sourceType || row.playerType || row.recordSourceType || "")
     .toLowerCase()
     .trim();
-
   const position = String(row.position || row.playerPosition || "")
     .toUpperCase()
     .trim();
 
-  if (sourceType === "batter" || sourceType === "hitter") return false;
-  if (sourceType === "pitcher" || position === "P") return true;
-
+  // Explicit pitcher markets must win over dirty PrizePicks sourceType.
+  // Plain "strikeouts" is intentionally handled separately because it can be hitter Ks or pitcher Ks.
   if (
     m.includes("pitching") ||
     m.includes("outs") ||
@@ -189,6 +188,9 @@ function isExplicitPitcherMarket(row, arsenalByName) {
   ) {
     return true;
   }
+
+  if (sourceType === "pitcher" || position === "P") return true;
+  if (sourceType === "batter" || sourceType === "hitter") return false;
 
   if (m === "strikeouts") {
     return arsenalByName.has(norm(row.player));
@@ -273,6 +275,64 @@ function opponentPitcherFromRow(row, probable) {
   return null;
 }
 
+
+function buildPitcherProfileIndex(rows) {
+  const out = new Map();
+  const arr = Array.isArray(rows) ? rows : rows?.rows || [];
+
+  for (const r of arr) {
+    if (!r || typeof r !== "object") continue;
+    if (String(r.playerType || "").toLowerCase() !== "pitcher") continue;
+
+    const name = r.player || r.pitcher || r.name || r.fullName || r.pitcherName;
+    const key = norm(name);
+    if (!key) continue;
+
+    const hasProfile =
+      Number.isFinite(Number(r.xwoba)) ||
+      Number.isFinite(Number(r.xslg)) ||
+      Number.isFinite(Number(r.hardHitRate)) ||
+      Number.isFinite(Number(r.whiffRate)) ||
+      Number.isFinite(Number(r.kRate));
+
+    if (!hasProfile) continue;
+
+    out.set(key, {
+      player: name,
+      playerId: r.playerId || r.id || null,
+      pa: Number.isFinite(Number(r.pa)) ? Number(r.pa) : null,
+      xwoba: Number.isFinite(Number(r.xwoba)) ? Number(r.xwoba) : null,
+      xslg: Number.isFinite(Number(r.xslg)) ? Number(r.xslg) : null,
+      xba: Number.isFinite(Number(r.xba)) ? Number(r.xba) : null,
+      barrelRate: Number.isFinite(Number(r.barrelRate)) ? Number(r.barrelRate) : null,
+      hardHitRate: Number.isFinite(Number(r.hardHitRate)) ? Number(r.hardHitRate) : null,
+      whiffRate: Number.isFinite(Number(r.whiffRate)) ? Number(r.whiffRate) : null,
+      kRate: Number.isFinite(Number(r.kRate)) ? Number(r.kRate) : null,
+      avgExitVelocity: Number.isFinite(Number(r.avgExitVelocity)) ? Number(r.avgExitVelocity) : null
+    });
+  }
+
+  return out;
+}
+
+function attachPitcherProfileOnly(next, pitcherName, pitcherProfiles) {
+  const profile = pitcherProfiles.get(norm(pitcherName));
+  if (!profile) return false;
+
+  next.pitchTypePitcherProfileAvailable = true;
+  next.pitchTypePitcherProfileOnly = true;
+  next.pitchTypePitcherProfile = profile;
+  next.pitchTypeMatchupFlags = [
+    ...new Set([
+      ...(Array.isArray(next.pitchTypeMatchupFlags) ? next.pitchTypeMatchupFlags : []),
+      "PITCHER_PROFILE_AVAILABLE",
+      "MISSING_PITCHER_ARSENAL"
+    ])
+  ];
+
+  return true;
+}
+
 function compactPitchTypes(rec) {
   return topPitchTypes(rec).slice(0, 5).map(p => ({
     pitchType: p.pitchType || p.type || p.code || p.name || p.pitch || null,
@@ -290,6 +350,8 @@ const board = readJson(BOARD, []);
 const matchupFile = readJson(MATCHUPS, { matchups: {} });
 const arsenalFile = readJson(ARSENAL, {});
 const probable = readJson(PROBABLE, { opponentPitcherByTeam: {} });
+const savantRows = readJson(SAVANT, []);
+const pitcherProfiles = buildPitcherProfileIndex(savantRows);
 
 const matchups = matchupFile.matchups || {};
 const arsenalByName = collectArsenalRecords(arsenalFile);
@@ -316,6 +378,9 @@ const out = board.map(row => {
   next.pitchTypeSource = null;
   next.pitchTypeNeutralFallback = false;
   next.pitchTypePitcherArsenalReady = false;
+  next.pitchTypePitcherProfileAvailable = false;
+  next.pitchTypePitcherProfileOnly = false;
+  next.pitchTypePitcherProfile = null;
   next.pitchTypePrimaryPitches = [];
   next.pitchTypeMatchupFlags = [];
 
@@ -345,6 +410,7 @@ const out = board.map(row => {
       next.pitchTypeMatchupAvailable = false;
       next.pitchTypeMatchupTier = "unknown";
       next.pitchTypeMatchupFlags = ["MISSING_PITCHER_PROP_ARSENAL"];
+      attachPitcherProfileOnly(next, pitcherName, pitcherProfiles);
       fallbackRows += 1;
     }
 
