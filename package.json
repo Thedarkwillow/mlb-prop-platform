@@ -269,7 +269,8 @@
     "savant:arsenal:compact": "node src/learning/compact-savant-arsenal-cache.cjs",
     "savant:velo:compact": "npm run savant:velo && npm run savant:arsenal:compact",
     "savant:velo:full": "npm run savant:velo && npm run savant:arsenal:compact",
-    "context:bullpen:merge": "node src/jobs/mergeBullpenContextIntoBoard.cjs"
+    "context:bullpen:merge": "node src/jobs/mergeBullpenContextIntoBoard.cjs",
+    "explain:blocked": "node src/research/blocked-candidate-explain-report.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
