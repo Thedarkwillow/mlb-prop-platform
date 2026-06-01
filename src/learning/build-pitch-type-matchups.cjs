@@ -121,22 +121,104 @@ function buildHitterIndex(rows) {
 }
 
 function topPitchTypes(pitcherRec) {
-  const types = pitcherRec?.windows?.season?.pitchTypes || {};
-  return Object.entries(types)
-    .map(([pitchType, r]) => ({
-      pitchType,
-      usage: Number(r.pitchPercent || 0),
-      velocity: Number(r.velocity || 0),
-      whiffRate: Number(r.whiffRate || 0),
-      xwoba: Number(r.xwoba || 0),
-      xslg: Number(r.xslg || 0),
-      hardHitRate: Number(r.hardHitRate || 0),
-      runValuePer100: Number(r.runValuePer100 || 0),
-      pitches: Number(r.pitches || 0)
-    }))
-    .filter(r => r.pitches > 0)
-    .sort((a, b) => b.usage - a.usage)
-    .slice(0, 5);
+  function num(v) {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function normalizePitchArray(v) {
+    if (!v) return [];
+
+    let arr = [];
+
+    if (Array.isArray(v)) {
+      arr = v;
+    } else if (typeof v === "object") {
+      arr = Object.entries(v).map(([pitchType, rec]) => ({
+        pitchType,
+        ...(rec && typeof rec === "object" ? rec : {})
+      }));
+    }
+
+    return arr
+      .map((r, i) => ({
+        pitchType:
+          r.pitchType ||
+          r.type ||
+          r.code ||
+          r.name ||
+          r.pitch ||
+          `P${i + 1}`,
+        usage: num(
+          r.usage ??
+          r.pitchPercent ??
+          r.pitch_pct ??
+          r.pitchPct ??
+          r.percent ??
+          r.pct
+        ),
+        velocity: num(
+          r.velocity ??
+          r.velo ??
+          r.avgVelocity ??
+          r.avgVelo
+        ),
+        whiffRate: num(
+          r.whiffRate ??
+          r.whiff ??
+          r.whiff_pct ??
+          r.whiffPct
+        ),
+        xwoba: num(
+          r.xwoba ??
+          r.xwOBA ??
+          r.expectedWoba
+        ),
+        xslg: num(
+          r.xslg ??
+          r.xSLG ??
+          r.expectedSlg
+        ),
+        hardHitRate: num(
+          r.hardHitRate ??
+          r.hardHit ??
+          r.hard_hit_pct ??
+          r.hardHitPct
+        ),
+        runValuePer100: num(
+          r.runValuePer100 ??
+          r.rv100 ??
+          r.run_value_per_100 ??
+          r.runValue
+        ),
+        pitches: num(
+          r.pitches ??
+          r.count ??
+          r.n ??
+          r.total ??
+          1
+        )
+      }))
+      .filter(r => r.pitchType && (r.pitches > 0 || r.usage > 0))
+      .sort((a, b) => b.usage - a.usage)
+      .slice(0, 5);
+  }
+
+  const candidates = [
+    pitcherRec?.windows?.season?.pitchTypes,
+    pitcherRec?.season?.pitchTypes,
+    pitcherRec?.pitchTypes,
+    pitcherRec?.primaryPitches,
+    pitcherRec?.pitches,
+    pitcherRec?.arsenal
+  ];
+
+  for (const c of candidates) {
+    const out = normalizePitchArray(c);
+    if (out.length) return out;
+  }
+
+  return [];
 }
 
 function scoreMatchup(hitter, pitcherRec) {
@@ -255,31 +337,37 @@ function collectPitcherArsenalMap(src) {
     return norm(v);
   }
 
-  function addRecord(rec) {
+  function identity(rec, fallbackKey = null) {
+    return (
+      rec?.pitcher ||
+      rec?.player ||
+      rec?.name ||
+      rec?.fullName ||
+      rec?.pitcherName ||
+      fallbackKey ||
+      null
+    );
+  }
+
+  function addRecord(rec, fallbackKey = null) {
     if (!rec || typeof rec !== "object") return;
 
-    const name =
-      rec.pitcher ||
-      rec.player ||
-      rec.name ||
-      rec.fullName ||
-      rec.pitcherName ||
-      null;
-
+    const name = identity(rec, fallbackKey);
     const key = normName(name);
     if (!key) return;
 
-    const hasPitchTypes =
-      rec.windows?.season?.pitchTypes ||
-      rec.season?.pitchTypes ||
-      rec.pitchTypes;
-
+    const hasPitchTypes = topPitchTypes(rec).length > 0;
     if (!hasPitchTypes) return;
 
-    map[key] = rec;
+    if (!map[key] || topPitchTypes(map[key]).length === 0) {
+      map[key] = {
+        ...rec,
+        pitcher: rec.pitcher || rec.player || rec.name || rec.fullName || rec.pitcherName || name
+      };
+    }
   }
 
-  function walk(v) {
+  function walk(v, fallbackKey = null) {
     if (!v) return;
 
     if (Array.isArray(v)) {
@@ -289,24 +377,23 @@ function collectPitcherArsenalMap(src) {
 
     if (typeof v !== "object") return;
 
-    addRecord(v);
+    addRecord(v, fallbackKey);
 
-    for (const value of Object.values(v)) {
+    for (const [key, value] of Object.entries(v)) {
       if (Array.isArray(value) || (value && typeof value === "object")) {
-        walk(value);
+        walk(value, key);
       }
     }
   }
 
   if (src.pitchers && typeof src.pitchers === "object" && !Array.isArray(src.pitchers)) {
     for (const [key, rec] of Object.entries(src.pitchers)) {
-      if (rec && typeof rec === "object") {
-        map[normName(rec.pitcher || rec.player || rec.name || key)] = rec;
-      }
+      addRecord(rec, key);
     }
   }
 
   walk(src);
+
   return map;
 }
 
