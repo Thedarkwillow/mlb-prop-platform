@@ -1,19 +1,10 @@
 const fs = require("fs");
 const path = require("path");
 
-const date =
-  process.argv.find(a => /^\d{4}-\d{2}-\d{2}$/.test(a)) ||
-  process.env.npm_config_date ||
-  new Date().toISOString().slice(0, 10);
-
-const FILES = {
-  board: "outputs/priced-board.json",
-  umpire: "data/context/umpires.json",
-  pitchType: "data/context/pitch-type-matchups.json",
-  pitchTypeAlt: "data/learning/pitch-type-matchups.json",
-  bullpen: "data/context/bullpen-fatigue.json",
-  catcher: "data/context/catcher-framing.json"
-};
+const date = process.argv[2] || process.env.npm_config_date || new Date().toISOString().slice(0, 10);
+const BOARD = "outputs/priced-board.json";
+const OUT = `outputs/context/context-coverage-report-${date}.json`;
+const LATEST = "outputs/context/context-coverage-report-latest.json";
 
 function readJson(file, fallback) {
   try {
@@ -24,126 +15,112 @@ function readJson(file, fallback) {
   }
 }
 
-function asArray(v) {
-  if (!v) return [];
-  if (Array.isArray(v)) return v;
-  if (Array.isArray(v.rows)) return v.rows;
-  if (Array.isArray(v.data)) return v.data;
-  if (Array.isArray(v.games)) return v.games;
-  if (Array.isArray(v.players)) return v.players;
-  if (Array.isArray(v.matchups)) return v.matchups;
-  return [];
-}
-
 function pct(n, d) {
   if (!d) return "0.0%";
   return `${((n / d) * 100).toFixed(1)}%`;
 }
 
+function truthy(v) {
+  return v === true || v === "true" || v === "READY" || v === "OK" || v === "GREEN" || Number(v) !== 0 && Number.isFinite(Number(v));
+}
+
 function hasAny(row, keys) {
-  return keys.some(k => row[k] !== undefined && row[k] !== null && String(row[k]).trim() !== "");
+  return keys.some(k => row[k] !== undefined && row[k] !== null && row[k] !== "");
 }
 
-function summarizeBoardContext(board) {
-  const rows = asArray(board);
-  const total = rows.length;
+const raw = readJson(BOARD, []);
+const rows = (Array.isArray(raw) ? raw : [])
+  .filter(r => r && typeof r === "object" && r.recordType !== "pricing_summary");
 
-  const umpireKeys = [
-    "umpire",
-    "homePlateUmpire",
-    "plateUmpire",
-    "umpireName",
-    "umpireContext",
-    "umpireRunFactor",
-    "umpireKFactor",
-    "umpireWalkFactor"
-  ];
+const totalRows = rows.length;
 
-  const pitchTypeKeys = [
-    "pitchTypeMatchup",
-    "pitchTypeEdge",
-    "pitchTypeScore",
-    "arsenalMatchup",
-    "pitchMixMatchup",
-    "pitchTypeContext",
-    "pitchTypeAdjustment"
-  ];
-
-  const bullpenKeys = [
-    "bullpenFatigue",
-    "bullpenFatigueScore",
-    "bullpenContext",
-    "bullpenRisk",
-    "bullpenAdjustment"
-  ];
-
-  const catcherKeys = [
-    "catcherFraming",
-    "catcherFramingRuns",
-    "catcherFramingKImpact",
-    "catcherFramingAdjustment",
-    "catcherContext"
-  ];
-
-  const out = {
-    totalRows: total,
-    umpireRows: rows.filter(r => hasAny(r, umpireKeys)).length,
-    pitchTypeRows: rows.filter(r => hasAny(r, pitchTypeKeys)).length,
-    bullpenRows: rows.filter(r => hasAny(r, bullpenKeys)).length,
-    catcherRows: rows.filter(r => hasAny(r, catcherKeys)).length
-  };
-
-  out.umpireCoveragePct = pct(out.umpireRows, total);
-  out.pitchTypeCoveragePct = pct(out.pitchTypeRows, total);
-  out.bullpenCoveragePct = pct(out.bullpenRows, total);
-  out.catcherCoveragePct = pct(out.catcherRows, total);
-
-  return out;
-}
-
-function fileStatus(file) {
-  if (!fs.existsSync(file)) {
-    return { file, exists: false, rows: 0, modifiedAt: null };
-  }
-  const stat = fs.statSync(file);
-  const raw = readJson(file, null);
-  return {
-    file,
-    exists: true,
-    rows: asArray(raw).length,
-    modifiedAt: stat.mtime.toISOString()
-  };
-}
-
-const board = readJson(FILES.board, []);
-const boardSummary = summarizeBoardContext(board);
-
-const files = Object.values(FILES).map(fileStatus);
-const warnings = [];
-
-if (!boardSummary.totalRows) warnings.push("priced_board_missing_or_empty");
-if (boardSummary.umpireRows === 0) warnings.push("umpire_context_missing_from_board");
-if (boardSummary.pitchTypeRows === 0) warnings.push("pitch_type_context_missing_from_board");
-if (boardSummary.bullpenRows === 0) warnings.push("bullpen_context_missing_from_board");
-if (boardSummary.catcherRows === 0) warnings.push("catcher_framing_context_missing_from_board");
-
-const report = {
+const coverage = {
   date,
   generatedAt: new Date().toISOString(),
-  boardSummary,
-  files,
-  warnings,
-  note: "Coverage report only. Missing context should warn/downgrade confidence, not silently create official plays."
+  boardFile: BOARD,
+  totalRows,
+
+  lineupRows: rows.filter(r =>
+    truthy(r.lineupStrengthReady) ||
+    hasAny(r, ["lineupTier", "lineupStrength", "lineupHitters", "lineupAvgHits", "lineupAvgTB", "lineupAvgHRR"])
+  ).length,
+
+  bullpenRows: rows.filter(r =>
+    truthy(r.ownBullpenFatigueReady) ||
+    truthy(r.opponentBullpenFatigueReady) ||
+    hasAny(r, ["ownBullpenFatigue", "opponentBullpenFatigue", "bullpenFatigue", "bullpenTier"])
+  ).length,
+
+  catcherRows: rows.filter(r =>
+    truthy(r.opponentCatcherFramingReady) ||
+    hasAny(r, ["opponentCatcher", "opponentCatcherFramingTier", "opponentCatcherFramingRunValue", "opponentCatcherFramingPct"])
+  ).length,
+
+  umpireRows: rows.filter(r =>
+    truthy(r.umpireContextReady) ||
+    truthy(r.umpireFramingAdjusted) ||
+    hasAny(r, ["umpire", "plateUmpire", "umpireContext", "umpireFramingAdjustment", "umpireKFactor"])
+  ).length,
+
+  pitchTypeRows: rows.filter(r =>
+    truthy(r.pitchTypeMatchupReady) ||
+    hasAny(r, ["pitchTypeMatchup", "pitchTypeMatchupScore", "pitchTypeAdjustment", "arsenalMatchup", "pitchArsenal"])
+  ).length,
+
+  handednessRows: rows.filter(r =>
+    truthy(r.handednessReady) ||
+    truthy(r.handednessMatched) ||
+    hasAny(r, ["handednessContext", "handednessAdjustment", "handednessMatchType"])
+  ).length,
+
+  contextAdjustedRows: rows.filter(r =>
+    hasAny(r, ["contextAdjustedProjection", "contextAdjustment", "handednessAdjustment", "umpireFramingAdjustment"])
+  ).length
 };
 
-fs.mkdirSync("outputs/context", { recursive: true });
-fs.writeFileSync(`outputs/context/context-coverage-report-${date}.json`, JSON.stringify(report, null, 2) + "\n");
-fs.writeFileSync("outputs/context/context-coverage-report-latest.json", JSON.stringify(report, null, 2) + "\n");
+coverage.percentages = {
+  lineupCoverage: pct(coverage.lineupRows, totalRows),
+  bullpenCoverage: pct(coverage.bullpenRows, totalRows),
+  catcherCoverage: pct(coverage.catcherRows, totalRows),
+  umpireCoverage: pct(coverage.umpireRows, totalRows),
+  pitchTypeCoverage: pct(coverage.pitchTypeRows, totalRows),
+  handednessCoverage: pct(coverage.handednessRows, totalRows),
+  contextAdjustedCoverage: pct(coverage.contextAdjustedRows, totalRows)
+};
+
+coverage.warnings = [];
+if (coverage.lineupRows === 0) coverage.warnings.push("lineup_context_missing_from_board");
+if (coverage.bullpenRows === 0) coverage.warnings.push("bullpen_context_missing_from_board");
+if (coverage.catcherRows === 0) coverage.warnings.push("catcher_framing_context_missing_from_board");
+if (coverage.umpireRows === 0) coverage.warnings.push("umpire_context_missing_from_board");
+if (coverage.pitchTypeRows === 0) coverage.warnings.push("pitch_type_context_missing_from_board");
+if (coverage.handednessRows === 0) coverage.warnings.push("handedness_context_missing_from_board");
+if (coverage.contextAdjustedRows === 0) coverage.warnings.push("no_context_adjusted_projection_fields_found");
+
+fs.mkdirSync(path.dirname(OUT), { recursive: true });
+fs.writeFileSync(OUT, JSON.stringify(coverage, null, 2) + "\n");
+fs.writeFileSync(LATEST, JSON.stringify(coverage, null, 2) + "\n");
 
 console.log("CONTEXT COVERAGE REPORT");
 console.log("-----------------------");
 console.log("date:", date);
-console.table([boardSummary]);
-console.log("warnings:", warnings.length ? warnings.join(", ") : "none");
-console.log("saved:", `outputs/context/context-coverage-report-${date}.json`);
-console.log("saved:", "outputs/context/context-coverage-report-latest.json");
+console.table([{
+  totalRows,
+  lineupRows: coverage.lineupRows,
+  bullpenRows: coverage.bullpenRows,
+  catcherRows: coverage.catcherRows,
+  umpireRows: coverage.umpireRows,
+  pitchTypeRows: coverage.pitchTypeRows,
+  handednessRows: coverage.handednessRows,
+  contextAdjustedRows: coverage.contextAdjustedRows,
+  lineupCoverage: coverage.percentages.lineupCoverage,
+  bullpenCoverage: coverage.percentages.bullpenCoverage,
+  catcherCoverage: coverage.percentages.catcherCoverage,
+  umpireCoverage: coverage.percentages.umpireCoverage,
+  pitchTypeCoverage: coverage.percentages.pitchTypeCoverage,
+  handednessCoverage: coverage.percentages.handednessCoverage,
+  contextAdjustedCoverage: coverage.percentages.contextAdjustedCoverage
+}]);
+if (coverage.warnings.length) console.log("warnings:", coverage.warnings.join(", "));
+console.log("saved:", OUT);
+console.log("saved:", LATEST);
