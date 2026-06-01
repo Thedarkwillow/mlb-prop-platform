@@ -1,11 +1,19 @@
 const fs = require("fs");
+function getDateArg() {
+  const argvDate = process.argv.find(a => /^--date=/.test(a));
+  if (argvDate) return argvDate.split("=")[1];
+  const positional = process.argv.slice(2).find(a => /^\d{4}-\d{2}-\d{2}$/.test(a));
+  return (
+    process.env.SLATE_DATE ||
+    process.env.npm_config_date ||
+    positional ||
+    new Date().toISOString().slice(0, 10)
+  );
+}
+
 const path = require("path");
 
-const DATE =
-  process.env.SLATE_DATE ||
-  process.env.npm_config_date ||
-  process.argv[2] ||
-  new Date().toISOString().slice(0, 10);
+const DATE = getDateArg();
 
 const INPUT = "data/savant/pitcher-velocity-trends.json";
 const STAFFS = "data/context/pitching-staffs.json";
