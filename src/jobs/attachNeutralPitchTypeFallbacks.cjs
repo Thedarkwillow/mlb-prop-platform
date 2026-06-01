@@ -19,14 +19,22 @@ function isPricingSummary(row) {
   return row?.recordType === "pricing_summary";
 }
 
-function hasPitchType(row) {
-  return row.pitchTypeMatchupReady === true ||
-    row.pitchTypeMatchupScored === true ||
-    row.pitchTypeNeutralFallback === true ||
-    row.pitchTypeMatchupScore !== undefined ||
-    row.pitchTypeMatchupTier ||
-    row.pitchTypePrimaryPitches ||
-    row.pitchTypePitcherArsenal;
+function hasRealOrFallbackPitchType(row) {
+  if (row.pitchTypeNeutralFallback === true) return true;
+  if (row.pitchTypeMatchupReady === true) return true;
+  if (row.pitchTypeMatchupScored === true) return true;
+
+  const tier = String(row.pitchTypeMatchupTier || "").toLowerCase();
+  const score = Number(row.pitchTypeMatchupScore);
+
+  if (tier && tier !== "unknown" && tier !== "neutral") return true;
+  if (Number.isFinite(score) && score !== 0) return true;
+
+  if (row.pitchTypePitcherArsenal && typeof row.pitchTypePitcherArsenal === "object") {
+    return true;
+  }
+
+  return false;
 }
 
 function marketType(row) {
@@ -48,7 +56,7 @@ let added = 0;
 
 const out = board.map(row => {
   if (!row || typeof row !== "object" || isPricingSummary(row)) return row;
-  if (hasPitchType(row)) return row;
+  if (hasRealOrFallbackPitchType(row)) return row;
 
   added++;
 
