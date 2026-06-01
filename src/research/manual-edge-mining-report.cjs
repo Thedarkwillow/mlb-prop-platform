@@ -33,10 +33,21 @@ function pct(n, d) {
 }
 
 function gradeBucket(x) {
-  if (x.graded >= 8 && x.hitRate >= 70) return "AUTOMATION_CANDIDATE";
-  if (x.graded >= 5 && x.hitRate >= 65) return "WATCH_MORE_SAMPLE";
-  if (x.graded >= 5 && x.hitRate <= 52) return "AVOID_OR_DOWNGRADE";
-  return "LOW_SAMPLE";
+  const graded = Number(x.graded || 0);
+  const hitRate = Number(x.hitRate || 0);
+
+  /*
+    Manual buckets should not be promoted or downgraded from tiny samples.
+    These are research-only labels, not execution rules.
+  */
+  if (graded < 30) {
+    if (graded >= 5 && hitRate >= 65) return "WATCH_MORE_SAMPLE";
+    return "LOW_SAMPLE";
+  }
+
+  if (hitRate >= 60) return "AUTOMATION_CANDIDATE";
+  if (hitRate <= 47) return "AVOID_OR_DOWNGRADE";
+  return "MONITOR_NEUTRAL";
 }
 
 function bucketKey(r) {
