@@ -807,3 +807,81 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
   }
 })();
 
+// REAL_PITCH_TYPE_QUALITY_SECTION_V1
+(function printRealPitchTypeQualitySection() {
+  const fs = require("fs");
+
+  function readJson(file, fallback = null) {
+    try {
+      if (!fs.existsSync(file)) return fallback;
+      return JSON.parse(fs.readFileSync(file, "utf8"));
+    } catch {
+      return fallback;
+    }
+  }
+
+  function pct(n, d) {
+    if (!d) return "0.0%";
+    return `${((Number(n || 0) / Number(d || 0)) * 100).toFixed(1)}%`;
+  }
+
+  const report = readJson("outputs/context/real-pitch-type-coverage-latest.json", null);
+  const targets = readJson("outputs/context/real-pitch-type-target-list-latest.json", null);
+
+  if (!report && !targets) return;
+
+  const counts = report?.counts || report || {};
+  const rows = counts.rows || counts.totalRows || 0;
+  const realScored = counts.realScored || counts.realScoredRows || 0;
+  const fallback = counts.neutralFallback || counts.neutralFallbackRows || 0;
+  const missing = counts.notRealScored || counts.missingRows || fallback || 0;
+
+  console.log("");
+  console.log("REAL PITCH TYPE QUALITY");
+  console.log("-----------------------");
+  console.table([{
+    rows,
+    realScored,
+    neutralFallback: fallback,
+    missingRealData: missing,
+    realCoverage: pct(realScored, rows),
+    fallbackRate: pct(fallback, rows)
+  }]);
+
+  const reasonCounts =
+    report?.reasonCounts ||
+    report?.byReason ||
+    report?.summary?.byReason ||
+    [];
+
+  if (Array.isArray(reasonCounts) && reasonCounts.length) {
+    console.log("Top real pitch-type gaps:");
+    console.table(reasonCounts.slice(0, 8));
+  }
+
+  const pitcherTargets = targets?.pitcherArsenalTargets || [];
+  const hitterTargets = targets?.hitterMatchupTargets || [];
+
+  if (pitcherTargets.length) {
+    console.log("Top pitcher arsenal targets:");
+    console.table(pitcherTargets.slice(0, 8).map(r => ({
+      pitcher: r.pitcher || r.player,
+      team: r.team,
+      rows: r.rows,
+      topMarket: r.marketList?.[0]?.market || r.topMarket || null
+    })));
+  }
+
+  if (hitterTargets.length) {
+    console.log("Top hitter matchup targets:");
+    console.table(hitterTargets.slice(0, 8).map(r => ({
+      player: r.player,
+      pitcher: r.pitcher,
+      team: r.team,
+      game: r.game,
+      rows: r.rows,
+      topMarket: r.marketList?.[0]?.market || r.topMarket || null
+    })));
+  }
+})();
+
