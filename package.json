@@ -281,7 +281,8 @@
     "context:pitch-type:repair-ids": "node src/research/repair-pitch-type-target-mlb-ids.cjs",
     "context:pitch-type:targets:sanitize": "node src/research/sanitize-real-pitch-type-target-list.cjs",
     "context:pitch-type:repair-ids:manual": "node src/research/apply-pitch-type-target-manual-ids.cjs",
-    "context:real-quality": "node src/research/real-context-quality-audit.cjs"
+    "context:real-quality": "node src/research/real-context-quality-audit.cjs",
+    "context:pitch-type:reconcile": "node src/research/reconcile-pitch-type-real-coverage.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
