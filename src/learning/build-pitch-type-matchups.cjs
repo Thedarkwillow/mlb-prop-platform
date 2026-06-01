@@ -1,7 +1,7 @@
 const fs = require("fs");
 
 const BOARD = "outputs/priced-board.json";
-const ARSENAL = "data/savant/pitcher-velocity-trends.json";
+const ARSENAL = "data/savant/pitcher-arsenal-compact.json";
 const HANDS = "data/context/probable-pitcher-hands.json";
 const SAVANT = "data/savant-latest.json";
 const OUT = "data/savant/pitch-type-matchups.json";
@@ -248,7 +248,69 @@ const probable = read(HANDS, {});
 const savantRows = read(SAVANT, []);
 
 const hitters = buildHitterIndex(Array.isArray(savantRows) ? savantRows : savantRows.rows || []);
-const pitcherArsenal = arsenal.pitchers || {};
+function collectPitcherArsenalMap(src) {
+  const map = {};
+
+  function normName(v) {
+    return norm(v);
+  }
+
+  function addRecord(rec) {
+    if (!rec || typeof rec !== "object") return;
+
+    const name =
+      rec.pitcher ||
+      rec.player ||
+      rec.name ||
+      rec.fullName ||
+      rec.pitcherName ||
+      null;
+
+    const key = normName(name);
+    if (!key) return;
+
+    const hasPitchTypes =
+      rec.windows?.season?.pitchTypes ||
+      rec.season?.pitchTypes ||
+      rec.pitchTypes;
+
+    if (!hasPitchTypes) return;
+
+    map[key] = rec;
+  }
+
+  function walk(v) {
+    if (!v) return;
+
+    if (Array.isArray(v)) {
+      for (const x of v) walk(x);
+      return;
+    }
+
+    if (typeof v !== "object") return;
+
+    addRecord(v);
+
+    for (const value of Object.values(v)) {
+      if (Array.isArray(value) || (value && typeof value === "object")) {
+        walk(value);
+      }
+    }
+  }
+
+  if (src.pitchers && typeof src.pitchers === "object" && !Array.isArray(src.pitchers)) {
+    for (const [key, rec] of Object.entries(src.pitchers)) {
+      if (rec && typeof rec === "object") {
+        map[normName(rec.pitcher || rec.player || rec.name || key)] = rec;
+      }
+    }
+  }
+
+  walk(src);
+  return map;
+}
+
+const pitcherArsenal = collectPitcherArsenalMap(arsenal);
 
 const props = board.filter(r => r.recordType === "merged_prop");
 const matchups = {};
