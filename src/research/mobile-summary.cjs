@@ -206,3 +206,157 @@ if ((roi?.gradedLegs || finishedGraded) === 0) console.log("No finished graded l
 if (unique.some(l => Number(l.books ?? l.sportsbookBookCount ?? 0) < 2)) console.log("Some legs have low book support.");
 if (!clv) console.log("CLV needs snapshots from: npm run snap");
 if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm run picks");
+
+
+// CANDIDATE_ROI_MOBILE_SECTION_V1
+(function printCandidateRoiMobileSection() {
+  const fs = require("fs");
+
+  const file = "outputs/candidate-class-roi-report.json";
+  if (!fs.existsSync(file)) {
+    console.log("");
+    console.log("CANDIDATE ROI SUMMARY");
+    console.log("---------------------");
+    console.log("No candidate ROI report yet. Run: npm run roi:candidates");
+    return;
+  }
+
+  function readJson(path, fallback) {
+    try {
+      return JSON.parse(fs.readFileSync(path, "utf8"));
+    } catch {
+      return fallback;
+    }
+  }
+
+  function arr(v) {
+    if (!v) return [];
+    if (Array.isArray(v)) return v;
+    if (typeof v === "object") {
+      return Object.entries(v).map(([bucket, x]) => ({
+        bucket,
+        ...(x && typeof x === "object" ? x : {})
+      }));
+    }
+    return [];
+  }
+
+  function pickRows(report, keys) {
+    for (const key of keys) {
+      const v = report?.[key];
+      if (v) return arr(v);
+    }
+    return [];
+  }
+
+  function pct(v) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return "n/a";
+    return `${(n * 100).toFixed(1)}%`;
+  }
+
+  function fmtStat(x) {
+    if (!x) return "n/a";
+    const graded = Number(x.graded ?? x.count ?? x.picks ?? 0);
+    const hits = Number(x.hits ?? 0);
+    const misses = Number(x.misses ?? 0);
+    const unmatched = Number(x.unmatched ?? 0);
+    const hitRate = x.hitRate ?? (graded ? hits / graded : null);
+    const roi = x.roi ?? (graded ? (hits - misses) / graded : null);
+    return `graded=${graded} hits=${hits} misses=${misses} unmatched=${unmatched} hitRate=${pct(hitRate)} roi=${pct(roi)}`;
+  }
+
+  function bucketName(x) {
+    return String(x.bucket ?? x.layer ?? x.key ?? x.date ?? x.name ?? "unknown");
+  }
+
+  function topByRoi(rows, minGraded = 2, limit = 5) {
+    return rows
+      .filter(x => Number(x.graded ?? x.count ?? 0) >= minGraded)
+      .sort((a, b) => Number(b.roi ?? -999) - Number(a.roi ?? -999))
+      .slice(0, limit);
+  }
+
+  function bottomByRoi(rows, minGraded = 2, limit = 5) {
+    return rows
+      .filter(x => Number(x.graded ?? x.count ?? 0) >= minGraded)
+      .sort((a, b) => Number(a.roi ?? 999) - Number(b.roi ?? 999))
+      .slice(0, limit);
+  }
+
+  const report = readJson(file, null);
+  if (!report) return;
+
+  const overall =
+    report.overall ||
+    report.summary ||
+    report.total ||
+    report.all ||
+    null;
+
+  const byDate = pickRows(report, ["byDate", "date", "dates"]);
+  const byLayer = pickRows(report, ["byLayer", "layer", "layers"]);
+  const byMarketSide = pickRows(report, ["byMarketSide", "byMarketAndSide", "marketSide"]);
+  const bySideBias = pickRows(report, ["bySideBias", "sideBias"]);
+  const byTier = pickRows(report, ["byTier", "tier", "tiers"]);
+  const byProbBucket = pickRows(report, ["byProbBucket", "byProbabilityBucket", "probBucket"]);
+  const latestDate = byDate
+    .slice()
+    .sort((a, b) => String(b.bucket ?? b.date ?? "").localeCompare(String(a.bucket ?? a.date ?? "")))[0];
+
+  console.log("");
+  console.log("CANDIDATE ROI SUMMARY");
+  console.log("---------------------");
+
+  if (overall) {
+    console.log(`Overall: ${fmtStat(overall)}`);
+  }
+
+  if (latestDate) {
+    console.log(`Latest date ${bucketName(latestDate)}: ${fmtStat(latestDate)}`);
+  }
+
+  const bestLayers = topByRoi(byLayer, 2, 4);
+  if (bestLayers.length) {
+    console.log("Best layers:");
+    for (const row of bestLayers) {
+      console.log(`- ${bucketName(row)}: ${fmtStat(row)}`);
+    }
+  }
+
+  const weakLayers = bottomByRoi(byLayer, 2, 4);
+  if (weakLayers.length) {
+    console.log("Weak layers:");
+    for (const row of weakLayers) {
+      console.log(`- ${bucketName(row)}: ${fmtStat(row)}`);
+    }
+  }
+
+  const bestBuckets = [
+    ...topByRoi(byMarketSide, 3, 3),
+    ...topByRoi(bySideBias, 3, 3),
+    ...topByRoi(byTier, 3, 3),
+    ...topByRoi(byProbBucket, 3, 3)
+  ].slice(0, 8);
+
+  if (bestBuckets.length) {
+    console.log("Best candidate buckets:");
+    for (const row of bestBuckets) {
+      console.log(`- ${bucketName(row)}: ${fmtStat(row)}`);
+    }
+  }
+
+  const weakBuckets = [
+    ...bottomByRoi(byMarketSide, 3, 3),
+    ...bottomByRoi(bySideBias, 3, 3),
+    ...bottomByRoi(byTier, 3, 3),
+    ...bottomByRoi(byProbBucket, 3, 3)
+  ].slice(0, 8);
+
+  if (weakBuckets.length) {
+    console.log("Weak candidate buckets:");
+    for (const row of weakBuckets) {
+      console.log(`- ${bucketName(row)}: ${fmtStat(row)}`);
+    }
+  }
+})();
