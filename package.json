@@ -279,7 +279,8 @@
     "context:pitch-type:real-coverage": "node src/research/real-pitch-type-coverage-report.cjs",
     "context:pitch-type:targets": "node src/research/build-real-pitch-type-target-list.cjs",
     "context:pitch-type:repair-ids": "node src/research/repair-pitch-type-target-mlb-ids.cjs",
-    "context:pitch-type:targets:sanitize": "node src/research/sanitize-real-pitch-type-target-list.cjs"
+    "context:pitch-type:targets:sanitize": "node src/research/sanitize-real-pitch-type-target-list.cjs",
+    "context:pitch-type:repair-ids:manual": "node src/research/apply-pitch-type-target-manual-ids.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

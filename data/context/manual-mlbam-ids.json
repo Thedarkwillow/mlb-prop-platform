@@ -1,0 +1,72 @@
+{
+  "generatedAt": "2026-06-01T00:00:00.000Z",
+  "source": "manual_verified_from_prior_repair_and_local_target_repair",
+  "note": "Used when MLB people/search endpoint returns 406. Keyed by normalized player name.",
+  "players": {
+    "kylefreeland": {
+      "name": "Kyle Freeland",
+      "mlbamId": 607536,
+      "team": "COL"
+    },
+    "joeryan": {
+      "name": "Joe Ryan",
+      "mlbamId": 657746,
+      "team": "MIN"
+    },
+    "griffinjax": {
+      "name": "Griffin Jax",
+      "mlbamId": 643377,
+      "team": "TB"
+    },
+    "emmetsheehan": {
+      "name": "Emmet Sheehan",
+      "mlbamId": 686218,
+      "team": "LAD"
+    },
+    "chaseburns": {
+      "name": "Chase Burns",
+      "mlbamId": 695505,
+      "team": "CIN"
+    },
+    "landenroupp": {
+      "name": "Landen Roupp",
+      "mlbamId": 694738,
+      "team": "SF"
+    },
+    "michaelmcgreevy": {
+      "name": "Michael McGreevy",
+      "mlbamId": 700241,
+      "team": "STL"
+    },
+    "eduardorodriguez": {
+      "name": "Eduardo Rodriguez",
+      "mlbamId": 593958,
+      "team": "AZ"
+    },
+    "emersonhancock": {
+      "name": "Emerson Hancock",
+      "mlbamId": 676106,
+      "team": "SEA"
+    },
+    "tymadden": {
+      "name": "Ty Madden",
+      "mlbamId": 680744,
+      "team": "DET"
+    },
+    "luinderavila": {
+      "name": "Luinder Avila",
+      "mlbamId": 679883,
+      "team": "KC"
+    },
+    "shanedrohan": {
+      "name": "Shane Drohan",
+      "mlbamId": 675660,
+      "team": "MIL"
+    },
+    "shanebaz": {
+      "name": "Shane Baz",
+      "mlbamId": 669358,
+      "team": "BAL"
+    }
+  }
+}
