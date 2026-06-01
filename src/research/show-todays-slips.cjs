@@ -173,3 +173,96 @@ console.log("");
 console.log("FINAL SLIP OBJECTS");
 console.log("==================");
 printSlipTable("Final slips", finalSlips);
+
+
+// BLOCKED_EXPLAIN_SHOW_SECTION_V1
+(function printBlockedExplainSection() {
+  const fs = require("fs");
+
+  function readJson(file, fallback = null) {
+    try {
+      if (!fs.existsSync(file)) return fallback;
+      return JSON.parse(fs.readFileSync(file, "utf8"));
+    } catch {
+      return fallback;
+    }
+  }
+
+  function rowsFrom(report) {
+    if (!report) return [];
+    if (Array.isArray(report.rows)) return report.rows;
+    if (Array.isArray(report.explanations)) return report.explanations;
+    if (Array.isArray(report.candidates)) return report.candidates;
+    return [];
+  }
+
+  function pct(v) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return "n/a";
+    return `${(n * 100).toFixed(1)}%`;
+  }
+
+  function fmt(v) {
+    if (v === null || v === undefined || v === "") return "n/a";
+    return v;
+  }
+
+  function reasonsOf(r) {
+    const raw =
+      r.reasons ||
+      r.failReasons ||
+      r.blockedReasons ||
+      r.reason ||
+      r.blockedReason ||
+      r.flags ||
+      [];
+
+    const arr = Array.isArray(raw)
+      ? raw
+      : String(raw).split(",").map(x => x.trim()).filter(Boolean);
+
+    return arr.slice(0, 5).join(", ") || "n/a";
+  }
+
+  const report = readJson("outputs/blocked-candidate-explain-latest.json", null);
+  const rows = rowsFrom(report);
+
+  console.log("WHY NO PLAY / BLOCKED EXPLAIN");
+  console.log("-----------------------------");
+
+  if (!rows.length) {
+    console.log("None.");
+    return;
+  }
+
+  const sorted = rows
+    .slice()
+    .sort((a, b) => {
+      const ap = Number(a.prob ?? a.recommendedProb ?? 0);
+      const bp = Number(b.prob ?? b.recommendedProb ?? 0);
+      const ae = Number(a.edge ?? a.expectedValue ?? 0);
+      const be = Number(b.edge ?? b.expectedValue ?? 0);
+      return (bp + be) - (ap + ae);
+    })
+    .slice(0, 12);
+
+  console.table(sorted.map(r => ({
+    player: fmt(r.player || r.playerName),
+    market: fmt(r.market),
+    side: fmt(r.side || r.recommendedSide),
+    line: fmt(r.line),
+    tier: fmt(r.tier || r.oddsTier),
+    prob: Number.isFinite(Number(r.prob ?? r.recommendedProb))
+      ? pct(Number(r.prob ?? r.recommendedProb))
+      : "n/a",
+    edge: fmt(r.edge ?? r.expectedValue),
+    recommendation: fmt(r.recommendation || r.rec || r.action || "TRACK_ONLY"),
+    reason: reasonsOf(r)
+  })));
+
+  const byRec = report.byRecommendation || report.summary?.byRecommendation || {};
+  if (Object.keys(byRec).length) {
+    console.log("Blocked explain counts:", byRec);
+  }
+})();
+
