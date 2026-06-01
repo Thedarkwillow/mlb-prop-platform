@@ -47,9 +47,29 @@ function isPricingSummary(row) {
 }
 
 function isRealPitchTypeScored(row) {
-  return row.pitchTypeMatchupScored === true &&
-    row.pitchTypeNeutralFallback !== true &&
-    String(row.pitchTypeMatchupTier || "").toLowerCase() !== "neutral";
+  if (row.pitchTypeNeutralFallback === true) return false;
+
+  const tier = String(row.pitchTypeMatchupTier || "").toLowerCase();
+  const source = String(row.pitchTypeSource || "").toUpperCase();
+  const score = Number(row.pitchTypeMatchupScore);
+
+  if (row.pitchTypeMatchupScored === true && tier !== "neutral" && tier !== "unknown") {
+    return true;
+  }
+
+  if (row.pitchTypeMatchupReady === true && source !== "NEUTRAL_FALLBACK") {
+    return true;
+  }
+
+  if (row.pitchTypePitcherArsenal && typeof row.pitchTypePitcherArsenal === "object") {
+    return true;
+  }
+
+  if (Number.isFinite(score) && score !== 0 && tier !== "neutral" && tier !== "unknown") {
+    return true;
+  }
+
+  return false;
 }
 
 function isPitcherMarket(row) {
