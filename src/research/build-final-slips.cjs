@@ -1459,6 +1459,112 @@ function isFinalCandidate(x) {
 
 
 const blockedCandidates = [];
+const leanWatchlistCandidates = [];
+
+function hasAnyReason(reasons, names) {
+  const set = new Set(names);
+  return Array.isArray(reasons) && reasons.some(r => set.has(r));
+}
+
+function classifyLeanWatchlistCandidate(x) {
+  const reasons = Array.isArray(x.reasons) ? x.reasons : [];
+  const prob = Number(x.prob);
+  const edge = Number(x.edge);
+  const score = Number(x.score);
+  const confidence = String(x.confidence || "").toLowerCase();
+  const market = String(x.market || "").toLowerCase();
+  const side = String(x.side || "").toUpperCase();
+
+  const hardRejectReasons = [
+    "weak_confidence",
+    "unmodeled_confidence",
+    "auto_market_suppressed",
+    "phase6_adaptive_suppressed",
+    "trust_suppressed",
+    "validation_suppressed",
+    "phase6_hardban",
+    "no_distribution_model",
+    "no_sportsbook_match",
+    "no_edge",
+    "negative_edge"
+  ];
+
+  if (hasAnyReason(reasons, hardRejectReasons)) return null;
+  if (!Number.isFinite(prob) || !Number.isFinite(edge) || !Number.isFinite(score)) return null;
+  if (edge <= 0) return null;
+
+  const acceptableMissReasons = [
+    "score_below_adaptive_minimum",
+    "non_elite_score_below_adaptive_floor",
+    "elite_score_below_adaptive_floor",
+    "high_volatility_non_elite",
+    "failed_market_gate",
+    "goblin_prob_below_72"
+  ];
+
+  const onlyAcceptableMisses = reasons.every(r => acceptableMissReasons.includes(r));
+  if (!onlyAcceptableMisses) return null;
+
+  const isGoblinBelow72 = reasons.includes("goblin_prob_below_72");
+  const isHighVol = reasons.includes("high_volatility_non_elite");
+  const failedMarketGate = reasons.includes("failed_market_gate");
+
+  const goodMarkets = new Set([
+    "bases",
+    "hits",
+    "walks",
+    "strikeouts",
+    "pitching_outs",
+    "hits_allowed",
+    "earned_runs_allowed"
+  ]);
+
+  if (!goodMarkets.has(market)) return null;
+
+  if (
+    prob >= 0.65 &&
+    edge >= 0.10 &&
+    ["playable", "strong", "elite"].includes(confidence)
+  ) {
+    return {
+      classification: isGoblinBelow72 || isHighVol || failedMarketGate ? "LEAN" : "LEAN",
+      stakeGuidance: "0.25u max / optional only",
+      officialEligible: false
+    };
+  }
+
+  if (
+    prob >= 0.58 &&
+    edge >= 0.06 &&
+    ["watchlist", "playable", "strong", "elite"].includes(confidence)
+  ) {
+    return {
+      classification: "WATCHLIST",
+      stakeGuidance: "track only / no official bet",
+      officialEligible: false
+    };
+  }
+
+  return null;
+}
+
+function maybeAddLeanWatchlistCandidate(candidate) {
+  const label = classifyLeanWatchlistCandidate(candidate);
+  if (!label) return;
+
+  leanWatchlistCandidates.push({
+    ...candidate,
+    ...label,
+    note: candidate.reasons?.includes("goblin_prob_below_72")
+      ? "Strong candidate, but goblin probability is below official 72% requirement."
+      : candidate.reasons?.includes("high_volatility_non_elite")
+        ? "Positive edge candidate, but volatility is too high for official."
+        : candidate.reasons?.includes("failed_market_gate")
+          ? "Positive edge candidate, but market gate did not clear official standards."
+          : "Positive edge candidate that missed official threshold."
+  });
+}
+
 
 function getBlockReason(x) {
   if (phase6HardBanned(x)) return "phase6_hardban";
@@ -1482,12 +1588,14 @@ const top = priced
   .filter(x => {
     const ok = isFinalCandidate(x);
     if (!ok) {
+      const rawScore = finalScore(x);
+      const gate = finalExecutionGate(x);
       const audited = applyFullBoardPromotion(
-        { ...x, finalScore: finalScore(x) },
+        { ...x, finalScore: rawScore },
         fullBoardPromotionMap
       );
 
-      blockedCandidates.push({
+      const blockedRecord = {
         player: x.player,
         team: x.team ?? null,
         game: x.game || x.sportsbookGame || x.resolvedGame || null,
@@ -1499,17 +1607,29 @@ const top = priced
         market: x.market,
         side: x.side,
         line: x.line,
-        reason: getBlockReason(x),
-        reasons: finalExecutionGate(x).reasons || [],
-        adaptiveUnblocked: isAdaptiveUnblocked(x, finalExecutionGate(x)),
+        reason: gate.reasons?.[0] || getBlockReason(x),
+        reasons: gate.reasons || [],
         prob: x.calibratedDistributionProb ?? null,
-        edge: x.sportsbookAdjustedEdge ?? x.adjustedEdge ?? x.edge ?? null,
+        edge: x.sportsbookAdjustedEdge ?? x.adjustedEdge ?? x.edge ?? x.sportsbookEdge ?? null,
+        score: rawScore,
+        finalScore: rawScore,
+        confidence: gate.confidence ?? null,
+        confidenceScore: gate.confidenceScore ?? null,
+        autoMarketAction: gate.autoMarketAction ?? null,
+        volatility: gate.volatility ?? null,
+        volatilityPenalty: gate.volatilityPenalty ?? null,
+        thresholds: gate.adaptiveThresholds ?? null,
+        adaptiveThresholds: gate.adaptiveThresholds ?? null,
+        adaptiveRules: gate.adaptiveRules ?? null,
+        adaptiveUnblocked: isAdaptiveUnblocked(x, gate),
         prePromotionScore: audited.prePromotionScore ?? null,
         postPromotionScore: audited.postPromotionScore ?? null,
         promotionDelta: audited.promotionDelta ?? null,
         fullBoardPromotion: audited.fullBoardPromotion ?? null,
         promotionAuditOnly: true
-      });
+      };
+      blockedCandidates.push(blockedRecord);
+      maybeAddLeanWatchlistCandidate(blockedRecord);
     }
     return ok;
   })
@@ -1525,7 +1645,7 @@ for (const x of top) {
       fullBoardPromotionMap
     );
 
-    blockedCandidates.push({
+    const blockedRecord = {
       player: x.player,
       team: x.team ?? null,
       game: x.game || x.sportsbookGame || x.resolvedGame || null,
@@ -1540,16 +1660,26 @@ for (const x of top) {
       reason: gate.reasons[0] || "failed_final_execution_gate",
       reasons: gate.reasons,
       prob: x.calibratedDistributionProb ?? null,
-      edge: x.sportsbookAdjustedEdge ?? x.adjustedEdge ?? x.edge ?? null,
-      score: x.finalScore,
+      edge: x.sportsbookAdjustedEdge ?? x.adjustedEdge ?? x.edge ?? x.sportsbookEdge ?? null,
+      score: x.finalScore ?? finalScore(x),
+      finalScore: x.finalScore ?? finalScore(x),
+      confidence: gate.confidence ?? null,
+      confidenceScore: gate.confidenceScore ?? null,
+      autoMarketAction: gate.autoMarketAction ?? null,
+      volatility: gate.volatility ?? null,
+      volatilityPenalty: gate.volatilityPenalty ?? null,
+      thresholds: gate.adaptiveThresholds ?? null,
+      adaptiveThresholds: gate.adaptiveThresholds ?? null,
+      adaptiveRules: gate.adaptiveRules ?? null,
       adaptiveUnblocked: isAdaptiveUnblocked(x, gate),
-      thresholds: gate.adaptiveThresholds,
       prePromotionScore: audited.prePromotionScore ?? null,
       postPromotionScore: audited.postPromotionScore ?? null,
       promotionDelta: audited.promotionDelta ?? null,
       fullBoardPromotion: audited.fullBoardPromotion ?? null,
       promotionAuditOnly: true
-    });
+    };
+    blockedCandidates.push(blockedRecord);
+    maybeAddLeanWatchlistCandidate(blockedRecord);
     continue;
   }
   if (canAddStrict(finalTop, x)) finalTop.push(x);
@@ -1943,4 +2073,9 @@ fs.writeFileSync(
   "outputs/blocked-final-candidates.json",
   JSON.stringify(blockedCandidates, null, 2)
 );
+fs.writeFileSync(
+  "outputs/lean-watchlist-candidates.json",
+  JSON.stringify(leanWatchlistCandidates, null, 2)
+);
 console.log("Blocked candidates:", blockedCandidates.length);
+console.log("Lean/watchlist candidates:", leanWatchlistCandidates.length);
