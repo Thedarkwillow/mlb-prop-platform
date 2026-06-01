@@ -395,8 +395,29 @@ function main() {
       result = "UNMATCHED";
       matchStatus = "MISSING_GAMEPK";
     } else if (!status) {
-      result = "PENDING";
-      matchStatus = "GAME_STATUS_UNKNOWN";
+      if (!boxscores.has(gamePk)) {
+        boxscores.set(gamePk, fetchJson(`https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore`));
+      }
+      const box = boxscores.get(gamePk);
+      const found = box ? getPlayerStatsFromBoxscore(box, row.player) : null;
+      if (!box) {
+        result = "PENDING";
+        matchStatus = "GAME_STATUS_UNKNOWN_BOXSCORE_FETCH_FAILED";
+      } else if (!found) {
+        result = "UNMATCHED";
+        matchStatus = "GAME_STATUS_UNKNOWN_PLAYER_NOT_FOUND_IN_BOXSCORE";
+      } else {
+        matchedName = found.fullName;
+        actual = fantasyScore(row.market, found);
+        if (actual === null) {
+          result = "UNMATCHED";
+          matchStatus = "FANTASY_SCORE_UNSUPPORTED";
+        } else {
+          actual = Number(actual.toFixed(2));
+          result = grade(actual, row.line, row.side);
+          matchStatus = "GAME_STATUS_UNKNOWN_BOXSCORE_FALLBACK";
+        }
+      }
     } else if (!status.isFinal) {
       result = "PENDING";
       matchStatus = status.isStarted ? "GAME_NOT_FINAL" : "GAME_NOT_STARTED";
