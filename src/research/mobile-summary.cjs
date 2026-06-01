@@ -45,6 +45,10 @@ function legLine(l, i) {
   const notes = Array.isArray(l.intelNotes) && l.intelNotes.length ? ` | intel=${l.intelNotes.join("; ")}` : "";
   return `${i + 1}. ${l.player} | ${l.team || ""} | ${l.game || ""} | ${l.market} ${l.side} ${l.line} | prob=${num(l.prob ?? l.calibratedDistributionProb)} | edge=${num(l.edge ?? l.sportsbookEdge)}${intel} | books=${l.books ?? l.sportsbookBookCount ?? "?"} | grade=${l.validationGrade || l.grade || "?"}${notes}`;
 }
+function leanWatchlistLine(l, i) {
+  const reasons = Array.isArray(l.reasons) ? l.reasons.join(",") : (l.reason || "n/a");
+  return `${i + 1}. ${l.classification || "WATCHLIST"} | ${l.player} | ${l.team || ""} | ${l.market} ${l.side} ${l.line} | prob=${num(l.prob)} | edge=${num(l.edge)} | score=${num(l.score)} | confidence=${l.confidence || "?"} | stake=${l.stakeGuidance || "track only"} | reasons=${reasons} | note=${l.note || ""}`;
+}
 
 function slipLabel(size) {
   if (size === 2) return "2-MAN POWER";
@@ -58,6 +62,7 @@ function slipLabel(size) {
 const validated = read("outputs/final-slips-validated.json", []);
 const playable = read("outputs/official-slip.json", []);
 const watchlist = read("outputs/watchlist-final-slips.json", []);
+const leanWatchlistCandidates = read("outputs/lean-watchlist-candidates.json", []);
 const coverage = read("outputs/distribution-coverage-report.json", {});
 const validationRules = read("data/results/validation-rules.json", null);
 
@@ -152,6 +157,26 @@ console.log("---------------");
 unique.slice(0, 10).forEach((l, i) => console.log(legLine(l, i)));
 if (!unique.length) console.log("None.");
 
+console.log("");
+console.log("LEAN / WATCHLIST CANDIDATES");
+console.log("---------------------------");
+if (!Array.isArray(leanWatchlistCandidates) || !leanWatchlistCandidates.length) {
+  console.log("None.");
+} else {
+  leanWatchlistCandidates
+    .slice()
+    .sort((a, b) => {
+      const aClass = String(a.classification || "").toUpperCase() === "LEAN" ? 1 : 0;
+      const bClass = String(b.classification || "").toUpperCase() === "LEAN" ? 1 : 0;
+      if (bClass !== aClass) return bClass - aClass;
+      const aScore = Number(a.score ?? 0);
+      const bScore = Number(b.score ?? 0);
+      if (bScore !== aScore) return bScore - aScore;
+      return Number(b.prob ?? 0) - Number(a.prob ?? 0);
+    })
+    .slice(0, 10)
+    .forEach((l, i) => console.log(leanWatchlistLine(l, i)));
+}
 console.log("");
 console.log("CLV SUMMARY");
 console.log("-----------");
