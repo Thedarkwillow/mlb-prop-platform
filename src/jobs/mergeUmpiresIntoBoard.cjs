@@ -37,7 +37,11 @@ const out = board.map(row => {
   return {
     ...row,
     umpireContextReady: true,
+    umpireContextSource: ump.source || ump.assignmentStatus || "REAL_UMPIRE_ASSIGNMENT",
+    umpireFramingAdjusted: true,
+    umpireFramingAdjustment: Number(ump.kFactor || 0),
     plateUmpire: ump.umpire,
+    umpire: ump.umpire,
     umpireKFactor: Number(ump.kFactor || 0),
     umpireKBoost: !!ump.kBoost,
     umpireKDowngrade: !!ump.kDowngrade,

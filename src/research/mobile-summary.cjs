@@ -973,7 +973,7 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
       realSignal: qPct(realUmpireRows, boardTotal),
       neutralFallback: qPct(boardTotal - realUmpireRows, boardTotal),
       realRows: `${realUmpireRows}/${boardTotal}`,
-      note: "Confirmed plate umpire context is currently unavailable/fallback-only."
+      note: "Confirmed plate umpire assignment attached where posted; remaining rows are missing/fallback."
     },
     {
       layer: "Bullpen fatigue",

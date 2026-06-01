@@ -15,8 +15,51 @@ const TEAM_MAP = {
   TOR: "TOR", WSH: "WSH", WAS: "WSH"
 };
 
+const TEAM_NAME_MAP = {
+  "ARIZONA DIAMONDBACKS": "AZ",
+  "ATLANTA BRAVES": "ATL",
+  "BALTIMORE ORIOLES": "BAL",
+  "BOSTON RED SOX": "BOS",
+  "CHICAGO CUBS": "CHC",
+  "CHICAGO WHITE SOX": "CWS",
+  "CINCINNATI REDS": "CIN",
+  "CLEVELAND GUARDIANS": "CLE",
+  "COLORADO ROCKIES": "COL",
+  "DETROIT TIGERS": "DET",
+  "HOUSTON ASTROS": "HOU",
+  "KANSAS CITY ROYALS": "KC",
+  "LOS ANGELES ANGELS": "LAA",
+  "LOS ANGELES DODGERS": "LAD",
+  "MIAMI MARLINS": "MIA",
+  "MILWAUKEE BREWERS": "MIL",
+  "MINNESOTA TWINS": "MIN",
+  "NEW YORK METS": "NYM",
+  "NEW YORK YANKEES": "NYY",
+  "ATHLETICS": "ATH",
+  "OAKLAND ATHLETICS": "ATH",
+  "PHILADELPHIA PHILLIES": "PHI",
+  "PITTSBURGH PIRATES": "PIT",
+  "SAN DIEGO PADRES": "SD",
+  "SEATTLE MARINERS": "SEA",
+  "SAN FRANCISCO GIANTS": "SF",
+  "ST. LOUIS CARDINALS": "STL",
+  "ST LOUIS CARDINALS": "STL",
+  "TAMPA BAY RAYS": "TB",
+  "TEXAS RANGERS": "TEX",
+  "TORONTO BLUE JAYS": "TOR",
+  "WASHINGTON NATIONALS": "WSH"
+};
+
 function normTeam(s) {
-  const raw = String(s || "").toUpperCase().replace(/[^A-Z]/g, "");
+  const full = String(s || "")
+    .toUpperCase()
+    .replace(/\./g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (TEAM_NAME_MAP[full]) return TEAM_NAME_MAP[full];
+
+  const raw = full.replace(/[^A-Z]/g, "");
   return TEAM_MAP[raw] || raw;
 }
 
@@ -129,9 +172,97 @@ function objectRowsToAssignments(objects, source) {
   return out;
 }
 
-function textToAssignments(text, source) {
-  const clean = stripHtml(text);
+function findTeamPrefix(text) {
+  const clean = String(text || "")
+    .replace(/\./g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toUpperCase();
+
+  const names = Object.keys(TEAM_NAME_MAP).sort((a, b) => b.length - a.length);
+  for (const name of names) {
+    if (clean === name || clean.startsWith(`${name} `)) {
+      return {
+        team: TEAM_NAME_MAP[name],
+        name,
+        rest: clean.slice(name.length).trim()
+      };
+    }
+  }
+
+  return null;
+}
+
+function parseRefMetricsAssignmentLines(text, source) {
   const out = [];
+  const lines = String(text || "")
+    .split(/\r?\n/)
+    .map(x => x.trim())
+    .filter(Boolean);
+
+  for (const line of lines) {
+    if (!/^\d{1,2}:\d{2}\s+[AP]M\s+[A-Z]{2}\b/.test(line)) continue;
+
+    // RefMetrics rendered table rows are tab-separated:
+    // TIME | HOME | AWAY | HP | 1B | 2B | 3B | STATUS
+    const tabCells = line.split(/\t+/).map(x => x.trim()).filter(Boolean);
+    if (tabCells.length >= 8) {
+      const homeTeam = normTeam(tabCells[1]);
+      const awayTeam = normTeam(tabCells[2]);
+      const umpire = tabCells[3];
+
+      if (homeTeam && awayTeam && likelyUmpireName(umpire)) {
+        out.push({
+          date: DATE,
+          away: awayTeam,
+          home: homeTeam,
+          umpire,
+          status: source
+        });
+      }
+      continue;
+    }
+
+    const afterTime = line
+      .replace(/^\d{1,2}:\d{2}\s+[AP]M\s+[A-Z]{2}\s+/, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const home = findTeamPrefix(afterTime);
+    if (!home) continue;
+
+    const away = findTeamPrefix(home.rest);
+    if (!away) continue;
+
+    const rest = away.rest;
+
+    // Fallback only: take exactly first two capitalized words as HP.
+    // This avoids swallowing 1B/2B names when spacing collapses.
+    const hpMatch = rest.match(/^([A-Z][A-ZÀ-Ÿa-zà-ÿ.'-]+\s+[A-Z][A-ZÀ-Ÿa-zà-ÿ.'-]+)\b/);
+    if (!hpMatch) continue;
+
+    const umpire = hpMatch[1]
+      .toLowerCase()
+      .replace(/\b\w/g, c => c.toUpperCase())
+      .trim();
+
+    if (!likelyUmpireName(umpire)) continue;
+
+    out.push({
+      date: DATE,
+      away: away.team,
+      home: home.team,
+      umpire,
+      status: source
+    });
+  }
+
+  return out;
+}
+
+function textToAssignments(text, source) {
+  const out = parseRefMetricsAssignmentLines(text, source);
+  const clean = stripHtml(text);
 
   const patterns = [
     /\b([A-Z]{2,3})\s*@\s*([A-Z]{2,3})\b.{0,180}?\b(?:HP|Home Plate|Plate Umpire|Umpire)\b[:\s-]*([A-Z][a-zÀ-ÿ.'-]+(?:\s+[A-Z][a-zÀ-ÿ.'-]+){1,3})/g,
