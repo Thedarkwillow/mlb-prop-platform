@@ -194,6 +194,36 @@ function repairGamePk(row, gamePkRepairMap) {
 }
 
 
+
+function fetchMlbBoxscore(gamePk) {
+  const urls = [
+    `https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore`,
+    `https://statsapi.mlb.com/api/v1.1/game/${gamePk}/boxscore`,
+    `https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore?language=en`,
+    `https://statsapi.mlb.com/api/v1.1/game/${gamePk}/boxscore?language=en`
+  ];
+
+  for (const url of urls) {
+    const box = fetchJson(url);
+    if (box?.teams?.away?.players || box?.teams?.home?.players) return box;
+  }
+
+  const liveUrls = [
+    `https://statsapi.mlb.com/api/v1/game/${gamePk}/feed/live`,
+    `https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`
+  ];
+
+  for (const url of liveUrls) {
+    const live = fetchJson(url);
+    const boxscore = live?.liveData?.boxscore;
+    if (boxscore?.teams?.away?.players || boxscore?.teams?.home?.players) {
+      return { teams: boxscore.teams };
+    }
+  }
+
+  return null;
+}
+
 function buildGameStatusMap(date) {
   const schedule = fetchJson(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}&hydrate=team,linescore,probablePitcher`);
   const map = new Map();
@@ -396,7 +426,7 @@ function main() {
       matchStatus = "MISSING_GAMEPK";
     } else if (!status) {
       if (!boxscores.has(gamePk)) {
-        boxscores.set(gamePk, fetchJson(`https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore`));
+        boxscores.set(gamePk, fetchMlbBoxscore(gamePk));
       }
       const box = boxscores.get(gamePk);
       const found = box ? getPlayerStatsFromBoxscore(box, row.player) : null;
@@ -423,7 +453,7 @@ function main() {
       matchStatus = status.isStarted ? "GAME_NOT_FINAL" : "GAME_NOT_STARTED";
     } else {
       if (!boxscores.has(gamePk)) {
-        boxscores.set(gamePk, fetchJson(`https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore`));
+        boxscores.set(gamePk, fetchMlbBoxscore(gamePk));
       }
 
       const box = boxscores.get(gamePk);
