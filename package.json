@@ -277,7 +277,8 @@
     "context:neutral-fallbacks": "node src/jobs/attachNeutralContextFallbacks.cjs",
     "context:pitch-type:fallbacks": "node src/jobs/attachNeutralPitchTypeFallbacks.cjs",
     "context:pitch-type:real-coverage": "node src/research/real-pitch-type-coverage-report.cjs",
-    "context:pitch-type:targets": "node src/research/build-real-pitch-type-target-list.cjs"
+    "context:pitch-type:targets": "node src/research/build-real-pitch-type-target-list.cjs",
+    "context:pitch-type:repair-ids": "node src/research/repair-pitch-type-target-mlb-ids.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
