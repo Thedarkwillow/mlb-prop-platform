@@ -490,7 +490,7 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
 
   const weakMarkets = weak(summary.byMarketSide, 3, 5);
   if (weakMarkets.length) {
-    console.log("Weak manual markets:");
+    console.log("Lowest manual markets, not downgrade rules:");
     for (const row of weakMarkets) {
       console.log(`- ${keyOf(row)}: ${fmt(row)}`);
     }
@@ -519,7 +519,7 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
   }
 
   if (edge?.avoidOrDowngrade?.length) {
-    console.log("Avoid / downgrade:");
+    console.log("Manual avoid / downgrade from edge mining:");
     for (const row of edge.avoidOrDowngrade.slice(0, 5)) {
       console.log(`- ${keyOf(row)}: graded=${row.graded} hits=${row.hits} misses=${row.misses} hitRate=${pct(Number(row.hitRate) / 100)} roiProxy=${pct(row.roiProxy)}`);
     }
