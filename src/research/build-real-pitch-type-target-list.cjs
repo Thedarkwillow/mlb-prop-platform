@@ -72,6 +72,41 @@ function isRealPitchTypeScored(row) {
   return false;
 }
 
+
+function isLikelyHitterStrikeoutRow(row) {
+  const m = market(row);
+  const sourceType = String(row.sourceType || row.playerType || row.recordSourceType || "").toLowerCase();
+
+  if (sourceType === "pitcher") return false;
+  if (!(m.includes("strikeout") || String(row.stat || row.stat_short || "").toLowerCase().includes("strikeout"))) {
+    return false;
+  }
+
+  // Hitter K rows usually have an opposing pitcher context.
+  if (
+    row.opponentPitcher ||
+    row.opposingPitcher ||
+    row.probablePitcher ||
+    row.handednessContext?.opposingPitcher ||
+    row.handednessAdjustment?.opposingPitcher
+  ) {
+    return true;
+  }
+
+  // If the row is not explicitly a pitcher and has no pitcher identifiers,
+  // do not let strikeouts become pitcher arsenal targets.
+  const hasPitcherId =
+    row.pitcherId ||
+    row.playerPitcherId ||
+    row.mlbamId ||
+    row.playerMlbamId ||
+    row.pitcherMlbamId ||
+    row.opposingPitcherId ||
+    row.opponentPitcherId;
+
+  return !hasPitcherId;
+}
+
 function isPitcherMarket(row) {
   const m = market(row);
   const sourceType = String(row.sourceType || row.playerType || row.recordSourceType || "").toLowerCase();
