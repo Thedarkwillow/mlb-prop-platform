@@ -262,7 +262,8 @@
     "pickfinder:coverage": "node src/research/pickfinder-field-coverage-report.cjs",
     "pickfinder:current": "node src/research/pickfinder-current-context-report.cjs",
     "pickfinder:enrich": "node src/research/enrich-pickfinder-current-context.cjs",
-    "pickfinder:signal": "npm run pickfinder:enrich && node src/research/auto-pickfinder-hitter-signal.cjs"
+    "pickfinder:signal": "npm run pickfinder:enrich && node src/research/auto-pickfinder-hitter-signal.cjs",
+    "roi:candidates": "node src/research/candidate-class-roi-report.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
