@@ -55,10 +55,90 @@ function isPitcherMarket(row) {
   );
 }
 
-function pitcherArsenalForRow(row, arsenal) {
+function collectArsenalRecords(arsenal) {
+  const out = [];
+
+  function add(v) {
+    if (!v) return;
+    if (Array.isArray(v)) {
+      for (const x of v) add(x);
+      return;
+    }
+    if (typeof v !== "object") return;
+
+    const hasPitcherIdentity =
+      v.pitcher || v.player || v.name || v.fullName || v.pitcherName;
+
+    const hasArsenal =
+      v.season ||
+      v.windows ||
+      v.pitchTypes ||
+      v.primaryFastball ||
+      v.currentFastballVelo ||
+      v.baselineFastballVelo;
+
+    if (hasPitcherIdentity && hasArsenal) {
+      out.push(v);
+    }
+
+    for (const value of Object.values(v)) {
+      if (Array.isArray(value)) add(value);
+    }
+  }
+
+  add(arsenal.pitchers);
+  add(arsenal.byTeam);
+  add(arsenal.starters);
+  add(arsenal.bullpen);
+  add(arsenal.teams);
+  add(arsenal);
+
+  const seen = new Set();
+  return out.filter(r => {
+    const name = r.pitcher || r.player || r.name || r.fullName || r.pitcherName;
+    const key = norm(name);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+const arsenalByName = new Map();
+for (const rec of collectArsenalRecords(arsenal)) {
+  const names = [
+    rec.pitcher,
+    rec.player,
+    rec.name,
+    rec.fullName,
+    rec.pitcherName
+  ].filter(Boolean);
+
+  for (const name of names) {
+    arsenalByName.set(norm(name), rec);
+  }
+}
+
+function pitcherArsenalForRow(row) {
   const player = row.player || row.playerName || row.name;
-  const key = norm(player);
-  return arsenal.pitchers?.[key] || null;
+  return arsenalByName.get(norm(player)) || null;
+}
+
+function compactPitchTypes(arm) {
+  const seasonPitchTypes =
+    arm.season?.pitchTypes ||
+    arm.windows?.season?.pitchTypes ||
+    arm.pitchTypes ||
+    [];
+
+  if (Array.isArray(seasonPitchTypes)) {
+    return seasonPitchTypes.slice(0, 5);
+  }
+
+  if (seasonPitchTypes && typeof seasonPitchTypes === "object") {
+    return Object.values(seasonPitchTypes).slice(0, 5);
+  }
+
+  return [];
 }
 
 const hitterMarkets = new Set([
@@ -119,7 +199,7 @@ const out = board.map(row => {
   eligibleRows++;
 
   if (pitcherMarket) {
-    const arm = pitcherArsenalForRow(row, arsenal);
+    const arm = pitcherArsenalForRow(row);
 
     if (!arm) {
       return {
@@ -155,7 +235,7 @@ const out = board.map(row => {
         ...(row.pitchTypeMatchupFlags || []),
         "PITCHER_PROP_ARSENAL_READY"
       ],
-      pitchTypePrimaryPitches: (arm.season?.pitchTypes || []).slice(0, 5)
+      pitchTypePrimaryPitches: compactPitchTypes(arm)
     };
   }
 
@@ -229,6 +309,7 @@ console.log({
   eligibleRows,
   hitterAvailable,
   hitterScored,
+  arsenalIndexSize: arsenalByName.size,
   pitcherArsenalReady,
   readyRows,
   matchRate: board.length ? Number((readyRows / board.length).toFixed(4)) : 0
