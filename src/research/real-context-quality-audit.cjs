@@ -1,11 +1,19 @@
 const fs = require("fs");
 const path = require("path");
 
-const date =
-  process.argv.find(a => /^\d{4}-\d{2}-\d{2}$/.test(a)) ||
-  process.env.npm_config_date ||
-  new Date().toISOString().slice(0, 10);
+function getDateArg() {
+  const argvDate = process.argv.find(a => /^\d{4}-\d{2}-\d{2}$/.test(a));
+  const flagDate = process.argv.find(a => /^--date=/.test(a));
+  if (flagDate) return flagDate.split("=")[1];
+  return (
+    argvDate ||
+    process.env.npm_config_date ||
+    process.env.SLATE_DATE ||
+    new Date().toISOString().slice(0, 10)
+  );
+}
 
+const date = getDateArg();
 const BOARD = "outputs/priced-board.json";
 const OUT = `outputs/context/real-context-quality-audit-${date}.json`;
 const LATEST = "outputs/context/real-context-quality-audit-latest.json";
@@ -29,199 +37,313 @@ function pct(n, d) {
   return `${((Number(n || 0) / Number(d || 0)) * 100).toFixed(1)}%`;
 }
 
-function hasAny(row, keys) {
-  return keys.some(k => row[k] !== undefined && row[k] !== null && row[k] !== "");
+function clean(v) {
+  return String(v || "").trim();
 }
 
-function flagIncludes(row, text) {
-  const needle = String(text).toLowerCase();
-  const flags = [
-    ...(Array.isArray(row.contextFlags) ? row.contextFlags : []),
-    ...(Array.isArray(row.pitchTypeMatchupFlags) ? row.pitchTypeMatchupFlags : []),
-    ...(Array.isArray(row.flags) ? row.flags : []),
-    ...(Array.isArray(row.warnings) ? row.warnings : [])
-  ].map(x => String(x).toLowerCase());
-  return flags.some(f => f.includes(needle));
+function upper(v) {
+  return clean(v).toUpperCase();
 }
 
-function isFallback(row, layer) {
-  const l = layer.toLowerCase();
-  return (
-    row[`${l}NeutralFallback`] === true ||
-    row[`${l}Fallback`] === true ||
-    row[`${l}Source`] === "NEUTRAL_FALLBACK" ||
-    row[`${l}Source`] === "FALLBACK" ||
-    flagIncludes(row, `${l}_neutral_fallback`) ||
-    flagIncludes(row, `${l}_fallback`)
-  );
+function hasNumber(v) {
+  return Number.isFinite(Number(v));
 }
 
-function pitchTypeState(row) {
-  const fallback =
-    row.pitchTypeNeutralFallback === true ||
-    String(row.pitchTypeSource || "").toUpperCase() === "NEUTRAL_FALLBACK" ||
-    flagIncludes(row, "pitch_type_neutral_fallback");
-
-  const tier = String(row.pitchTypeMatchupTier || "").toLowerCase();
-  const score = Number(row.pitchTypeMatchupScore);
-
-  const real =
-    !fallback &&
-    (
-      row.pitchTypeMatchupScored === true ||
-      row.pitchTypeMatchupReady === true ||
-      (tier && tier !== "neutral" && tier !== "unknown") ||
-      (Number.isFinite(score) && score !== 0) ||
-      (row.pitchTypePitcherArsenal && typeof row.pitchTypePitcherArsenal === "object") ||
-      (row.pitchTypePrimaryPitches && typeof row.pitchTypePrimaryPitches === "object")
-    );
-
-  if (real) return "REAL_SOURCE";
-  if (fallback) return "NEUTRAL_FALLBACK";
-  return "MISSING";
+function player(row) {
+  return row.player || row.playerName || row.name || null;
 }
 
-function lineupState(row) {
-  const fallback = isFallback(row, "lineup") || flagIncludes(row, "lineup_neutral");
-  const real = !fallback && (
-    row.lineupReady === true ||
-    row.lineupConfirmed === true ||
-    row.confirmedLineup === true ||
-    hasAny(row, ["battingOrder", "lineupSpot", "lineupSource", "lineupStatus"])
-  );
-  if (real) return "REAL_SOURCE";
-  if (fallback) return "NEUTRAL_FALLBACK";
-  return "MISSING";
+function market(row) {
+  return String(row.market || row.stat || row.stat_short || "").toLowerCase();
 }
 
-function bullpenState(row) {
-  const fallback = isFallback(row, "bullpen") || flagIncludes(row, "bullpen_neutral");
-  const real = !fallback && (
-    row.bullpenReady === true ||
-    hasAny(row, ["bullpenFatigueTier", "bullpenTier", "opponentBullpenTier", "bullpenSource"])
-  );
-  if (real) return "REAL_SOURCE";
-  if (fallback) return "NEUTRAL_FALLBACK";
-  return "MISSING";
+function tier(row) {
+  return row.oddsTier || row.tier || row.lineTier || null;
 }
 
-function catcherState(row) {
-  const fallback = isFallback(row, "catcher") || flagIncludes(row, "catcher_neutral");
-  const real = !fallback && (
-    row.catcherFramingReady === true ||
-    hasAny(row, ["catcherFramingTier", "catcherFramingScore", "catcher", "catcherSource"])
-  );
-  if (real) return "REAL_SOURCE";
-  if (fallback) return "NEUTRAL_FALLBACK";
-  return "MISSING";
+function game(row) {
+  return row.game || row.resolvedGame || row.matchup || null;
 }
 
-function umpireState(row) {
-  const fallback = isFallback(row, "umpire") || flagIncludes(row, "umpire_neutral");
-  const real = !fallback && (
-    row.umpireReady === true ||
-    hasAny(row, ["umpireTier", "umpireScore", "umpire", "umpireSource"])
-  );
-  if (real) return "REAL_SOURCE";
-  if (fallback) return "NEUTRAL_FALLBACK";
-  return "MISSING";
-}
-
-function handednessState(row) {
-  const fallback = isFallback(row, "handedness") || flagIncludes(row, "handedness_neutral");
-  const real = !fallback && (
-    row.handednessReady === true ||
-    hasAny(row, ["pitcherHand", "opposingPitcherHand", "batterHand", "handednessContext", "handednessAdjustment"])
-  );
-  if (real) return "REAL_SOURCE";
-  if (fallback) return "NEUTRAL_FALLBACK";
-  return "MISSING";
-}
-
-function summarizeLayer(rows, name, fn) {
-  const states = { REAL_SOURCE: 0, NEUTRAL_FALLBACK: 0, MISSING: 0, DERIVED_ONLY: 0 };
-  const examples = { NEUTRAL_FALLBACK: [], MISSING: [], DERIVED_ONLY: [] };
-
-  for (const row of rows) {
-    const state = fn(row);
-    states[state] = (states[state] || 0) + 1;
-
-    if (state !== "REAL_SOURCE" && examples[state] && examples[state].length < 20) {
-      examples[state].push({
-        player: row.player || row.playerName || row.name || null,
-        team: row.team || row.resolvedTeam || null,
-        game: row.game || row.resolvedGame || null,
-        market: row.market || row.stat || row.stat_short || null,
-        side: row.side || null,
-        line: row.line ?? row.value ?? null,
-        tier: row.oddsTier || row.tier || null,
-        pitcher: row.opposingPitcher || row.opponentPitcher || row.pitcher || null
-      });
-    }
-  }
-
+function sampleRow(row, state, reason) {
   return {
-    layer: name,
-    rows: rows.length,
-    real: states.REAL_SOURCE,
-    fallback: states.NEUTRAL_FALLBACK,
-    missing: states.MISSING,
-    derivedOnly: states.DERIVED_ONLY,
-    realPct: pct(states.REAL_SOURCE, rows.length),
-    fallbackPct: pct(states.NEUTRAL_FALLBACK, rows.length),
-    missingPct: pct(states.MISSING, rows.length),
-    examples
+    state,
+    reason,
+    player: player(row),
+    team: row.team || row.resolvedTeam || null,
+    game: game(row),
+    market: market(row),
+    side: row.side || null,
+    line: row.line ?? row.ppLine ?? null,
+    tier: tier(row),
+    pitcher:
+      row.pitchTypeOpponentPitcher ||
+      row.opposingPitcher ||
+      row.opponentPitcher ||
+      row.probablePitcher ||
+      row.handednessContext?.opposingPitcher ||
+      null
   };
 }
 
-const boardRaw = readJson(BOARD, []);
-const rows = (Array.isArray(boardRaw) ? boardRaw : [])
-  .filter(r => !r.recordType || r.recordType === "merged_prop");
+function classifyLineup(row) {
+  if (
+    row.lineupStrengthReady === true &&
+    clean(row.lineupTier) &&
+    hasNumber(row.lineupStrength) &&
+    Number(row.lineupHitters || 0) > 0
+  ) {
+    return { state: "REAL", reason: "lineup_strength_ready" };
+  }
 
-const report = {
+  if (
+    upper(row.lineupTier) === "NEUTRAL" ||
+    row.lineupStrengthSource === "NEUTRAL_FALLBACK" ||
+    row.lineupStrengthFallback === true
+  ) {
+    return { state: "NEUTRAL_FALLBACK", reason: "lineup_neutral_fallback" };
+  }
+
+  return { state: "MISSING", reason: "missing_lineup_strength" };
+}
+
+function classifyBullpen(row) {
+  const ownReady =
+    row.ownBullpenFatigueReady === true &&
+    clean(row.ownBullpenFatigueTier) &&
+    row.ownBullpenFatigue &&
+    typeof row.ownBullpenFatigue === "object";
+
+  const oppReady =
+    row.opponentBullpenFatigueReady === true &&
+    clean(row.opponentBullpenFatigueTier) &&
+    row.opponentBullpenFatigue &&
+    typeof row.opponentBullpenFatigue === "object";
+
+  if (ownReady && oppReady) {
+    return { state: "REAL", reason: "own_and_opponent_bullpen_fatigue_ready" };
+  }
+
+  if (
+    row.bullpenFatigueSource === "NEUTRAL_FALLBACK" ||
+    row.ownBullpenFatigueSource === "NEUTRAL_FALLBACK" ||
+    row.opponentBullpenFatigueSource === "NEUTRAL_FALLBACK" ||
+    upper(row.ownBullpenFatigueTier) === "NEUTRAL" ||
+    upper(row.opponentBullpenFatigueTier) === "NEUTRAL"
+  ) {
+    return { state: "NEUTRAL_FALLBACK", reason: "bullpen_neutral_fallback" };
+  }
+
+  return { state: "MISSING", reason: "missing_bullpen_fatigue" };
+}
+
+function classifyCatcherFraming(row) {
+  if (
+    row.opponentCatcherFramingSource === "NEUTRAL_FALLBACK" ||
+    upper(row.opponentCatcher) === "UNKNOWN" ||
+    upper(row.opponentCatcherFramingTier) === "UNKNOWN"
+  ) {
+    return { state: "NEUTRAL_FALLBACK", reason: "catcher_framing_neutral_fallback" };
+  }
+
+  if (
+    row.opponentCatcherFramingReady === true &&
+    clean(row.opponentCatcher) &&
+    clean(row.opponentCatcherFramingTier) &&
+    hasNumber(row.opponentCatcherFramingRunValue) &&
+    hasNumber(row.opponentCatcherFramingPct)
+  ) {
+    return { state: "REAL", reason: "opponent_catcher_framing_ready" };
+  }
+
+  return { state: "MISSING", reason: "missing_catcher_framing" };
+}
+
+function classifyUmpire(row) {
+  if (
+    row.umpireContextSource === "NEUTRAL_FALLBACK" ||
+    upper(row.umpire) === "UNKNOWN" ||
+    upper(row.plateUmpire) === "UNKNOWN" ||
+    row.umpireContext?.source === "NEUTRAL_FALLBACK"
+  ) {
+    return { state: "NEUTRAL_FALLBACK", reason: "umpire_neutral_fallback" };
+  }
+
+  if (
+    row.umpireContextReady === true &&
+    (clean(row.umpire) || clean(row.plateUmpire)) &&
+    (hasNumber(row.umpireKFactor) || row.umpireContext)
+  ) {
+    return { state: "REAL", reason: "umpire_context_ready" };
+  }
+
+  return { state: "MISSING", reason: "missing_umpire_context" };
+}
+
+function classifyHandedness(row) {
+  const ctx = row.handednessContext || row.handednessAdjustment || null;
+
+  if (
+    row.handednessSource === "NEUTRAL_FALLBACK" ||
+    row.handednessFallback === true ||
+    ctx?.source === "NEUTRAL_FALLBACK"
+  ) {
+    return { state: "NEUTRAL_FALLBACK", reason: "handedness_neutral_fallback" };
+  }
+
+  if (
+    row.handednessMatched === true &&
+    ctx &&
+    typeof ctx === "object" &&
+    (ctx.active || ctx.vsLHB || ctx.vsRHB || ctx.selectedSplit || ctx.batterStand || ctx.pitcherHand)
+  ) {
+    return { state: "REAL", reason: "handedness_context_matched" };
+  }
+
+  if (
+    row.handednessReady === true &&
+    ctx &&
+    typeof ctx === "object"
+  ) {
+    return { state: "REAL", reason: "handedness_ready" };
+  }
+
+  return { state: "MISSING", reason: "missing_handedness_context" };
+}
+
+function classifyPitchType(row) {
+  const source = upper(row.pitchTypeMatchupSource || row.pitchTypeSource);
+  const tier = upper(row.pitchTypeMatchupTier);
+  const score = Number(row.pitchTypeMatchupScore);
+
+  if (
+    row.pitchTypeNeutralFallback === true ||
+    source === "NEUTRAL_FALLBACK"
+  ) {
+    return { state: "NEUTRAL_FALLBACK", reason: "pitch_type_neutral_fallback" };
+  }
+
+  if (
+    row.pitchTypeMatchupScored === true &&
+    tier &&
+    tier !== "UNKNOWN" &&
+    tier !== "NEUTRAL" &&
+    Number.isFinite(score)
+  ) {
+    return { state: "REAL", reason: "pitch_type_matchup_scored" };
+  }
+
+  if (
+    row.pitchTypeMatchupReady === true &&
+    source &&
+    source !== "NEUTRAL_FALLBACK"
+  ) {
+    return { state: "REAL", reason: "pitch_type_matchup_ready" };
+  }
+
+  if (
+    row.pitchTypePitcherArsenalReady === true ||
+    (row.pitchTypePitcherArsenal && typeof row.pitchTypePitcherArsenal === "object")
+  ) {
+    return { state: "REAL", reason: "pitcher_arsenal_ready" };
+  }
+
+  return { state: "MISSING", reason: "missing_pitch_type_context" };
+}
+
+const layers = {
+  lineup: classifyLineup,
+  bullpen: classifyBullpen,
+  catcher_framing: classifyCatcherFraming,
+  umpire: classifyUmpire,
+  handedness: classifyHandedness,
+  pitch_type: classifyPitchType
+};
+
+const board = readJson(BOARD, []);
+const rows = (Array.isArray(board) ? board : []).filter(r => !r.recordType || r.recordType === "merged_prop");
+
+const audit = {
   date,
   generatedAt: new Date().toISOString(),
   boardRows: rows.length,
-  layers: [
-    summarizeLayer(rows, "lineup", lineupState),
-    summarizeLayer(rows, "bullpen", bullpenState),
-    summarizeLayer(rows, "catcher_framing", catcherState),
-    summarizeLayer(rows, "umpire", umpireState),
-    summarizeLayer(rows, "handedness", handednessState),
-    summarizeLayer(rows, "pitch_type", pitchTypeState)
-  ]
+  note: "Counts REAL vs NEUTRAL_FALLBACK vs MISSING using actual priced-board field names.",
+  layers: {},
+  summary: []
 };
 
-writeJson(OUT, report);
-writeJson(LATEST, report);
+for (const [layer, fn] of Object.entries(layers)) {
+  const counts = {
+    REAL: 0,
+    NEUTRAL_FALLBACK: 0,
+    MISSING: 0
+  };
+  const byReason = {};
+  const samples = {
+    NEUTRAL_FALLBACK: [],
+    MISSING: []
+  };
+
+  for (const row of rows) {
+    const result = fn(row);
+    const state = result.state || "MISSING";
+    const reason = result.reason || "unknown";
+
+    counts[state] = (counts[state] || 0) + 1;
+    byReason[reason] = (byReason[reason] || 0) + 1;
+
+    if (state !== "REAL" && samples[state] && samples[state].length < 20) {
+      samples[state].push(sampleRow(row, state, reason));
+    }
+  }
+
+  const entry = {
+    layer,
+    rows: rows.length,
+    real: counts.REAL || 0,
+    neutralFallback: counts.NEUTRAL_FALLBACK || 0,
+    missing: counts.MISSING || 0,
+    realPct: pct(counts.REAL, rows.length),
+    fallbackPct: pct(counts.NEUTRAL_FALLBACK, rows.length),
+    missingPct: pct(counts.MISSING, rows.length),
+    byReason: Object.entries(byReason)
+      .sort((a, b) => b[1] - a[1])
+      .map(([key, count]) => ({ key, count })),
+    samples
+  };
+
+  audit.layers[layer] = entry;
+  audit.summary.push({
+    layer,
+    rows: entry.rows,
+    real: entry.real,
+    fallback: entry.neutralFallback,
+    missing: entry.missing,
+    realPct: entry.realPct,
+    fallbackPct: entry.fallbackPct,
+    missingPct: entry.missingPct
+  });
+}
+
+writeJson(OUT, audit);
+writeJson(LATEST, audit);
 
 console.log("REAL CONTEXT QUALITY AUDIT");
 console.log("--------------------------");
-console.table(report.layers.map(l => ({
-  layer: l.layer,
-  rows: l.rows,
-  real: l.real,
-  fallback: l.fallback,
-  missing: l.missing,
-  realPct: l.realPct,
-  fallbackPct: l.fallbackPct,
-  missingPct: l.missingPct
-})));
+console.table(audit.summary);
 
-for (const layer of report.layers) {
-  if (layer.fallback || layer.missing || layer.derivedOnly) {
-    console.log(`\n${layer.layer} gaps:`);
-    console.table([
-      { state: "NEUTRAL_FALLBACK", count: layer.fallback },
-      { state: "MISSING", count: layer.missing },
-      { state: "DERIVED_ONLY", count: layer.derivedOnly }
-    ]);
-    const sample = [
-      ...(layer.examples.NEUTRAL_FALLBACK || []),
-      ...(layer.examples.MISSING || []),
-      ...(layer.examples.DERIVED_ONLY || [])
-    ].slice(0, 10);
-    if (sample.length) console.table(sample);
+for (const [layer, entry] of Object.entries(audit.layers)) {
+  console.log(`\n${layer} reasons:`);
+  console.table(entry.byReason.slice(0, 12));
+
+  if (entry.samples.NEUTRAL_FALLBACK.length) {
+    console.log(`${layer} neutral fallback sample:`);
+    console.table(entry.samples.NEUTRAL_FALLBACK.slice(0, 8));
+  }
+
+  if (entry.samples.MISSING.length) {
+    console.log(`${layer} missing sample:`);
+    console.table(entry.samples.MISSING.slice(0, 8));
   }
 }
 
