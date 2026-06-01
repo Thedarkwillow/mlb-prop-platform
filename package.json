@@ -271,7 +271,8 @@
     "savant:velo:full": "npm run savant:velo && npm run savant:arsenal:compact",
     "context:bullpen:merge": "node src/jobs/mergeBullpenContextIntoBoard.cjs",
     "explain:blocked": "node src/research/blocked-candidate-explain-report.cjs",
-    "slips:leans:inject-controlled": "node src/research/inject-controlled-unlocks-into-lean-report.cjs"
+    "slips:leans:inject-controlled": "node src/research/inject-controlled-unlocks-into-lean-report.cjs",
+    "context:coverage:gaps": "node src/research/context-coverage-gap-audit.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
