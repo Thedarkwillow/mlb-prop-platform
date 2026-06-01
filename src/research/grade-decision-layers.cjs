@@ -271,15 +271,86 @@ function usableActualRow(row) {
   return getActual(row) !== null || ["HIT", "MISS", "PUSH"].includes(getResult(row));
 }
 
+
+function directGamePkOf(row) {
+  return row?.gamePk ||
+    row?.gamePK ||
+    row?.mlbGamePk ||
+    row?.mlb_game_pk ||
+    row?.resolvedGamePk ||
+    null;
+}
+function normalizeGameKey(v) {
+  return String(v || "")
+    .replace(/\s+/g, " ")
+    .replace(/\s*@\s*/g, " @ ")
+    .trim()
+    .toUpperCase();
+}
+function reverseGameKeyValue(game) {
+  const g = normalizeGameKey(game);
+  const parts = g.split(" @ ").map(x => x.trim()).filter(Boolean);
+  if (parts.length !== 2) return g;
+  return `${parts[1]} @ ${parts[0]}`;
+}
+function gameKeyOf(row) {
+  return normalizeGameKey(
+    row?.resolvedGame ||
+    row?.game ||
+    row?.matchup ||
+    row?.rawGame ||
+    ""
+  );
+}
+function gameCompatibleForFallback(target, candidate) {
+  const targetGamePk = directGamePkOf(target);
+  const candidateGamePk = directGamePkOf(candidate);
+  if (targetGamePk && candidateGamePk) {
+    return String(targetGamePk) === String(candidateGamePk);
+  }
+
+  const targetGame = gameKeyOf(target);
+  const candidateGame = gameKeyOf(candidate);
+  if (targetGame && candidateGame) {
+    return targetGame === candidateGame || reverseGameKeyValue(targetGame) === candidateGame;
+  }
+
+  return false;
+}
+function actualResultRow(row) {
+  return getActual(row) !== null &&
+    ["HIT", "MISS", "PUSH"].includes(getResult(row));
+}
+
 function resolveExact(row, indexes) {
   const matches = indexes.exact.get(exactKey(row)) || [];
   return matches.find(usableActualRow) || null;
 }
 
+
 function resolveSameMarketActual(row, indexes) {
-  const matches = indexes.byPlayerMarket.get(playerMarketKey(row)) || [];
-  return matches.find(r => getActual(r) !== null) || null;
+  const k = keyParts(row);
+  const candidates = (indexes.byPlayerMarket.get([k.player, k.market].join("|")) || [])
+    .filter(r => actualResultRow(r))
+    .filter(r => gameCompatibleForFallback(row, r));
+
+  if (!candidates.length) return null;
+
+  const line = num(k.line, null);
+  const side = String(k.side || "").toUpperCase();
+
+  const exactCompatible = candidates.find(r =>
+    num(getLine(r), null) === line &&
+    String(getSide(r) || "").toUpperCase() === side
+  );
+  if (exactCompatible) return exactCompatible;
+
+  const sameLineCompatible = candidates.find(r => num(getLine(r), null) === line);
+  if (sameLineCompatible) return sameLineCompatible;
+
+  return null;
 }
+
 
 
 function normalizeName(v) {
@@ -633,13 +704,15 @@ function resolveHitterBasesFromMlbBoxscore(row) {
   return null;
 }
 
+
 function resolveBasesFromHits(row, indexes) {
   const k = keyParts(row);
   if (k.market !== "bases") return null;
+  const hitRows = (indexes.byPlayerMarket.get([k.player, "hits"].join("|")) || [])
+    .filter(r => actualResultRow(r))
+    .filter(r => gameCompatibleForFallback(row, r));
 
-  const hitRows = indexes.byPlayerMarket.get([k.player, "hits"].join("|")) || [];
   const hitActualRow = hitRows.find(r => getActual(r) !== null);
-
   if (!hitActualRow) return null;
 
   const hitsActual = getActual(hitActualRow);
@@ -651,38 +724,41 @@ function resolveBasesFromHits(row, indexes) {
     If hits > 0, bases is at least 1.
     This is enough to grade bases MORE 0.5 and bases LESS 0.5.
     It is not used for higher bases lines.
+    Must be same-game compatible to avoid cross-game player contamination.
   */
   if (num(row.line, null) === 0.5) {
     return {
       ...hitActualRow,
       market: "bases",
       actual: hitsActual > 0 ? 1 : 0,
-      __source: `${hitActualRow.__source}:derived_bases_from_hits`
+      __source: `${hitActualRow.__source || "unknown"}:derived_bases_from_hits_same_game`
     };
   }
-
   return null;
 }
 
+
+
 function resolveHitsAllowedFromHitsAlias(row, indexes) {
   const k = keyParts(row);
-
   /*
     PrizePicks pitcher "hits" rows are pitcher hits allowed.
     Some reports normalize them as market=hits, while graded sources
     store them as hits_allowed. This fallback fixes those unmatched
     pitcher hits LESS rows without affecting hitter hits rows.
+    Must be same-game compatible to avoid cross-game player contamination.
   */
   if (k.market !== "hits") return null;
+  const candidates = (indexes.byPlayerMarket.get([k.player, "hits_allowed"].join("|")) || [])
+    .filter(r => actualResultRow(r))
+    .filter(r => gameCompatibleForFallback(row, r));
 
-  const candidates = indexes.byPlayerMarket.get([k.player, "hits_allowed"].join("|")) || [];
   if (!candidates.length) return null;
 
   const line = num(k.line, null);
   const side = String(k.side || "").toUpperCase();
 
   const exact = candidates.find(r =>
-    getActual(r) !== null &&
     num(getLine(r), null) === line &&
     String(getSide(r) || "").toUpperCase() === side
   );
@@ -690,28 +766,16 @@ function resolveHitsAllowedFromHitsAlias(row, indexes) {
     return {
       ...exact,
       market: "hits_allowed",
-      __source: `${exact.__source || "unknown"}:hits_allowed_alias_from_hits`
+      __source: `${exact.__source || "unknown"}:hits_allowed_alias_from_hits_same_game`
     };
   }
 
-  const sameLine = candidates.find(r =>
-    getActual(r) !== null &&
-    num(getLine(r), null) === line
-  );
+  const sameLine = candidates.find(r => num(getLine(r), null) === line);
   if (sameLine) {
     return {
       ...sameLine,
       market: "hits_allowed",
-      __source: `${sameLine.__source || "unknown"}:hits_allowed_alias_from_hits_same_line`
-    };
-  }
-
-  const anyActual = candidates.find(r => getActual(r) !== null);
-  if (anyActual) {
-    return {
-      ...anyActual,
-      market: "hits_allowed",
-      __source: `${anyActual.__source || "unknown"}:hits_allowed_alias_from_hits_any_actual`
+      __source: `${sameLine.__source || "unknown"}:hits_allowed_alias_from_hits_same_game_same_line`
     };
   }
 
@@ -719,24 +783,98 @@ function resolveHitsAllowedFromHitsAlias(row, indexes) {
 }
 
 
+
+
+function resolveManualDecisionGradeRepair(row) {
+  const repairs = readJson("src/research/manual-decision-grade-repairs.json", []);
+  const k = keyParts(row);
+  const line = num(k.line, null);
+  const side = String(k.side || "").toUpperCase();
+
+  const repair = repairs.find(r =>
+    String(r.date || "") === String(date) &&
+    norm(getPlayer(r)) === k.player &&
+    norm(getMarket(r)) === k.market &&
+    String(getSide(r) || "").toUpperCase() === side &&
+    num(getLine(r), null) === line
+  );
+
+  if (!repair) return null;
+
+  return {
+    ...row,
+    ...repair,
+    player: getPlayer(row),
+    market: k.market,
+    side,
+    line,
+    actual: repair.actual === null || repair.actual === undefined ? null : repair.actual,
+    result: String(repair.result || "UNMATCHED").toUpperCase(),
+    matchMethod: repair.matchMethod || "manual_decision_grade_repair",
+    matchedSource: null,
+    matchedMarket: k.market,
+    matchedSide: side,
+    matchedLine: line,
+    manualRepair: true,
+    manualNote: repair.note || repair.manualNote || null,
+    __source: "src/research/manual-decision-grade-repairs.json"
+  };
+}
+
 function resolveSavedHistoricalExactProp(row) {
   if (!IS_HISTORICAL_DATE || !fs.existsSync(FILES.out)) return null;
-
   const savedRows = flattenRows(readJson(FILES.out, []));
   const k = keyParts(row);
   const line = num(k.line, null);
   const side = String(k.side || "").toUpperCase();
 
-  const exact = savedRows.find(r =>
-    norm(getPlayer(r)) === k.player &&
-    norm(getMarket(r)) === k.market &&
-    String(getSide(r) || "").toUpperCase() === side &&
-    num(getLine(r), null) === line &&
-    getActual(r) !== null &&
-    ["HIT", "MISS", "PUSH"].includes(getResult(r))
-  );
+  const exact = savedRows.find(r => {
+    if (
+      norm(getPlayer(r)) !== k.player ||
+      norm(getMarket(r)) !== k.market ||
+      String(getSide(r) || "").toUpperCase() !== side ||
+      num(getLine(r), null) !== line
+    ) {
+      return false;
+    }
+
+    const result = getResult(r);
+    const actual = getActual(r);
+    const method = String(r.matchMethod || r.method || "").toLowerCase();
+    const note = String(r.manualNote || r.manualRepairNote || r.note || "").toLowerCase();
+    const didNotPitch =
+      method.includes("manual_verified_did_not_pitch") ||
+      note.includes("did_not_pitch") ||
+      note.includes("did not pitch");
+
+    if (didNotPitch) return true;
+    return actual !== null && ["HIT", "MISS", "PUSH"].includes(result);
+  });
 
   if (!exact) return null;
+
+  const exactMethod = String(exact.matchMethod || exact.method || "").toLowerCase();
+  const exactNote = String(exact.manualNote || exact.manualRepairNote || exact.note || "").toLowerCase();
+  const didNotPitch =
+    exactMethod.includes("manual_verified_did_not_pitch") ||
+    exactNote.includes("did_not_pitch") ||
+    exactNote.includes("did not pitch");
+
+  if (didNotPitch) {
+    return {
+      ...exact,
+      player: getPlayer(row),
+      market: k.market,
+      side,
+      line,
+      actual: null,
+      result: "UNMATCHED",
+      matchMethod: "manual_verified_did_not_pitch",
+      matchedSource: null,
+      manualNote: exact.manualNote || exact.manualRepairNote || exact.note || "manual_verified_did_not_pitch",
+      __source: `${FILES.out}:saved_historical_exact_prop`
+    };
+  }
 
   return {
     ...exact,
@@ -750,6 +888,11 @@ function resolveSavedHistoricalExactProp(row) {
 
 function resolveDecisionRow(row, indexes) {
   const k = keyParts(row);
+
+  const manualRepair = resolveManualDecisionGradeRepair(row);
+  if (manualRepair) {
+    return { match: manualRepair, method: manualRepair.matchMethod || "manual_decision_grade_repair" };
+  }
 
   /*
     Exact already-graded rows must come first.
@@ -809,7 +952,13 @@ function resolveDecisionRow(row, indexes) {
 
 function compactRow(layer, row, indexes) {
   const resolved = resolveDecisionRow(row, indexes);
-  const actual = resolved.match ? getActual(resolved.match) : null;
+  const isManualUnmatchedRepair =
+    resolved.match &&
+    resolved.match.manualRepair === true &&
+    getResult(resolved.match) === "UNMATCHED";
+  const actual = isManualUnmatchedRepair
+    ? null
+    : (resolved.match ? getActual(resolved.match) : null);
   const line = getLine(row);
   const side = getSide(row);
   const matchupContext = matchupContextForRow(row);
@@ -817,7 +966,11 @@ function compactRow(layer, row, indexes) {
 
   if (resolved.match) {
     const directResult = getResult(resolved.match);
-    if (resolved.method === "exact_player_market_side_line" && ["HIT", "MISS", "PUSH"].includes(directResult)) {
+    if (isManualUnmatchedRepair) {
+      result = "UNMATCHED";
+    } else if (resolved.method === "exact_player_market_side_line" && ["HIT", "MISS", "PUSH"].includes(directResult)) {
+      result = directResult;
+    } else if (resolved.match.manualRepair === true && ["HIT", "MISS", "PUSH"].includes(directResult)) {
       result = directResult;
     } else {
       result = gradeByActual(side, line, actual);

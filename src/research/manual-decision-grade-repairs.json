@@ -1,0 +1,57 @@
+[
+  {
+    "date": "2026-05-31",
+    "player": "Michael King",
+    "market": "pitching_outs",
+    "side": "LESS",
+    "line": 17,
+    "result": "UNMATCHED",
+    "actual": null,
+    "matchMethod": "manual_verified_did_not_pitch",
+    "note": "manual_verified_michael_king_did_not_pitch"
+  },
+  {
+    "date": "2026-05-31",
+    "player": "Aaron Judge",
+    "market": "bases",
+    "side": "MORE",
+    "line": 0.5,
+    "result": "HIT",
+    "actual": 1,
+    "matchMethod": "manual_verified_exact_total_bases",
+    "note": "manual_verified_judge_1_total_base"
+  },
+  {
+    "date": "2026-05-31",
+    "player": "Aaron Judge",
+    "market": "bases",
+    "side": "MORE",
+    "line": 1.5,
+    "result": "MISS",
+    "actual": 1,
+    "matchMethod": "manual_verified_exact_total_bases",
+    "note": "manual_verified_judge_1_total_base"
+  },
+  {
+    "date": "2026-05-31",
+    "player": "Juan Soto",
+    "market": "bases",
+    "side": "MORE",
+    "line": 0.5,
+    "result": "HIT",
+    "actual": 4,
+    "matchMethod": "manual_verified_exact_total_bases",
+    "note": "manual_verified_soto_4_total_bases"
+  },
+  {
+    "date": "2026-05-31",
+    "player": "Ben Rice",
+    "market": "bases",
+    "side": "MORE",
+    "line": 0.5,
+    "result": "HIT",
+    "actual": 5,
+    "matchMethod": "manual_verified_exact_total_bases",
+    "note": "manual_verified_ben_rice_5_total_bases"
+  }
+]
