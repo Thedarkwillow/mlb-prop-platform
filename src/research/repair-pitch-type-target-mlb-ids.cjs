@@ -25,6 +25,10 @@ function writeJson(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n");
 }
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 function norm(v) {
   return String(v || "")
     .toLowerCase()
@@ -62,7 +66,21 @@ function getJson(url) {
 
 async function lookupPlayer(name) {
   const url = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(name)}`;
-  const data = await getJson(url);
+  let data = null;
+  let lastErr = null;
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      data = await getJson(url);
+      break;
+    } catch (err) {
+      lastErr = err;
+      await sleep(600 * attempt);
+    }
+  }
+
+  if (!data) throw lastErr || new Error("lookup_failed");
+
   const people = Array.isArray(data.people) ? data.people : [];
   const key = norm(name);
 
@@ -98,6 +116,7 @@ async function main() {
   const failed = [];
 
   for (const row of rows) {
+    await sleep(Number(process.env.MLB_ID_REPAIR_SLEEP_MS || 350));
     try {
       const match = await lookupPlayer(row.pitcher);
       if (match?.id) {

@@ -13,6 +13,7 @@ const SEASON_START = `${YEAR}-03-01`;
 const PROBABLES = "data/context/probable-pitcher-hands.json";
 const STAFFS = "data/context/pitching-staffs.json";
 const BOARD = "outputs/priced-board.json";
+const TARGETS = "outputs/context/real-pitch-type-target-list-latest.json";
 const OUT = "data/savant/pitcher-velocity-trends.json";
 const RAW_DIR = "data/savant/velocity-raw";
 
@@ -30,6 +31,35 @@ function read(path, fallback = {}) {
   } catch {
     return fallback;
   }
+}
+
+function isPitcherPropMarket(row) {
+  const m = String(row.market || row.stat || row.stat_short || "").toLowerCase();
+  const sourceType = String(row.sourceType || row.playerType || row.recordSourceType || "").toLowerCase();
+
+  if (sourceType === "pitcher") return true;
+  if (sourceType === "batter" || sourceType === "hitter") return false;
+
+  return (
+    m.includes("pitching_outs") ||
+    m.includes("hits_allowed") ||
+    m.includes("earned_runs_allowed") ||
+    m.includes("walks_allowed") ||
+    m.includes("pitcher_fantasy")
+  );
+}
+
+function inferOpponent(row) {
+  const team = String(row.team || row.resolvedTeam || "").toUpperCase().trim();
+  const raw = String(row.resolvedGame || row.game || "");
+  if (!raw.includes("@")) return row.opponent || row.opponentTeam || null;
+
+  const parts = raw.split("@").map(x => String(x || "").toUpperCase().trim());
+  if (parts.length !== 2) return row.opponent || row.opponentTeam || null;
+  if (parts[0] === team) return parts[1];
+  if (parts[1] === team) return parts[0];
+
+  return row.opponent || row.opponentTeam || null;
 }
 
 function collectPitchers() {
@@ -179,12 +209,94 @@ function collectPitchers() {
     });
   }
 
-  const max = Number(process.env.SAVANT_MAX_PITCHERS || 90);
-  const values = [...out.values()];
-  const starters = values.filter(p => p.role === "probable_starter");
-  const others = values.filter(p => p.role !== "probable_starter");
 
-  return [...starters, ...others].slice(0, max);
+  // Current priced board pitcher-prop players themselves.
+  for (const row of Array.isArray(board) ? board : []) {
+    if (row.recordType && row.recordType !== "merged_prop") continue;
+    if (!isPitcherPropMarket(row)) continue;
+
+    const name =
+      row.player ||
+      row.playerName ||
+      row.name ||
+      row.pitcher ||
+      row.pitcherName;
+
+    if (!name) continue;
+
+    addPitcher({
+      pitcher: name,
+      id:
+        row.playerId ||
+        row.player_id ||
+        row.mlbamId ||
+        row.mlbId ||
+        row.mlb_id ||
+        row.pitcherId ||
+        row.pitcher_id ||
+        row.ppPlayerId ||
+        null,
+      team: row.team || row.resolvedTeam || null,
+      opponent: inferOpponent(row),
+      hand:
+        row.pitcherHand ||
+        row.hand ||
+        row.throwHand ||
+        row.playerHand ||
+        row.handednessContext?.pitcherHand ||
+        null,
+      gamePk: row.gamePk || row.resolvedGamePk || null,
+      role: "probable_starter",
+      source: "priced_board_pitcher_prop"
+    });
+  }
+
+  // Current real pitch-type gap targets.
+  const targets = read(TARGETS, {});
+  for (const t of targets.pitcherArsenalTargets || []) {
+    if (!t?.pitcher) continue;
+
+    addPitcher({
+      pitcher: t.pitcher,
+      id:
+        t.mlbamId ||
+        t.pitcherId ||
+        t.playerId ||
+        t.mlbId ||
+        null,
+      team: t.team || null,
+      opponent: t.opponent || null,
+      hand: t.hand || null,
+      gamePk: t.gamePk || null,
+      role: "probable_starter",
+      source: "real_pitch_type_target_list"
+    });
+  }
+
+  const max = Number(process.env.SAVANT_MAX_PITCHERS || 180);
+  const values = [...out.values()];
+
+  const prioritySource = p => {
+    const source = String(p.source || "");
+    if (source.includes("real_pitch_type_target_list")) return 0;
+    if (source.includes("priced_board_pitcher_prop")) return 1;
+    if (p.role === "probable_starter") return 2;
+    return 3;
+  };
+
+  return values
+    .sort((a, b) => {
+      const pa = prioritySource(a);
+      const pb = prioritySource(b);
+      if (pa !== pb) return pa - pb;
+
+      const aid = a.id ? 0 : 1;
+      const bid = b.id ? 0 : 1;
+      if (aid !== bid) return aid - bid;
+
+      return String(a.pitcher || "").localeCompare(String(b.pitcher || ""));
+    })
+    .slice(0, max);
 }
 
 function norm(v) {
