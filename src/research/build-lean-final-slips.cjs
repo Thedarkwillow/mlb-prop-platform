@@ -8,6 +8,7 @@ const BLOCKED = "outputs/blocked-final-candidates.json";
 const ENRICHED = "outputs/slips-distribution-enriched.json";
 const PRICED = "outputs/slips-priced.json";
 const SPORTSBOOK_BOARD = "outputs/sportsbook-enriched-board.json";
+const CONTROLLED_UNLOCKS = "outputs/controlled-line-unlocks-latest.json";
 const FULL_BOARD_LEARNING = "data/learning/full-board-market-learning.json";
 const OUT = "outputs/lean-final-slips.json";
 const OUT_DATED = `outputs/lean-final-slips-${date}.json`;
@@ -19,6 +20,17 @@ function readJson(p, fallback) {
     return fallback;
   }
 }
+function asArray(v) {
+  if (!v) return [];
+  if (Array.isArray(v)) return v;
+  if (Array.isArray(v.rows)) return v.rows;
+  if (Array.isArray(v.candidates)) return v.candidates;
+  if (Array.isArray(v.unlocked)) return v.unlocked;
+  if (Array.isArray(v.slips)) return v.slips;
+  if (Array.isArray(v.legs)) return v.legs;
+  return [];
+}
+
 
 function writeJson(p, data) {
   fs.mkdirSync(path.dirname(p), { recursive: true });
@@ -270,6 +282,41 @@ function officialThreshold(row) {
 }
 
 
+function isControlledUnlockCandidate(row) {
+  return Boolean(row.controlledUnlockCandidate || row.unlock || row.controlledUnlock);
+}
+function isControlledEliteHalfLineUnlock(row) {
+  const market = lower(row.market);
+  const side = lower(row.side);
+  const line = num(row.line, null);
+  const prob = getProb(row);
+  const edge = getEdge(row);
+  if (!isControlledUnlockCandidate(row)) return false;
+  return (
+    ["bases", "hits", "hrr"].includes(market) &&
+    side === "more" &&
+    line === 0.5 &&
+    prob !== null &&
+    prob >= 0.70 &&
+    edge !== null &&
+    edge >= 0.15
+  );
+}
+function isControlledPitcherLessUnlock(row) {
+  const market = lower(row.market);
+  const side = lower(row.side);
+  const prob = getProb(row);
+  const edge = getEdge(row);
+  if (!isControlledUnlockCandidate(row)) return false;
+  return (
+    ["strikeouts", "pitching_outs", "hits_allowed", "earned_runs_allowed"].includes(market) &&
+    side === "less" &&
+    prob !== null &&
+    prob >= 0.62 &&
+    edge !== null &&
+    edge >= 0.10
+  );
+}
 function isControlledHrrLess(row) {
   const market = lower(row.market);
   const side = lower(row.side);
@@ -324,6 +371,19 @@ function classifyLean(row) {
     return { eligible: false, tier: "BLOCKED", notes: ["hard_ban_or_suppressed"] };
   }
 
+  if (isControlledEliteHalfLineUnlock(row) || isControlledPitcherLessUnlock(row)) {
+    return {
+      eligible: true,
+      tier: "CONTROLLED_UNLOCK_WATCHLIST",
+      notes: [
+        ...notes,
+        "controlled_unlock_from_line_specific_audit",
+        "manual_review_only",
+        "not_official_playable",
+        "track_before_core_promotion"
+      ]
+    };
+  }
   if (sideBias.tier === "NEGATIVE" && side === "more") {
     return {
       eligible: false,
@@ -496,6 +556,10 @@ function normalizeCandidate(row, source) {
     confidence: row.calibratedConfidence?.confidence ?? row.distributionConfidence ?? null,
     officialGatePassed: row.finalExecutionGate?.passed ?? null,
     officialGateReasons: getGateReasons(row),
+    controlledUnlockCandidate: isControlledUnlockCandidate(row),
+    controlledUnlockRule: row.controlledUnlockRule ?? row.unlock?.rule ?? null,
+    controlledUnlockReason: row.controlledUnlockReason ?? row.unlock?.reason ?? null,
+    controlledUnlockStatus: row.controlledUnlockStatus ?? row.status ?? null,
     fullBoardSideBias: getFullBoardSideBias(row),
     leanStatus: lean.tier,
     leanEligible: lean.eligible,
@@ -506,6 +570,7 @@ function normalizeCandidate(row, source) {
 const final = readJson(FINAL, {});
 const topLegs = Array.isArray(final.topLegs) ? final.topLegs : [];
 const blocked = readJson(BLOCKED, []);
+const controlledUnlockRows = asArray(readJson(CONTROLLED_UNLOCKS, []));
 const enrichmentRows = [
   ...readJson(ENRICHED, []),
   ...readJson(PRICED, []),
@@ -536,6 +601,31 @@ for (const row of blocked) {
   }
 }
 
+for (const row of controlledUnlockRows) {
+  const controlledRow = {
+    ...row,
+    controlledUnlockCandidate: true,
+    controlledUnlockRule: row.unlock?.rule ?? row.controlledUnlockRule ?? null,
+    controlledUnlockReason: row.unlock?.reason ?? row.controlledUnlockReason ?? null,
+    controlledUnlockStatus: row.status ?? row.controlledUnlockStatus ?? null,
+    reason: row.blockedReason ?? row.reason ?? row.unlock?.reason ?? null,
+    oddsTier: row.tier ?? row.oddsTier ?? "standard"
+  };
+  const merged = mergeEnrichment(controlledRow, enrichmentIndex);
+  const normalized = normalizeCandidate(merged, "controlled_line_unlock");
+  const key = uniqueKey(normalized);
+
+  // Controlled unlocks are line-specific manual-review exceptions.
+  // They should replace the blocked duplicate in the lean report,
+  // but they still remain NOT official playable slips.
+  const existingIndex = candidates.findIndex(r => uniqueKey(r) === key);
+  if (existingIndex >= 0) {
+    candidates[existingIndex] = normalized;
+  } else {
+    seen.add(key);
+    candidates.push(normalized);
+  }
+}
 const leans = candidates
   .filter(r => r.leanEligible)
   .sort((a, b) =>
@@ -583,6 +673,7 @@ const out = {
   warning: "These are not official model plays. They are borderline/manual-review candidates kept separate from official ROI tracking.",
   counts: {
     totalCandidates: candidates.length,
+    controlledUnlocks: controlledUnlockRows.length,
     leans: leans.length,
     trackOnly: trackOnly.length,
     blocked: blockedOut.length

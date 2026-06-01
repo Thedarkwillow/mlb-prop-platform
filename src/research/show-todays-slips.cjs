@@ -139,8 +139,10 @@ const playableSlips = asArray(readJson("outputs/playable-final-slips.json", []))
 const watchlistSlips = asArray(readJson("outputs/watchlist-final-slips.json", []));
 const finalSlips = asArray(readJson("outputs/final-slips.json", []));
 
-const leanRows = flattenLegs(readJson("outputs/lean-final-slips.json", []))
-  .filter(r => r.player || r.playerName || r.market);
+const leanReport = readJson("outputs/lean-final-slips.json", {});
+const leanRows = Array.isArray(leanReport?.leans)
+  ? leanReport.leans
+  : flattenLegs(leanReport).filter(r => r.player || r.playerName || r.market);
 
 const blockedRows = asArray(readJson("outputs/blocked-final-candidates.json", []));
 const controlledUnlockRows = asArray(readJson("outputs/controlled-line-unlocks-latest.json", []));
