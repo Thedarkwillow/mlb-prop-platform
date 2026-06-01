@@ -75,8 +75,8 @@ function classify(row) {
 
   if (hitRate >= 0.58 && roi >= 0.10) {
     return {
-      action: "PROMOTE_TO_ACTIONABLE_LEAN",
-      reason: "positive_shadow_bucket"
+      action: "TRACK_ONLY",
+      reason: "shadow_bucket_requires_manual_approval"
     };
   }
 
