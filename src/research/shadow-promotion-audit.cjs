@@ -1,10 +1,22 @@
+function resolveDateArg() {
+  const args = process.argv.slice(2);
+  const dateEq = args.find(a => /^--date=/.test(a));
+  if (dateEq) return dateEq.split("=")[1];
+  const dateFlagIndex = args.findIndex(a => a === "--date");
+  if (dateFlagIndex >= 0 && args[dateFlagIndex + 1]) return args[dateFlagIndex + 1];
+  const positional = args.find(a => /^\d{4}-\d{2}-\d{2}$/.test(a));
+  return (
+    positional ||
+    process.env.npm_config_date ||
+    process.env.DATE ||
+    new Date().toISOString().slice(0, 10)
+  );
+}
+
 const fs = require("fs");
 const path = require("path");
 
-const date =
-  process.argv[2] ||
-  process.env.npm_config_date ||
-  new Date().toISOString().slice(0, 10);
+const date = resolveDateArg();
 
 const TIER_REPORT = `outputs/live/live-tier-performance-${date}.json`;
 const LATEST_TIER_REPORT = "outputs/live/live-tier-performance-latest.json";
