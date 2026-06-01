@@ -929,7 +929,7 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
       realSignal: qPct(confirmedLineupRows, boardTotal),
       neutralFallback: qPct(boardTotal - confirmedLineupRows, boardTotal),
       realRows: `${confirmedLineupRows}/${boardTotal}`,
-      note: "Confirmed lineup fields are not currently attached to priced-board."
+      note: "Confirmed lineup status attached from MLB live feed; coverage rises as teams post lineups."
     },
     {
       layer: "Handedness",
