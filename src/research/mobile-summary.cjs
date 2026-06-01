@@ -851,11 +851,24 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
     );
   }
 
-  const pitchReport = readJson("outputs/context/real-pitch-type-coverage-latest.json", null);
-  const pitchCounts = pitchReport?.counts || pitchReport || {};
-  const pitchRows = Number(pitchCounts.rows || pitchCounts.totalRows || 0);
-  const realPitchScored = Number(pitchCounts.realScored || pitchCounts.realScoredRows || 0);
-  const neutralPitchFallback = Number(pitchCounts.neutralFallback || pitchCounts.neutralFallbackRows || 0);
+  const pitchReconcile = readJson("outputs/context/pitch-type-real-coverage-reconcile-latest.json", null);
+  const oldPitchReport = readJson("outputs/context/real-pitch-type-coverage-latest.json", null);
+  const oldPitchCounts = oldPitchReport?.counts || oldPitchReport || {};
+  const pitchRows = Number(
+    pitchReconcile?.summary?.rows ||
+    pitchReconcile?.rows ||
+    oldPitchCounts.rows ||
+    oldPitchCounts.totalRows ||
+    0
+  );
+  const realPitchScored = Number(
+    pitchReconcile?.summary?.coverageStyleReal ||
+    pitchReconcile?.summary?.strictReal ||
+    oldPitchCounts.realScored ||
+    oldPitchCounts.realScoredRows ||
+    0
+  );
+  const neutralPitchFallback = Math.max(0, pitchRows - realPitchScored);
 
   const lineupProjectionRows = boardRows.filter(r => r.lineupStrengthReady === true).length;
 
@@ -945,7 +958,7 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
       realSignal: pitchRows ? qPct(realPitchScored, pitchRows) : "n/a",
       neutralFallback: pitchRows ? qPct(neutralPitchFallback, pitchRows) : "n/a",
       realRows: pitchRows ? `${realPitchScored}/${pitchRows}` : "n/a",
-      note: "Dedicated real pitch-type report; 100% field coverage can still include fallback."
+      note: "Uses pitch-type reconcile report; missing rows are mostly missing pitcher arsenal or hitter profile."
     },
     {
       layer: "Catcher framing",
