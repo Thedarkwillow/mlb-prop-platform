@@ -12,6 +12,7 @@ const SEASON_START = `${YEAR}-03-01`;
 
 const PROBABLES = "data/context/probable-pitcher-hands.json";
 const STAFFS = "data/context/pitching-staffs.json";
+const BOARD = "outputs/priced-board.json";
 const OUT = "data/savant/pitcher-velocity-trends.json";
 const RAW_DIR = "data/savant/velocity-raw";
 
@@ -33,44 +34,152 @@ function read(path, fallback = {}) {
 
 function collectPitchers() {
   const staffs = read(STAFFS, {});
+  const probables = read(PROBABLES, {});
+  const board = read(BOARD, []);
   const out = new Map();
+  const idByName = new Map();
 
+  function addIdName(name, id) {
+    if (!name || !id) return;
+    idByName.set(norm(name), id);
+  }
+
+  function addPitcher(p = {}, fallback = {}) {
+    const name =
+      p.pitcher ||
+      p.name ||
+      p.player ||
+      p.fullName ||
+      p.opposingPitcher ||
+      p.probablePitcher ||
+      p.starter ||
+      p.opponentStarter ||
+      fallback.pitcher ||
+      fallback.name;
+
+    if (!name) return;
+
+    const team = p.team || p.resolvedTeam || fallback.team || null;
+    const id =
+      p.id ||
+      p.pitcherId ||
+      p.playerId ||
+      p.mlbamId ||
+      p.mlbId ||
+      p.mlb_id ||
+      idByName.get(norm(name)) ||
+      null;
+
+    const rec = {
+      id,
+      pitcher: name,
+      team,
+      opponent: p.opponent || p.opponentTeam || fallback.opponent || null,
+      hand: p.hand || p.pitcherHand || p.opposingPitcherHand || fallback.hand || null,
+      gamePk: p.gamePk || p.resolvedGamePk || fallback.gamePk || null,
+      role: p.role || fallback.role || "probable_starter",
+      source: fallback.source || p.source || "unknown"
+    };
+
+    const key = id ? `id:${id}` : `name:${norm(name)}:${team || ""}`;
+    const prev = out.get(key);
+
+    out.set(key, {
+      ...prev,
+      ...rec,
+      id: prev?.id || rec.id,
+      pitcher: prev?.pitcher || rec.pitcher,
+      team: prev?.team || rec.team,
+      opponent: prev?.opponent || rec.opponent,
+      hand: prev?.hand || rec.hand,
+      gamePk: prev?.gamePk || rec.gamePk,
+      role: prev?.role === "probable_starter" ? prev.role : rec.role,
+      source: [prev?.source, rec.source].filter(Boolean).join("|")
+    });
+
+    addIdName(name, id);
+  }
+
+  // 1) Existing pitching-staffs source.
   for (const t of Object.values(staffs.teams || {})) {
     const all = [
       t.probableStarter,
+      t.startingPitcher,
+      t.probablePitcher,
+      t.starter,
       ...(Array.isArray(t.bullpen) ? t.bullpen : [])
     ].filter(Boolean);
 
     for (const p of all) {
-      if (!p.name || !p.id) continue;
-      out.set(String(p.id), {
-        id: p.id,
-        pitcher: p.name,
+      addPitcher(p, {
         team: p.team || t.team,
         opponent: p.opponent || t.opponent,
         hand: p.hand || null,
-        role: p.role || "staff"
+        role: p.role || "staff",
+        source: "pitching_staffs"
       });
     }
   }
 
-  // Fallback: starters only
-  if (!out.size) {
-    for (const [team, p] of Object.entries(probables.pitcherByTeam || {})) {
-      if (!p.pitcher || !p.id) continue;
-      out.set(String(p.id), {
-        id: p.id,
-        pitcher: p.pitcher,
-        team,
-        opponent: p.opponent || null,
-        hand: p.hand || null,
-        role: "probable_starter"
-      });
-    }
+  // 2) Probable pitcher file: own starter by team.
+  for (const [team, p] of Object.entries(probables.pitcherByTeam || {})) {
+    addPitcher(p, {
+      team,
+      opponent: p?.opponent || null,
+      hand: p?.hand || null,
+      gamePk: p?.gamePk || null,
+      role: "probable_starter",
+      source: "probable_pitcher_hands.pitcherByTeam"
+    });
   }
 
-  const max = Number(process.env.SAVANT_MAX_PITCHERS || 75);
+  // 3) Probable pitcher file: opposing pitcher by team.
+  for (const [team, p] of Object.entries(probables.opponentPitcherByTeam || {})) {
+    addPitcher(p, {
+      team: p?.opponent || null,
+      opponent: team,
+      hand: p?.hand || null,
+      gamePk: p?.gamePk || null,
+      role: "probable_starter",
+      source: "probable_pitcher_hands.opponentPitcherByTeam"
+    });
+  }
 
+  // 4) Current priced board opposing pitchers.
+  for (const row of Array.isArray(board) ? board : []) {
+    if (row.recordType && row.recordType !== "merged_prop") continue;
+
+    const name =
+      row.opposingPitcher ||
+      row.opponentPitcher ||
+      row.probablePitcher ||
+      row.handednessContext?.opposingPitcher ||
+      row.handednessAdjustment?.opposingPitcher ||
+      row.starter ||
+      row.opponentStarter;
+
+    if (!name) continue;
+
+    addPitcher({
+      pitcher: name,
+      id:
+        row.opposingPitcherId ||
+        row.opponentPitcherId ||
+        row.probablePitcherId ||
+        row.pitcherId ||
+        row.opposingPitcherMlbamId ||
+        row.opponentPitcherMlbamId ||
+        null,
+      team: row.opponentTeam || null,
+      opponent: row.team || row.resolvedTeam || null,
+      hand: row.pitcherHand || row.opposingPitcherHand || null,
+      gamePk: row.gamePk || row.resolvedGamePk || null,
+      role: "probable_starter",
+      source: "priced_board"
+    });
+  }
+
+  const max = Number(process.env.SAVANT_MAX_PITCHERS || 90);
   const values = [...out.values()];
   const starters = values.filter(p => p.role === "probable_starter");
   const others = values.filter(p => p.role !== "probable_starter");
