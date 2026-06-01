@@ -275,7 +275,8 @@
     "context:coverage:gaps": "node src/research/context-coverage-gap-audit.cjs",
     "context:source-keys": "node src/research/context-source-key-audit.cjs",
     "context:neutral-fallbacks": "node src/jobs/attachNeutralContextFallbacks.cjs",
-    "context:pitch-type:fallbacks": "node src/jobs/attachNeutralPitchTypeFallbacks.cjs"
+    "context:pitch-type:fallbacks": "node src/jobs/attachNeutralPitchTypeFallbacks.cjs",
+    "context:pitch-type:real-coverage": "node src/research/real-pitch-type-coverage-report.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
