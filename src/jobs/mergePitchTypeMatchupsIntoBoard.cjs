@@ -12,6 +12,11 @@ function readJson(p, fallback) {
     return fallback;
   }
 }
+const board = readJson(boardPath, []);
+const data = readJson(matchupPath, {});
+const arsenal = readJson(arsenalPath, {});
+const matchups = data.matchups || {};
+
 
 function norm(s) {
   return String(s || "")
@@ -156,10 +161,6 @@ const hitterMarkets = new Set([
   "hitter_fantasy_score"
 ]);
 
-const board = readJson(boardPath, []);
-const data = readJson(matchupPath, {});
-const arsenal = readJson(arsenalPath, {});
-const matchups = data.matchups || {};
 
 const byPitcherKey = new Map();
 const byOpponentTeamKey = new Map();
