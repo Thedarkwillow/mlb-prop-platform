@@ -45,14 +45,35 @@ function market(row) {
 
 function isPitcherMarket(row) {
   const m = market(row);
-  return (
-    m.includes("strikeout") ||
+  const sourceType = String(row.sourceType || row.playerType || row.recordSourceType || "").toLowerCase();
+  const rawStat = String(row.stat || row.stat_short || row.market || "").toLowerCase();
+
+  if (sourceType === "pitcher") return true;
+  if (sourceType === "batter" || sourceType === "hitter") return false;
+
+  if (
     m.includes("pitching_outs") ||
     m.includes("hits_allowed") ||
     m.includes("earned_runs_allowed") ||
     m.includes("walks_allowed") ||
+    m.includes("pitches_thrown") ||
     m.includes("pitcher_fantasy")
-  );
+  ) {
+    return true;
+  }
+
+  if (m === "strikeouts" || m === "pitcher_strikeouts") {
+    if (
+      rawStat.includes("hitter") ||
+      rawStat.includes("batter") ||
+      String(row.projectionSource || "").toLowerCase().includes("hitter")
+    ) {
+      return false;
+    }
+    return true;
+  }
+
+  return false;
 }
 
 function isComboRow(row) {
