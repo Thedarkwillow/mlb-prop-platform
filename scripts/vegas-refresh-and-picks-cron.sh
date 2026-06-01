@@ -20,11 +20,15 @@ npm run price:board
 echo "=== 4) BUILD SLIPS / LEANS / WATCHLIST ==="
 npm run picks
 
-echo "=== 5) REFRESH MOBILE / SHOW REPORTS ==="
+echo "=== 5) REFRESH CONTEXT / CONTROLLED UNLOCK DIAGNOSTICS ==="
+npm run context:coverage
+npm run unlocks:readiness
+
+echo "=== 6) REFRESH MOBILE / SHOW REPORTS ==="
 npm run mobile
 npm run show
 
-echo "=== 6) FILE AGES AFTER RUN ==="
+echo "=== 7) FILE AGES AFTER RUN ==="
 ls -lh --time-style=long-iso \
   data/vegas-consensus.json \
   outputs/priced-board.json \
