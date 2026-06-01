@@ -919,12 +919,41 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
     r.opponentBullpenFatigueTier
   ).length;
 
-  const contextAdjustmentRows = boardRows.filter(r =>
-    r.contextAdjustment &&
-    typeof r.contextAdjustment === "object" &&
-    Array.isArray(r.contextAdjustment.flags) &&
-    r.contextAdjustment.flags.length > 0
-  ).length;
+  function nonZeroNumber(v) {
+    const n = Number(v);
+    return Number.isFinite(n) && Math.abs(n) > 0;
+  }
+
+  function hasRealContextAdjustmentImpact(r) {
+    const adj = r.contextAdjustment && typeof r.contextAdjustment === "object"
+      ? r.contextAdjustment
+      : null;
+
+    if (adj) {
+      if (Array.isArray(adj.flags) && adj.flags.length > 0) return true;
+      if (nonZeroNumber(adj.probDelta)) return true;
+      if (nonZeroNumber(adj.projectionDeltaPct)) return true;
+      if (nonZeroNumber(adj.adjustment)) return true;
+      if (nonZeroNumber(adj.score)) return true;
+    }
+
+    if (Array.isArray(r.contextFlags) && r.contextFlags.length > 0) return true;
+
+    return [
+      r.contextAdjustmentValue,
+      r.contextAdjustmentScore,
+      r.lineupAdjustment,
+      r.handednessAdjustmentValue,
+      r.pitchTypeMatchupScore,
+      r.umpireFramingAdjustment,
+      r.catcherFramingAdjustment,
+      r.bullpenFatigueAdjustment,
+      r.contactQualityAdjustment,
+      r.calibrationAdjustment
+    ].some(nonZeroNumber);
+  }
+
+  const contextAdjustmentRows = boardRows.filter(hasRealContextAdjustmentImpact).length;
 
   console.table([
     {
@@ -989,7 +1018,7 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
       realSignal: qPct(contextAdjustmentRows, boardTotal),
       neutralFallback: qPct(boardTotal - contextAdjustmentRows, boardTotal),
       realRows: `${contextAdjustmentRows}/${boardTotal}`,
-      note: "Rows with non-empty contextAdjustment flags; contextAdjustedReady alone is fallback/ready state."
+      note: "Rows with real non-zero context movement or explicit context flags; contextAdjustedReady alone is fallback/ready state."
     }
   ]);
 })();
