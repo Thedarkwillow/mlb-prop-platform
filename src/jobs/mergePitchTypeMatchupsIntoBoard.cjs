@@ -1,25 +1,25 @@
 const fs = require("fs");
 
-const boardPath = "outputs/priced-board.json";
-const matchupPath = "data/savant/pitch-type-matchups.json";
-const arsenalPath = "data/savant/pitcher-arsenal-compact.json";
+const BOARD = "outputs/priced-board.json";
+const MATCHUPS = "data/savant/pitch-type-matchups.json";
+const ARSENAL = "data/savant/pitcher-arsenal-compact.json";
+const PROBABLE = "data/context/probable-pitcher-hands.json";
 
-function readJson(p, fallback) {
+function readJson(file, fallback) {
   try {
-    if (!fs.existsSync(p)) return fallback;
-    return JSON.parse(fs.readFileSync(p, "utf8"));
+    if (!fs.existsSync(file)) return fallback;
+    return JSON.parse(fs.readFileSync(file, "utf8"));
   } catch {
     return fallback;
   }
 }
-const board = readJson(boardPath, []);
-const data = readJson(matchupPath, {});
-const arsenal = readJson(arsenalPath, {});
-const matchups = data.matchups || {};
 
+function writeJson(file, data) {
+  fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n");
+}
 
-function norm(s) {
-  return String(s || "")
+function norm(v) {
+  return String(v || "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
@@ -28,143 +28,183 @@ function norm(s) {
     .trim();
 }
 
-function normTeam(s) {
-  return String(s || "").toUpperCase().trim();
+function market(row) {
+  return String(row.market || row.stat || "")
+    .toLowerCase()
+    .replace(/\s+/g, "_")
+    .trim();
 }
 
-function inferOpponent(row) {
-  const team = normTeam(row.team || row.resolvedTeam);
+function team(row) {
+  return String(row.resolvedTeam || row.team || row.playerTeam || row.teamAbbrev || "")
+    .toUpperCase()
+    .trim();
+}
+
+function gameTeams(row) {
   const raw = String(row.resolvedGame || row.game || "")
     .replace(/\s+at\s+/gi, " @ ")
     .trim();
 
-  if (!raw.includes("@")) return "";
-  const parts = raw.split("@").map(x => normTeam(x));
-  if (parts.length !== 2) return "";
-  if (parts[0] === team) return parts[1];
-  if (parts[1] === team) return parts[0];
+  if (!raw.includes("@")) return [];
+  return raw.split("@").map(x => x.toUpperCase().trim()).filter(Boolean);
+}
+
+function inferOpponentTeam(row) {
+  const t = team(row);
+  const explicit = String(row.opponent || row.opponentTeam || row.resolvedOpponent || "")
+    .toUpperCase()
+    .trim();
+
+  if (explicit) return explicit;
+
+  const parts = gameTeams(row);
+  if (parts.length !== 2 || !t) return "";
+
+  if (parts[0] === t) return parts[1];
+  if (parts[1] === t) return parts[0];
+
   return "";
 }
 
-function isPitcherMarket(row) {
-  const m = String(row.market || row.stat || "").toLowerCase();
-  const sourceType = String(row.sourceType || row.playerType || row.recordSourceType || "").toLowerCase();
-  const position = String(row.position || row.playerPosition || "").toUpperCase();
-  const player = row.player || row.playerName || row.name;
+function topPitchTypes(rec) {
+  if (!rec || typeof rec !== "object") return [];
 
-  // Plain "strikeouts" can be batter Ks or pitcher Ks.
-  // Trust pitcher arsenal identity over PrizePicks sourceType because sourceType is dirty on some K rows.
-  if (m === "strikeouts") {
-    return arsenalByName.has(norm(player));
+  function normalize(v) {
+    if (!v) return [];
+    if (Array.isArray(v)) return v;
+    if (typeof v === "object") {
+      return Object.entries(v).map(([pitchType, x]) => ({
+        pitchType,
+        ...(x && typeof x === "object" ? x : {})
+      }));
+    }
+    return [];
   }
+
+  const candidates = [
+    rec?.windows?.season?.pitchTypes,
+    rec?.season?.pitchTypes,
+    rec?.pitchTypes,
+    rec?.primaryPitches,
+    rec?.pitches,
+    rec?.arsenal
+  ];
+
+  for (const c of candidates) {
+    const arr = normalize(c)
+      .filter(x => x && typeof x === "object")
+      .filter(x => x.pitchType || x.type || x.code || x.name || x.pitch);
+    if (arr.length) return arr;
+  }
+
+  return [];
+}
+
+function collectArsenalRecords(src) {
+  const out = [];
+  const seenObjects = new Set();
+
+  function identity(rec, fallbackKey = null) {
+    return (
+      rec?.pitcher ||
+      rec?.player ||
+      rec?.name ||
+      rec?.fullName ||
+      rec?.pitcherName ||
+      fallbackKey ||
+      null
+    );
+  }
+
+  function hasPitchData(rec) {
+    return topPitchTypes(rec).length > 0;
+  }
+
+  function walk(v, fallbackKey = null) {
+    if (!v) return;
+
+    if (Array.isArray(v)) {
+      for (const x of v) walk(x, fallbackKey);
+      return;
+    }
+
+    if (typeof v !== "object") return;
+    if (seenObjects.has(v)) return;
+    seenObjects.add(v);
+
+    const name = identity(v, fallbackKey);
+
+    if (name && hasPitchData(v)) {
+      out.push({
+        name,
+        rec: {
+          ...v,
+          pitcher: v.pitcher || v.player || v.name || v.fullName || v.pitcherName || name
+        }
+      });
+    }
+
+    for (const [key, value] of Object.entries(v)) {
+      if (value && typeof value === "object") {
+        walk(value, key);
+      }
+    }
+  }
+
+  walk(src);
+
+  const byName = new Map();
+  for (const x of out) {
+    const key = norm(x.name);
+    if (!key) continue;
+    if (!byName.has(key)) byName.set(key, x.rec);
+  }
+
+  return byName;
+}
+
+function isExplicitPitcherMarket(row, arsenalByName) {
+  const m = market(row);
+  const sourceType = String(row.sourceType || row.playerType || row.recordSourceType || "")
+    .toLowerCase()
+    .trim();
+
+  const position = String(row.position || row.playerPosition || "")
+    .toUpperCase()
+    .trim();
 
   if (sourceType === "batter" || sourceType === "hitter") return false;
   if (sourceType === "pitcher" || position === "P") return true;
 
-  return (
+  if (
     m.includes("pitching") ||
     m.includes("outs") ||
     m.includes("earned_runs_allowed") ||
     m.includes("hits_allowed") ||
     m.includes("walks_allowed") ||
     m.includes("pitches_thrown") ||
-    m.includes("pitcher_fantasy")
-  );
-}
-
-function collectArsenalRecords(arsenal) {
-  const out = [];
-
-  function add(v) {
-    if (!v) return;
-    if (Array.isArray(v)) {
-      for (const x of v) add(x);
-      return;
-    }
-    if (typeof v !== "object") return;
-
-    const hasPitcherIdentity =
-      v.pitcher || v.player || v.name || v.fullName || v.pitcherName;
-
-    const hasArsenal =
-      v.season ||
-      v.windows ||
-      v.pitchTypes ||
-      v.primaryFastball ||
-      v.currentFastballVelo ||
-      v.baselineFastballVelo;
-
-    if (hasPitcherIdentity && hasArsenal) {
-      out.push(v);
-    }
-
-    for (const value of Object.values(v)) {
-      if (Array.isArray(value)) add(value);
-    }
-  }
-
-  add(arsenal.pitchers);
-  add(arsenal.byTeam);
-  add(arsenal.starters);
-  add(arsenal.bullpen);
-  add(arsenal.teams);
-  add(arsenal);
-
-  const seen = new Set();
-  return out.filter(r => {
-    const name = r.pitcher || r.player || r.name || r.fullName || r.pitcherName;
-    const key = norm(name);
-    if (!key || seen.has(key)) return false;
-    seen.add(key);
+    m.includes("pitcher_fantasy") ||
+    m.includes("1st_inning_runs_allowed")
+  ) {
     return true;
-  });
-}
-
-const arsenalByName = new Map();
-for (const rec of collectArsenalRecords(arsenal)) {
-  const names = [
-    rec.pitcher,
-    rec.player,
-    rec.name,
-    rec.fullName,
-    rec.pitcherName
-  ].filter(Boolean);
-
-  for (const name of names) {
-    arsenalByName.set(norm(name), rec);
-  }
-}
-
-function pitcherArsenalForRow(row) {
-  const player = row.player || row.playerName || row.name;
-  return arsenalByName.get(norm(player)) || null;
-}
-
-function compactPitchTypes(arm) {
-  const seasonPitchTypes =
-    arm.season?.pitchTypes ||
-    arm.windows?.season?.pitchTypes ||
-    arm.pitchTypes ||
-    [];
-
-  if (Array.isArray(seasonPitchTypes)) {
-    return seasonPitchTypes.slice(0, 5);
   }
 
-  if (seasonPitchTypes && typeof seasonPitchTypes === "object") {
-    return Object.values(seasonPitchTypes).slice(0, 5);
+  if (m === "strikeouts") {
+    return arsenalByName.has(norm(row.player));
   }
 
-  return [];
+  return false;
 }
 
-const hitterMarkets = new Set([
+const HITTER_MARKETS = new Set([
   "hits",
   "strikeouts",
   "bases",
   "hrr",
   "runs",
   "rbis",
+  "rbi",
   "hr",
   "home_runs",
   "singles",
@@ -174,178 +214,238 @@ const hitterMarkets = new Set([
   "hitter_fantasy_score"
 ]);
 
-
-const byPitcherKey = new Map();
-const byOpponentTeamKey = new Map();
-
-for (const m of Object.values(matchups)) {
-  byPitcherKey.set(`${norm(m.player)}__${norm(m.opponentPitcher)}`, m);
-  byOpponentTeamKey.set(`${norm(m.player)}__${normTeam(m.opponent)}`, m);
+function isHitterMarket(row, arsenalByName) {
+  if (isExplicitPitcherMarket(row, arsenalByName)) return false;
+  const m = market(row);
+  return HITTER_MARKETS.has(m) || HITTER_MARKETS.has(m.replace("home_runs", "hr"));
 }
 
-let hitterAvailable = 0;
-let hitterScored = 0;
-let pitcherArsenalReady = 0;
-let eligibleRows = 0;
-
-const out = board.map(row => {
-  if (row.recordType && row.recordType !== "merged_prop") return row;
-
-  row = {
-    ...row,
-    pitchTypeNeutralFallback: false,
-    pitchTypeMatchupSource: null,
-    pitchTypeSource: null,
-    pitchTypeContextNote: null,
-    pitchTypeMatchupFlags: []
-  };
-
-  const player = row.player || row.playerName || row.name;
-  const market = String(row.market || row.stat || "").toLowerCase();
-  const pitcherMarket = isPitcherMarket(row);
-  const hitterMarket = hitterMarkets.has(market);
-  const eligible = pitcherMarket || hitterMarket;
-
-  if (!eligible) {
-    return {
-      ...row,
-      pitchTypeMatchupEligible: false,
-      pitchTypeMatchupAvailable: false,
-      pitchTypeMatchupReady: false,
-      pitchTypeMatchupScored: false,
-      pitchTypePitcherArsenalReady: false,
-      pitchTypeMatchupTier: null,
-      pitchTypeMatchupScore: null
-    };
-  }
-
-  eligibleRows++;
-
-  if (pitcherMarket) {
-    const arm = pitcherArsenalForRow(row);
-
-    if (!arm) {
-      return {
-        ...row,
-        pitchTypeMatchupEligible: true,
-        pitchTypeMatchupAvailable: false,
-        pitchTypeMatchupReady: false,
-        pitchTypeMatchupScored: false,
-        pitchTypePitcherArsenalReady: false,
-        pitchTypeMatchupTier: "unknown",
-        pitchTypeMatchupScore: null,
-        pitchTypeMatchupFlags: [
-          ...(row.pitchTypeMatchupFlags || []),
-          "MISSING_PITCHER_PROP_ARSENAL"
-        ]
-      };
-    }
-
-    pitcherArsenalReady++;
-
-    return {
-      ...row,
-        pitchTypeMatchupEligible: true,
-        pitchTypeMatchupAvailable: true,
-        pitchTypeMatchupReady: true,
-        pitchTypeMatchupScored: true,
-        pitchTypePitcherArsenalReady: true,
-        pitchTypeNeutralFallback: false,
-        pitchTypeMatchupSource: "REAL_PITCHER_ARSENAL",
-        pitchTypeSource: "REAL_PITCHER_ARSENAL",
-        pitchTypeOpponentPitcher: arm.pitcher || arm.player || player,
-        pitchTypeOpponentPitcherHand: arm.hand || null,
-        pitchTypeMatchupScore: row.pitchTypeMatchupScore ?? 0,
-        pitchTypeMatchupTier: row.pitchTypeMatchupTier || "pitcher_arsenal_ready",
-        pitchTypeMatchupFlags: [
-          ...new Set([
-            ...(row.pitchTypeMatchupFlags || []).filter(f => ![
-              "MISSING_PITCHER_PROP_ARSENAL",
-              "PITCH_TYPE_NEUTRAL_FALLBACK_MISSING_PITCHER_ARSENAL",
-              "PITCH_TYPE_NEUTRAL_FALLBACK"
-            ].includes(String(f || ""))),
-            "PITCHER_PROP_ARSENAL_READY"
-          ])
-        ],
-        pitchTypePrimaryPitches: compactPitchTypes(arm)
-      };
-    }
-
-  const oppPitcher =
+function opponentPitcherFromRow(row, probable) {
+  const direct =
+    row.pitchTypeOpponentPitcher ||
+    row.opposingPitcher ||
     row.opponentPitcher ||
     row.probablePitcher ||
-    row.opposingPitcher ||
     row.handednessContext?.opposingPitcher ||
     row.handednessAdjustment?.opposingPitcher ||
     row.starter ||
-    row.opponentStarter;
+    row.opponentStarter ||
+    null;
 
-  const opponentTeam = inferOpponent(row);
-  const pitcherKey = `${norm(player)}__${norm(oppPitcher)}`;
-  const opponentTeamKey = `${norm(player)}__${normTeam(opponentTeam)}`;
-  const m = byPitcherKey.get(pitcherKey) || byOpponentTeamKey.get(opponentTeamKey);
-
-  if (!m) {
+  if (direct) {
     return {
-      ...row,
-      pitchTypeMatchupEligible: true,
-      pitchTypeMatchupAvailable: false,
-      pitchTypeMatchupReady: false,
-      pitchTypeMatchupScored: false,
-      pitchTypeMatchupTier: null,
-      pitchTypeMatchupScore: null
+      pitcher: direct,
+      source: "board_row",
+      hand:
+        row.opposingPitcherHand ||
+        row.pitcherHand ||
+        row.handednessContext?.opposingPitcherHand ||
+        row.handednessAdjustment?.opposingPitcherHand ||
+        null
     };
   }
 
-  hitterAvailable++;
+  const t = team(row);
+  const byTeam = probable?.opponentPitcherByTeam?.[t];
 
-  const tier = String(m.tier || "").toLowerCase();
-  const scored = m.matched === true && tier !== "unknown";
+  if (byTeam?.pitcher) {
+    return {
+      pitcher: byTeam.pitcher,
+      hand: byTeam.hand || null,
+      source: "probable_pitcher_hands"
+    };
+  }
 
-  if (scored) hitterScored++;
+  const opp = inferOpponentTeam(row);
+  const byOpponent =
+    probable?.pitcherByTeam?.[opp] ||
+    probable?.teamPitcherByTeam?.[opp] ||
+    null;
 
-  return {
-    ...row,
-    pitchTypeMatchupEligible: true,
-    pitchTypeMatchupAvailable: true,
-    pitchTypeMatchupReady: scored,
-    pitchTypeMatchupScored: scored,
-    pitchTypePitcherArsenalReady: false,
-      pitchTypeNeutralFallback: scored ? false : row.pitchTypeNeutralFallback,
-      pitchTypeMatchupSource: scored ? "REAL_HITTER_PITCH_TYPE_MATCHUP" : row.pitchTypeMatchupSource,
-      pitchTypeSource: scored ? "REAL_HITTER_PITCH_TYPE_MATCHUP" : row.pitchTypeSource,
-    pitchTypeOpponentPitcher: m.opponentPitcher,
-    pitchTypeOpponentPitcherHand: m.opponentPitcherHand,
-    pitchTypeMatchupScore: scored ? m.score : null,
-    pitchTypeMatchupTier: scored ? m.tier : "unknown",
-    pitchTypeMatchupFlags: m.flags || [],
-    pitchTypePrimaryPitches: (m.pitchTypes || []).slice(0, 5).map(p => ({
-      pitchType: p.pitchType,
-      usage: p.usage,
-      velocity: p.velocity,
-      whiffRate: p.whiffRate,
-      xwoba: p.xwoba,
-      xslg: p.xslg,
-      hardHitRate: p.hardHitRate,
-      runValuePer100: p.runValuePer100
-    }))
-  };
+  if (byOpponent?.pitcher) {
+    return {
+      pitcher: byOpponent.pitcher,
+      hand: byOpponent.hand || null,
+      source: "probable_pitcher_hands_opponent"
+    };
+  }
+
+  return null;
+}
+
+function compactPitchTypes(rec) {
+  return topPitchTypes(rec).slice(0, 5).map(p => ({
+    pitchType: p.pitchType || p.type || p.code || p.name || p.pitch || null,
+    usage: p.usage ?? p.pitchPercent ?? p.pitch_pct ?? p.pitchPct ?? p.percent ?? p.pct ?? null,
+    velocity: p.velocity ?? p.velo ?? p.avgVelocity ?? p.avgVelo ?? null,
+    whiffRate: p.whiffRate ?? p.whiff ?? p.whiff_pct ?? p.whiffPct ?? null,
+    xwoba: p.xwoba ?? p.xwOBA ?? p.expectedWoba ?? null,
+    xslg: p.xslg ?? p.xSLG ?? p.expectedSlg ?? null,
+    hardHitRate: p.hardHitRate ?? p.hardHit ?? p.hard_hit_pct ?? p.hardHitPct ?? null,
+    runValuePer100: p.runValuePer100 ?? p.rv100 ?? p.run_value_per_100 ?? p.runValue ?? null
+  }));
+}
+
+const board = readJson(BOARD, []);
+const matchupFile = readJson(MATCHUPS, { matchups: {} });
+const arsenalFile = readJson(ARSENAL, {});
+const probable = readJson(PROBABLE, { opponentPitcherByTeam: {} });
+
+const matchups = matchupFile.matchups || {};
+const arsenalByName = collectArsenalRecords(arsenalFile);
+
+let eligibleRows = 0;
+let hitterAvailable = 0;
+let hitterScored = 0;
+let pitcherArsenalReady = 0;
+let readyRows = 0;
+let fallbackRows = 0;
+
+const out = board.map(row => {
+  if (!row || typeof row !== "object") return row;
+  if (row.recordType === "pricing_summary") return row;
+
+  const next = { ...row };
+
+  next.pitchTypeMatchupReady = false;
+  next.pitchTypeMatchupAvailable = false;
+  next.pitchTypeMatchupScored = false;
+  next.pitchTypeMatchupTier = null;
+  next.pitchTypeMatchupScore = null;
+  next.pitchTypeMatchupSource = null;
+  next.pitchTypeSource = null;
+  next.pitchTypeNeutralFallback = false;
+  next.pitchTypePitcherArsenalReady = false;
+  next.pitchTypePrimaryPitches = [];
+  next.pitchTypeMatchupFlags = [];
+
+  if (isExplicitPitcherMarket(row, arsenalByName)) {
+    eligibleRows += 1;
+
+    const pitcherName = row.player || row.playerName || row.name;
+    const pitcherRec = arsenalByName.get(norm(pitcherName));
+
+    if (pitcherRec) {
+      const pitches = compactPitchTypes(pitcherRec);
+
+      next.pitchTypeMatchupReady = true;
+      next.pitchTypeMatchupAvailable = true;
+      next.pitchTypeMatchupScored = true;
+      next.pitchTypeMatchupTier = "neutral";
+      next.pitchTypeMatchupScore = 0;
+      next.pitchTypeMatchupSource = "REAL_PITCHER_ARSENAL";
+      next.pitchTypeSource = "REAL_PITCHER_ARSENAL";
+      next.pitchTypePitcherArsenalReady = true;
+      next.pitchTypePrimaryPitches = pitches;
+      next.pitchTypeMatchupFlags = ["PITCHER_PROP_ARSENAL_READY"];
+
+      pitcherArsenalReady += 1;
+      readyRows += 1;
+    } else {
+      next.pitchTypeMatchupAvailable = false;
+      next.pitchTypeMatchupTier = "unknown";
+      next.pitchTypeMatchupFlags = ["MISSING_PITCHER_PROP_ARSENAL"];
+      fallbackRows += 1;
+    }
+
+    return next;
+  }
+
+  if (!isHitterMarket(row, arsenalByName)) {
+    return next;
+  }
+
+  eligibleRows += 1;
+
+  const opp = opponentPitcherFromRow(row, probable);
+
+  if (!opp?.pitcher) {
+    next.pitchTypeMatchupAvailable = false;
+    next.pitchTypeMatchupTier = "unknown";
+    next.pitchTypeMatchupFlags = ["MISSING_OPPOSING_PITCHER"];
+    fallbackRows += 1;
+    return next;
+  }
+
+  const pitcherRec = arsenalByName.get(norm(opp.pitcher));
+  const pitcherPitches = pitcherRec ? compactPitchTypes(pitcherRec) : [];
+
+  next.pitchTypeOpponentPitcher = opp.pitcher;
+  next.pitchTypeOpponentPitcherHand = opp.hand || null;
+  next.pitchTypeOpponentPitcherSource = opp.source || null;
+  next.pitchTypePitcherArsenalReady = Boolean(pitcherRec);
+  next.pitchTypePrimaryPitches = pitcherPitches;
+
+  const key = `${norm(row.player)}__${norm(opp.pitcher)}`;
+  const matchup = matchups[key];
+
+  if (matchup) {
+    next.pitchTypeMatchupAvailable = true;
+    next.pitchTypeMatchupTier = matchup.tier || "unknown";
+    next.pitchTypeMatchupScore =
+      matchup.score === undefined || matchup.score === null ? null : Number(matchup.score);
+    next.pitchTypeMatchupFlags = Array.isArray(matchup.flags) ? matchup.flags : [];
+    next.pitchTypePrimaryPitches = Array.isArray(matchup.pitchTypes)
+      ? matchup.pitchTypes
+      : pitcherPitches;
+
+    hitterAvailable += 1;
+
+    if (matchup.matched === true) {
+      next.pitchTypeMatchupReady = true;
+      next.pitchTypeMatchupScored = true;
+      next.pitchTypeMatchupSource = "REAL_HITTER_PITCH_TYPE_MATCHUP";
+      next.pitchTypeSource = "REAL_HITTER_PITCH_TYPE_MATCHUP";
+      hitterScored += 1;
+      readyRows += 1;
+    } else {
+      next.pitchTypeMatchupReady = false;
+      next.pitchTypeMatchupScored = false;
+      next.pitchTypeMatchupSource = null;
+      next.pitchTypeSource = null;
+      fallbackRows += 1;
+    }
+
+    return next;
+  }
+
+  if (pitcherRec) {
+    next.pitchTypeMatchupAvailable = true;
+    next.pitchTypeMatchupReady = false;
+    next.pitchTypeMatchupScored = false;
+    next.pitchTypeMatchupTier = "unknown";
+    next.pitchTypeMatchupFlags = ["MISSING_HITTER_PITCH_TYPE_MATCHUP"];
+    hitterAvailable += 1;
+    fallbackRows += 1;
+    return next;
+  }
+
+  next.pitchTypeMatchupAvailable = false;
+  next.pitchTypeMatchupReady = false;
+  next.pitchTypeMatchupScored = false;
+  next.pitchTypeMatchupTier = "unknown";
+  next.pitchTypeMatchupFlags = ["MISSING_PITCHER_ARSENAL"];
+  fallbackRows += 1;
+
+  return next;
 });
 
-fs.writeFileSync(boardPath, JSON.stringify(out, null, 2) + "\n");
+writeJson(BOARD, out);
 
-const readyRows = out.filter(r => r.recordType === "merged_prop" && r.pitchTypeMatchupReady === true).length;
+const boardRows = Array.isArray(board) ? board.length : 0;
+const matchRate = boardRows ? Number((readyRows / boardRows).toFixed(4)) : 0;
 
 console.log("PITCH TYPE MATCHUP MERGE REPORT");
 console.log("===============================");
 console.log({
-  boardRows: board.length,
-  matchupKeys: byPitcherKey.size,
+  boardRows,
+  matchupKeys: Object.keys(matchups).length,
   eligibleRows,
   hitterAvailable,
   hitterScored,
   arsenalIndexSize: arsenalByName.size,
   pitcherArsenalReady,
   readyRows,
-  matchRate: board.length ? Number((readyRows / board.length).toFixed(4)) : 0
+  fallbackRows,
+  matchRate
 });
