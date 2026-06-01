@@ -1,720 +1,1913 @@
 {
-  "generatedAt": "2026-06-01T16:29:41.303Z",
+  "generatedAt": "2026-06-01T17:43:25.998Z",
   "date": "2026-06-01",
   "seasonStart": "2026-03-01",
   "source": "Baseball Savant Statcast Search CSV grouped by pitch-type",
   "note": "Pitch arsenal + velocity cache. No probability movement applied yet.",
-  "probablePitchers": 160,
-  "pulledPitchers": 19,
+  "probablePitchers": 180,
+  "pulledPitchers": 29,
   "missingIds": [
     {
-      "team": "DET",
-      "pitcher": "Ty Madden",
-      "opponent": "TB"
-    },
-    {
-      "team": "NYM",
+      "team": "SEA",
       "pitcher": "A.J. Ewing",
-      "opponent": "SEA"
+      "opponent": "NYM"
     },
     {
-      "team": "AZ",
+      "team": "LAD",
       "pitcher": "Adrian Del Castillo",
-      "opponent": "LAD"
+      "opponent": "AZ"
     },
     {
-      "team": "STL",
+      "team": "TEX",
       "pitcher": "Alec Burleson",
-      "opponent": "TEX"
+      "opponent": "STL"
     },
     {
-      "team": "TEX",
+      "team": "STL",
       "pitcher": "Alejandro Osuna",
-      "opponent": "STL"
+      "opponent": "TEX"
     },
     {
-      "team": "LAD",
+      "team": "AZ",
       "pitcher": "Alex Call",
-      "opponent": "AZ"
+      "opponent": "LAD"
     },
     {
-      "team": "LAD",
+      "team": "AZ",
       "pitcher": "Alex Freeland",
-      "opponent": "AZ"
+      "opponent": "LAD"
     },
     {
-      "team": "CWS",
+      "team": "MIN",
       "pitcher": "Andrew Benintendi",
-      "opponent": "MIN"
+      "opponent": "CWS"
     },
     {
-      "team": "LAD",
+      "team": "AZ",
       "pitcher": "Andy Pages",
-      "opponent": "AZ"
+      "opponent": "LAD"
     },
     {
-      "team": "MIN",
+      "team": "CWS",
       "pitcher": "Austin Martin",
-      "opponent": "CWS"
+      "opponent": "MIN"
     },
     {
-      "team": "CIN",
+      "team": "KC",
       "pitcher": "Blake Dunn",
-      "opponent": "KC"
+      "opponent": "CIN"
     },
     {
-      "team": "NYM",
+      "team": "SEA",
       "pitcher": "Bo Bichette",
-      "opponent": "SEA"
+      "opponent": "NYM"
     },
     {
-      "team": "KC",
+      "team": "CIN",
       "pitcher": "Bobby Witt Jr.",
-      "opponent": "CIN"
+      "opponent": "KC"
     },
     {
-      "team": "TEX",
+      "team": "STL",
       "pitcher": "Brandon Nimmo",
-      "opponent": "STL"
+      "opponent": "TEX"
     },
     {
-      "team": "NYM",
+      "team": "SEA",
       "pitcher": "Brett Baty",
-      "opponent": "SEA"
+      "opponent": "NYM"
     },
     {
-      "team": "MIL",
+      "team": "SF",
       "pitcher": "Brice Turang",
-      "opponent": "SF"
+      "opponent": "MIL"
     },
     {
-      "team": "MIN",
+      "team": "CWS",
       "pitcher": "Brooks Lee",
-      "opponent": "CWS"
+      "opponent": "MIN"
     },
     {
-      "team": "STL",
+      "team": "TEX",
       "pitcher": "Bryan Torres",
-      "opponent": "TEX"
+      "opponent": "STL"
     },
     {
-      "team": "SF",
+      "team": "MIL",
       "pitcher": "Bryce Eldridge",
-      "opponent": "MIL"
+      "opponent": "SF"
     },
     {
-      "team": "MIN",
+      "team": "CWS",
       "pitcher": "Byron Buxton",
-      "opponent": "CWS"
+      "opponent": "MIN"
     },
     {
-      "team": "NYM",
+      "team": "SEA",
       "pitcher": "Carson Benge",
-      "opponent": "SEA"
+      "opponent": "NYM"
     },
     {
-      "team": "KC",
+      "team": "CIN",
       "pitcher": "Carter Jensen",
-      "opponent": "CIN"
+      "opponent": "KC"
     },
     {
-      "team": "SF",
+      "team": "MIL",
       "pitcher": "Casey Schmitt",
-      "opponent": "MIL"
+      "opponent": "SF"
     },
     {
-      "team": "TB",
+      "team": "DET",
       "pitcher": "Cedric Mullins",
-      "opponent": "DET"
+      "opponent": "TB"
     },
     {
-      "team": "TB",
+      "team": "DET",
       "pitcher": "Chandler Simpson",
-      "opponent": "DET"
+      "opponent": "TB"
     },
     {
-      "team": "CWS",
+      "team": "MIN",
       "pitcher": "Chase Meidroth",
-      "opponent": "MIN"
+      "opponent": "CWS"
     },
     {
-      "team": "MIL",
+      "team": "SF",
       "pitcher": "Christian Yelich",
-      "opponent": "SF"
+      "opponent": "MIL"
     },
     {
-      "team": "MIA",
+      "team": "WSH",
       "pitcher": "Christopher Morel",
-      "opponent": "WSH"
+      "opponent": "MIA"
     },
     {
-      "team": "WSH",
+      "team": "MIA",
       "pitcher": "CJ Abrams",
-      "opponent": "MIA"
+      "opponent": "WSH"
     },
     {
-      "team": "SEA",
+      "team": "NYM",
       "pitcher": "Cole Young",
-      "opponent": "NYM"
+      "opponent": "SEA"
     },
     {
-      "team": "CWS",
+      "team": "MIN",
       "pitcher": "Colson Montgomery",
-      "opponent": "MIN"
+      "opponent": "CWS"
     },
     {
-      "team": "SEA",
+      "team": "NYM",
       "pitcher": "Colt Emerson",
-      "opponent": "NYM"
+      "opponent": "SEA"
     },
     {
-      "team": "DET",
+      "team": "TB",
       "pitcher": "Colt Keith",
-      "opponent": "TB"
+      "opponent": "DET"
     },
     {
-      "team": "MIA",
+      "team": "WSH",
       "pitcher": "Connor Norby",
-      "opponent": "WSH"
+      "opponent": "MIA"
     },
     {
-      "team": "AZ",
+      "team": "LAD",
       "pitcher": "Corbin Carroll",
-      "opponent": "LAD"
+      "opponent": "AZ"
     },
     {
-      "team": "WSH",
+      "team": "MIA",
       "pitcher": "Curtis Mead",
-      "opponent": "MIA"
+      "opponent": "WSH"
     },
     {
-      "team": "SF",
+      "team": "MIL",
       "pitcher": "Daniel Susac",
-      "opponent": "MIL"
+      "opponent": "SF"
     },
     {
-      "team": "TEX",
+      "team": "STL",
       "pitcher": "Danny Jansen",
-      "opponent": "STL"
+      "opponent": "TEX"
     },
     {
-      "team": "MIL",
+      "team": "SF",
       "pitcher": "David Hamilton",
-      "opponent": "SF"
+      "opponent": "MIL"
     },
     {
-      "team": "WSH",
+      "team": "MIA",
       "pitcher": "Daylen Lile",
-      "opponent": "MIA"
+      "opponent": "WSH"
     },
     {
-      "team": "DET",
+      "team": "TB",
       "pitcher": "Dillon Dingler",
-      "opponent": "TB"
+      "opponent": "DET"
     },
     {
-      "team": "WSH",
+      "team": "MIA",
       "pitcher": "Drew Millas",
-      "opponent": "MIA"
+      "opponent": "WSH"
     },
     {
-      "team": "CWS",
+      "team": "MIN",
       "pitcher": "Drew Romo",
-      "opponent": "MIN"
+      "opponent": "CWS"
     },
     {
-      "team": "WSH",
+      "team": "MIA",
       "pitcher": "Dylan Crews",
-      "opponent": "MIA"
+      "opponent": "WSH"
     },
     {
-      "team": "CWS",
+      "team": "MIN",
       "pitcher": "Edgar Quero",
-      "opponent": "MIN"
+      "opponent": "CWS"
     },
     {
-      "team": "COL",
+      "team": "LAA",
       "pitcher": "Edouard Julien",
-      "opponent": "LAA"
+      "opponent": "COL"
     },
     {
-      "team": "CIN",
+      "team": "KC",
       "pitcher": "Eugenio Suárez",
-      "opponent": "KC"
+      "opponent": "CIN"
     },
     {
-      "team": "TEX",
+      "team": "STL",
       "pitcher": "Evan Carter",
-      "opponent": "STL"
+      "opponent": "TEX"
     },
     {
-      "team": "TEX",
+      "team": "STL",
       "pitcher": "Ezequiel Duran",
-      "opponent": "STL"
+      "opponent": "TEX"
     },
     {
-      "team": "COL",
+      "team": "LAA",
       "pitcher": "Ezequiel Tovar",
-      "opponent": "LAA"
+      "opponent": "COL"
     },
     {
-      "team": "LAD",
+      "team": "AZ",
       "pitcher": "Freddie Freeman",
-      "opponent": "AZ"
+      "opponent": "LAD"
     },
     {
-      "team": "AZ",
+      "team": "LAD",
       "pitcher": "Gabriel Moreno",
-      "opponent": "LAD"
+      "opponent": "AZ"
     },
     {
-      "team": "MIL",
+      "team": "SF",
       "pitcher": "Garrett Mitchell",
-      "opponent": "SF"
+      "opponent": "MIL"
     },
     {
-      "team": "AZ",
+      "team": "LAD",
       "pitcher": "Geraldo Perdomo",
-      "opponent": "LAD"
+      "opponent": "AZ"
     },
     {
-      "team": "TB",
+      "team": "DET",
       "pitcher": "Hunter Feduccia",
-      "opponent": "DET"
+      "opponent": "TB"
     },
     {
-      "team": "COL",
+      "team": "LAA",
       "pitcher": "Hunter Goodman",
-      "opponent": "LAA"
+      "opponent": "COL"
     },
     {
-      "team": "AZ",
+      "team": "LAD",
       "pitcher": "Ildemaro Vargas",
-      "opponent": "LAD"
+      "opponent": "AZ"
     },
     {
-      "team": "KC",
+      "team": "CIN",
       "pitcher": "Isaac Collins",
-      "opponent": "CIN"
+      "opponent": "KC"
     },
     {
-      "team": "STL",
+      "team": "TEX",
       "pitcher": "Ivan Herrera",
-      "opponent": "TEX"
+      "opponent": "STL"
     },
     {
-      "team": "SEA",
+      "team": "NYM",
       "pitcher": "J.P. Crawford",
-      "opponent": "NYM"
+      "opponent": "SEA"
     },
     {
-      "team": "KC",
+      "team": "CIN",
       "pitcher": "Jac Caglianone",
-      "opponent": "CIN"
+      "opponent": "KC"
     },
     {
-      "team": "MIL",
+      "team": "SF",
       "pitcher": "Jackson Chourio",
-      "opponent": "SF"
+      "opponent": "MIL"
     },
     {
-      "team": "CWS",
+      "team": "MIN",
       "pitcher": "Jacob Gonzalez",
-      "opponent": "MIN"
+      "opponent": "CWS"
     },
     {
-      "team": "WSH",
+      "team": "MIA",
       "pitcher": "Jacob Young",
-      "opponent": "MIA"
+      "opponent": "WSH"
     },
     {
-      "team": "MIL",
+      "team": "SF",
       "pitcher": "Jake Bauers",
-      "opponent": "SF"
+      "opponent": "MIL"
     },
     {
-      "team": "TEX",
+      "team": "STL",
       "pitcher": "Jake Burger",
-      "opponent": "STL"
+      "opponent": "TEX"
     },
     {
-      "team": "COL",
+      "team": "LAA",
       "pitcher": "Jake McCarthy",
-      "opponent": "LAA"
+      "opponent": "COL"
     },
     {
-      "team": "MIA",
+      "team": "WSH",
       "pitcher": "Jakob Marsee",
-      "opponent": "WSH"
+      "opponent": "MIA"
     },
     {
-      "team": "WSH",
+      "team": "MIA",
       "pitcher": "James Wood",
-      "opponent": "MIA"
+      "opponent": "WSH"
     },
     {
-      "team": "NYM",
+      "team": "SEA",
       "pitcher": "Jared Young",
-      "opponent": "SEA"
-    },
-    {
-      "team": "MIA",
-      "pitcher": "Javier Sanoja",
-      "opponent": "WSH"
-    },
-    {
-      "team": "SEA",
-      "pitcher": "Jhonny Pereda",
       "opponent": "NYM"
-    },
-    {
-      "team": "STL",
-      "pitcher": "Jimmy Crooks",
-      "opponent": "TEX"
-    },
-    {
-      "team": "CIN",
-      "pitcher": "JJ Bleday",
-      "opponent": "KC"
-    },
-    {
-      "team": "STL",
-      "pitcher": "JJ Wetherholt",
-      "opponent": "TEX"
-    },
-    {
-      "team": "LAA",
-      "pitcher": "Jo Adell",
-      "opponent": "COL"
-    },
-    {
-      "team": "TEX",
-      "pitcher": "Joc Pederson",
-      "opponent": "STL"
-    },
-    {
-      "team": "MIA",
-      "pitcher": "Joe Mack",
-      "opponent": "WSH"
-    },
-    {
-      "team": "MIL",
-      "pitcher": "Joey Ortiz",
-      "opponent": "SF"
-    },
-    {
-      "team": "TB",
-      "pitcher": "Jonathan Aranda",
-      "opponent": "DET"
-    },
-    {
-      "team": "STL",
-      "pitcher": "Jordan Walker",
-      "opponent": "TEX"
-    },
-    {
-      "team": "LAA",
-      "pitcher": "Jorge Soler",
-      "opponent": "COL"
-    },
-    {
-      "team": "LAA",
-      "pitcher": "Jose Siri",
-      "opponent": "COL"
     },
     {
       "team": "WSH",
-      "pitcher": "José Tena",
+      "pitcher": "Javier Sanoja",
       "opponent": "MIA"
-    },
-    {
-      "team": "MIN",
-      "pitcher": "Josh Bell",
-      "opponent": "CWS"
-    },
-    {
-      "team": "TEX",
-      "pitcher": "Josh Jung",
-      "opponent": "STL"
-    },
-    {
-      "team": "SEA",
-      "pitcher": "Josh Naylor",
-      "opponent": "NYM"
     },
     {
       "team": "NYM",
-      "pitcher": "Juan Soto",
+      "pitcher": "Jhonny Pereda",
       "opponent": "SEA"
     },
     {
-      "team": "SEA",
-      "pitcher": "Julio Rodríguez",
-      "opponent": "NYM"
-    },
-    {
-      "team": "TB",
-      "pitcher": "Junior Caminero",
-      "opponent": "DET"
-    },
-    {
-      "team": "WSH",
-      "pitcher": "Keibert Ruiz",
-      "opponent": "MIA"
-    },
-    {
-      "team": "DET",
-      "pitcher": "Kerry Carpenter",
-      "opponent": "TB"
-    },
-    {
-      "team": "AZ",
-      "pitcher": "Ketel Marte",
-      "opponent": "LAD"
-    },
-    {
-      "team": "DET",
-      "pitcher": "Kevin McGonigle",
-      "opponent": "TB"
-    },
-    {
-      "team": "MIN",
-      "pitcher": "Kody Clemens",
-      "opponent": "CWS"
+      "team": "TEX",
+      "pitcher": "Jimmy Crooks",
+      "opponent": "STL"
     },
     {
       "team": "KC",
-      "pitcher": "Kyle Isbel",
+      "pitcher": "JJ Bleday",
       "opponent": "CIN"
+    },
+    {
+      "team": "TEX",
+      "pitcher": "JJ Wetherholt",
+      "opponent": "STL"
     },
     {
       "team": "COL",
-      "pitcher": "Kyle Karros",
+      "pitcher": "Jo Adell",
+      "opponent": "LAA"
+    },
+    {
+      "team": "STL",
+      "pitcher": "Joc Pederson",
+      "opponent": "TEX"
+    },
+    {
+      "team": "WSH",
+      "pitcher": "Joe Mack",
+      "opponent": "MIA"
+    },
+    {
+      "team": "SF",
+      "pitcher": "Joey Ortiz",
+      "opponent": "MIL"
+    },
+    {
+      "team": "DET",
+      "pitcher": "Jonathan Aranda",
+      "opponent": "TB"
+    },
+    {
+      "team": "TEX",
+      "pitcher": "Jordan Walker",
+      "opponent": "STL"
+    },
+    {
+      "team": "COL",
+      "pitcher": "Jorge Soler",
+      "opponent": "LAA"
+    },
+    {
+      "team": "COL",
+      "pitcher": "Jose Siri",
       "opponent": "LAA"
     },
     {
       "team": "MIA",
-      "pitcher": "Kyle Stowers",
+      "pitcher": "José Tena",
       "opponent": "WSH"
     },
     {
-      "team": "LAD",
-      "pitcher": "Kyle Tucker",
-      "opponent": "AZ"
+      "team": "CWS",
+      "pitcher": "Josh Bell",
+      "opponent": "MIN"
     },
     {
-      "team": "MIA",
-      "pitcher": "Liam Hicks",
-      "opponent": "WSH"
-    },
-    {
-      "team": "LAA",
-      "pitcher": "Logan O'Hoppe",
-      "opponent": "COL"
-    },
-    {
-      "team": "SF",
-      "pitcher": "Luis Arraez",
-      "opponent": "MIL"
-    },
-    {
-      "team": "WSH",
-      "pitcher": "Luis García Jr.",
-      "opponent": "MIA"
-    },
-    {
-      "team": "MIL",
-      "pitcher": "Luis Rengifo",
-      "opponent": "SF"
+      "team": "STL",
+      "pitcher": "Josh Jung",
+      "opponent": "TEX"
     },
     {
       "team": "NYM",
-      "pitcher": "Luis Torrens",
+      "pitcher": "Josh Naylor",
       "opponent": "SEA"
+    },
+    {
+      "team": "SEA",
+      "pitcher": "Juan Soto",
+      "opponent": "NYM"
+    },
+    {
+      "team": "NYM",
+      "pitcher": "Julio Rodríguez",
+      "opponent": "SEA"
+    },
+    {
+      "team": "DET",
+      "pitcher": "Junior Caminero",
+      "opponent": "TB"
+    },
+    {
+      "team": "MIA",
+      "pitcher": "Keibert Ruiz",
+      "opponent": "WSH"
+    },
+    {
+      "team": "TB",
+      "pitcher": "Kerry Carpenter",
+      "opponent": "DET"
+    },
+    {
+      "team": "LAD",
+      "pitcher": "Ketel Marte",
+      "opponent": "AZ"
+    },
+    {
+      "team": "TB",
+      "pitcher": "Kevin McGonigle",
+      "opponent": "DET"
+    },
+    {
+      "team": "CWS",
+      "pitcher": "Kody Clemens",
+      "opponent": "MIN"
+    },
+    {
+      "team": "CIN",
+      "pitcher": "Kyle Isbel",
+      "opponent": "KC"
+    },
+    {
+      "team": "LAA",
+      "pitcher": "Kyle Karros",
+      "opponent": "COL"
+    },
+    {
+      "team": "WSH",
+      "pitcher": "Kyle Stowers",
+      "opponent": "MIA"
+    },
+    {
+      "team": "AZ",
+      "pitcher": "Kyle Tucker",
+      "opponent": "LAD"
+    },
+    {
+      "team": "WSH",
+      "pitcher": "Liam Hicks",
+      "opponent": "MIA"
+    },
+    {
+      "team": "COL",
+      "pitcher": "Logan O'Hoppe",
+      "opponent": "LAA"
+    },
+    {
+      "team": "MIL",
+      "pitcher": "Luis Arraez",
+      "opponent": "SF"
+    },
+    {
+      "team": "MIA",
+      "pitcher": "Luis García Jr.",
+      "opponent": "WSH"
+    },
+    {
+      "team": "SF",
+      "pitcher": "Luis Rengifo",
+      "opponent": "MIL"
+    },
+    {
+      "team": "SEA",
+      "pitcher": "Luis Torrens",
+      "opponent": "NYM"
+    },
+    {
+      "team": "CWS",
+      "pitcher": "Luke Keaschall",
+      "opponent": "MIN"
+    },
+    {
+      "team": "SEA",
+      "pitcher": "Marcus Semien",
+      "opponent": "NYM"
+    },
+    {
+      "team": "SEA",
+      "pitcher": "Mark Vientos",
+      "opponent": "NYM"
+    },
+    {
+      "team": "TEX",
+      "pitcher": "Masyn Winn",
+      "opponent": "STL"
+    },
+    {
+      "team": "MIL",
+      "pitcher": "Matt Chapman",
+      "opponent": "SF"
+    },
+    {
+      "team": "KC",
+      "pitcher": "Matt McLain",
+      "opponent": "CIN"
+    },
+    {
+      "team": "TB",
+      "pitcher": "Matt Vierling",
+      "opponent": "DET"
+    },
+    {
+      "team": "AZ",
+      "pitcher": "Max Muncy",
+      "opponent": "LAD"
+    },
+    {
+      "team": "STL",
+      "pitcher": "Michael Helman",
+      "opponent": "TEX"
+    },
+    {
+      "team": "CIN",
+      "pitcher": "Michael Massey",
+      "opponent": "KC"
+    },
+    {
+      "team": "AZ",
+      "pitcher": "Miguel Rojas",
+      "opponent": "LAD"
     },
     {
       "team": "MIN",
-      "pitcher": "Luke Keaschall",
+      "pitcher": "Miguel Vargas",
       "opponent": "CWS"
     },
     {
-      "team": "NYM",
-      "pitcher": "Marcus Semien",
-      "opponent": "SEA"
+      "team": "COL",
+      "pitcher": "Mike Trout",
+      "opponent": "LAA"
     },
     {
       "team": "NYM",
-      "pitcher": "Mark Vientos",
+      "pitcher": "Mitch Garver",
       "opponent": "SEA"
     },
     {
-      "team": "STL",
-      "pitcher": "Masyn Winn",
-      "opponent": "TEX"
+      "team": "AZ",
+      "pitcher": "Mookie Betts",
+      "opponent": "LAD"
     },
     {
-      "team": "SF",
-      "pitcher": "Matt Chapman",
-      "opponent": "MIL"
+      "team": "MIA",
+      "pitcher": "Nasim Nuñez",
+      "opponent": "WSH"
     },
     {
-      "team": "CIN",
-      "pitcher": "Matt McLain",
-      "opponent": "KC"
+      "team": "KC",
+      "pitcher": "Nathaniel Lowe",
+      "opponent": "CIN"
     },
     {
       "team": "DET",
-      "pitcher": "Matt Vierling",
+      "pitcher": "Nick Fortes",
       "opponent": "TB"
     },
     {
+      "team": "CIN",
+      "pitcher": "Nick Loftin",
+      "opponent": "KC"
+    },
+    {
+      "team": "COL",
+      "pitcher": "Nick Madrigal",
+      "opponent": "LAA"
+    },
+    {
+      "team": "STL",
+      "pitcher": "Nicky Lopez",
+      "opponent": "TEX"
+    },
+    {
       "team": "LAD",
-      "pitcher": "Max Muncy",
+      "pitcher": "Nolan Arenado",
       "opponent": "AZ"
     },
     {
       "team": "TEX",
-      "pitcher": "Michael Helman",
+      "pitcher": "Nolan Gorman",
       "opponent": "STL"
     },
     {
-      "team": "KC",
-      "pitcher": "Michael Massey",
-      "opponent": "CIN"
-    },
-    {
-      "team": "LAD",
-      "pitcher": "Miguel Rojas",
-      "opponent": "AZ"
-    },
-    {
-      "team": "CWS",
-      "pitcher": "Miguel Vargas",
-      "opponent": "MIN"
-    },
-    {
-      "team": "LAA",
-      "pitcher": "Mike Trout",
-      "opponent": "COL"
-    },
-    {
-      "team": "SEA",
-      "pitcher": "Mitch Garver",
-      "opponent": "NYM"
-    },
-    {
-      "team": "LAD",
-      "pitcher": "Mookie Betts",
-      "opponent": "AZ"
+      "team": "COL",
+      "pitcher": "Oswald Peraza",
+      "opponent": "LAA"
     },
     {
       "team": "WSH",
-      "pitcher": "Nasim Nuñez",
+      "pitcher": "Otto Lopez",
       "opponent": "MIA"
     },
     {
-      "team": "CIN",
-      "pitcher": "Nathaniel Lowe",
-      "opponent": "KC"
-    },
-    {
-      "team": "TB",
-      "pitcher": "Nick Fortes",
-      "opponent": "DET"
-    },
-    {
-      "team": "KC",
-      "pitcher": "Nick Loftin",
-      "opponent": "CIN"
-    },
-    {
-      "team": "LAA",
-      "pitcher": "Nick Madrigal",
-      "opponent": "COL"
-    },
-    {
-      "team": "TEX",
-      "pitcher": "Nicky Lopez",
-      "opponent": "STL"
-    },
-    {
-      "team": "AZ",
-      "pitcher": "Nolan Arenado",
-      "opponent": "LAD"
-    },
-    {
-      "team": "STL",
-      "pitcher": "Nolan Gorman",
-      "opponent": "TEX"
-    },
-    {
-      "team": "LAA",
-      "pitcher": "Oswald Peraza",
-      "opponent": "COL"
-    },
-    {
-      "team": "MIA",
-      "pitcher": "Otto Lopez",
-      "opponent": "WSH"
-    },
-    {
-      "team": "MIA",
+      "team": "WSH",
       "pitcher": "Owen Caissie",
-      "opponent": "WSH"
-    },
-    {
-      "team": "SF",
-      "pitcher": "Rafael Devers",
-      "opponent": "MIL"
-    },
-    {
-      "team": "SEA",
-      "pitcher": "Randy Arozarena",
-      "opponent": "NYM"
-    },
-    {
-      "team": "TB",
-      "pitcher": "Richie Palacios",
-      "opponent": "DET"
-    },
-    {
-      "team": "CWS",
-      "pitcher": "Rikuu Nishida",
-      "opponent": "MIN"
-    },
-    {
-      "team": "DET",
-      "pitcher": "Riley Greene",
-      "opponent": "TB"
-    },
-    {
-      "team": "SEA",
-      "pitcher": "Rob Refsnyder",
-      "opponent": "NYM"
-    },
-    {
-      "team": "AZ",
-      "pitcher": "Ryan Waldschmidt",
-      "opponent": "LAD"
+      "opponent": "MIA"
     },
     {
       "team": "MIL",
-      "pitcher": "Sal Frelick",
+      "pitcher": "Rafael Devers",
       "opponent": "SF"
     },
     {
-      "team": "CIN",
-      "pitcher": "Sal Stewart",
-      "opponent": "KC"
+      "team": "NYM",
+      "pitcher": "Randy Arozarena",
+      "opponent": "SEA"
+    },
+    {
+      "team": "DET",
+      "pitcher": "Richie Palacios",
+      "opponent": "TB"
+    },
+    {
+      "team": "MIN",
+      "pitcher": "Rikuu Nishida",
+      "opponent": "CWS"
+    },
+    {
+      "team": "TB",
+      "pitcher": "Riley Greene",
+      "opponent": "DET"
+    },
+    {
+      "team": "NYM",
+      "pitcher": "Rob Refsnyder",
+      "opponent": "SEA"
+    },
+    {
+      "team": "LAD",
+      "pitcher": "Ryan Waldschmidt",
+      "opponent": "AZ"
+    },
+    {
+      "team": "SF",
+      "pitcher": "Sal Frelick",
+      "opponent": "MIL"
     },
     {
       "team": "KC",
-      "pitcher": "Salvador Perez",
+      "pitcher": "Sal Stewart",
       "opponent": "CIN"
+    },
+    {
+      "team": "CIN",
+      "pitcher": "Salvador Perez",
+      "opponent": "KC"
+    },
+    {
+      "team": "MIN",
+      "pitcher": "Sam Antonacci",
+      "opponent": "CWS"
+    },
+    {
+      "team": "AZ",
+      "pitcher": "Santiago Espinal",
+      "opponent": "LAD"
+    },
+    {
+      "team": "KC",
+      "pitcher": "Spencer Steer",
+      "opponent": "CIN"
+    },
+    {
+      "team": "TB",
+      "pitcher": "Spencer Torkelson",
+      "opponent": "DET"
+    },
+    {
+      "team": "LAA",
+      "pitcher": "Sterlin Thompson",
+      "opponent": "COL"
+    },
+    {
+      "team": "DET",
+      "pitcher": "Taylor Walls",
+      "opponent": "TB"
+    },
+    {
+      "team": "KC",
+      "pitcher": "TJ Friedl",
+      "opponent": "CIN"
+    },
+    {
+      "team": "LAA",
+      "pitcher": "TJ Rumfield",
+      "opponent": "COL"
+    },
+    {
+      "team": "LAD",
+      "pitcher": "Tommy Troy",
+      "opponent": "AZ"
+    },
+    {
+      "team": "CWS",
+      "pitcher": "Trevor Larnach",
+      "opponent": "MIN"
+    },
+    {
+      "team": "CWS",
+      "pitcher": "Tristan Gray",
+      "opponent": "MIN"
     }
   ],
   "errors": [],
   "pitchers": {
+    "andrewpainter": {
+      "pitcher": "Andrew Painter",
+      "pitcherId": 691725,
+      "playerKey": "andrewpainter",
+      "team": "PHI",
+      "opponent": "SD",
+      "hand": "R",
+      "gamePk": 823295,
+      "baselineFastballVelo": 96.5,
+      "currentFastballVelo": 96.7,
+      "velocityDelta": 0.2,
+      "trend": "stable",
+      "windows": {
+        "season": {
+          "label": "season",
+          "startDate": "2026-03-01",
+          "endDate": "2026-06-01",
+          "totalPitches": 6654,
+          "pitchTypeCount": 6,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 96.5,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 1109,
+              "pitchPercent": 36.3,
+              "velocity": 96.5,
+              "spinRate": 2233,
+              "whiffRate": 10.6,
+              "xwoba": 0.409,
+              "xslg": 0.558,
+              "xba": 0.341,
+              "hardHitRate": 42.391304347826086,
+              "barrelRate": 11.956521739130435,
+              "runValuePer100": -1.093300248
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 1109,
+              "pitchPercent": 18.9,
+              "velocity": 88.1,
+              "spinRate": 2520,
+              "whiffRate": 41.2,
+              "xwoba": 0.322,
+              "xslg": 0.435,
+              "xba": 0.256,
+              "hardHitRate": 40,
+              "barrelRate": 10,
+              "runValuePer100": 0.327142857
+            },
+            "FS": {
+              "pitchType": "FS",
+              "pitches": 1109,
+              "pitchPercent": 12.3,
+              "velocity": 87.3,
+              "spinRate": 1583,
+              "whiffRate": 40,
+              "xwoba": 0.21,
+              "xslg": 0.29,
+              "xba": 0.165,
+              "hardHitRate": 31.57894736842105,
+              "barrelRate": 5.263157894736842,
+              "runValuePer100": -0.155147059
+            },
+            "ST": {
+              "pitchType": "ST",
+              "pitches": 1109,
+              "pitchPercent": 11,
+              "velocity": 83.2,
+              "spinRate": 2578,
+              "whiffRate": 28.8,
+              "xwoba": 0.308,
+              "xslg": 0.318,
+              "xba": 0.201,
+              "hardHitRate": 20,
+              "barrelRate": 0,
+              "runValuePer100": 0.12704918
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 1109,
+              "pitchPercent": 9.8,
+              "velocity": 95.1,
+              "spinRate": 2131,
+              "whiffRate": 10.2,
+              "xwoba": 0.41,
+              "xslg": 0.574,
+              "xba": 0.312,
+              "hardHitRate": 33.33333333333333,
+              "barrelRate": 10,
+              "runValuePer100": -0.482568807
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 1109,
+              "pitchPercent": 9,
+              "velocity": 81.3,
+              "spinRate": 2635,
+              "whiffRate": 22.4,
+              "xwoba": 0.214,
+              "xslg": 0.307,
+              "xba": 0.164,
+              "hardHitRate": 28.57142857142857,
+              "barrelRate": 9.523809523809524,
+              "runValuePer100": 0.883
+            }
+          }
+        },
+        "last30": {
+          "label": "last30",
+          "startDate": "2026-05-02",
+          "endDate": "2026-06-01",
+          "totalPitches": 6654,
+          "pitchTypeCount": 6,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 96.6,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 1109,
+              "pitchPercent": 13.9,
+              "velocity": 96.6,
+              "spinRate": 2263,
+              "whiffRate": 10.5,
+              "xwoba": 0.467,
+              "xslg": 0.651,
+              "xba": 0.38,
+              "hardHitRate": 47.5,
+              "barrelRate": 15,
+              "runValuePer100": -3.111688312
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 1109,
+              "pitchPercent": 10.1,
+              "velocity": 88,
+              "spinRate": 2558,
+              "whiffRate": 34,
+              "xwoba": 0.351,
+              "xslg": 0.479,
+              "xba": 0.258,
+              "hardHitRate": 44.44444444444444,
+              "barrelRate": 11.11111111111111,
+              "runValuePer100": -0.419642857
+            },
+            "FS": {
+              "pitchType": "FS",
+              "pitches": 1109,
+              "pitchPercent": 7.1,
+              "velocity": 87.3,
+              "spinRate": 1602,
+              "whiffRate": 42.1,
+              "xwoba": 0.152,
+              "xslg": 0.203,
+              "xba": 0.15,
+              "hardHitRate": 27.27272727272727,
+              "barrelRate": 0,
+              "runValuePer100": -0.873417722
+            },
+            "ST": {
+              "pitchType": "ST",
+              "pitches": 1109,
+              "pitchPercent": 5.6,
+              "velocity": 83.2,
+              "spinRate": 2582,
+              "whiffRate": 22.2,
+              "xwoba": 0.187,
+              "xslg": 0.105,
+              "xba": 0.058,
+              "hardHitRate": 12.5,
+              "barrelRate": 0,
+              "runValuePer100": 3.346774194
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 1109,
+              "pitchPercent": 3.9,
+              "velocity": 95.3,
+              "spinRate": 2161,
+              "whiffRate": 10,
+              "xwoba": 0.541,
+              "xslg": 0.891,
+              "xba": 0.343,
+              "hardHitRate": 54.54545454545454,
+              "barrelRate": 27.27272727272727,
+              "runValuePer100": -4.981395349
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 1109,
+              "pitchPercent": 2.7,
+              "velocity": 81.6,
+              "spinRate": 2668,
+              "whiffRate": 16.7,
+              "xwoba": 0.147,
+              "xslg": 0.201,
+              "xba": 0.175,
+              "hardHitRate": 16.666666666666664,
+              "barrelRate": 0,
+              "runValuePer100": -1.346666667
+            }
+          }
+        },
+        "last15": {
+          "label": "last15",
+          "startDate": "2026-05-17",
+          "endDate": "2026-06-01",
+          "totalPitches": 6654,
+          "pitchTypeCount": 6,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 96.7,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 1109,
+              "pitchPercent": 6.2,
+              "velocity": 96.7,
+              "spinRate": 2255,
+              "whiffRate": 8.6,
+              "xwoba": 0.45,
+              "xslg": 0.562,
+              "xba": 0.411,
+              "hardHitRate": 43.75,
+              "barrelRate": 6.25,
+              "runValuePer100": -2.404347826
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 1109,
+              "pitchPercent": 5.2,
+              "velocity": 88,
+              "spinRate": 2571,
+              "whiffRate": 26.9,
+              "xwoba": 0.427,
+              "xslg": 0.616,
+              "xba": 0.275,
+              "hardHitRate": 46.15384615384615,
+              "barrelRate": 15.384615384615385,
+              "runValuePer100": -0.374137931
+            },
+            "FS": {
+              "pitchType": "FS",
+              "pitches": 1109,
+              "pitchPercent": 4.2,
+              "velocity": 87.7,
+              "spinRate": 1610,
+              "whiffRate": 33.3,
+              "xwoba": 0.21,
+              "xslg": 0.282,
+              "xba": 0.206,
+              "hardHitRate": 30,
+              "barrelRate": 0,
+              "runValuePer100": -3.125531915
+            },
+            "ST": {
+              "pitchType": "ST",
+              "pitches": 1109,
+              "pitchPercent": 2.3,
+              "velocity": 83.4,
+              "spinRate": 2653,
+              "whiffRate": 8.3,
+              "xwoba": 0.064,
+              "xslg": 0.106,
+              "xba": 0.047,
+              "hardHitRate": 20,
+              "barrelRate": 0,
+              "runValuePer100": 6.146153846
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 1109,
+              "pitchPercent": 1.6,
+              "velocity": 82,
+              "spinRate": 2686,
+              "whiffRate": 12.5,
+              "xwoba": 0.05,
+              "xslg": 0.063,
+              "xba": 0.062,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 0.527777778
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 1109,
+              "pitchPercent": 1.2,
+              "velocity": 95.3,
+              "spinRate": 2133,
+              "whiffRate": 0,
+              "xwoba": 0.092,
+              "xslg": 0.145,
+              "xba": 0.073,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 3.561538462
+            }
+          }
+        },
+        "last7": {
+          "label": "last7",
+          "startDate": "2026-05-25",
+          "endDate": "2026-06-01",
+          "totalPitches": 6654,
+          "pitchTypeCount": 6,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 97.4,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 1109,
+              "pitchPercent": 2.2,
+              "velocity": 97.4,
+              "spinRate": 2308,
+              "whiffRate": 15.4,
+              "xwoba": 0.584,
+              "xslg": 0.81,
+              "xba": 0.547,
+              "hardHitRate": 60,
+              "barrelRate": 20,
+              "runValuePer100": -2.929166667
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 1109,
+              "pitchPercent": 1.8,
+              "velocity": 88.5,
+              "spinRate": 2601,
+              "whiffRate": 30,
+              "xwoba": 0.689,
+              "xslg": 1.279,
+              "xba": 0.388,
+              "hardHitRate": 50,
+              "barrelRate": 50,
+              "runValuePer100": -6.005
+            },
+            "FS": {
+              "pitchType": "FS",
+              "pitches": 1109,
+              "pitchPercent": 1.4,
+              "velocity": 88,
+              "spinRate": 1650,
+              "whiffRate": 14.3,
+              "xwoba": 0.259,
+              "xslg": 0.396,
+              "xba": 0.223,
+              "hardHitRate": 33.33333333333333,
+              "barrelRate": 0,
+              "runValuePer100": -11.7875
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 1109,
+              "pitchPercent": 1,
+              "velocity": 82.2,
+              "spinRate": 2702,
+              "whiffRate": 16.7,
+              "xwoba": 0.003,
+              "xslg": 0.005,
+              "xba": 0.004,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 6.163636364
+            },
+            "ST": {
+              "pitchType": "ST",
+              "pitches": 1109,
+              "pitchPercent": 0.5,
+              "velocity": 83,
+              "spinRate": 2630,
+              "whiffRate": 33.3,
+              "xwoba": 0,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 1.083333333
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 1109,
+              "pitchPercent": 0.3,
+              "velocity": 95.6,
+              "spinRate": 2123,
+              "whiffRate": 0,
+              "xwoba": 0,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -3
+            }
+          }
+        }
+      }
+    },
+    "austinwarren": {
+      "pitcher": "Austin Warren",
+      "pitcherId": 681810,
+      "playerKey": "austinwarren",
+      "team": "NYM",
+      "opponent": "CIN",
+      "hand": "R",
+      "gamePk": 823626,
+      "baselineFastballVelo": 93.7,
+      "currentFastballVelo": 93.5,
+      "velocityDelta": -0.2,
+      "trend": "stable",
+      "windows": {
+        "season": {
+          "label": "season",
+          "startDate": "2026-03-01",
+          "endDate": "2026-06-01",
+          "totalPitches": 8376,
+          "pitchTypeCount": 6,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 93.7,
+          "pitchTypes": {
+            "ST": {
+              "pitchType": "ST",
+              "pitches": 1396,
+              "pitchPercent": 12.2,
+              "velocity": 84.9,
+              "spinRate": 2722,
+              "whiffRate": 20,
+              "xwoba": 0.354,
+              "xslg": 0.429,
+              "xba": 0.306,
+              "hardHitRate": 36,
+              "barrelRate": 4,
+              "runValuePer100": -0.246783626
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 1396,
+              "pitchPercent": 5.6,
+              "velocity": 93.9,
+              "spinRate": 2272,
+              "whiffRate": 11.1,
+              "xwoba": 0.306,
+              "xslg": 0.298,
+              "xba": 0.163,
+              "hardHitRate": 37.5,
+              "barrelRate": 25,
+              "runValuePer100": 4.248717949
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 1396,
+              "pitchPercent": 3.4,
+              "velocity": 84.3,
+              "spinRate": 2754,
+              "whiffRate": 31,
+              "xwoba": 0.274,
+              "xslg": 0.278,
+              "xba": 0.246,
+              "hardHitRate": 28.57142857142857,
+              "barrelRate": 7.142857142857142,
+              "runValuePer100": 1.463829787
+            },
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 1396,
+              "pitchPercent": 3.1,
+              "velocity": 93.7,
+              "spinRate": 2380,
+              "whiffRate": 50,
+              "xwoba": 0.213,
+              "xslg": 0.329,
+              "xba": 0.179,
+              "hardHitRate": 80,
+              "barrelRate": 20,
+              "runValuePer100": -4.234883721
+            },
+            "FC": {
+              "pitchType": "FC",
+              "pitches": 1396,
+              "pitchPercent": 0.6,
+              "velocity": 88.1,
+              "spinRate": 2520,
+              "whiffRate": 33.3,
+              "xwoba": 0.278,
+              "xslg": 0.342,
+              "xba": 0.309,
+              "hardHitRate": 100,
+              "barrelRate": 0,
+              "runValuePer100": 1.055555556
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 1396,
+              "pitchPercent": 0.4,
+              "velocity": 88.1,
+              "spinRate": 1715,
+              "whiffRate": 100,
+              "xwoba": 0,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -4.08
+            }
+          }
+        },
+        "last30": {
+          "label": "last30",
+          "startDate": "2026-05-02",
+          "endDate": "2026-06-01",
+          "totalPitches": 8376,
+          "pitchTypeCount": 6,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 93.5,
+          "pitchTypes": {
+            "ST": {
+              "pitchType": "ST",
+              "pitches": 1396,
+              "pitchPercent": 9.3,
+              "velocity": 84.8,
+              "spinRate": 2710,
+              "whiffRate": 18.4,
+              "xwoba": 0.402,
+              "xslg": 0.491,
+              "xba": 0.348,
+              "hardHitRate": 38.88888888888889,
+              "barrelRate": 5.555555555555555,
+              "runValuePer100": -0.37
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 1396,
+              "pitchPercent": 4.6,
+              "velocity": 93.8,
+              "spinRate": 2275,
+              "whiffRate": 9.5,
+              "xwoba": 0.325,
+              "xslg": 0.325,
+              "xba": 0.178,
+              "hardHitRate": 37.5,
+              "barrelRate": 25,
+              "runValuePer100": 4.4828125
+            },
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 1396,
+              "pitchPercent": 2.5,
+              "velocity": 93.5,
+              "spinRate": 2377,
+              "whiffRate": 47.1,
+              "xwoba": 0.175,
+              "xslg": 0.247,
+              "xba": 0.165,
+              "hardHitRate": 75,
+              "barrelRate": 0,
+              "runValuePer100": 1.085714286
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 1396,
+              "pitchPercent": 2.5,
+              "velocity": 84.3,
+              "spinRate": 2735,
+              "whiffRate": 23.8,
+              "xwoba": 0.298,
+              "xslg": 0.3,
+              "xba": 0.266,
+              "hardHitRate": 30,
+              "barrelRate": 0,
+              "runValuePer100": -1.091428571
+            },
+            "FC": {
+              "pitchType": "FC",
+              "pitches": 1396,
+              "pitchPercent": 0.2,
+              "velocity": 87.2,
+              "spinRate": 2499,
+              "whiffRate": 100,
+              "xwoba": 0,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -4.733333333
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 1396,
+              "pitchPercent": 0.1,
+              "velocity": 87.5,
+              "spinRate": 1744,
+              "whiffRate": 0,
+              "xwoba": 0,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -6.65
+            }
+          }
+        },
+        "last15": {
+          "label": "last15",
+          "startDate": "2026-05-17",
+          "endDate": "2026-06-01",
+          "totalPitches": 6980,
+          "pitchTypeCount": 5,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 93.5,
+          "pitchTypes": {
+            "ST": {
+              "pitchType": "ST",
+              "pitches": 1396,
+              "pitchPercent": 4.2,
+              "velocity": 84.5,
+              "spinRate": 2621,
+              "whiffRate": 29.2,
+              "xwoba": 0.366,
+              "xslg": 0.446,
+              "xba": 0.331,
+              "hardHitRate": 44.44444444444444,
+              "barrelRate": 0,
+              "runValuePer100": -0.789830508
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 1396,
+              "pitchPercent": 1.5,
+              "velocity": 93.8,
+              "spinRate": 2167,
+              "whiffRate": 0,
+              "xwoba": 0.034,
+              "xslg": 0.018,
+              "xba": 0.011,
+              "hardHitRate": 50,
+              "barrelRate": 0,
+              "runValuePer100": 5.866666667
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 1396,
+              "pitchPercent": 1.2,
+              "velocity": 84.1,
+              "spinRate": 2669,
+              "whiffRate": 12.5,
+              "xwoba": 0.354,
+              "xslg": 0.322,
+              "xba": 0.288,
+              "hardHitRate": 40,
+              "barrelRate": 0,
+              "runValuePer100": -3.023529412
+            },
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 1396,
+              "pitchPercent": 1,
+              "velocity": 93.5,
+              "spinRate": 2310,
+              "whiffRate": 50,
+              "xwoba": 0.224,
+              "xslg": 0.272,
+              "xba": 0.247,
+              "hardHitRate": 100,
+              "barrelRate": 0,
+              "runValuePer100": 1.2
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 1396,
+              "pitchPercent": 0.1,
+              "velocity": 87.5,
+              "spinRate": 1744,
+              "whiffRate": 0,
+              "xwoba": 0,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -6.65
+            }
+          }
+        },
+        "last7": {
+          "label": "last7",
+          "startDate": "2026-05-25",
+          "endDate": "2026-06-01",
+          "totalPitches": 6980,
+          "pitchTypeCount": 5,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 93.7,
+          "pitchTypes": {
+            "ST": {
+              "pitchType": "ST",
+              "pitches": 1396,
+              "pitchPercent": 2.3,
+              "velocity": 84.5,
+              "spinRate": 2689,
+              "whiffRate": 41.2,
+              "xwoba": 0.341,
+              "xslg": 0.452,
+              "xba": 0.341,
+              "hardHitRate": 75,
+              "barrelRate": 0,
+              "runValuePer100": 2.75625
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 1396,
+              "pitchPercent": 0.9,
+              "velocity": 93.9,
+              "spinRate": 2195,
+              "whiffRate": 0,
+              "xwoba": 0.011,
+              "xslg": 0.018,
+              "xba": 0.011,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 4.591666667
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 1396,
+              "pitchPercent": 0.8,
+              "velocity": 84.1,
+              "spinRate": 2693,
+              "whiffRate": 20,
+              "xwoba": 0.353,
+              "xslg": 0.214,
+              "xba": 0.194,
+              "hardHitRate": 100,
+              "barrelRate": 0,
+              "runValuePer100": -5.845454545
+            },
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 1396,
+              "pitchPercent": 0.4,
+              "velocity": 93.7,
+              "spinRate": 2382,
+              "whiffRate": 50,
+              "xwoba": 0,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 8.65
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 1396,
+              "pitchPercent": 0.1,
+              "velocity": 87.5,
+              "spinRate": 1744,
+              "whiffRate": 0,
+              "xwoba": 0,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -6.65
+            }
+          }
+        }
+      }
+    },
+    "brycemiller": {
+      "pitcher": "Bryce Miller",
+      "pitcherId": 682243,
+      "playerKey": "brycemiller",
+      "team": "SEA",
+      "opponent": "ATH",
+      "hand": "R",
+      "gamePk": 825003,
+      "baselineFastballVelo": 96.7,
+      "currentFastballVelo": 96.5,
+      "velocityDelta": -0.2,
+      "trend": "stable",
+      "windows": {
+        "season": {
+          "label": "season",
+          "startDate": "2026-03-01",
+          "endDate": "2026-06-01",
+          "totalPitches": 43092,
+          "pitchTypeCount": 6,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 96.7,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 7182,
+              "pitchPercent": 1.9,
+              "velocity": 96.7,
+              "spinRate": 2545,
+              "whiffRate": 22.8,
+              "xwoba": 0.233,
+              "xslg": 0.255,
+              "xba": 0.208,
+              "hardHitRate": 37.5,
+              "barrelRate": 0,
+              "runValuePer100": 1.696428571
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 7182,
+              "pitchPercent": 1,
+              "velocity": 88.6,
+              "spinRate": 2512,
+              "whiffRate": 45,
+              "xwoba": 0.241,
+              "xslg": 0.379,
+              "xba": 0.192,
+              "hardHitRate": 10,
+              "barrelRate": 10,
+              "runValuePer100": 0.42173913
+            },
+            "FS": {
+              "pitchType": "FS",
+              "pitches": 7182,
+              "pitchPercent": 0.8,
+              "velocity": 85.8,
+              "spinRate": 1198,
+              "whiffRate": 31.6,
+              "xwoba": 0.214,
+              "xslg": 0.294,
+              "xba": 0.205,
+              "hardHitRate": 6.666666666666667,
+              "barrelRate": 6.666666666666667,
+              "runValuePer100": 2.451724138
+            },
+            "ST": {
+              "pitchType": "ST",
+              "pitches": 7182,
+              "pitchPercent": 0.3,
+              "velocity": 84.4,
+              "spinRate": 2450,
+              "whiffRate": 50,
+              "xwoba": 0.009,
+              "xslg": 0.01,
+              "xba": 0.01,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 3.552631579
+            },
+            "KC": {
+              "pitchType": "KC",
+              "pitches": 7182,
+              "pitchPercent": 0.2,
+              "velocity": 82.6,
+              "spinRate": 2363,
+              "whiffRate": 0,
+              "xwoba": 0.288,
+              "xslg": 0.341,
+              "xba": 0.304,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -6.464285714
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 7182,
+              "pitchPercent": 0.1,
+              "velocity": 96.7,
+              "spinRate": 2511,
+              "whiffRate": 0,
+              "xwoba": 0.275,
+              "xslg": 0.391,
+              "xba": 0.265,
+              "hardHitRate": 75,
+              "barrelRate": 0,
+              "runValuePer100": 6
+            }
+          }
+        },
+        "last30": {
+          "label": "last30",
+          "startDate": "2026-05-02",
+          "endDate": "2026-06-01",
+          "totalPitches": 43092,
+          "pitchTypeCount": 6,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 96.7,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 7182,
+              "pitchPercent": 1.9,
+              "velocity": 96.7,
+              "spinRate": 2545,
+              "whiffRate": 22.8,
+              "xwoba": 0.233,
+              "xslg": 0.255,
+              "xba": 0.208,
+              "hardHitRate": 37.5,
+              "barrelRate": 0,
+              "runValuePer100": 1.696428571
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 7182,
+              "pitchPercent": 1,
+              "velocity": 88.6,
+              "spinRate": 2512,
+              "whiffRate": 45,
+              "xwoba": 0.241,
+              "xslg": 0.379,
+              "xba": 0.192,
+              "hardHitRate": 10,
+              "barrelRate": 10,
+              "runValuePer100": 0.42173913
+            },
+            "FS": {
+              "pitchType": "FS",
+              "pitches": 7182,
+              "pitchPercent": 0.8,
+              "velocity": 85.8,
+              "spinRate": 1198,
+              "whiffRate": 31.6,
+              "xwoba": 0.214,
+              "xslg": 0.294,
+              "xba": 0.205,
+              "hardHitRate": 6.666666666666667,
+              "barrelRate": 6.666666666666667,
+              "runValuePer100": 2.451724138
+            },
+            "ST": {
+              "pitchType": "ST",
+              "pitches": 7182,
+              "pitchPercent": 0.3,
+              "velocity": 84.4,
+              "spinRate": 2450,
+              "whiffRate": 50,
+              "xwoba": 0.009,
+              "xslg": 0.01,
+              "xba": 0.01,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 3.552631579
+            },
+            "KC": {
+              "pitchType": "KC",
+              "pitches": 7182,
+              "pitchPercent": 0.2,
+              "velocity": 82.6,
+              "spinRate": 2363,
+              "whiffRate": 0,
+              "xwoba": 0.288,
+              "xslg": 0.341,
+              "xba": 0.304,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -6.464285714
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 7182,
+              "pitchPercent": 0.1,
+              "velocity": 96.7,
+              "spinRate": 2511,
+              "whiffRate": 0,
+              "xwoba": 0.275,
+              "xslg": 0.391,
+              "xba": 0.265,
+              "hardHitRate": 75,
+              "barrelRate": 0,
+              "runValuePer100": 6
+            }
+          }
+        },
+        "last15": {
+          "label": "last15",
+          "startDate": "2026-05-17",
+          "endDate": "2026-06-01",
+          "totalPitches": 43092,
+          "pitchTypeCount": 6,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 96.5,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 7182,
+              "pitchPercent": 1.5,
+              "velocity": 96.5,
+              "spinRate": 2542,
+              "whiffRate": 26.8,
+              "xwoba": 0.219,
+              "xslg": 0.209,
+              "xba": 0.186,
+              "hardHitRate": 40,
+              "barrelRate": 0,
+              "runValuePer100": 3.241284404
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 7182,
+              "pitchPercent": 0.8,
+              "velocity": 88.6,
+              "spinRate": 2519,
+              "whiffRate": 40,
+              "xwoba": 0.261,
+              "xslg": 0.411,
+              "xba": 0.208,
+              "hardHitRate": 10,
+              "barrelRate": 10,
+              "runValuePer100": 0.375
+            },
+            "FS": {
+              "pitchType": "FS",
+              "pitches": 7182,
+              "pitchPercent": 0.5,
+              "velocity": 85.5,
+              "spinRate": 1209,
+              "whiffRate": 44.4,
+              "xwoba": 0.145,
+              "xslg": 0.225,
+              "xba": 0.118,
+              "hardHitRate": 12.5,
+              "barrelRate": 12.5,
+              "runValuePer100": 4.474358974
+            },
+            "KC": {
+              "pitchType": "KC",
+              "pitches": 7182,
+              "pitchPercent": 0.2,
+              "velocity": 82.3,
+              "spinRate": 2367,
+              "whiffRate": 0,
+              "xwoba": 0.288,
+              "xslg": 0.341,
+              "xba": 0.304,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -7.108333333
+            },
+            "ST": {
+              "pitchType": "ST",
+              "pitches": 7182,
+              "pitchPercent": 0.1,
+              "velocity": 84.6,
+              "spinRate": 2445,
+              "whiffRate": 66.7,
+              "xwoba": 0,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 0.522222222
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 7182,
+              "pitchPercent": 0,
+              "velocity": 97,
+              "spinRate": 2659,
+              "whiffRate": 0,
+              "xwoba": 0,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -5.4
+            }
+          }
+        },
+        "last7": {
+          "label": "last7",
+          "startDate": "2026-05-25",
+          "endDate": "2026-06-01",
+          "totalPitches": 35910,
+          "pitchTypeCount": 5,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 96.2,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 7182,
+              "pitchPercent": 0.9,
+              "velocity": 96.2,
+              "spinRate": 2516,
+              "whiffRate": 25.8,
+              "xwoba": 0.268,
+              "xslg": 0.27,
+              "xba": 0.248,
+              "hardHitRate": 44.44444444444444,
+              "barrelRate": 0,
+              "runValuePer100": 1.31969697
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 7182,
+              "pitchPercent": 0.6,
+              "velocity": 88.6,
+              "spinRate": 2525,
+              "whiffRate": 39.3,
+              "xwoba": 0.286,
+              "xslg": 0.459,
+              "xba": 0.22,
+              "hardHitRate": 12.5,
+              "barrelRate": 12.5,
+              "runValuePer100": -1.234883721
+            },
+            "FS": {
+              "pitchType": "FS",
+              "pitches": 7182,
+              "pitchPercent": 0.4,
+              "velocity": 85.4,
+              "spinRate": 1215,
+              "whiffRate": 47.4,
+              "xwoba": 0.103,
+              "xslg": 0.147,
+              "xba": 0.097,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 5.126666667
+            },
+            "KC": {
+              "pitchType": "KC",
+              "pitches": 7182,
+              "pitchPercent": 0.1,
+              "velocity": 82.4,
+              "spinRate": 2352,
+              "whiffRate": 0,
+              "xwoba": 0.288,
+              "xslg": 0.341,
+              "xba": 0.304,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -8.244444444
+            },
+            "ST": {
+              "pitchType": "ST",
+              "pitches": 7182,
+              "pitchPercent": 0.1,
+              "velocity": 84.9,
+              "spinRate": 2444,
+              "whiffRate": 66.7,
+              "xwoba": 0,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 3.016666667
+            }
+          }
+        }
+      }
+    },
     "cadecavalli": {
       "pitcher": "Cade Cavalli",
       "pitcherId": 676917,
@@ -2777,6 +3970,457 @@
         }
       }
     },
+    "griffincanning": {
+      "pitcher": "Griffin Canning",
+      "pitcherId": 656288,
+      "playerKey": "griffincanning",
+      "team": "SD",
+      "opponent": "PHI",
+      "hand": "R",
+      "gamePk": 823295,
+      "baselineFastballVelo": 94.4,
+      "currentFastballVelo": 94.1,
+      "velocityDelta": -0.3,
+      "trend": "stable",
+      "windows": {
+        "season": {
+          "label": "season",
+          "startDate": "2026-03-01",
+          "endDate": "2026-06-01",
+          "totalPitches": 75747,
+          "pitchTypeCount": 7,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 94.4,
+          "pitchTypes": {
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 10821,
+              "pitchPercent": 1.2,
+              "velocity": 89.9,
+              "spinRate": 1516,
+              "whiffRate": 28.6,
+              "xwoba": 0.298,
+              "xslg": 0.313,
+              "xba": 0.249,
+              "hardHitRate": 41.935483870967744,
+              "barrelRate": 3.225806451612903,
+              "runValuePer100": -2.082677165
+            },
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 10821,
+              "pitchPercent": 1.1,
+              "velocity": 94.4,
+              "spinRate": 2197,
+              "whiffRate": 25.5,
+              "xwoba": 0.459,
+              "xslg": 0.71,
+              "xba": 0.278,
+              "hardHitRate": 69.23076923076923,
+              "barrelRate": 30.76923076923077,
+              "runValuePer100": -0.766666667
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 10821,
+              "pitchPercent": 1,
+              "velocity": 87.5,
+              "spinRate": 2758,
+              "whiffRate": 34.8,
+              "xwoba": 0.316,
+              "xslg": 0.417,
+              "xba": 0.249,
+              "hardHitRate": 58.333333333333336,
+              "barrelRate": 16.666666666666664,
+              "runValuePer100": 0.108411215
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 10821,
+              "pitchPercent": 0.5,
+              "velocity": 93.8,
+              "spinRate": 2097,
+              "whiffRate": 4.3,
+              "xwoba": 0.349,
+              "xslg": 0.363,
+              "xba": 0.279,
+              "hardHitRate": 50,
+              "barrelRate": 0,
+              "runValuePer100": 1.536842105
+            },
+            "ST": {
+              "pitchType": "ST",
+              "pitches": 10821,
+              "pitchPercent": 0.2,
+              "velocity": 86.2,
+              "spinRate": 2786,
+              "whiffRate": 33.3,
+              "xwoba": 0.351,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -1.247826087
+            },
+            "FC": {
+              "pitchType": "FC",
+              "pitches": 10821,
+              "pitchPercent": 0.2,
+              "velocity": 89.7,
+              "spinRate": 2522,
+              "whiffRate": 9.1,
+              "xwoba": 0.404,
+              "xslg": 0.731,
+              "xba": 0.25,
+              "hardHitRate": 28.57142857142857,
+              "barrelRate": 28.57142857142857,
+              "runValuePer100": -8.423809524
+            },
+            "KC": {
+              "pitchType": "KC",
+              "pitches": 10821,
+              "pitchPercent": 0.1,
+              "velocity": 80.6,
+              "spinRate": 2529,
+              "whiffRate": 0,
+              "xwoba": 0.062,
+              "xslg": 0.109,
+              "xba": 0.046,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 0.525
+            }
+          }
+        },
+        "last30": {
+          "label": "last30",
+          "startDate": "2026-05-02",
+          "endDate": "2026-06-01",
+          "totalPitches": 75747,
+          "pitchTypeCount": 7,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 94.4,
+          "pitchTypes": {
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 10821,
+              "pitchPercent": 1.2,
+              "velocity": 89.9,
+              "spinRate": 1516,
+              "whiffRate": 28.6,
+              "xwoba": 0.298,
+              "xslg": 0.313,
+              "xba": 0.249,
+              "hardHitRate": 41.935483870967744,
+              "barrelRate": 3.225806451612903,
+              "runValuePer100": -2.082677165
+            },
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 10821,
+              "pitchPercent": 1.1,
+              "velocity": 94.4,
+              "spinRate": 2197,
+              "whiffRate": 25.5,
+              "xwoba": 0.459,
+              "xslg": 0.71,
+              "xba": 0.278,
+              "hardHitRate": 69.23076923076923,
+              "barrelRate": 30.76923076923077,
+              "runValuePer100": -0.766666667
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 10821,
+              "pitchPercent": 1,
+              "velocity": 87.5,
+              "spinRate": 2758,
+              "whiffRate": 34.8,
+              "xwoba": 0.316,
+              "xslg": 0.417,
+              "xba": 0.249,
+              "hardHitRate": 58.333333333333336,
+              "barrelRate": 16.666666666666664,
+              "runValuePer100": 0.108411215
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 10821,
+              "pitchPercent": 0.5,
+              "velocity": 93.8,
+              "spinRate": 2097,
+              "whiffRate": 4.3,
+              "xwoba": 0.349,
+              "xslg": 0.363,
+              "xba": 0.279,
+              "hardHitRate": 50,
+              "barrelRate": 0,
+              "runValuePer100": 1.536842105
+            },
+            "ST": {
+              "pitchType": "ST",
+              "pitches": 10821,
+              "pitchPercent": 0.2,
+              "velocity": 86.2,
+              "spinRate": 2786,
+              "whiffRate": 33.3,
+              "xwoba": 0.351,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -1.247826087
+            },
+            "FC": {
+              "pitchType": "FC",
+              "pitches": 10821,
+              "pitchPercent": 0.2,
+              "velocity": 89.7,
+              "spinRate": 2522,
+              "whiffRate": 9.1,
+              "xwoba": 0.404,
+              "xslg": 0.731,
+              "xba": 0.25,
+              "hardHitRate": 28.57142857142857,
+              "barrelRate": 28.57142857142857,
+              "runValuePer100": -8.423809524
+            },
+            "KC": {
+              "pitchType": "KC",
+              "pitches": 10821,
+              "pitchPercent": 0.1,
+              "velocity": 80.6,
+              "spinRate": 2529,
+              "whiffRate": 0,
+              "xwoba": 0.062,
+              "xslg": 0.109,
+              "xba": 0.046,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 0.525
+            }
+          }
+        },
+        "last15": {
+          "label": "last15",
+          "startDate": "2026-05-17",
+          "endDate": "2026-06-01",
+          "totalPitches": 75747,
+          "pitchTypeCount": 7,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 94.1,
+          "pitchTypes": {
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 10821,
+              "pitchPercent": 0.6,
+              "velocity": 87.4,
+              "spinRate": 2745,
+              "whiffRate": 31.4,
+              "xwoba": 0.325,
+              "xslg": 0.426,
+              "xba": 0.277,
+              "hardHitRate": 55.55555555555556,
+              "barrelRate": 11.11111111111111,
+              "runValuePer100": -0.44
+            },
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 10821,
+              "pitchPercent": 0.6,
+              "velocity": 94.1,
+              "spinRate": 2197,
+              "whiffRate": 14.8,
+              "xwoba": 0.649,
+              "xslg": 1.136,
+              "xba": 0.415,
+              "hardHitRate": 83.33333333333334,
+              "barrelRate": 50,
+              "runValuePer100": -1.280952381
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 10821,
+              "pitchPercent": 0.5,
+              "velocity": 90,
+              "spinRate": 1473,
+              "whiffRate": 24.1,
+              "xwoba": 0.285,
+              "xslg": 0.291,
+              "xba": 0.201,
+              "hardHitRate": 50,
+              "barrelRate": 7.142857142857142,
+              "runValuePer100": -0.386538462
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 10821,
+              "pitchPercent": 0.3,
+              "velocity": 93.7,
+              "spinRate": 2082,
+              "whiffRate": 0,
+              "xwoba": 0.355,
+              "xslg": 0.432,
+              "xba": 0.305,
+              "hardHitRate": 55.55555555555556,
+              "barrelRate": 0,
+              "runValuePer100": 6.528571429
+            },
+            "FC": {
+              "pitchType": "FC",
+              "pitches": 10821,
+              "pitchPercent": 0.2,
+              "velocity": 89.5,
+              "spinRate": 2532,
+              "whiffRate": 9.1,
+              "xwoba": 0.404,
+              "xslg": 0.731,
+              "xba": 0.25,
+              "hardHitRate": 28.57142857142857,
+              "barrelRate": 28.57142857142857,
+              "runValuePer100": -9.266666667
+            },
+            "ST": {
+              "pitchType": "ST",
+              "pitches": 10821,
+              "pitchPercent": 0.1,
+              "velocity": 86.3,
+              "spinRate": 2778,
+              "whiffRate": 50,
+              "xwoba": 0,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 0.838461538
+            },
+            "KC": {
+              "pitchType": "KC",
+              "pitches": 10821,
+              "pitchPercent": 0.1,
+              "velocity": 80.6,
+              "spinRate": 2547,
+              "whiffRate": 0,
+              "xwoba": 0.062,
+              "xslg": 0.109,
+              "xba": 0.046,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -0.314285714
+            }
+          }
+        },
+        "last7": {
+          "label": "last7",
+          "startDate": "2026-05-25",
+          "endDate": "2026-06-01",
+          "totalPitches": 75747,
+          "pitchTypeCount": 7,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 94.1,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 10821,
+              "pitchPercent": 0.5,
+              "velocity": 94.1,
+              "spinRate": 2190,
+              "whiffRate": 16.7,
+              "xwoba": 0.586,
+              "xslg": 0.985,
+              "xba": 0.389,
+              "hardHitRate": 80,
+              "barrelRate": 40,
+              "runValuePer100": -0.142307692
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 10821,
+              "pitchPercent": 0.4,
+              "velocity": 87.3,
+              "spinRate": 2752,
+              "whiffRate": 28,
+              "xwoba": 0.351,
+              "xslg": 0.468,
+              "xba": 0.285,
+              "hardHitRate": 57.14285714285714,
+              "barrelRate": 14.285714285714285,
+              "runValuePer100": -0.664583333
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 10821,
+              "pitchPercent": 0.3,
+              "velocity": 89.7,
+              "spinRate": 1470,
+              "whiffRate": 17.4,
+              "xwoba": 0.31,
+              "xslg": 0.348,
+              "xba": 0.225,
+              "hardHitRate": 45.45454545454545,
+              "barrelRate": 9.090909090909092,
+              "runValuePer100": 0.272727273
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 10821,
+              "pitchPercent": 0.2,
+              "velocity": 93.5,
+              "spinRate": 2053,
+              "whiffRate": 0,
+              "xwoba": 0.376,
+              "xslg": 0.374,
+              "xba": 0.333,
+              "hardHitRate": 60,
+              "barrelRate": 0,
+              "runValuePer100": 4.221052632
+            },
+            "FC": {
+              "pitchType": "FC",
+              "pitches": 10821,
+              "pitchPercent": 0.1,
+              "velocity": 89.8,
+              "spinRate": 2517,
+              "whiffRate": 20,
+              "xwoba": 0.636,
+              "xslg": 1.193,
+              "xba": 0.351,
+              "hardHitRate": 33.33333333333333,
+              "barrelRate": 33.33333333333333,
+              "runValuePer100": -17.890909091
+            },
+            "KC": {
+              "pitchType": "KC",
+              "pitches": 10821,
+              "pitchPercent": 0.1,
+              "velocity": 80.7,
+              "spinRate": 2549,
+              "whiffRate": 0,
+              "xwoba": 0.062,
+              "xslg": 0.109,
+              "xba": 0.046,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 0.333333333
+            },
+            "ST": {
+              "pitchType": "ST",
+              "pitches": 10821,
+              "pitchPercent": 0,
+              "velocity": 86.2,
+              "spinRate": 2836,
+              "whiffRate": 0,
+              "xwoba": 0,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -1.44
+            }
+          }
+        }
+      }
+    },
     "griffinjax": {
       "pitcher": "Griffin Jax",
       "pitcherId": 643377,
@@ -3167,6 +4811,289 @@
               "hardHitRate": 0,
               "barrelRate": 0,
               "runValuePer100": -0.2
+            }
+          }
+        }
+      }
+    },
+    "jackkochanowicz": {
+      "pitcher": "Jack Kochanowicz",
+      "pitcherId": 686799,
+      "playerKey": "jackkochanowicz",
+      "team": "LAA",
+      "opponent": "DET",
+      "hand": "R",
+      "gamePk": 824270,
+      "baselineFastballVelo": 96.2,
+      "currentFastballVelo": 96,
+      "velocityDelta": -0.2,
+      "trend": "stable",
+      "windows": {
+        "season": {
+          "label": "season",
+          "startDate": "2026-03-01",
+          "endDate": "2026-06-01",
+          "totalPitches": 16696,
+          "pitchTypeCount": 4,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 96.2,
+          "pitchTypes": {
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 4174,
+              "pitchPercent": 11.8,
+              "velocity": 95.8,
+              "spinRate": 2137,
+              "whiffRate": 17.3,
+              "xwoba": 0.379,
+              "xslg": 0.478,
+              "xba": 0.292,
+              "hardHitRate": 52.336448598130836,
+              "barrelRate": 8.411214953271028,
+              "runValuePer100": 0.674239351
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 4174,
+              "pitchPercent": 7.1,
+              "velocity": 89.8,
+              "spinRate": 2153,
+              "whiffRate": 37.2,
+              "xwoba": 0.316,
+              "xslg": 0.329,
+              "xba": 0.268,
+              "hardHitRate": 27.450980392156865,
+              "barrelRate": 3.9215686274509802,
+              "runValuePer100": -0.213422819
+            },
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 4174,
+              "pitchPercent": 6.5,
+              "velocity": 96.2,
+              "spinRate": 2283,
+              "whiffRate": 16.1,
+              "xwoba": 0.351,
+              "xslg": 0.474,
+              "xba": 0.237,
+              "hardHitRate": 41.17647058823529,
+              "barrelRate": 9.803921568627452,
+              "runValuePer100": 0.457777778
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 4174,
+              "pitchPercent": 5.6,
+              "velocity": 86.1,
+              "spinRate": 2808,
+              "whiffRate": 38.2,
+              "xwoba": 0.353,
+              "xslg": 0.387,
+              "xba": 0.239,
+              "hardHitRate": 43.47826086956522,
+              "barrelRate": 13.043478260869565,
+              "runValuePer100": 0.064529915
+            }
+          }
+        },
+        "last30": {
+          "label": "last30",
+          "startDate": "2026-05-02",
+          "endDate": "2026-06-01",
+          "totalPitches": 16696,
+          "pitchTypeCount": 4,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 96.1,
+          "pitchTypes": {
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 4174,
+              "pitchPercent": 4.9,
+              "velocity": 95.6,
+              "spinRate": 2122,
+              "whiffRate": 20.2,
+              "xwoba": 0.4,
+              "xslg": 0.519,
+              "xba": 0.311,
+              "hardHitRate": 61.36363636363637,
+              "barrelRate": 9.090909090909092,
+              "runValuePer100": -1.106372549
+            },
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 4174,
+              "pitchPercent": 2.8,
+              "velocity": 96.1,
+              "spinRate": 2253,
+              "whiffRate": 17.6,
+              "xwoba": 0.372,
+              "xslg": 0.583,
+              "xba": 0.201,
+              "hardHitRate": 36.36363636363637,
+              "barrelRate": 13.636363636363635,
+              "runValuePer100": -1.211304348
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 4174,
+              "pitchPercent": 2.7,
+              "velocity": 89.7,
+              "spinRate": 2155,
+              "whiffRate": 30.6,
+              "xwoba": 0.353,
+              "xslg": 0.38,
+              "xba": 0.32,
+              "hardHitRate": 26.08695652173913,
+              "barrelRate": 0,
+              "runValuePer100": -2.172072072
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 4174,
+              "pitchPercent": 2.1,
+              "velocity": 85.1,
+              "spinRate": 2810,
+              "whiffRate": 34.5,
+              "xwoba": 0.306,
+              "xslg": 0.207,
+              "xba": 0.171,
+              "hardHitRate": 33.33333333333333,
+              "barrelRate": 0,
+              "runValuePer100": -0.736363636
+            }
+          }
+        },
+        "last15": {
+          "label": "last15",
+          "startDate": "2026-05-17",
+          "endDate": "2026-06-01",
+          "totalPitches": 16696,
+          "pitchTypeCount": 4,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 96,
+          "pitchTypes": {
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 4174,
+              "pitchPercent": 2,
+              "velocity": 95.8,
+              "spinRate": 2127,
+              "whiffRate": 23.5,
+              "xwoba": 0.325,
+              "xslg": 0.278,
+              "xba": 0.255,
+              "hardHitRate": 57.14285714285714,
+              "barrelRate": 0,
+              "runValuePer100": -1.46097561
+            },
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 4174,
+              "pitchPercent": 1.8,
+              "velocity": 96,
+              "spinRate": 2268,
+              "whiffRate": 22.6,
+              "xwoba": 0.299,
+              "xslg": 0.403,
+              "xba": 0.157,
+              "hardHitRate": 30.76923076923077,
+              "barrelRate": 7.6923076923076925,
+              "runValuePer100": -0.016
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 4174,
+              "pitchPercent": 1.4,
+              "velocity": 89.7,
+              "spinRate": 2175,
+              "whiffRate": 35.5,
+              "xwoba": 0.27,
+              "xslg": 0.269,
+              "xba": 0.218,
+              "hardHitRate": 30,
+              "barrelRate": 0,
+              "runValuePer100": -1.503508772
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 4174,
+              "pitchPercent": 0.3,
+              "velocity": 85.5,
+              "spinRate": 2775,
+              "whiffRate": 0,
+              "xwoba": 0.733,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -8.671428571
+            }
+          }
+        },
+        "last7": {
+          "label": "last7",
+          "startDate": "2026-05-25",
+          "endDate": "2026-06-01",
+          "totalPitches": 16696,
+          "pitchTypeCount": 4,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 95.8,
+          "pitchTypes": {
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 4174,
+              "pitchPercent": 1.2,
+              "velocity": 89.6,
+              "spinRate": 2179,
+              "whiffRate": 37,
+              "xwoba": 0.259,
+              "xslg": 0.289,
+              "xba": 0.234,
+              "hardHitRate": 30,
+              "barrelRate": 0,
+              "runValuePer100": -1.724489796
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 4174,
+              "pitchPercent": 1,
+              "velocity": 95.5,
+              "spinRate": 2115,
+              "whiffRate": 21.4,
+              "xwoba": 0.386,
+              "xslg": 0.36,
+              "xba": 0.332,
+              "hardHitRate": 71.42857142857143,
+              "barrelRate": 0,
+              "runValuePer100": -2.183333333
+            },
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 4174,
+              "pitchPercent": 1,
+              "velocity": 95.8,
+              "spinRate": 2270,
+              "whiffRate": 0,
+              "xwoba": 0.498,
+              "xslg": 0.903,
+              "xba": 0.307,
+              "hardHitRate": 42.857142857142854,
+              "barrelRate": 14.285714285714285,
+              "runValuePer100": -6.255
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 4174,
+              "pitchPercent": 0.1,
+              "velocity": 84.9,
+              "spinRate": 2702,
+              "whiffRate": 0,
+              "xwoba": 0.733,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -19.2
             }
           }
         }
@@ -3906,6 +5833,345 @@
         }
       }
     },
+    "jordanwicks": {
+      "pitcher": "Jordan Wicks",
+      "pitcherId": 696136,
+      "playerKey": "jordanwicks",
+      "team": "CHC",
+      "opponent": "PIT",
+      "hand": "L",
+      "gamePk": 823376,
+      "baselineFastballVelo": 93,
+      "currentFastballVelo": 93,
+      "velocityDelta": 0,
+      "trend": "stable",
+      "windows": {
+        "season": {
+          "label": "season",
+          "startDate": "2026-03-01",
+          "endDate": "2026-06-01",
+          "totalPitches": 9265,
+          "pitchTypeCount": 5,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 93,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 1853,
+              "pitchPercent": 2.8,
+              "velocity": 93,
+              "spinRate": 2311,
+              "whiffRate": 25,
+              "xwoba": 0.262,
+              "xslg": 0.298,
+              "xba": 0.225,
+              "hardHitRate": 55.55555555555556,
+              "barrelRate": 11.11111111111111,
+              "runValuePer100": -0.103846154
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 1853,
+              "pitchPercent": 2,
+              "velocity": 83.2,
+              "spinRate": 1500,
+              "whiffRate": 35,
+              "xwoba": 0.294,
+              "xslg": 0.373,
+              "xba": 0.303,
+              "hardHitRate": 37.5,
+              "barrelRate": 0,
+              "runValuePer100": -0.064864865
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 1853,
+              "pitchPercent": 1.1,
+              "velocity": 86.2,
+              "spinRate": 2404,
+              "whiffRate": 27.3,
+              "xwoba": 0.643,
+              "xslg": 1.099,
+              "xba": 0.447,
+              "hardHitRate": 50,
+              "barrelRate": 25,
+              "runValuePer100": -10.16
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 1853,
+              "pitchPercent": 0.6,
+              "velocity": 93.1,
+              "spinRate": 2202,
+              "whiffRate": 12.5,
+              "xwoba": 0.384,
+              "xslg": 0.351,
+              "xba": 0.32,
+              "hardHitRate": 50,
+              "barrelRate": 0,
+              "runValuePer100": -13.966666667
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 1853,
+              "pitchPercent": 0.4,
+              "velocity": 80.2,
+              "spinRate": 2661,
+              "whiffRate": 0,
+              "xwoba": 0.238,
+              "xslg": 0.28,
+              "xba": 0.249,
+              "hardHitRate": 100,
+              "barrelRate": 0,
+              "runValuePer100": 4.225
+            }
+          }
+        },
+        "last30": {
+          "label": "last30",
+          "startDate": "2026-05-02",
+          "endDate": "2026-06-01",
+          "totalPitches": 9265,
+          "pitchTypeCount": 5,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 93,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 1853,
+              "pitchPercent": 2.8,
+              "velocity": 93,
+              "spinRate": 2311,
+              "whiffRate": 25,
+              "xwoba": 0.262,
+              "xslg": 0.298,
+              "xba": 0.225,
+              "hardHitRate": 55.55555555555556,
+              "barrelRate": 11.11111111111111,
+              "runValuePer100": -0.103846154
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 1853,
+              "pitchPercent": 2,
+              "velocity": 83.2,
+              "spinRate": 1500,
+              "whiffRate": 35,
+              "xwoba": 0.294,
+              "xslg": 0.373,
+              "xba": 0.303,
+              "hardHitRate": 37.5,
+              "barrelRate": 0,
+              "runValuePer100": -0.064864865
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 1853,
+              "pitchPercent": 1.1,
+              "velocity": 86.2,
+              "spinRate": 2404,
+              "whiffRate": 27.3,
+              "xwoba": 0.643,
+              "xslg": 1.099,
+              "xba": 0.447,
+              "hardHitRate": 50,
+              "barrelRate": 25,
+              "runValuePer100": -10.16
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 1853,
+              "pitchPercent": 0.6,
+              "velocity": 93.1,
+              "spinRate": 2202,
+              "whiffRate": 12.5,
+              "xwoba": 0.384,
+              "xslg": 0.351,
+              "xba": 0.32,
+              "hardHitRate": 50,
+              "barrelRate": 0,
+              "runValuePer100": -13.966666667
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 1853,
+              "pitchPercent": 0.4,
+              "velocity": 80.2,
+              "spinRate": 2661,
+              "whiffRate": 0,
+              "xwoba": 0.238,
+              "xslg": 0.28,
+              "xba": 0.249,
+              "hardHitRate": 100,
+              "barrelRate": 0,
+              "runValuePer100": 4.225
+            }
+          }
+        },
+        "last15": {
+          "label": "last15",
+          "startDate": "2026-05-17",
+          "endDate": "2026-06-01",
+          "totalPitches": 9265,
+          "pitchTypeCount": 5,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 93,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 1853,
+              "pitchPercent": 2.8,
+              "velocity": 93,
+              "spinRate": 2311,
+              "whiffRate": 25,
+              "xwoba": 0.262,
+              "xslg": 0.298,
+              "xba": 0.225,
+              "hardHitRate": 55.55555555555556,
+              "barrelRate": 11.11111111111111,
+              "runValuePer100": -0.103846154
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 1853,
+              "pitchPercent": 2,
+              "velocity": 83.2,
+              "spinRate": 1500,
+              "whiffRate": 35,
+              "xwoba": 0.294,
+              "xslg": 0.373,
+              "xba": 0.303,
+              "hardHitRate": 37.5,
+              "barrelRate": 0,
+              "runValuePer100": -0.064864865
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 1853,
+              "pitchPercent": 1.1,
+              "velocity": 86.2,
+              "spinRate": 2404,
+              "whiffRate": 27.3,
+              "xwoba": 0.643,
+              "xslg": 1.099,
+              "xba": 0.447,
+              "hardHitRate": 50,
+              "barrelRate": 25,
+              "runValuePer100": -10.16
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 1853,
+              "pitchPercent": 0.6,
+              "velocity": 93.1,
+              "spinRate": 2202,
+              "whiffRate": 12.5,
+              "xwoba": 0.384,
+              "xslg": 0.351,
+              "xba": 0.32,
+              "hardHitRate": 50,
+              "barrelRate": 0,
+              "runValuePer100": -13.966666667
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 1853,
+              "pitchPercent": 0.4,
+              "velocity": 80.2,
+              "spinRate": 2661,
+              "whiffRate": 0,
+              "xwoba": 0.238,
+              "xslg": 0.28,
+              "xba": 0.249,
+              "hardHitRate": 100,
+              "barrelRate": 0,
+              "runValuePer100": 4.225
+            }
+          }
+        },
+        "last7": {
+          "label": "last7",
+          "startDate": "2026-05-25",
+          "endDate": "2026-06-01",
+          "totalPitches": 9265,
+          "pitchTypeCount": 5,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 93,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 1853,
+              "pitchPercent": 2.8,
+              "velocity": 93,
+              "spinRate": 2311,
+              "whiffRate": 25,
+              "xwoba": 0.262,
+              "xslg": 0.298,
+              "xba": 0.225,
+              "hardHitRate": 55.55555555555556,
+              "barrelRate": 11.11111111111111,
+              "runValuePer100": -0.103846154
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 1853,
+              "pitchPercent": 2,
+              "velocity": 83.2,
+              "spinRate": 1500,
+              "whiffRate": 35,
+              "xwoba": 0.294,
+              "xslg": 0.373,
+              "xba": 0.303,
+              "hardHitRate": 37.5,
+              "barrelRate": 0,
+              "runValuePer100": -0.064864865
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 1853,
+              "pitchPercent": 1.1,
+              "velocity": 86.2,
+              "spinRate": 2404,
+              "whiffRate": 27.3,
+              "xwoba": 0.643,
+              "xslg": 1.099,
+              "xba": 0.447,
+              "hardHitRate": 50,
+              "barrelRate": 25,
+              "runValuePer100": -10.16
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 1853,
+              "pitchPercent": 0.6,
+              "velocity": 93.1,
+              "spinRate": 2202,
+              "whiffRate": 12.5,
+              "xwoba": 0.384,
+              "xslg": 0.351,
+              "xba": 0.32,
+              "hardHitRate": 50,
+              "barrelRate": 0,
+              "runValuePer100": -13.966666667
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 1853,
+              "pitchPercent": 0.4,
+              "velocity": 80.2,
+              "spinRate": 2661,
+              "whiffRate": 0,
+              "xwoba": 0.238,
+              "xslg": 0.28,
+              "xba": 0.249,
+              "hardHitRate": 100,
+              "barrelRate": 0,
+              "runValuePer100": 4.225
+            }
+          }
+        }
+      }
+    },
     "jossoriano": {
       "pitcher": "José Soriano",
       "pitcherId": 667755,
@@ -4226,6 +6492,387 @@
               "hardHitRate": 57.14285714285714,
               "barrelRate": 14.285714285714285,
               "runValuePer100": -12.144444444
+            }
+          }
+        }
+      }
+    },
+    "keidermontero": {
+      "pitcher": "Keider Montero",
+      "pitcherId": 672456,
+      "playerKey": "keidermontero",
+      "team": "DET",
+      "opponent": "LAA",
+      "hand": "R",
+      "gamePk": 824270,
+      "baselineFastballVelo": 94.3,
+      "currentFastballVelo": 94.6,
+      "velocityDelta": 0.3,
+      "trend": "stable",
+      "windows": {
+        "season": {
+          "label": "season",
+          "startDate": "2026-03-01",
+          "endDate": "2026-06-01",
+          "totalPitches": 30807,
+          "pitchTypeCount": 7,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 94.3,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 4401,
+              "pitchPercent": 6.9,
+              "velocity": 94.3,
+              "spinRate": 2243,
+              "whiffRate": 14,
+              "xwoba": 0.319,
+              "xslg": 0.447,
+              "xba": 0.226,
+              "hardHitRate": 45,
+              "barrelRate": 10,
+              "runValuePer100": 1.36039604
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 4401,
+              "pitchPercent": 4,
+              "velocity": 94.7,
+              "spinRate": 2234,
+              "whiffRate": 12.9,
+              "xwoba": 0.3,
+              "xslg": 0.35,
+              "xba": 0.243,
+              "hardHitRate": 40.42553191489361,
+              "barrelRate": 6.382978723404255,
+              "runValuePer100": 1.9875
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 4401,
+              "pitchPercent": 3.5,
+              "velocity": 85.3,
+              "spinRate": 2602,
+              "whiffRate": 26,
+              "xwoba": 0.281,
+              "xslg": 0.353,
+              "xba": 0.231,
+              "hardHitRate": 44.827586206896555,
+              "barrelRate": 6.896551724137931,
+              "runValuePer100": 0.141830065
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 4401,
+              "pitchPercent": 3.1,
+              "velocity": 87.2,
+              "spinRate": 2026,
+              "whiffRate": 25.8,
+              "xwoba": 0.178,
+              "xslg": 0.197,
+              "xba": 0.144,
+              "hardHitRate": 20.689655172413794,
+              "barrelRate": 0,
+              "runValuePer100": 2.585185185
+            },
+            "KC": {
+              "pitchType": "KC",
+              "pitches": 4401,
+              "pitchPercent": 2.8,
+              "velocity": 80.6,
+              "spinRate": 2873,
+              "whiffRate": 19,
+              "xwoba": 0.38,
+              "xslg": 0.625,
+              "xba": 0.286,
+              "hardHitRate": 58.333333333333336,
+              "barrelRate": 20.833333333333336,
+              "runValuePer100": -2.114754098
+            },
+            "FC": {
+              "pitchType": "FC",
+              "pitches": 4401,
+              "pitchPercent": 0.1,
+              "velocity": 87.1,
+              "spinRate": 2732,
+              "whiffRate": 33.3,
+              "xwoba": 0,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 7.033333333
+            },
+            "UN": {
+              "pitchType": "UN",
+              "pitches": 4401,
+              "pitchPercent": 0,
+              "velocity": 51.9,
+              "spinRate": 1820,
+              "whiffRate": 0,
+              "xwoba": 0,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -2.4
+            }
+          }
+        },
+        "last30": {
+          "label": "last30",
+          "startDate": "2026-05-02",
+          "endDate": "2026-06-01",
+          "totalPitches": 26406,
+          "pitchTypeCount": 6,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 94.3,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 4401,
+              "pitchPercent": 3.5,
+              "velocity": 94.3,
+              "spinRate": 2231,
+              "whiffRate": 11.3,
+              "xwoba": 0.357,
+              "xslg": 0.536,
+              "xba": 0.24,
+              "hardHitRate": 44.827586206896555,
+              "barrelRate": 13.793103448275861,
+              "runValuePer100": 1.795483871
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 4401,
+              "pitchPercent": 2.1,
+              "velocity": 85.4,
+              "spinRate": 2573,
+              "whiffRate": 20.5,
+              "xwoba": 0.301,
+              "xslg": 0.382,
+              "xba": 0.248,
+              "hardHitRate": 40,
+              "barrelRate": 5,
+              "runValuePer100": -0.335164835
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 4401,
+              "pitchPercent": 1.9,
+              "velocity": 94.7,
+              "spinRate": 2218,
+              "whiffRate": 13.2,
+              "xwoba": 0.375,
+              "xslg": 0.459,
+              "xba": 0.316,
+              "hardHitRate": 52.38095238095239,
+              "barrelRate": 9.523809523809524,
+              "runValuePer100": 0.621686747
+            },
+            "KC": {
+              "pitchType": "KC",
+              "pitches": 4401,
+              "pitchPercent": 1.6,
+              "velocity": 80.9,
+              "spinRate": 2863,
+              "whiffRate": 22.2,
+              "xwoba": 0.387,
+              "xslg": 0.683,
+              "xba": 0.258,
+              "hardHitRate": 46.666666666666664,
+              "barrelRate": 26.666666666666668,
+              "runValuePer100": -0.728985507
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 4401,
+              "pitchPercent": 1.5,
+              "velocity": 86.9,
+              "spinRate": 1995,
+              "whiffRate": 14.3,
+              "xwoba": 0.221,
+              "xslg": 0.226,
+              "xba": 0.169,
+              "hardHitRate": 21.052631578947366,
+              "barrelRate": 0,
+              "runValuePer100": 1.36969697
+            },
+            "UN": {
+              "pitchType": "UN",
+              "pitches": 4401,
+              "pitchPercent": 0,
+              "velocity": 51.9,
+              "spinRate": 1820,
+              "whiffRate": 0,
+              "xwoba": 0,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -2.4
+            }
+          }
+        },
+        "last15": {
+          "label": "last15",
+          "startDate": "2026-05-17",
+          "endDate": "2026-06-01",
+          "totalPitches": 22005,
+          "pitchTypeCount": 5,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 94.6,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 4401,
+              "pitchPercent": 1.8,
+              "velocity": 94.6,
+              "spinRate": 2232,
+              "whiffRate": 12.5,
+              "xwoba": 0.262,
+              "xslg": 0.321,
+              "xba": 0.171,
+              "hardHitRate": 33.33333333333333,
+              "barrelRate": 0,
+              "runValuePer100": 1.982051282
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 4401,
+              "pitchPercent": 1,
+              "velocity": 95.1,
+              "spinRate": 2214,
+              "whiffRate": 20,
+              "xwoba": 0.248,
+              "xslg": 0.253,
+              "xba": 0.226,
+              "hardHitRate": 55.55555555555556,
+              "barrelRate": 0,
+              "runValuePer100": 2.173333333
+            },
+            "KC": {
+              "pitchType": "KC",
+              "pitches": 4401,
+              "pitchPercent": 1,
+              "velocity": 81.1,
+              "spinRate": 2874,
+              "whiffRate": 22.7,
+              "xwoba": 0.243,
+              "xslg": 0.33,
+              "xba": 0.191,
+              "hardHitRate": 37.5,
+              "barrelRate": 12.5,
+              "runValuePer100": 3.002325581
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 4401,
+              "pitchPercent": 0.9,
+              "velocity": 85.9,
+              "spinRate": 2570,
+              "whiffRate": 25,
+              "xwoba": 0.284,
+              "xslg": 0.395,
+              "xba": 0.192,
+              "hardHitRate": 42.857142857142854,
+              "barrelRate": 14.285714285714285,
+              "runValuePer100": -2.97
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 4401,
+              "pitchPercent": 0.7,
+              "velocity": 87.1,
+              "spinRate": 1964,
+              "whiffRate": 15.8,
+              "xwoba": 0.209,
+              "xslg": 0.213,
+              "xba": 0.152,
+              "hardHitRate": 30,
+              "barrelRate": 0,
+              "runValuePer100": -0.145454545
+            }
+          }
+        },
+        "last7": {
+          "label": "last7",
+          "startDate": "2026-05-25",
+          "endDate": "2026-06-01",
+          "totalPitches": 22005,
+          "pitchTypeCount": 5,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 94.7,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 4401,
+              "pitchPercent": 1.1,
+              "velocity": 94.7,
+              "spinRate": 2224,
+              "whiffRate": 13.3,
+              "xwoba": 0.203,
+              "xslg": 0.261,
+              "xba": 0.133,
+              "hardHitRate": 25,
+              "barrelRate": 0,
+              "runValuePer100": 4.22
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 4401,
+              "pitchPercent": 0.8,
+              "velocity": 95,
+              "spinRate": 2208,
+              "whiffRate": 13.3,
+              "xwoba": 0.265,
+              "xslg": 0.27,
+              "xba": 0.241,
+              "hardHitRate": 62.5,
+              "barrelRate": 0,
+              "runValuePer100": 1.908333333
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 4401,
+              "pitchPercent": 0.6,
+              "velocity": 86.2,
+              "spinRate": 2542,
+              "whiffRate": 28.6,
+              "xwoba": 0.271,
+              "xslg": 0.434,
+              "xba": 0.211,
+              "hardHitRate": 50,
+              "barrelRate": 16.666666666666664,
+              "runValuePer100": -4.128571429
+            },
+            "KC": {
+              "pitchType": "KC",
+              "pitches": 4401,
+              "pitchPercent": 0.6,
+              "velocity": 81.3,
+              "spinRate": 2838,
+              "whiffRate": 33.3,
+              "xwoba": 0.287,
+              "xslg": 0.45,
+              "xba": 0.229,
+              "hardHitRate": 100,
+              "barrelRate": 50,
+              "runValuePer100": 0.103846154
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 4401,
+              "pitchPercent": 0.3,
+              "velocity": 87,
+              "spinRate": 1947,
+              "whiffRate": 25,
+              "xwoba": 0.226,
+              "xslg": 0.269,
+              "xba": 0.236,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 3.214285714
             }
           }
         }
@@ -5755,6 +8402,740 @@
         }
       }
     },
+    "michaelwacha": {
+      "pitcher": "Michael Wacha",
+      "pitcherId": 608379,
+      "playerKey": "michaelwacha",
+      "team": "KC",
+      "opponent": "NYY",
+      "hand": "R",
+      "gamePk": 824104,
+      "baselineFastballVelo": 92.8,
+      "currentFastballVelo": 92.9,
+      "velocityDelta": 0.1,
+      "trend": "stable",
+      "windows": {
+        "season": {
+          "label": "season",
+          "startDate": "2026-03-01",
+          "endDate": "2026-06-01",
+          "totalPitches": 173826,
+          "pitchTypeCount": 6,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 92.8,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 28971,
+              "pitchPercent": 1.3,
+              "velocity": 92.8,
+              "spinRate": 2168,
+              "whiffRate": 22.5,
+              "xwoba": 0.36,
+              "xslg": 0.506,
+              "xba": 0.259,
+              "hardHitRate": 40.27777777777778,
+              "barrelRate": 9.722222222222223,
+              "runValuePer100": 0.940633245
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 28971,
+              "pitchPercent": 1,
+              "velocity": 80.4,
+              "spinRate": 1520,
+              "whiffRate": 36.9,
+              "xwoba": 0.226,
+              "xslg": 0.269,
+              "xba": 0.178,
+              "hardHitRate": 32.075471698113205,
+              "barrelRate": 13.20754716981132,
+              "runValuePer100": 0.279251701
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 28971,
+              "pitchPercent": 0.7,
+              "velocity": 92.9,
+              "spinRate": 2064,
+              "whiffRate": 14.7,
+              "xwoba": 0.383,
+              "xslg": 0.438,
+              "xba": 0.27,
+              "hardHitRate": 51.35135135135135,
+              "barrelRate": 2.7027027027027026,
+              "runValuePer100": 1.682790698
+            },
+            "FC": {
+              "pitchType": "FC",
+              "pitches": 28971,
+              "pitchPercent": 0.7,
+              "velocity": 88.9,
+              "spinRate": 2162,
+              "whiffRate": 19.2,
+              "xwoba": 0.326,
+              "xslg": 0.443,
+              "xba": 0.261,
+              "hardHitRate": 46.51162790697674,
+              "barrelRate": 11.627906976744185,
+              "runValuePer100": -0.516915423
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 28971,
+              "pitchPercent": 0.4,
+              "velocity": 84.6,
+              "spinRate": 2026,
+              "whiffRate": 28.6,
+              "xwoba": 0.332,
+              "xslg": 0.449,
+              "xba": 0.292,
+              "hardHitRate": 38.46153846153847,
+              "barrelRate": 3.8461538461538463,
+              "runValuePer100": -2.179527559
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 28971,
+              "pitchPercent": 0.4,
+              "velocity": 75.9,
+              "spinRate": 2341,
+              "whiffRate": 29.3,
+              "xwoba": 0.213,
+              "xslg": 0.235,
+              "xba": 0.184,
+              "hardHitRate": 42.857142857142854,
+              "barrelRate": 7.142857142857142,
+              "runValuePer100": -1.411570248
+            }
+          }
+        },
+        "last30": {
+          "label": "last30",
+          "startDate": "2026-05-02",
+          "endDate": "2026-06-01",
+          "totalPitches": 173826,
+          "pitchTypeCount": 6,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 93,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 28971,
+              "pitchPercent": 0.6,
+              "velocity": 93,
+              "spinRate": 2169,
+              "whiffRate": 17.2,
+              "xwoba": 0.342,
+              "xslg": 0.466,
+              "xba": 0.254,
+              "hardHitRate": 45.16129032258064,
+              "barrelRate": 9.67741935483871,
+              "runValuePer100": 0.940361446
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 28971,
+              "pitchPercent": 0.4,
+              "velocity": 80.6,
+              "spinRate": 1540,
+              "whiffRate": 36.5,
+              "xwoba": 0.21,
+              "xslg": 0.267,
+              "xba": 0.162,
+              "hardHitRate": 31.818181818181817,
+              "barrelRate": 9.090909090909092,
+              "runValuePer100": 2.367256637
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 28971,
+              "pitchPercent": 0.3,
+              "velocity": 93.2,
+              "spinRate": 2075,
+              "whiffRate": 14.3,
+              "xwoba": 0.313,
+              "xslg": 0.342,
+              "xba": 0.26,
+              "hardHitRate": 29.411764705882355,
+              "barrelRate": 0,
+              "runValuePer100": 3.414102564
+            },
+            "FC": {
+              "pitchType": "FC",
+              "pitches": 28971,
+              "pitchPercent": 0.3,
+              "velocity": 89.3,
+              "spinRate": 2166,
+              "whiffRate": 10.3,
+              "xwoba": 0.35,
+              "xslg": 0.423,
+              "xba": 0.295,
+              "hardHitRate": 40,
+              "barrelRate": 6.666666666666667,
+              "runValuePer100": -4.544736842
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 28971,
+              "pitchPercent": 0.2,
+              "velocity": 76.2,
+              "spinRate": 2364,
+              "whiffRate": 23.8,
+              "xwoba": 0.186,
+              "xslg": 0.166,
+              "xba": 0.147,
+              "hardHitRate": 30,
+              "barrelRate": 0,
+              "runValuePer100": -1.091071429
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 28971,
+              "pitchPercent": 0.2,
+              "velocity": 85.4,
+              "spinRate": 2020,
+              "whiffRate": 28,
+              "xwoba": 0.388,
+              "xslg": 0.46,
+              "xba": 0.368,
+              "hardHitRate": 30.76923076923077,
+              "barrelRate": 0,
+              "runValuePer100": -2.539130435
+            }
+          }
+        },
+        "last15": {
+          "label": "last15",
+          "startDate": "2026-05-17",
+          "endDate": "2026-06-01",
+          "totalPitches": 173826,
+          "pitchTypeCount": 6,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 92.9,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 28971,
+              "pitchPercent": 0.3,
+              "velocity": 92.9,
+              "spinRate": 2162,
+              "whiffRate": 25.6,
+              "xwoba": 0.356,
+              "xslg": 0.512,
+              "xba": 0.288,
+              "hardHitRate": 58.333333333333336,
+              "barrelRate": 16.666666666666664,
+              "runValuePer100": 0.087179487
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 28971,
+              "pitchPercent": 0.2,
+              "velocity": 80.8,
+              "spinRate": 1551,
+              "whiffRate": 46.4,
+              "xwoba": 0.248,
+              "xslg": 0.263,
+              "xba": 0.193,
+              "hardHitRate": 20,
+              "barrelRate": 10,
+              "runValuePer100": 2.733333333
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 28971,
+              "pitchPercent": 0.2,
+              "velocity": 93.1,
+              "spinRate": 2085,
+              "whiffRate": 5.6,
+              "xwoba": 0.382,
+              "xslg": 0.441,
+              "xba": 0.302,
+              "hardHitRate": 33.33333333333333,
+              "barrelRate": 0,
+              "runValuePer100": 0.435555556
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 28971,
+              "pitchPercent": 0.1,
+              "velocity": 76.2,
+              "spinRate": 2413,
+              "whiffRate": 27.8,
+              "xwoba": 0.15,
+              "xslg": 0.179,
+              "xba": 0.164,
+              "hardHitRate": 25,
+              "barrelRate": 0,
+              "runValuePer100": -1.348780488
+            },
+            "FC": {
+              "pitchType": "FC",
+              "pitches": 28971,
+              "pitchPercent": 0.1,
+              "velocity": 89.1,
+              "spinRate": 2152,
+              "whiffRate": 15.4,
+              "xwoba": 0.386,
+              "xslg": 0.43,
+              "xba": 0.343,
+              "hardHitRate": 40,
+              "barrelRate": 0,
+              "runValuePer100": -5.320588235
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 28971,
+              "pitchPercent": 0.1,
+              "velocity": 85.2,
+              "spinRate": 2034,
+              "whiffRate": 23.5,
+              "xwoba": 0.398,
+              "xslg": 0.476,
+              "xba": 0.35,
+              "hardHitRate": 37.5,
+              "barrelRate": 0,
+              "runValuePer100": -4.222580645
+            }
+          }
+        },
+        "last7": {
+          "label": "last7",
+          "startDate": "2026-05-25",
+          "endDate": "2026-06-01",
+          "totalPitches": 173826,
+          "pitchTypeCount": 6,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 92.8,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 28971,
+              "pitchPercent": 0.2,
+              "velocity": 92.8,
+              "spinRate": 2135,
+              "whiffRate": 20,
+              "xwoba": 0.337,
+              "xslg": 0.48,
+              "xba": 0.252,
+              "hardHitRate": 50,
+              "barrelRate": 12.5,
+              "runValuePer100": -0.163829787
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 28971,
+              "pitchPercent": 0.1,
+              "velocity": 80.8,
+              "spinRate": 1542,
+              "whiffRate": 36.8,
+              "xwoba": 0.199,
+              "xslg": 0.194,
+              "xba": 0.164,
+              "hardHitRate": 12.5,
+              "barrelRate": 0,
+              "runValuePer100": 3.267647059
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 28971,
+              "pitchPercent": 0.1,
+              "velocity": 92.9,
+              "spinRate": 2055,
+              "whiffRate": 0,
+              "xwoba": 0.432,
+              "xslg": 0.551,
+              "xba": 0.377,
+              "hardHitRate": 37.5,
+              "barrelRate": 0,
+              "runValuePer100": 0.155555556
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 28971,
+              "pitchPercent": 0.1,
+              "velocity": 75.9,
+              "spinRate": 2332,
+              "whiffRate": 33.3,
+              "xwoba": 0.141,
+              "xslg": 0.167,
+              "xba": 0.153,
+              "hardHitRate": 25,
+              "barrelRate": 0,
+              "runValuePer100": 0.911538462
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 28971,
+              "pitchPercent": 0.1,
+              "velocity": 85,
+              "spinRate": 2010,
+              "whiffRate": 28.6,
+              "xwoba": 0.444,
+              "xslg": 0.544,
+              "xba": 0.376,
+              "hardHitRate": 33.33333333333333,
+              "barrelRate": 0,
+              "runValuePer100": -7.627272727
+            },
+            "FC": {
+              "pitchType": "FC",
+              "pitches": 28971,
+              "pitchPercent": 0.1,
+              "velocity": 89.1,
+              "spinRate": 2104,
+              "whiffRate": 14.3,
+              "xwoba": 0.465,
+              "xslg": 0.499,
+              "xba": 0.437,
+              "hardHitRate": 33.33333333333333,
+              "barrelRate": 0,
+              "runValuePer100": -7.694736842
+            }
+          }
+        }
+      }
+    },
+    "robbieray": {
+      "pitcher": "Robbie Ray",
+      "pitcherId": 592662,
+      "playerKey": "robbieray",
+      "team": "SF",
+      "opponent": "AZ",
+      "hand": "L",
+      "gamePk": 823217,
+      "baselineFastballVelo": 93.5,
+      "currentFastballVelo": 93.2,
+      "velocityDelta": -0.3,
+      "trend": "stable",
+      "windows": {
+        "season": {
+          "label": "season",
+          "startDate": "2026-03-01",
+          "endDate": "2026-06-01",
+          "totalPitches": 137790,
+          "pitchTypeCount": 5,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 93.5,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 27558,
+              "pitchPercent": 2.3,
+              "velocity": 93.5,
+              "spinRate": 2340,
+              "whiffRate": 19.9,
+              "xwoba": 0.369,
+              "xslg": 0.52,
+              "xba": 0.225,
+              "hardHitRate": 40.4040404040404,
+              "barrelRate": 14.14141414141414,
+              "runValuePer100": 0.123839009
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 27558,
+              "pitchPercent": 1.4,
+              "velocity": 85.4,
+              "spinRate": 2183,
+              "whiffRate": 35.3,
+              "xwoba": 0.374,
+              "xslg": 0.544,
+              "xba": 0.252,
+              "hardHitRate": 36,
+              "barrelRate": 14.000000000000002,
+              "runValuePer100": -0.027707809
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 27558,
+              "pitchPercent": 0.8,
+              "velocity": 85.8,
+              "spinRate": 1606,
+              "whiffRate": 29.8,
+              "xwoba": 0.285,
+              "xslg": 0.366,
+              "xba": 0.226,
+              "hardHitRate": 29.268292682926827,
+              "barrelRate": 4.878048780487805,
+              "runValuePer100": 1.296650718
+            },
+            "KC": {
+              "pitchType": "KC",
+              "pitches": 27558,
+              "pitchPercent": 0.4,
+              "velocity": 79.3,
+              "spinRate": 2211,
+              "whiffRate": 43.3,
+              "xwoba": 0.41,
+              "xslg": 0.41,
+              "xba": 0.349,
+              "hardHitRate": 40,
+              "barrelRate": 10,
+              "runValuePer100": -0.411009174
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 27558,
+              "pitchPercent": 0.1,
+              "velocity": 93.1,
+              "spinRate": 2300,
+              "whiffRate": 10,
+              "xwoba": 0.292,
+              "xslg": 0.394,
+              "xba": 0.353,
+              "hardHitRate": 30,
+              "barrelRate": 0,
+              "runValuePer100": 1.98
+            }
+          }
+        },
+        "last30": {
+          "label": "last30",
+          "startDate": "2026-05-02",
+          "endDate": "2026-06-01",
+          "totalPitches": 137790,
+          "pitchTypeCount": 5,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 93,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 27558,
+              "pitchPercent": 0.6,
+              "velocity": 93,
+              "spinRate": 2337,
+              "whiffRate": 17.9,
+              "xwoba": 0.493,
+              "xslg": 0.709,
+              "xba": 0.289,
+              "hardHitRate": 50,
+              "barrelRate": 23.076923076923077,
+              "runValuePer100": -3.162921348
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 27558,
+              "pitchPercent": 0.4,
+              "velocity": 86.8,
+              "spinRate": 2250,
+              "whiffRate": 26.5,
+              "xwoba": 0.398,
+              "xslg": 0.607,
+              "xba": 0.266,
+              "hardHitRate": 46.666666666666664,
+              "barrelRate": 20,
+              "runValuePer100": -2.574074074
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 27558,
+              "pitchPercent": 0.4,
+              "velocity": 86,
+              "spinRate": 1623,
+              "whiffRate": 26.8,
+              "xwoba": 0.313,
+              "xslg": 0.362,
+              "xba": 0.275,
+              "hardHitRate": 33.33333333333333,
+              "barrelRate": 4.166666666666666,
+              "runValuePer100": -0.95257732
+            },
+            "KC": {
+              "pitchType": "KC",
+              "pitches": 27558,
+              "pitchPercent": 0.2,
+              "velocity": 79.5,
+              "spinRate": 2251,
+              "whiffRate": 46.7,
+              "xwoba": 0.489,
+              "xslg": 0.472,
+              "xba": 0.408,
+              "hardHitRate": 50,
+              "barrelRate": 0,
+              "runValuePer100": 0.095652174
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 27558,
+              "pitchPercent": 0.1,
+              "velocity": 93.1,
+              "spinRate": 2289,
+              "whiffRate": 12.5,
+              "xwoba": 0.283,
+              "xslg": 0.395,
+              "xba": 0.348,
+              "hardHitRate": 42.857142857142854,
+              "barrelRate": 0,
+              "runValuePer100": 0.496774194
+            }
+          }
+        },
+        "last15": {
+          "label": "last15",
+          "startDate": "2026-05-17",
+          "endDate": "2026-06-01",
+          "totalPitches": 137790,
+          "pitchTypeCount": 5,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 93.2,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 27558,
+              "pitchPercent": 0.3,
+              "velocity": 93.2,
+              "spinRate": 2333,
+              "whiffRate": 13.6,
+              "xwoba": 0.541,
+              "xslg": 0.803,
+              "xba": 0.298,
+              "hardHitRate": 58.333333333333336,
+              "barrelRate": 25,
+              "runValuePer100": -4.611827957
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 27558,
+              "pitchPercent": 0.3,
+              "velocity": 87.6,
+              "spinRate": 2253,
+              "whiffRate": 13.8,
+              "xwoba": 0.391,
+              "xslg": 0.553,
+              "xba": 0.259,
+              "hardHitRate": 45.45454545454545,
+              "barrelRate": 18.181818181818183,
+              "runValuePer100": -3.467567568
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 27558,
+              "pitchPercent": 0.2,
+              "velocity": 86.3,
+              "spinRate": 1619,
+              "whiffRate": 23.3,
+              "xwoba": 0.322,
+              "xslg": 0.364,
+              "xba": 0.247,
+              "hardHitRate": 42.857142857142854,
+              "barrelRate": 7.142857142857142,
+              "runValuePer100": -2.491304348
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 27558,
+              "pitchPercent": 0.1,
+              "velocity": 93.1,
+              "spinRate": 2289,
+              "whiffRate": 12.5,
+              "xwoba": 0.283,
+              "xslg": 0.395,
+              "xba": 0.348,
+              "hardHitRate": 42.857142857142854,
+              "barrelRate": 0,
+              "runValuePer100": 0.496774194
+            },
+            "KC": {
+              "pitchType": "KC",
+              "pitches": 27558,
+              "pitchPercent": 0.1,
+              "velocity": 79.3,
+              "spinRate": 2252,
+              "whiffRate": 62.5,
+              "xwoba": 0.33,
+              "xslg": 0.097,
+              "xba": 0.092,
+              "hardHitRate": 100,
+              "barrelRate": 0,
+              "runValuePer100": 2.125
+            }
+          }
+        },
+        "last7": {
+          "label": "last7",
+          "startDate": "2026-05-25",
+          "endDate": "2026-06-01",
+          "totalPitches": 137790,
+          "pitchTypeCount": 5,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 93.9,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 27558,
+              "pitchPercent": 0.1,
+              "velocity": 93.9,
+              "spinRate": 2360,
+              "whiffRate": 21.4,
+              "xwoba": 0.27,
+              "xslg": 0.374,
+              "xba": 0.11,
+              "hardHitRate": 66.66666666666666,
+              "barrelRate": 33.33333333333333,
+              "runValuePer100": 0.291176471
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 27558,
+              "pitchPercent": 0.1,
+              "velocity": 88.3,
+              "spinRate": 2284,
+              "whiffRate": 20,
+              "xwoba": 0.3,
+              "xslg": 0.451,
+              "xba": 0.254,
+              "hardHitRate": 33.33333333333333,
+              "barrelRate": 33.33333333333333,
+              "runValuePer100": 0.444
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 27558,
+              "pitchPercent": 0.1,
+              "velocity": 93.3,
+              "spinRate": 2292,
+              "whiffRate": 18.2,
+              "xwoba": 0.186,
+              "xslg": 0.358,
+              "xba": 0.267,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -0.52
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 27558,
+              "pitchPercent": 0,
+              "velocity": 87.1,
+              "spinRate": 1608,
+              "whiffRate": 33.3,
+              "xwoba": 0.326,
+              "xslg": 0.386,
+              "xba": 0.352,
+              "hardHitRate": 50,
+              "barrelRate": 0,
+              "runValuePer100": -7.645454545
+            },
+            "KC": {
+              "pitchType": "KC",
+              "pitches": 27558,
+              "pitchPercent": 0,
+              "velocity": 80,
+              "spinRate": 2241,
+              "whiffRate": 100,
+              "xwoba": 0.351,
+              "xslg": 0,
+              "xba": 0,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": 5.083333333
+            }
+          }
+        }
+      }
+    },
     "sandyalcantara": {
       "pitcher": "Sandy Alcantara",
       "pitcherId": 645261,
@@ -6926,111 +10307,83 @@
         }
       }
     },
-    "austinwarren": {
-      "pitcher": "Austin Warren",
-      "pitcherId": 681810,
-      "playerKey": "austinwarren",
-      "team": "NYM",
-      "opponent": "CIN",
-      "hand": "R",
-      "gamePk": 823626,
-      "baselineFastballVelo": 93.7,
-      "currentFastballVelo": 93.5,
-      "velocityDelta": -0.2,
+    "shanemcclanahan": {
+      "pitcher": "Shane McClanahan",
+      "pitcherId": 663556,
+      "playerKey": "shanemcclanahan",
+      "team": "TB",
+      "opponent": "BAL",
+      "hand": "L",
+      "gamePk": 824836,
+      "baselineFastballVelo": 95.1,
+      "currentFastballVelo": 95.6,
+      "velocityDelta": 0.5,
       "trend": "stable",
       "windows": {
         "season": {
           "label": "season",
           "startDate": "2026-03-01",
           "endDate": "2026-06-01",
-          "totalPitches": 8376,
-          "pitchTypeCount": 6,
+          "totalPitches": 31112,
+          "pitchTypeCount": 4,
           "primaryFastball": "FF",
-          "primaryFastballVelo": 93.7,
+          "primaryFastballVelo": 95.1,
           "pitchTypes": {
-            "ST": {
-              "pitchType": "ST",
-              "pitches": 1396,
-              "pitchPercent": 12.2,
-              "velocity": 84.9,
-              "spinRate": 2722,
-              "whiffRate": 20,
-              "xwoba": 0.354,
-              "xslg": 0.429,
-              "xba": 0.306,
-              "hardHitRate": 36,
-              "barrelRate": 4,
-              "runValuePer100": -0.246783626
-            },
-            "SI": {
-              "pitchType": "SI",
-              "pitches": 1396,
-              "pitchPercent": 5.6,
-              "velocity": 93.9,
-              "spinRate": 2272,
-              "whiffRate": 11.1,
-              "xwoba": 0.306,
-              "xslg": 0.298,
-              "xba": 0.163,
-              "hardHitRate": 37.5,
-              "barrelRate": 25,
-              "runValuePer100": 4.248717949
-            },
-            "CU": {
-              "pitchType": "CU",
-              "pitches": 1396,
-              "pitchPercent": 3.4,
-              "velocity": 84.3,
-              "spinRate": 2754,
-              "whiffRate": 31,
-              "xwoba": 0.274,
-              "xslg": 0.278,
-              "xba": 0.246,
-              "hardHitRate": 28.57142857142857,
-              "barrelRate": 7.142857142857142,
-              "runValuePer100": 1.463829787
-            },
             "FF": {
               "pitchType": "FF",
-              "pitches": 1396,
-              "pitchPercent": 3.1,
-              "velocity": 93.7,
-              "spinRate": 2380,
-              "whiffRate": 50,
-              "xwoba": 0.213,
-              "xslg": 0.329,
-              "xba": 0.179,
-              "hardHitRate": 80,
-              "barrelRate": 20,
-              "runValuePer100": -4.234883721
-            },
-            "FC": {
-              "pitchType": "FC",
-              "pitches": 1396,
-              "pitchPercent": 0.6,
-              "velocity": 88.1,
-              "spinRate": 2520,
-              "whiffRate": 33.3,
-              "xwoba": 0.278,
-              "xslg": 0.342,
-              "xba": 0.309,
-              "hardHitRate": 100,
-              "barrelRate": 0,
-              "runValuePer100": 1.055555556
+              "pitches": 7778,
+              "pitchPercent": 5.3,
+              "velocity": 95.1,
+              "spinRate": 2208,
+              "whiffRate": 21.3,
+              "xwoba": 0.399,
+              "xslg": 0.549,
+              "xba": 0.294,
+              "hardHitRate": 50,
+              "barrelRate": 14.285714285714285,
+              "runValuePer100": 0.056038647
             },
             "CH": {
               "pitchType": "CH",
-              "pitches": 1396,
-              "pitchPercent": 0.4,
-              "velocity": 88.1,
-              "spinRate": 1715,
-              "whiffRate": 100,
-              "xwoba": 0,
-              "xslg": 0,
-              "xba": 0,
-              "hardHitRate": 0,
+              "pitches": 7778,
+              "pitchPercent": 4,
+              "velocity": 86.7,
+              "spinRate": 1471,
+              "whiffRate": 36.4,
+              "xwoba": 0.202,
+              "xslg": 0.217,
+              "xba": 0.165,
+              "hardHitRate": 30.76923076923077,
+              "barrelRate": 1.9230769230769231,
+              "runValuePer100": 3.217307692
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 7778,
+              "pitchPercent": 2.6,
+              "velocity": 87.9,
+              "spinRate": 2345,
+              "whiffRate": 30.6,
+              "xwoba": 0.312,
+              "xslg": 0.419,
+              "xba": 0.237,
+              "hardHitRate": 44.73684210526316,
+              "barrelRate": 13.157894736842104,
+              "runValuePer100": 2.028431373
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 7778,
+              "pitchPercent": 1.7,
+              "velocity": 81.7,
+              "spinRate": 2477,
+              "whiffRate": 26.8,
+              "xwoba": 0.268,
+              "xslg": 0.277,
+              "xba": 0.236,
+              "hardHitRate": 33.33333333333333,
               "barrelRate": 0,
-              "runValuePer100": -4.08
+              "runValuePer100": 1.834074074
             }
           }
         },
@@ -7038,94 +10391,66 @@
           "label": "last30",
           "startDate": "2026-05-02",
           "endDate": "2026-06-01",
-          "totalPitches": 8376,
-          "pitchTypeCount": 6,
+          "totalPitches": 31112,
+          "pitchTypeCount": 4,
           "primaryFastball": "FF",
-          "primaryFastballVelo": 93.5,
+          "primaryFastballVelo": 95.6,
           "pitchTypes": {
-            "ST": {
-              "pitchType": "ST",
-              "pitches": 1396,
-              "pitchPercent": 9.3,
-              "velocity": 84.8,
-              "spinRate": 2710,
-              "whiffRate": 18.4,
-              "xwoba": 0.402,
-              "xslg": 0.491,
-              "xba": 0.348,
-              "hardHitRate": 38.88888888888889,
-              "barrelRate": 5.555555555555555,
-              "runValuePer100": -0.37
-            },
-            "SI": {
-              "pitchType": "SI",
-              "pitches": 1396,
-              "pitchPercent": 4.6,
-              "velocity": 93.8,
-              "spinRate": 2275,
-              "whiffRate": 9.5,
-              "xwoba": 0.325,
-              "xslg": 0.325,
-              "xba": 0.178,
-              "hardHitRate": 37.5,
-              "barrelRate": 25,
-              "runValuePer100": 4.4828125
-            },
             "FF": {
               "pitchType": "FF",
-              "pitches": 1396,
-              "pitchPercent": 2.5,
-              "velocity": 93.5,
-              "spinRate": 2377,
-              "whiffRate": 47.1,
-              "xwoba": 0.175,
-              "xslg": 0.247,
-              "xba": 0.165,
-              "hardHitRate": 75,
-              "barrelRate": 0,
-              "runValuePer100": 1.085714286
-            },
-            "CU": {
-              "pitchType": "CU",
-              "pitches": 1396,
-              "pitchPercent": 2.5,
-              "velocity": 84.3,
-              "spinRate": 2735,
-              "whiffRate": 23.8,
-              "xwoba": 0.298,
-              "xslg": 0.3,
-              "xba": 0.266,
-              "hardHitRate": 30,
-              "barrelRate": 0,
-              "runValuePer100": -1.091428571
-            },
-            "FC": {
-              "pitchType": "FC",
-              "pitches": 1396,
-              "pitchPercent": 0.2,
-              "velocity": 87.2,
-              "spinRate": 2499,
-              "whiffRate": 100,
-              "xwoba": 0,
-              "xslg": 0,
-              "xba": 0,
-              "hardHitRate": 0,
-              "barrelRate": 0,
-              "runValuePer100": -4.733333333
+              "pitches": 7778,
+              "pitchPercent": 1.8,
+              "velocity": 95.6,
+              "spinRate": 2202,
+              "whiffRate": 23.9,
+              "xwoba": 0.379,
+              "xslg": 0.534,
+              "xba": 0.29,
+              "hardHitRate": 50,
+              "barrelRate": 14.285714285714285,
+              "runValuePer100": 1.308510638
             },
             "CH": {
               "pitchType": "CH",
-              "pitches": 1396,
-              "pitchPercent": 0.1,
-              "velocity": 87.5,
-              "spinRate": 1744,
-              "whiffRate": 0,
-              "xwoba": 0,
-              "xslg": 0,
-              "xba": 0,
-              "hardHitRate": 0,
+              "pitches": 7778,
+              "pitchPercent": 1.6,
+              "velocity": 87,
+              "spinRate": 1476,
+              "whiffRate": 33.9,
+              "xwoba": 0.211,
+              "xslg": 0.245,
+              "xba": 0.18,
+              "hardHitRate": 33.33333333333333,
+              "barrelRate": 4.166666666666666,
+              "runValuePer100": 3.2952
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 7778,
+              "pitchPercent": 1,
+              "velocity": 82.2,
+              "spinRate": 2515,
+              "whiffRate": 24.1,
+              "xwoba": 0.269,
+              "xslg": 0.247,
+              "xba": 0.218,
+              "hardHitRate": 30,
               "barrelRate": 0,
-              "runValuePer100": -6.65
+              "runValuePer100": 2.340540541
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 7778,
+              "pitchPercent": 0.7,
+              "velocity": 88.8,
+              "spinRate": 2300,
+              "whiffRate": 32.3,
+              "xwoba": 0.279,
+              "xslg": 0.417,
+              "xba": 0.239,
+              "hardHitRate": 44.44444444444444,
+              "barrelRate": 11.11111111111111,
+              "runValuePer100": 1.920754717
             }
           }
         },
@@ -7133,80 +10458,66 @@
           "label": "last15",
           "startDate": "2026-05-17",
           "endDate": "2026-06-01",
-          "totalPitches": 6980,
-          "pitchTypeCount": 5,
+          "totalPitches": 31112,
+          "pitchTypeCount": 4,
           "primaryFastball": "FF",
-          "primaryFastballVelo": 93.5,
+          "primaryFastballVelo": 95.6,
           "pitchTypes": {
-            "ST": {
-              "pitchType": "ST",
-              "pitches": 1396,
-              "pitchPercent": 4.2,
-              "velocity": 84.5,
-              "spinRate": 2621,
-              "whiffRate": 29.2,
-              "xwoba": 0.366,
-              "xslg": 0.446,
-              "xba": 0.331,
-              "hardHitRate": 44.44444444444444,
-              "barrelRate": 0,
-              "runValuePer100": -0.789830508
-            },
-            "SI": {
-              "pitchType": "SI",
-              "pitches": 1396,
-              "pitchPercent": 1.5,
-              "velocity": 93.8,
-              "spinRate": 2167,
-              "whiffRate": 0,
-              "xwoba": 0.034,
-              "xslg": 0.018,
-              "xba": 0.011,
-              "hardHitRate": 50,
-              "barrelRate": 0,
-              "runValuePer100": 5.866666667
-            },
-            "CU": {
-              "pitchType": "CU",
-              "pitches": 1396,
-              "pitchPercent": 1.2,
-              "velocity": 84.1,
-              "spinRate": 2669,
-              "whiffRate": 12.5,
-              "xwoba": 0.354,
-              "xslg": 0.322,
-              "xba": 0.288,
-              "hardHitRate": 40,
-              "barrelRate": 0,
-              "runValuePer100": -3.023529412
-            },
             "FF": {
               "pitchType": "FF",
-              "pitches": 1396,
-              "pitchPercent": 1,
-              "velocity": 93.5,
-              "spinRate": 2310,
-              "whiffRate": 50,
-              "xwoba": 0.224,
-              "xslg": 0.272,
-              "xba": 0.247,
-              "hardHitRate": 100,
-              "barrelRate": 0,
-              "runValuePer100": 1.2
+              "pitches": 7778,
+              "pitchPercent": 1.2,
+              "velocity": 95.6,
+              "spinRate": 2190,
+              "whiffRate": 29.8,
+              "xwoba": 0.393,
+              "xslg": 0.565,
+              "xba": 0.291,
+              "hardHitRate": 47.05882352941176,
+              "barrelRate": 17.647058823529413,
+              "runValuePer100": 1.560215054
             },
             "CH": {
               "pitchType": "CH",
-              "pitches": 1396,
-              "pitchPercent": 0.1,
-              "velocity": 87.5,
-              "spinRate": 1744,
-              "whiffRate": 0,
-              "xwoba": 0,
-              "xslg": 0,
-              "xba": 0,
-              "hardHitRate": 0,
+              "pitches": 7778,
+              "pitchPercent": 0.9,
+              "velocity": 87,
+              "spinRate": 1473,
+              "whiffRate": 24.3,
+              "xwoba": 0.25,
+              "xslg": 0.267,
+              "xba": 0.22,
+              "hardHitRate": 35.294117647058826,
               "barrelRate": 0,
-              "runValuePer100": -6.65
+              "runValuePer100": 2.031944444
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 7778,
+              "pitchPercent": 0.5,
+              "velocity": 82.1,
+              "spinRate": 2520,
+              "whiffRate": 15.4,
+              "xwoba": 0.475,
+              "xslg": 0.508,
+              "xba": 0.45,
+              "hardHitRate": 50,
+              "barrelRate": 0,
+              "runValuePer100": -0.734146341
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 7778,
+              "pitchPercent": 0.5,
+              "velocity": 88.7,
+              "spinRate": 2285,
+              "whiffRate": 36,
+              "xwoba": 0.295,
+              "xslg": 0.452,
+              "xba": 0.242,
+              "hardHitRate": 50,
+              "barrelRate": 12.5,
+              "runValuePer100": 1.184210526
             }
           }
         },
@@ -7214,80 +10525,66 @@
           "label": "last7",
           "startDate": "2026-05-25",
           "endDate": "2026-06-01",
-          "totalPitches": 6980,
-          "pitchTypeCount": 5,
+          "totalPitches": 31112,
+          "pitchTypeCount": 4,
           "primaryFastball": "FF",
-          "primaryFastballVelo": 93.7,
+          "primaryFastballVelo": 95.5,
           "pitchTypes": {
-            "ST": {
-              "pitchType": "ST",
-              "pitches": 1396,
-              "pitchPercent": 2.3,
-              "velocity": 84.5,
-              "spinRate": 2689,
-              "whiffRate": 41.2,
-              "xwoba": 0.341,
-              "xslg": 0.452,
-              "xba": 0.341,
-              "hardHitRate": 75,
-              "barrelRate": 0,
-              "runValuePer100": 2.75625
-            },
-            "SI": {
-              "pitchType": "SI",
-              "pitches": 1396,
-              "pitchPercent": 0.9,
-              "velocity": 93.9,
-              "spinRate": 2195,
-              "whiffRate": 0,
-              "xwoba": 0.011,
-              "xslg": 0.018,
-              "xba": 0.011,
-              "hardHitRate": 0,
-              "barrelRate": 0,
-              "runValuePer100": 4.591666667
-            },
-            "CU": {
-              "pitchType": "CU",
-              "pitches": 1396,
-              "pitchPercent": 0.8,
-              "velocity": 84.1,
-              "spinRate": 2693,
-              "whiffRate": 20,
-              "xwoba": 0.353,
-              "xslg": 0.214,
-              "xba": 0.194,
-              "hardHitRate": 100,
-              "barrelRate": 0,
-              "runValuePer100": -5.845454545
-            },
             "FF": {
               "pitchType": "FF",
-              "pitches": 1396,
-              "pitchPercent": 0.4,
-              "velocity": 93.7,
-              "spinRate": 2382,
-              "whiffRate": 50,
-              "xwoba": 0,
-              "xslg": 0,
-              "xba": 0,
-              "hardHitRate": 0,
-              "barrelRate": 0,
-              "runValuePer100": 8.65
+              "pitches": 7778,
+              "pitchPercent": 0.8,
+              "velocity": 95.5,
+              "spinRate": 2193,
+              "whiffRate": 31.3,
+              "xwoba": 0.41,
+              "xslg": 0.525,
+              "xba": 0.325,
+              "hardHitRate": 33.33333333333333,
+              "barrelRate": 16.666666666666664,
+              "runValuePer100": 2.925
             },
             "CH": {
               "pitchType": "CH",
-              "pitches": 1396,
-              "pitchPercent": 0.1,
-              "velocity": 87.5,
-              "spinRate": 1744,
-              "whiffRate": 0,
-              "xwoba": 0,
-              "xslg": 0,
-              "xba": 0,
-              "hardHitRate": 0,
+              "pitches": 7778,
+              "pitchPercent": 0.5,
+              "velocity": 86.5,
+              "spinRate": 1453,
+              "whiffRate": 13,
+              "xwoba": 0.251,
+              "xslg": 0.279,
+              "xba": 0.236,
+              "hardHitRate": 30.76923076923077,
               "barrelRate": 0,
-              "runValuePer100": -6.65
+              "runValuePer100": 4.2325
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 7778,
+              "pitchPercent": 0.3,
+              "velocity": 88.4,
+              "spinRate": 2349,
+              "whiffRate": 37.5,
+              "xwoba": 0.287,
+              "xslg": 0.437,
+              "xba": 0.235,
+              "hardHitRate": 50,
+              "barrelRate": 25,
+              "runValuePer100": 1.638461538
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 7778,
+              "pitchPercent": 0.3,
+              "velocity": 81.7,
+              "spinRate": 2510,
+              "whiffRate": 12.5,
+              "xwoba": 0.386,
+              "xslg": 0.467,
+              "xba": 0.419,
+              "hardHitRate": 50,
+              "barrelRate": 0,
+              "runValuePer100": 0.2625
             }
           }
         }
@@ -7669,6 +10966,345 @@
               "hardHitRate": 0,
               "barrelRate": 0,
               "runValuePer100": -2.7
+            }
+          }
+        }
+      }
+    },
+    "tannergordon": {
+      "pitcher": "Tanner Gordon",
+      "pitcherId": 685299,
+      "playerKey": "tannergordon",
+      "team": "COL",
+      "opponent": "LAD",
+      "hand": "R",
+      "gamePk": 823947,
+      "baselineFastballVelo": 93,
+      "currentFastballVelo": 92.4,
+      "velocityDelta": -0.6,
+      "trend": "stable",
+      "windows": {
+        "season": {
+          "label": "season",
+          "startDate": "2026-03-01",
+          "endDate": "2026-06-01",
+          "totalPitches": 13290,
+          "pitchTypeCount": 5,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 93,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 2658,
+              "pitchPercent": 8.7,
+              "velocity": 93,
+              "spinRate": 2256,
+              "whiffRate": 28.1,
+              "xwoba": 0.324,
+              "xslg": 0.44,
+              "xba": 0.231,
+              "hardHitRate": 48.837209302325576,
+              "barrelRate": 16.27906976744186,
+              "runValuePer100": 0.115517241
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 2658,
+              "pitchPercent": 7,
+              "velocity": 86.5,
+              "spinRate": 2088,
+              "whiffRate": 26.5,
+              "xwoba": 0.319,
+              "xslg": 0.468,
+              "xba": 0.279,
+              "hardHitRate": 41.86046511627907,
+              "barrelRate": 11.627906976744185,
+              "runValuePer100": -1.337967914
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 2658,
+              "pitchPercent": 5.8,
+              "velocity": 84.6,
+              "spinRate": 2109,
+              "whiffRate": 25.6,
+              "xwoba": 0.327,
+              "xslg": 0.454,
+              "xba": 0.253,
+              "hardHitRate": 31.03448275862069,
+              "barrelRate": 10.344827586206897,
+              "runValuePer100": -0.290909091
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 2658,
+              "pitchPercent": 2.5,
+              "velocity": 80.4,
+              "spinRate": 2267,
+              "whiffRate": 17.4,
+              "xwoba": 0.331,
+              "xslg": 0.481,
+              "xba": 0.213,
+              "hardHitRate": 11.11111111111111,
+              "barrelRate": 11.11111111111111,
+              "runValuePer100": -2.768656716
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 2658,
+              "pitchPercent": 2.1,
+              "velocity": 91.9,
+              "spinRate": 2100,
+              "whiffRate": 10.7,
+              "xwoba": 0.567,
+              "xslg": 0.933,
+              "xba": 0.422,
+              "hardHitRate": 69.23076923076923,
+              "barrelRate": 15.384615384615385,
+              "runValuePer100": -5.812727273
+            }
+          }
+        },
+        "last30": {
+          "label": "last30",
+          "startDate": "2026-05-02",
+          "endDate": "2026-06-01",
+          "totalPitches": 13290,
+          "pitchTypeCount": 5,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 92.7,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 2658,
+              "pitchPercent": 4.7,
+              "velocity": 92.7,
+              "spinRate": 2250,
+              "whiffRate": 21.7,
+              "xwoba": 0.335,
+              "xslg": 0.455,
+              "xba": 0.265,
+              "hardHitRate": 54.166666666666664,
+              "barrelRate": 16.666666666666664,
+              "runValuePer100": 0.51031746
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 2658,
+              "pitchPercent": 4,
+              "velocity": 84.4,
+              "spinRate": 2125,
+              "whiffRate": 25,
+              "xwoba": 0.351,
+              "xslg": 0.48,
+              "xba": 0.275,
+              "hardHitRate": 36.84210526315789,
+              "barrelRate": 10.526315789473683,
+              "runValuePer100": -2.090654206
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 2658,
+              "pitchPercent": 4,
+              "velocity": 86.8,
+              "spinRate": 2040,
+              "whiffRate": 30,
+              "xwoba": 0.286,
+              "xslg": 0.413,
+              "xba": 0.256,
+              "hardHitRate": 53.84615384615385,
+              "barrelRate": 7.6923076923076925,
+              "runValuePer100": 0.821698113
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 2658,
+              "pitchPercent": 1.3,
+              "velocity": 79.8,
+              "spinRate": 2260,
+              "whiffRate": 18.2,
+              "xwoba": 0.463,
+              "xslg": 0.752,
+              "xba": 0.238,
+              "hardHitRate": 25,
+              "barrelRate": 25,
+              "runValuePer100": -4.237142857
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 2658,
+              "pitchPercent": 0.9,
+              "velocity": 91.6,
+              "spinRate": 2112,
+              "whiffRate": 0,
+              "xwoba": 0.409,
+              "xslg": 0.604,
+              "xba": 0.358,
+              "hardHitRate": 71.42857142857143,
+              "barrelRate": 0,
+              "runValuePer100": -6.579166667
+            }
+          }
+        },
+        "last15": {
+          "label": "last15",
+          "startDate": "2026-05-17",
+          "endDate": "2026-06-01",
+          "totalPitches": 13290,
+          "pitchTypeCount": 5,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 92.4,
+          "pitchTypes": {
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 2658,
+              "pitchPercent": 2.8,
+              "velocity": 92.4,
+              "spinRate": 2253,
+              "whiffRate": 15.4,
+              "xwoba": 0.463,
+              "xslg": 0.648,
+              "xba": 0.37,
+              "hardHitRate": 64.70588235294117,
+              "barrelRate": 17.647058823529413,
+              "runValuePer100": -2.828378378
+            },
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 2658,
+              "pitchPercent": 2.4,
+              "velocity": 86.9,
+              "spinRate": 2015,
+              "whiffRate": 22.9,
+              "xwoba": 0.302,
+              "xslg": 0.433,
+              "xba": 0.274,
+              "hardHitRate": 47.368421052631575,
+              "barrelRate": 10.526315789473683,
+              "runValuePer100": 1.1421875
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 2658,
+              "pitchPercent": 2.3,
+              "velocity": 84.3,
+              "spinRate": 2102,
+              "whiffRate": 20,
+              "xwoba": 0.36,
+              "xslg": 0.479,
+              "xba": 0.304,
+              "hardHitRate": 45.45454545454545,
+              "barrelRate": 9.090909090909092,
+              "runValuePer100": -0.064516129
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 2658,
+              "pitchPercent": 0.8,
+              "velocity": 79.6,
+              "spinRate": 2267,
+              "whiffRate": 22.2,
+              "xwoba": 0.553,
+              "xslg": 0.936,
+              "xba": 0.295,
+              "hardHitRate": 33.33333333333333,
+              "barrelRate": 33.33333333333333,
+              "runValuePer100": -6.231818182
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 2658,
+              "pitchPercent": 0.5,
+              "velocity": 91.5,
+              "spinRate": 2157,
+              "whiffRate": 0,
+              "xwoba": 0.531,
+              "xslg": 0.797,
+              "xba": 0.455,
+              "hardHitRate": 80,
+              "barrelRate": 0,
+              "runValuePer100": -16.028571429
+            }
+          }
+        },
+        "last7": {
+          "label": "last7",
+          "startDate": "2026-05-25",
+          "endDate": "2026-06-01",
+          "totalPitches": 13290,
+          "pitchTypeCount": 5,
+          "primaryFastball": "FF",
+          "primaryFastballVelo": 92.9,
+          "pitchTypes": {
+            "SL": {
+              "pitchType": "SL",
+              "pitches": 2658,
+              "pitchPercent": 1.7,
+              "velocity": 87.3,
+              "spinRate": 1998,
+              "whiffRate": 21.7,
+              "xwoba": 0.184,
+              "xslg": 0.234,
+              "xba": 0.192,
+              "hardHitRate": 33.33333333333333,
+              "barrelRate": 0,
+              "runValuePer100": 4.586956522
+            },
+            "CH": {
+              "pitchType": "CH",
+              "pitches": 2658,
+              "pitchPercent": 1.6,
+              "velocity": 84.6,
+              "spinRate": 2095,
+              "whiffRate": 30,
+              "xwoba": 0.284,
+              "xslg": 0.373,
+              "xba": 0.177,
+              "hardHitRate": 50,
+              "barrelRate": 16.666666666666664,
+              "runValuePer100": 0.451162791
+            },
+            "FF": {
+              "pitchType": "FF",
+              "pitches": 2658,
+              "pitchPercent": 1.5,
+              "velocity": 92.9,
+              "spinRate": 2272,
+              "whiffRate": 17.4,
+              "xwoba": 0.411,
+              "xslg": 0.538,
+              "xba": 0.326,
+              "hardHitRate": 42.857142857142854,
+              "barrelRate": 14.285714285714285,
+              "runValuePer100": -5.434146341
+            },
+            "CU": {
+              "pitchType": "CU",
+              "pitches": 2658,
+              "pitchPercent": 0.5,
+              "velocity": 80,
+              "spinRate": 2258,
+              "whiffRate": 16.7,
+              "xwoba": 0.471,
+              "xslg": 0.234,
+              "xba": 0.232,
+              "hardHitRate": 0,
+              "barrelRate": 0,
+              "runValuePer100": -5.2
+            },
+            "SI": {
+              "pitchType": "SI",
+              "pitches": 2658,
+              "pitchPercent": 0.4,
+              "velocity": 91.6,
+              "spinRate": 2202,
+              "whiffRate": 0,
+              "xwoba": 0.506,
+              "xslg": 0.775,
+              "xba": 0.42,
+              "hardHitRate": 75,
+              "barrelRate": 0,
+              "runValuePer100": -13.990909091
             }
           }
         }

@@ -22,6 +22,7 @@ const PROBABLES = "data/context/probable-pitcher-hands.json";
 const STAFFS = "data/context/pitching-staffs.json";
 const BOARD = "outputs/priced-board.json";
 const TARGETS = "outputs/context/real-pitch-type-target-list-latest.json";
+const ID_REPAIR = "outputs/context/pitch-type-target-mlb-id-repair-latest.json";
 const OUT = "data/savant/pitcher-velocity-trends.json";
 const RAW_DIR = "data/savant/velocity-raw";
 
@@ -259,27 +260,72 @@ function collectPitchers() {
     });
   }
 
-  // Current real pitch-type gap targets.
-  const targets = read(TARGETS, {});
-  for (const t of targets.pitcherArsenalTargets || []) {
-    if (!t?.pitcher) continue;
+    // Current real pitch-type gap targets.
+    const targets = read(TARGETS, {});
+    const idRepair = read(ID_REPAIR, {});
+    const repairedByName = new Map();
 
-    addPitcher({
-      pitcher: t.pitcher,
-      id:
-        t.mlbamId ||
-        t.pitcherId ||
-        t.playerId ||
-        t.mlbId ||
-        null,
-      team: t.team || null,
-      opponent: t.opponent || null,
-      hand: t.hand || null,
-      gamePk: t.gamePk || null,
-      role: "probable_starter",
-      source: "real_pitch_type_target_list"
-    });
-  }
+    for (const r of idRepair.repairedRows || []) {
+      if (!r?.pitcher || !r?.mlbamId) continue;
+      repairedByName.set(norm(r.pitcher), r.mlbamId);
+    }
+
+    const pitchTypeTargets = [
+      ...(targets.pitcherArsenalTargets || []).map(t => ({
+        pitcher: t.pitcher || t.player || t.name,
+        id: t.mlbamId || t.pitcherId || t.playerId || t.mlbId || null,
+        team: t.team || null,
+        opponent: t.opponent || null,
+        hand: t.hand || null,
+        gamePk: t.gamePk || null,
+        source: "real_pitch_type_target_list.pitcherArsenalTargets"
+      })),
+      ...(targets.hitterMatchupTargets || []).map(t => ({
+        pitcher:
+          t.pitcher ||
+          t.opponentPitcher ||
+          t.opposingPitcher ||
+          t.pitchTypeOpponentPitcher ||
+          t.probablePitcher,
+        id:
+          t.pitcherId ||
+          t.opponentPitcherId ||
+          t.opposingPitcherId ||
+          t.pitchTypeOpponentPitcherId ||
+          t.mlbamId ||
+          t.mlbId ||
+          t.playerId ||
+          null,
+        team: t.opponent || t.opponentTeam || null,
+        opponent: t.team || null,
+        hand:
+          t.pitcherHand ||
+          t.opponentPitcherHand ||
+          t.opposingPitcherHand ||
+          t.pitchTypeOpponentPitcherHand ||
+          null,
+        gamePk: t.gamePk || t.resolvedGamePk || null,
+        source: "real_pitch_type_target_list.hitterMatchupTargets"
+      }))
+    ];
+
+    for (const t of pitchTypeTargets) {
+      if (!t?.pitcher) continue;
+
+      addPitcher({
+        pitcher: t.pitcher,
+        id:
+          t.id ||
+          repairedByName.get(norm(t.pitcher)) ||
+          null,
+        team: t.team || null,
+        opponent: t.opponent || null,
+        hand: t.hand || null,
+        gamePk: t.gamePk || null,
+        role: "probable_starter",
+        source: t.source || "real_pitch_type_target_list"
+      });
+    }
 
   const max = Number(process.env.SAVANT_MAX_PITCHERS || 180);
   const values = [...out.values()];
