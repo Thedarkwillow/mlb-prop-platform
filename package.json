@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "prizepicks": "node src/scrapers/prizepicks.js",
-    "picks": "npm run guard:board && npm run board:repair-games && node src/jobs/slipBuilder.js && node src/research/build-market-trust.cjs && node src/research/price-current-slips.cjs && node src/research/enrich-slips-distributions.cjs && node src/research/build-final-slips.cjs && node src/research/playable-final-slips.cjs && npm run slips:optimize-types && npm run slips:v5 && npm run slips:suppress-types && npm run audit:line-blocks && npm run unlocks:controlled && npm run slips:leans -- $(TZ=America/Los_Angeles date +%F) && npm run explain:blocked -- $(TZ=America/Los_Angeles date +%F) && npm run snapshot:run",
+    "picks": "npm run guard:board && npm run board:repair-games && node src/jobs/slipBuilder.js && node src/research/build-market-trust.cjs && node src/research/price-current-slips.cjs && node src/research/enrich-slips-distributions.cjs && node src/research/build-final-slips.cjs && node src/research/playable-final-slips.cjs && npm run slips:optimize-types && npm run slips:v5 && npm run slips:suppress-types && npm run audit:line-blocks && npm run unlocks:controlled && npm run slips:leans -- $(TZ=America/Los_Angeles date +%F) && npm run slips:leans:inject-controlled -- $(TZ=America/Los_Angeles date +%F) && npm run explain:blocked -- $(TZ=America/Los_Angeles date +%F) && npm run snapshot:run",
     "grade": "node src/research/repair-slip-gamepks.cjs ${npm_config_date:-$(date +%F)} && node src/research/grade-final-slips.cjs ${npm_config_date:-$(date +%F)}",
     "coverage": "node src/research/distribution-coverage-report.cjs",
     "pipeline": "SLATE_DATE=${npm_config_date:-$(date +%F)} npm run picks && npm run coverage && npm run market:exposure && npm run grade && npm run grade:watchlist && npm run calibration -- ${npm_config_date:-$(date +%F)} && npm run archive -- ${npm_config_date:-$(date +%F)} && npm run caldb -- ${npm_config_date:-$(date +%F)} && npm run caldb:summary && npm run calibration:curves",
@@ -270,7 +270,8 @@
     "savant:velo:compact": "npm run savant:velo && npm run savant:arsenal:compact",
     "savant:velo:full": "npm run savant:velo && npm run savant:arsenal:compact",
     "context:bullpen:merge": "node src/jobs/mergeBullpenContextIntoBoard.cjs",
-    "explain:blocked": "node src/research/blocked-candidate-explain-report.cjs"
+    "explain:blocked": "node src/research/blocked-candidate-explain-report.cjs",
+    "slips:leans:inject-controlled": "node src/research/inject-controlled-unlocks-into-lean-report.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
