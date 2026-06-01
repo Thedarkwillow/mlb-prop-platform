@@ -3,6 +3,7 @@ const path = require("path");
 
 const DATE = process.argv[2] || process.env.npm_config_date || new Date().toISOString().slice(0, 10);
 const BASE = "https://statsapi.mlb.com/api/v1";
+const LIVE_BASE = "https://statsapi.mlb.com/api/v1.1";
 
 function norm(s) {
   return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -27,8 +28,13 @@ async function getJson(url) {
 
 function battingOrderNumber(raw) {
   if (!raw) return null;
-  const n = Number(String(raw).slice(0, -1));
-  return Number.isFinite(n) ? n : null;
+  const s = String(raw).trim();
+  const n = Number(s);
+  if (!Number.isFinite(n)) return null;
+  // MLB boxscore battingOrder is usually 100, 200, ... 900.
+  // Convert to normal batting order 1-9.
+  if (n >= 100) return Math.floor(n / 100);
+  return n;
 }
 
 async function main() {
@@ -49,7 +55,7 @@ async function main() {
     const gameName = `${g.teams?.away?.team?.name || ""} @ ${g.teams?.home?.team?.name || ""}`;
     let feed;
     try {
-      feed = await getJson(`${BASE}/game/${gamePk}/feed/live`);
+      feed = await getJson(`${LIVE_BASE}/game/${gamePk}/feed/live`);
     } catch (e) {
       out.games[norm(gameName)] = {
         gamePk,

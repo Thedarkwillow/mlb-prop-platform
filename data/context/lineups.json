@@ -1,51 +1,1280 @@
 {
-  "date": "2026-05-11",
-  "refreshedAt": "2026-05-11T10:00:07.839Z",
+  "date": "2026-06-01",
+  "refreshedAt": "2026-06-01T20:17:48.598Z",
   "source": "MLB Stats API schedule + game feed/live boxscore",
-  "players": {},
-  "teams": {},
+  "players": {
+    "kevin mcgonigle": {
+      "player": "Kevin McGonigle",
+      "team": "DET",
+      "status": "confirmed",
+      "battingOrder": 1,
+      "position": "SS",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "dillon dingler": {
+      "player": "Dillon Dingler",
+      "team": "DET",
+      "status": "confirmed",
+      "battingOrder": 2,
+      "position": "C",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "kerry carpenter": {
+      "player": "Kerry Carpenter",
+      "team": "DET",
+      "status": "confirmed",
+      "battingOrder": 3,
+      "position": "LF",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "riley greene": {
+      "player": "Riley Greene",
+      "team": "DET",
+      "status": "confirmed",
+      "battingOrder": 4,
+      "position": "DH",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "spencer torkelson": {
+      "player": "Spencer Torkelson",
+      "team": "DET",
+      "status": "confirmed",
+      "battingOrder": 5,
+      "position": "1B",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "colt keith": {
+      "player": "Colt Keith",
+      "team": "DET",
+      "status": "confirmed",
+      "battingOrder": 6,
+      "position": "3B",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "wenceel p rez": {
+      "player": "Wenceel Pérez",
+      "team": "DET",
+      "status": "confirmed",
+      "battingOrder": 7,
+      "position": "CF",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "hao yu lee": {
+      "player": "Hao-Yu  Lee",
+      "team": "DET",
+      "status": "confirmed",
+      "battingOrder": 8,
+      "position": "2B",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "zach mckinstry": {
+      "player": "Zach McKinstry",
+      "team": "DET",
+      "status": "confirmed",
+      "battingOrder": 9,
+      "position": "RF",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "yandy d az": {
+      "player": "Yandy Díaz",
+      "team": "TB",
+      "status": "confirmed",
+      "battingOrder": 1,
+      "position": "DH",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "jonathan aranda": {
+      "player": "Jonathan Aranda",
+      "team": "TB",
+      "status": "confirmed",
+      "battingOrder": 2,
+      "position": "1B",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "richie palacios": {
+      "player": "Richie Palacios",
+      "team": "TB",
+      "status": "confirmed",
+      "battingOrder": 3,
+      "position": "2B",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "junior caminero": {
+      "player": "Junior Caminero",
+      "team": "TB",
+      "status": "confirmed",
+      "battingOrder": 4,
+      "position": "3B",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "chandler simpson": {
+      "player": "Chandler Simpson",
+      "team": "TB",
+      "status": "confirmed",
+      "battingOrder": 5,
+      "position": "LF",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "victor mesa jr": {
+      "player": "Victor Mesa Jr.",
+      "team": "TB",
+      "status": "confirmed",
+      "battingOrder": 6,
+      "position": "RF",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "cedric mullins": {
+      "player": "Cedric Mullins",
+      "team": "TB",
+      "status": "confirmed",
+      "battingOrder": 7,
+      "position": "CF",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "hunter feduccia": {
+      "player": "Hunter Feduccia",
+      "team": "TB",
+      "status": "confirmed",
+      "battingOrder": 8,
+      "position": "C",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "taylor walls": {
+      "player": "Taylor Walls",
+      "team": "TB",
+      "status": "confirmed",
+      "battingOrder": 9,
+      "position": "SS",
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "liam hicks": {
+      "player": "Liam Hicks",
+      "team": "MIA",
+      "status": "confirmed",
+      "battingOrder": 1,
+      "position": "DH",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "otto lopez": {
+      "player": "Otto Lopez",
+      "team": "MIA",
+      "status": "confirmed",
+      "battingOrder": 2,
+      "position": "SS",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "kyle stowers": {
+      "player": "Kyle Stowers",
+      "team": "MIA",
+      "status": "confirmed",
+      "battingOrder": 3,
+      "position": "LF",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "xavier edwards": {
+      "player": "Xavier Edwards",
+      "team": "MIA",
+      "status": "confirmed",
+      "battingOrder": 4,
+      "position": "2B",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "leo jim nez": {
+      "player": "Leo Jiménez",
+      "team": "MIA",
+      "status": "confirmed",
+      "battingOrder": 5,
+      "position": "3B",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "owen caissie": {
+      "player": "Owen Caissie",
+      "team": "MIA",
+      "status": "confirmed",
+      "battingOrder": 6,
+      "position": "RF",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "jakob marsee": {
+      "player": "Jakob Marsee",
+      "team": "MIA",
+      "status": "confirmed",
+      "battingOrder": 7,
+      "position": "CF",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "joe mack": {
+      "player": "Joe Mack",
+      "team": "MIA",
+      "status": "confirmed",
+      "battingOrder": 8,
+      "position": "C",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "connor norby": {
+      "player": "Connor Norby",
+      "team": "MIA",
+      "status": "confirmed",
+      "battingOrder": 9,
+      "position": "1B",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "james wood": {
+      "player": "James Wood",
+      "team": "WSH",
+      "status": "confirmed",
+      "battingOrder": 1,
+      "position": "RF",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "luis garc a jr": {
+      "player": "Luis García Jr.",
+      "team": "WSH",
+      "status": "confirmed",
+      "battingOrder": 2,
+      "position": "1B",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "curtis mead": {
+      "player": "Curtis Mead",
+      "team": "WSH",
+      "status": "confirmed",
+      "battingOrder": 3,
+      "position": "3B",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "cj abrams": {
+      "player": "CJ Abrams",
+      "team": "WSH",
+      "status": "confirmed",
+      "battingOrder": 4,
+      "position": "SS",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "daylen lile": {
+      "player": "Daylen Lile",
+      "team": "WSH",
+      "status": "confirmed",
+      "battingOrder": 5,
+      "position": "LF",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "jacob young": {
+      "player": "Jacob Young",
+      "team": "WSH",
+      "status": "confirmed",
+      "battingOrder": 6,
+      "position": "CF",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "jos tena": {
+      "player": "José Tena",
+      "team": "WSH",
+      "status": "confirmed",
+      "battingOrder": 7,
+      "position": "DH",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "keibert ruiz": {
+      "player": "Keibert Ruiz",
+      "team": "WSH",
+      "status": "confirmed",
+      "battingOrder": 8,
+      "position": "C",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "nasim nu ez": {
+      "player": "Nasim Nuñez",
+      "team": "WSH",
+      "status": "confirmed",
+      "battingOrder": 9,
+      "position": "2B",
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "carter jensen": {
+      "player": "Carter Jensen",
+      "team": "KC",
+      "status": "confirmed",
+      "battingOrder": 1,
+      "position": "C",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "bobby witt jr": {
+      "player": "Bobby Witt Jr.",
+      "team": "KC",
+      "status": "confirmed",
+      "battingOrder": 2,
+      "position": "SS",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "vinnie pasquantino": {
+      "player": "Vinnie Pasquantino",
+      "team": "KC",
+      "status": "confirmed",
+      "battingOrder": 3,
+      "position": "1B",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "jac caglianone": {
+      "player": "Jac Caglianone",
+      "team": "KC",
+      "status": "confirmed",
+      "battingOrder": 4,
+      "position": "DH",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "isaac collins": {
+      "player": "Isaac Collins",
+      "team": "KC",
+      "status": "confirmed",
+      "battingOrder": 5,
+      "position": "LF",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "lane thomas": {
+      "player": "Lane Thomas",
+      "team": "KC",
+      "status": "confirmed",
+      "battingOrder": 6,
+      "position": "RF",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "michael massey": {
+      "player": "Michael Massey",
+      "team": "KC",
+      "status": "confirmed",
+      "battingOrder": 7,
+      "position": "2B",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "nick loftin": {
+      "player": "Nick Loftin",
+      "team": "KC",
+      "status": "confirmed",
+      "battingOrder": 8,
+      "position": "3B",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "kyle isbel": {
+      "player": "Kyle Isbel",
+      "team": "KC",
+      "status": "confirmed",
+      "battingOrder": 9,
+      "position": "CF",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "blake dunn": {
+      "player": "Blake Dunn",
+      "team": "CIN",
+      "status": "confirmed",
+      "battingOrder": 1,
+      "position": "CF",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "jj bleday": {
+      "player": "JJ Bleday",
+      "team": "CIN",
+      "status": "confirmed",
+      "battingOrder": 2,
+      "position": "LF",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "sal stewart": {
+      "player": "Sal Stewart",
+      "team": "CIN",
+      "status": "confirmed",
+      "battingOrder": 3,
+      "position": "3B",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "eugenio su rez": {
+      "player": "Eugenio Suárez",
+      "team": "CIN",
+      "status": "confirmed",
+      "battingOrder": 4,
+      "position": "DH",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "nathaniel lowe": {
+      "player": "Nathaniel Lowe",
+      "team": "CIN",
+      "status": "confirmed",
+      "battingOrder": 5,
+      "position": "1B",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "spencer steer": {
+      "player": "Spencer Steer",
+      "team": "CIN",
+      "status": "confirmed",
+      "battingOrder": 6,
+      "position": "RF",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "tyler stephenson": {
+      "player": "Tyler Stephenson",
+      "team": "CIN",
+      "status": "confirmed",
+      "battingOrder": 7,
+      "position": "C",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "edwin arroyo": {
+      "player": "Edwin Arroyo",
+      "team": "CIN",
+      "status": "confirmed",
+      "battingOrder": 8,
+      "position": "2B",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "matt mclain": {
+      "player": "Matt McLain",
+      "team": "CIN",
+      "status": "confirmed",
+      "battingOrder": 9,
+      "position": "SS",
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "sam antonacci": {
+      "player": "Sam Antonacci",
+      "team": "CWS",
+      "status": "confirmed",
+      "battingOrder": 1,
+      "position": "LF",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "miguel vargas": {
+      "player": "Miguel Vargas",
+      "team": "CWS",
+      "status": "confirmed",
+      "battingOrder": 2,
+      "position": "3B",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "andrew benintendi": {
+      "player": "Andrew Benintendi",
+      "team": "CWS",
+      "status": "confirmed",
+      "battingOrder": 3,
+      "position": "DH",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "colson montgomery": {
+      "player": "Colson Montgomery",
+      "team": "CWS",
+      "status": "confirmed",
+      "battingOrder": 4,
+      "position": "SS",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "chase meidroth": {
+      "player": "Chase Meidroth",
+      "team": "CWS",
+      "status": "confirmed",
+      "battingOrder": 5,
+      "position": "2B",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "jacob gonzalez": {
+      "player": "Jacob Gonzalez",
+      "team": "CWS",
+      "status": "confirmed",
+      "battingOrder": 6,
+      "position": "1B",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "tristan peters": {
+      "player": "Tristan Peters",
+      "team": "CWS",
+      "status": "confirmed",
+      "battingOrder": 7,
+      "position": "CF",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "edgar quero": {
+      "player": "Edgar Quero",
+      "team": "CWS",
+      "status": "confirmed",
+      "battingOrder": 8,
+      "position": "C",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "rikuu nishida": {
+      "player": "Rikuu Nishida",
+      "team": "CWS",
+      "status": "confirmed",
+      "battingOrder": 9,
+      "position": "RF",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "byron buxton": {
+      "player": "Byron Buxton",
+      "team": "MIN",
+      "status": "confirmed",
+      "battingOrder": 1,
+      "position": "DH",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "brooks lee": {
+      "player": "Brooks Lee",
+      "team": "MIN",
+      "status": "confirmed",
+      "battingOrder": 2,
+      "position": "3B",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "kody clemens": {
+      "player": "Kody Clemens",
+      "team": "MIN",
+      "status": "confirmed",
+      "battingOrder": 3,
+      "position": "CF",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "josh bell": {
+      "player": "Josh Bell",
+      "team": "MIN",
+      "status": "confirmed",
+      "battingOrder": 4,
+      "position": "1B",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "trevor larnach": {
+      "player": "Trevor Larnach",
+      "team": "MIN",
+      "status": "confirmed",
+      "battingOrder": 5,
+      "position": "LF",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "austin martin": {
+      "player": "Austin Martin",
+      "team": "MIN",
+      "status": "confirmed",
+      "battingOrder": 6,
+      "position": "RF",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "victor caratini": {
+      "player": "Victor Caratini",
+      "team": "MIN",
+      "status": "confirmed",
+      "battingOrder": 7,
+      "position": "C",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "luke keaschall": {
+      "player": "Luke Keaschall",
+      "team": "MIN",
+      "status": "confirmed",
+      "battingOrder": 8,
+      "position": "2B",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "tristan gray": {
+      "player": "Tristan Gray",
+      "team": "MIN",
+      "status": "confirmed",
+      "battingOrder": 9,
+      "position": "SS",
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "casey schmitt": {
+      "player": "Casey Schmitt",
+      "team": "SF",
+      "status": "confirmed",
+      "battingOrder": 1,
+      "position": "LF",
+      "game": "San Francisco Giants @ Milwaukee Brewers",
+      "gamePk": 823781,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "rafael devers": {
+      "player": "Rafael Devers",
+      "team": "SF",
+      "status": "confirmed",
+      "battingOrder": 2,
+      "position": "DH",
+      "game": "San Francisco Giants @ Milwaukee Brewers",
+      "gamePk": 823781,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "luis arraez": {
+      "player": "Luis Arraez",
+      "team": "SF",
+      "status": "confirmed",
+      "battingOrder": 3,
+      "position": "2B",
+      "game": "San Francisco Giants @ Milwaukee Brewers",
+      "gamePk": 823781,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "willy adames": {
+      "player": "Willy Adames",
+      "team": "SF",
+      "status": "confirmed",
+      "battingOrder": 4,
+      "position": "SS",
+      "game": "San Francisco Giants @ Milwaukee Brewers",
+      "gamePk": 823781,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "jung hoo lee": {
+      "player": "Jung Hoo Lee",
+      "team": "SF",
+      "status": "confirmed",
+      "battingOrder": 5,
+      "position": "RF",
+      "game": "San Francisco Giants @ Milwaukee Brewers",
+      "gamePk": 823781,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "matt chapman": {
+      "player": "Matt Chapman",
+      "team": "SF",
+      "status": "confirmed",
+      "battingOrder": 6,
+      "position": "3B",
+      "game": "San Francisco Giants @ Milwaukee Brewers",
+      "gamePk": 823781,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "bryce eldridge": {
+      "player": "Bryce Eldridge",
+      "team": "SF",
+      "status": "confirmed",
+      "battingOrder": 7,
+      "position": "1B",
+      "game": "San Francisco Giants @ Milwaukee Brewers",
+      "gamePk": 823781,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "eric haase": {
+      "player": "Eric Haase",
+      "team": "SF",
+      "status": "confirmed",
+      "battingOrder": 8,
+      "position": "C",
+      "game": "San Francisco Giants @ Milwaukee Brewers",
+      "gamePk": 823781,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "jonah cox": {
+      "player": "Jonah Cox",
+      "team": "SF",
+      "status": "confirmed",
+      "battingOrder": 9,
+      "position": "CF",
+      "game": "San Francisco Giants @ Milwaukee Brewers",
+      "gamePk": 823781,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "joc pederson": {
+      "player": "Joc Pederson",
+      "team": "TEX",
+      "status": "confirmed",
+      "battingOrder": 1,
+      "position": "DH",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "josh jung": {
+      "player": "Josh Jung",
+      "team": "TEX",
+      "status": "confirmed",
+      "battingOrder": 2,
+      "position": "3B",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "brandon nimmo": {
+      "player": "Brandon Nimmo",
+      "team": "TEX",
+      "status": "confirmed",
+      "battingOrder": 3,
+      "position": "RF",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "jake burger": {
+      "player": "Jake Burger",
+      "team": "TEX",
+      "status": "confirmed",
+      "battingOrder": 4,
+      "position": "1B",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "ezequiel duran": {
+      "player": "Ezequiel Duran",
+      "team": "TEX",
+      "status": "confirmed",
+      "battingOrder": 5,
+      "position": "SS",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "alejandro osuna": {
+      "player": "Alejandro Osuna",
+      "team": "TEX",
+      "status": "confirmed",
+      "battingOrder": 6,
+      "position": "LF",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "evan carter": {
+      "player": "Evan Carter",
+      "team": "TEX",
+      "status": "confirmed",
+      "battingOrder": 7,
+      "position": "CF",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "danny jansen": {
+      "player": "Danny Jansen",
+      "team": "TEX",
+      "status": "confirmed",
+      "battingOrder": 8,
+      "position": "C",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "nicky lopez": {
+      "player": "Nicky Lopez",
+      "team": "TEX",
+      "status": "confirmed",
+      "battingOrder": 9,
+      "position": "2B",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "away",
+      "source": "boxscore.batters"
+    },
+    "jj wetherholt": {
+      "player": "JJ Wetherholt",
+      "team": "STL",
+      "status": "confirmed",
+      "battingOrder": 1,
+      "position": "2B",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "iv n herrera": {
+      "player": "Iván Herrera",
+      "team": "STL",
+      "status": "confirmed",
+      "battingOrder": 2,
+      "position": "C",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "alec burleson": {
+      "player": "Alec Burleson",
+      "team": "STL",
+      "status": "confirmed",
+      "battingOrder": 3,
+      "position": "1B",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "jordan walker": {
+      "player": "Jordan Walker",
+      "team": "STL",
+      "status": "confirmed",
+      "battingOrder": 4,
+      "position": "RF",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "bryan torres": {
+      "player": "Bryan Torres",
+      "team": "STL",
+      "status": "confirmed",
+      "battingOrder": 5,
+      "position": "LF",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "masyn winn": {
+      "player": "Masyn Winn",
+      "team": "STL",
+      "status": "confirmed",
+      "battingOrder": 6,
+      "position": "SS",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "nolan gorman": {
+      "player": "Nolan Gorman",
+      "team": "STL",
+      "status": "confirmed",
+      "battingOrder": 7,
+      "position": "3B",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "jimmy crooks": {
+      "player": "Jimmy Crooks",
+      "team": "STL",
+      "status": "confirmed",
+      "battingOrder": 8,
+      "position": "DH",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "home",
+      "source": "boxscore.batters"
+    },
+    "victor scott ii": {
+      "player": "Victor Scott II",
+      "team": "STL",
+      "status": "confirmed",
+      "battingOrder": 9,
+      "position": "CF",
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050,
+      "side": "home",
+      "source": "boxscore.batters"
+    }
+  },
+  "teams": {
+    "DET": {
+      "team": "DET",
+      "status": "confirmed",
+      "confirmedBatters": 9,
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974
+    },
+    "TB": {
+      "team": "TB",
+      "status": "confirmed",
+      "confirmedBatters": 9,
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "gamePk": 822974
+    },
+    "MIA": {
+      "team": "MIA",
+      "status": "confirmed",
+      "confirmedBatters": 9,
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730
+    },
+    "WSH": {
+      "team": "WSH",
+      "status": "confirmed",
+      "confirmedBatters": 9,
+      "game": "Miami Marlins @ Washington Nationals",
+      "gamePk": 822730
+    },
+    "KC": {
+      "team": "KC",
+      "status": "confirmed",
+      "confirmedBatters": 9,
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510
+    },
+    "CIN": {
+      "team": "CIN",
+      "status": "confirmed",
+      "confirmedBatters": 9,
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "gamePk": 824510
+    },
+    "CWS": {
+      "team": "CWS",
+      "status": "confirmed",
+      "confirmedBatters": 9,
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702
+    },
+    "MIN": {
+      "team": "MIN",
+      "status": "confirmed",
+      "confirmedBatters": 9,
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "gamePk": 823702
+    },
+    "SF": {
+      "team": "SF",
+      "status": "confirmed",
+      "confirmedBatters": 9,
+      "game": "San Francisco Giants @ Milwaukee Brewers",
+      "gamePk": 823781
+    },
+    "MIL": {
+      "team": "MIL",
+      "status": "unknown",
+      "confirmedBatters": 0,
+      "game": "San Francisco Giants @ Milwaukee Brewers",
+      "gamePk": 823781
+    },
+    "TEX": {
+      "team": "TEX",
+      "status": "confirmed",
+      "confirmedBatters": 9,
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050
+    },
+    "STL": {
+      "team": "STL",
+      "status": "confirmed",
+      "confirmedBatters": 9,
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "gamePk": 823050
+    },
+    "COL": {
+      "team": "COL",
+      "status": "unknown",
+      "confirmedBatters": 0,
+      "game": "Colorado Rockies @ Los Angeles Angels",
+      "gamePk": 824027
+    },
+    "LAA": {
+      "team": "LAA",
+      "status": "unknown",
+      "confirmedBatters": 0,
+      "game": "Colorado Rockies @ Los Angeles Angels",
+      "gamePk": 824027
+    },
+    "LAD": {
+      "team": "LAD",
+      "status": "unknown",
+      "confirmedBatters": 0,
+      "game": "Los Angeles Dodgers @ Arizona Diamondbacks",
+      "gamePk": 825078
+    },
+    "AZ": {
+      "team": "AZ",
+      "status": "unknown",
+      "confirmedBatters": 0,
+      "game": "Los Angeles Dodgers @ Arizona Diamondbacks",
+      "gamePk": 825078
+    },
+    "NYM": {
+      "team": "NYM",
+      "status": "unknown",
+      "confirmedBatters": 0,
+      "game": "New York Mets @ Seattle Mariners",
+      "gamePk": 823131
+    },
+    "SEA": {
+      "team": "SEA",
+      "status": "unknown",
+      "confirmedBatters": 0,
+      "game": "New York Mets @ Seattle Mariners",
+      "gamePk": 823131
+    }
+  },
   "games": {
-    "los angeles angels cleveland guardians": {
-      "gamePk": 824441,
-      "game": "Los Angeles Angels @ Cleveland Guardians",
-      "status": "Scheduled",
-      "lineupStatus": "UNAVAILABLE",
-      "note": "404 Not Found: https://statsapi.mlb.com/api/v1/game/824441/feed/live"
+    "detroit tigers tampa bay rays": {
+      "gamePk": 822974,
+      "game": "Detroit Tigers @ Tampa Bay Rays",
+      "status": "Pre-Game",
+      "lineupStatus": "CHECKED"
     },
-    "new york yankees baltimore orioles": {
-      "gamePk": 824844,
-      "game": "New York Yankees @ Baltimore Orioles",
-      "status": "Scheduled",
-      "lineupStatus": "UNAVAILABLE",
-      "note": "404 Not Found: https://statsapi.mlb.com/api/v1/game/824844/feed/live"
+    "miami marlins washington nationals": {
+      "gamePk": 822730,
+      "game": "Miami Marlins @ Washington Nationals",
+      "status": "Pre-Game",
+      "lineupStatus": "CHECKED"
     },
-    "tampa bay rays toronto blue jays": {
-      "gamePk": 822818,
-      "game": "Tampa Bay Rays @ Toronto Blue Jays",
-      "status": "Scheduled",
-      "lineupStatus": "UNAVAILABLE",
-      "note": "404 Not Found: https://statsapi.mlb.com/api/v1/game/822818/feed/live"
+    "kansas city royals cincinnati reds": {
+      "gamePk": 824510,
+      "game": "Kansas City Royals @ Cincinnati Reds",
+      "status": "Pre-Game",
+      "lineupStatus": "CHECKED"
     },
-    "arizona diamondbacks texas rangers": {
-      "gamePk": 822901,
-      "game": "Arizona Diamondbacks @ Texas Rangers",
-      "status": "Scheduled",
-      "lineupStatus": "UNAVAILABLE",
-      "note": "404 Not Found: https://statsapi.mlb.com/api/v1/game/822901/feed/live"
+    "chicago white sox minnesota twins": {
+      "gamePk": 823702,
+      "game": "Chicago White Sox @ Minnesota Twins",
+      "status": "Pre-Game",
+      "lineupStatus": "CHECKED"
     },
-    "seattle mariners houston astros": {
-      "gamePk": 824199,
-      "game": "Seattle Mariners @ Houston Astros",
-      "status": "Scheduled",
-      "lineupStatus": "UNAVAILABLE",
-      "note": "404 Not Found: https://statsapi.mlb.com/api/v1/game/824199/feed/live"
+    "san francisco giants milwaukee brewers": {
+      "gamePk": 823781,
+      "game": "San Francisco Giants @ Milwaukee Brewers",
+      "status": "Pre-Game",
+      "lineupStatus": "CHECKED"
     },
-    "san francisco giants los angeles dodgers": {
-      "gamePk": 823953,
-      "game": "San Francisco Giants @ Los Angeles Dodgers",
+    "texas rangers st louis cardinals": {
+      "gamePk": 823050,
+      "game": "Texas Rangers @ St. Louis Cardinals",
+      "status": "Pre-Game",
+      "lineupStatus": "CHECKED"
+    },
+    "colorado rockies los angeles angels": {
+      "gamePk": 824027,
+      "game": "Colorado Rockies @ Los Angeles Angels",
       "status": "Scheduled",
-      "lineupStatus": "UNAVAILABLE",
-      "note": "404 Not Found: https://statsapi.mlb.com/api/v1/game/823953/feed/live"
+      "lineupStatus": "CHECKED"
+    },
+    "los angeles dodgers arizona diamondbacks": {
+      "gamePk": 825078,
+      "game": "Los Angeles Dodgers @ Arizona Diamondbacks",
+      "status": "Scheduled",
+      "lineupStatus": "CHECKED"
+    },
+    "new york mets seattle mariners": {
+      "gamePk": 823131,
+      "game": "New York Mets @ Seattle Mariners",
+      "status": "Scheduled",
+      "lineupStatus": "CHECKED"
     }
   }
 }
