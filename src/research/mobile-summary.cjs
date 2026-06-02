@@ -1102,13 +1102,108 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
   console.log("");
   console.log("REAL PITCH TYPE QUALITY");
   console.log("-----------------------");
+  const pitchQualityBoardRowsRaw = readJson("outputs/priced-board.json", []);
+  const pitchQualityBoardRows = Array.isArray(pitchQualityBoardRowsRaw)
+    ? pitchQualityBoardRowsRaw
+    : [];
+  const pitchQualitySlateDate =
+    process.env.SLATE_DATE ||
+    process.env.npm_config_date ||
+    process.argv[2] ||
+    slateDate;
+  function _dateOnly(v) {
+    if (!v) return null;
+    const d = new Date(v);
+    if (Number.isNaN(d.getTime())) return null;
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Los_Angeles",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).format(d);
+  }
+  function _market(row) {
+    return String(row.market || row.stat || "").toLowerCase().trim();
+  }
+  function _isPitcherMarket(row) {
+    const m = _market(row);
+    const st = String(row.sourceType || row.playerType || row.recordSourceType || "").toLowerCase();
+    const pos = String(row.position || row.playerPosition || "").toUpperCase();
+    if (st === "pitcher" || pos === "P") return true;
+    return [
+      "strikeouts",
+      "pitching_outs",
+      "pitches_thrown",
+      "pitcher_fantasy_score",
+      "hits_allowed",
+      "earned_runs_allowed",
+      "walks_allowed",
+      "1st_inning_runs_allowed",
+      "1st_inning_walks_allowed",
+      "pitcher_strikeouts_(combo)"
+    ].includes(m);
+  }
+  function _eligible(row) {
+    if (!row || row.recordType !== "merged_prop") return false;
+    if (row.comboProp === true || row.contextEligible === false) return false;
+    if (_isPitcherMarket(row)) return false;
+    return [
+      "hitter_fantasy_score",
+      "hrr",
+      "bases",
+      "hits",
+      "singles",
+      "doubles",
+      "triples",
+      "home_runs",
+      "hr",
+      "runs",
+      "rbis",
+      "walks",
+      "stolen_bases",
+      "hitter_strikeouts"
+    ].includes(_market(row));
+  }
+
+  const scopedPitchRows = pitchQualityBoardRows.filter(row => {
+    const d = _dateOnly(row.startTime || row.game_start || row.start_time || row.board_time || row.updated_at);
+    if (d !== pitchQualitySlateDate) return false;
+    if (!_eligible(row)) return false;
+
+    // Clean pitch-type denominator:
+    // only rows that have an opponent pitcher/hand and were evaluated by pitch-type context.
+    const hasPitcher =
+      !!(row.pitchTypeOpponentPitcher || row.opponentPitcher || row.handednessContext?.opposingPitcher);
+    const hasHand =
+      !!(row.pitchTypeOpponentPitcherHand || row.opponentPitcherHand || row.handednessContext?.opposingPitcherHand);
+    const touchedByPitchType =
+      row.pitchTypeMatchupAvailable === true ||
+      row.pitchTypeMatchupScored === true ||
+      row.pitchTypeMatchupReady === true ||
+      Array.isArray(row.pitchTypeMatchupFlags);
+
+    // Do not require explicit hand field here.
+    // Some restored/pre-game boards have pitch-type context already scored,
+    // but only sparse pitchTypeOpponentPitcherHand fields.
+    return hasPitcher && touchedByPitchType;
+  });
+  const scopedReal = scopedPitchRows.filter(row =>
+    row.pitchTypeMatchupScored === true &&
+    row.pitchTypeMatchupSource === "REAL_HITTER_PITCH_TYPE_MATCHUP"
+  ).length;
+  const scopedNeutral = scopedPitchRows.filter(row =>
+    row.pitchTypeMatchupScored === true &&
+    String(row.pitchTypeMatchupSource || "").includes("NEUTRAL")
+  ).length;
+  const scopedUnscored = scopedPitchRows.filter(row => row.pitchTypeMatchupScored !== true).length;
+
   console.table([{
-    rows,
-    realScored,
-    neutralFallback: fallback,
-    missingRealData: missing,
-    realCoverage: pct(realScored, rows),
-    fallbackRate: pct(fallback, rows)
+    rows: scopedPitchRows.length,
+    realScored: scopedReal,
+    neutralFallback: scopedNeutral,
+    missingRealData: scopedNeutral + scopedUnscored,
+    realCoverage: pct(scopedReal, scopedPitchRows.length),
+    fallbackRate: pct(scopedNeutral + scopedUnscored, scopedPitchRows.length)
   }]);
 
   const reasonCounts =
