@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "prizepicks": "node src/scrapers/prizepicks.js",
-    "picks": "SLATE_DATE=${SLATE_DATE:-${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}}; export SLATE_DATE; npm_config_date=$SLATE_DATE; export npm_config_date && npm run guard:board && npm run board:repair-games && npm run context:coverage && node src/jobs/slipBuilder.js && node src/research/build-market-trust.cjs && node src/research/price-current-slips.cjs $SLATE_DATE && node src/research/enrich-slips-distributions.cjs $SLATE_DATE && node src/research/build-final-slips.cjs $SLATE_DATE && node src/research/playable-final-slips.cjs $SLATE_DATE && npm run slips:optimize-types -- $SLATE_DATE && npm run slips:v5 -- $SLATE_DATE && npm run slips:suppress-types -- $SLATE_DATE && npm run audit:line-blocks -- $SLATE_DATE && npm run unlocks:controlled -- $SLATE_DATE && npm run slips:leans -- $SLATE_DATE && npm run slips:leans:inject-controlled -- $SLATE_DATE && npm run explain:blocked -- $SLATE_DATE && npm run snapshot:run -- $SLATE_DATE",
+    "picks": "SLATE_DATE=${SLATE_DATE:-${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}}; export SLATE_DATE; npm_config_date=$SLATE_DATE; export npm_config_date && npm run guard:board && npm run board:repair-games && npm run context:coverage && node src/jobs/slipBuilder.js && node src/research/build-market-trust.cjs && node src/research/price-current-slips.cjs $SLATE_DATE && node src/research/enrich-slips-distributions.cjs $SLATE_DATE && node src/research/build-final-slips.cjs $SLATE_DATE && node src/research/playable-final-slips.cjs $SLATE_DATE && npm run slips:optimize-types -- $SLATE_DATE && npm run slips:v5 -- $SLATE_DATE && npm run slips:suppress-types -- $SLATE_DATE && npm run audit:line-blocks -- $SLATE_DATE && npm run unlocks:controlled -- $SLATE_DATE && npm run slips:leans -- $SLATE_DATE && npm run slips:leans:inject-controlled -- $SLATE_DATE && npm run candidates:production -- $SLATE_DATE && npm run explain:blocked -- $SLATE_DATE && npm run snapshot:run -- $SLATE_DATE",
     "grade": "node src/research/repair-slip-gamepks.cjs ${npm_config_date:-$(date +%F)} && node src/research/grade-final-slips.cjs ${npm_config_date:-$(date +%F)}",
     "coverage": "node src/research/distribution-coverage-report.cjs",
     "pipeline": "SLATE_DATE=${npm_config_date:-$(date +%F)} npm run picks && npm run coverage && npm run market:exposure && npm run grade && npm run grade:watchlist && npm run calibration -- ${npm_config_date:-$(date +%F)} && npm run archive -- ${npm_config_date:-$(date +%F)} && npm run caldb -- ${npm_config_date:-$(date +%F)} && npm run caldb:summary && npm run calibration:curves",
@@ -286,7 +286,8 @@
     "context:pitch-type:sanitize-false-neutral": "node src/research/sanitize-pitch-type-false-neutral.cjs",
     "context:pitch-type:neutral-fallback": "node scripts/local/apply-neutral-pitch-type-fallback.cjs",
     "context:pitch-type:production": "npm run context:pitch-type:raw && npm run context:pitch-type:neutral-fallback && npm run context:pitch-type:reconcile",
-    "context:pitch-type:raw": "node src/jobs/mergePitchTypeMatchupsIntoBoard.cjs"
+    "context:pitch-type:raw": "node src/jobs/mergePitchTypeMatchupsIntoBoard.cjs",
+    "candidates:production": "node src/research/production-candidate-report.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

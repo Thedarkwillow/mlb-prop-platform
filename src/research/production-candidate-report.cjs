@@ -16,6 +16,40 @@ const SOURCES = {
   sportsbookBoard: "outputs/sportsbook-enriched-board.json"
 };
 
+function detectSlateDate() {
+  const explicit =
+    process.env.SLATE_DATE ||
+    process.env.npm_config_date ||
+    process.argv[2] ||
+    "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(explicit)) return explicit;
+
+  const finalRows = readJson(SOURCES.final, []);
+  const rows = Array.isArray(finalRows) ? finalRows : [];
+  for (const row of rows) {
+    const raw = row.startTime || row.gameTime || row.board_time || row.updated_at;
+    if (!raw) continue;
+    const d = new Date(raw);
+    if (Number.isNaN(d.getTime())) continue;
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Los_Angeles",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).format(d);
+  }
+
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(new Date());
+}
+const SLATE_DATE = detectSlateDate();
+const OUT_DATED = `outputs/production-candidates-${SLATE_DATE}.json`;
+const OUT_TXT_DATED = `outputs/production-candidates-${SLATE_DATE}.txt`;
+
 function readJson(file, fallback) {
   try {
     return JSON.parse(fs.readFileSync(file, "utf8"));
@@ -293,6 +327,15 @@ function cleanRow(row, classification, reasons, fullBoardByMarketSide) {
     edgeBucket: edgeBucket(row),
     projection: row.projection ?? null,
     contextAdjustedProjection: row.contextAdjustedProjection ?? null,
+    contextAdjustedReady: row.contextAdjustedReady ?? null,
+    pitchTypeMatchupReady: row.pitchTypeMatchupReady ?? null,
+    pitchTypeMatchupAvailable: row.pitchTypeMatchupAvailable ?? null,
+    pitchTypeMatchupScored: row.pitchTypeMatchupScored ?? null,
+    pitchTypeMatchupTier: row.pitchTypeMatchupTier ?? null,
+    pitchTypeMatchupScore: row.pitchTypeMatchupScore ?? null,
+    pitchTypeMatchupSource: row.pitchTypeMatchupSource ?? null,
+    pitchTypeNeutralFallback: row.pitchTypeNeutralFallback ?? null,
+    pitchTypeContextImpactApplied: row.pitchTypeContextImpactApplied ?? null,
     source: row.source ?? row.sourceFile ?? null,
     leanStatus: row.leanStatus ?? null,
     leanNotes: row.leanNotes ?? null,
@@ -599,6 +642,7 @@ const byClass = {
 
 const report = {
   generatedAt: new Date().toISOString(),
+  slateDate: SLATE_DATE,
   sources: SOURCES,
   counts: {
     total: classified.length,
@@ -639,6 +683,7 @@ const report = {
 };
 
 writeJson(OUT, report);
+writeJson(OUT_DATED, report);
 
 const lines = [];
 lines.push("PRODUCTION CANDIDATE REPORT v1");
@@ -669,6 +714,7 @@ for (const className of ["CORE", "LEAN", "WATCHLIST", "HIGH_PROBABILITY_WATCH", 
   lines.push("");
 }
 fs.writeFileSync(OUT_TXT, lines.join("\n") + "\n");
+fs.writeFileSync(OUT_TXT_DATED, lines.join("\n") + "\n");
 
 console.log(lines.join("\n"));
 console.log("saved:", OUT);
