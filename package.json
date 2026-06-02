@@ -303,7 +303,8 @@
     "report:fantasy-side": "node scripts/local/fantasy-side-repair-report.cjs",
     "unlocks:hrr-less": "node scripts/local/hrr-less-controlled-unlocks.cjs",
     "report:props": "node scripts/local/all-prop-side-line-report.cjs",
-    "confirm:props": "node scripts/local/full-prop-confirmation-report.cjs"
+    "confirm:props": "node scripts/local/full-prop-confirmation-report.cjs",
+    "confirm:external": "node scripts/local/external-mlb-form-confirmation.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
