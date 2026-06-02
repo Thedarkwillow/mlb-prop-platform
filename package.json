@@ -301,7 +301,8 @@
     "report:hrr": "node scripts/local/hrr-side-line-report.cjs",
     "grade:manual": "node scripts/local/grade-manual-lean-watchlist.cjs",
     "report:fantasy-side": "node scripts/local/fantasy-side-repair-report.cjs",
-    "unlocks:hrr-less": "node scripts/local/hrr-less-controlled-unlocks.cjs"
+    "unlocks:hrr-less": "node scripts/local/hrr-less-controlled-unlocks.cjs",
+    "report:props": "node scripts/local/all-prop-side-line-report.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
