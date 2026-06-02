@@ -286,7 +286,9 @@ console.log("");
       const hitRate = graded ? (row.hitRate ?? hits / graded) : null;
       const roiProxy = graded ? (row.roiProxy ?? (hits - misses) / graded) : null;
       const extra = shadowUngraded ? ` shadowUngraded=${shadowUngraded}` : "";
-      return `total=${total} graded=${graded} hits=${hits} misses=${misses} pushes=${pushes} refunds=${refunds} unmatched=${unmatched} pending=${pending}${extra} hitRate=${pct(hitRate)} roiProxy=${pct(roiProxy)}`;
+      const shownHitRate = graded > 0 ? pct(hitRate) : "n/a";
+      const shownRoiProxy = graded > 0 ? pct(roiProxy) : "n/a";
+      return `total=${total} graded=${graded} hits=${hits} misses=${misses} pushes=${pushes} refunds=${refunds} unmatched=${unmatched} pending=${pending}${extra} hitRate=${shownHitRate} roiProxy=${shownRoiProxy}`;
     }
 
     const report = readJson(file, null);
