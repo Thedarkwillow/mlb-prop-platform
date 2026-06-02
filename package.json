@@ -296,7 +296,8 @@
     "context:auto:strict": "SLATE_DATE=${SLATE_DATE:-${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}} && export SLATE_DATE && npm_config_date=$SLATE_DATE && export npm_config_date && npm run context:pitch-type:production && STRICT_CONTEXT_GUARD=1 npm run context:coverage",
     "context:coverage:auto": "CONTEXT_COVERAGE_MODE=auto node scripts/local/context-coverage-guard.cjs",
     "context:coverage:strict": "CONTEXT_COVERAGE_MODE=strict STRICT_CONTEXT_GUARD=1 node scripts/local/context-coverage-guard.cjs",
-    "context:coverage:relaxed": "CONTEXT_COVERAGE_MODE=relaxed node scripts/local/context-coverage-guard.cjs"
+    "context:coverage:relaxed": "CONTEXT_COVERAGE_MODE=relaxed node scripts/local/context-coverage-guard.cjs",
+    "audit:bases-more-half": "node scripts/local/bases-more-half-controlled-audit.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
