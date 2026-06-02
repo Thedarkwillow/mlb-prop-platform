@@ -320,8 +320,8 @@ function isPhase8Importable(row) {
   const market = lower(row.market);
   const side = upper(row.side);
 
-  // Keep fantasy and HRR available for research classification, but do not let
-  // raw Phase 8 flood very noisy unsupported markets.
+  // Keep Phase 8 broad enough for discovery, but prevent unsupported/noisy markets
+  // from flooding the production report.
   const allowedMarkets = new Set([
     "bases",
     "hits",
@@ -341,6 +341,17 @@ function isPhase8Importable(row) {
     "walks_allowed"
   ]);
   if (!allowedMarkets.has(market)) return false;
+
+  // HRR MORE is research-only and should not dominate the production candidate report.
+  // Keep only the very strongest HRR MORE rows for tracking.
+  if (market === "hrr" && side === "MORE") {
+    if (prob < 0.80 || edge < 0.70) return false;
+  }
+
+  // Low-line fantasy is still provisional; keep only strongest research rows.
+  if (market === "hitter_fantasy_score") {
+    if (prob < 0.70 || edge < 0.35) return false;
+  }
 
   // Goblins/demons remain MORE-only by platform rule.
   const tier = getTier(row);
@@ -662,7 +673,7 @@ const phase8Rows = asArray(phase8Audit)
     (getProb(b) ?? -999) - (getProb(a) ?? -999) ||
     (getEdge(b) ?? -999) - (getEdge(a) ?? -999)
   )
-  .slice(0, 150);
+  .slice(0, 120);
 
 for (const row of phase8Rows) {
   const normalized = normalizePhase8Row(row);
