@@ -289,7 +289,8 @@
     "context:pitch-type:raw": "node src/jobs/mergePitchTypeMatchupsIntoBoard.cjs",
     "candidates:production": "node src/research/production-candidate-report.cjs",
     "grade:production-candidates": "node scripts/local/grade-production-candidate-classes.cjs",
-    "roi:production-candidates": "node scripts/local/grade-production-candidate-classes.cjs"
+    "roi:production-candidates": "node scripts/local/grade-production-candidate-classes.cjs",
+    "roi:production-history": "node scripts/local/production-candidate-roi-history.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
