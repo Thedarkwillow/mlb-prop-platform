@@ -153,7 +153,91 @@ function probBucket(row) {
   if (p < 0.60) return "55-60";
   if (p < 0.65) return "60-65";
   if (p < 0.70) return "65-70";
-  return "70+";
+  if (p < 0.72) return "70-72";
+  return "72+";
+}
+
+function hasLowBookSupport(row) {
+  const books = getBooks(row);
+  const support = getSupport(row);
+  return support.includes("LOW") || books === 1 || books === 0;
+}
+
+function hasNegativeSideBias(row, fullBoardByMarketSide) {
+  const sideBias = getSideBias(row, fullBoardByMarketSide);
+  return sideBias?.tier === "NEGATIVE" || sideBias?.tier === "STRONG_NEGATIVE";
+}
+
+function isWeakHistoricalBucket(row) {
+  const market = lower(row.market);
+  const side = upper(row.side);
+  const p = getProb(row);
+  const tier = getTier(row);
+
+  if (p !== null && p >= 0.60 && p < 0.65) return true;
+  if (market === "bases" && side === "MORE") return true;
+  if (tier === "goblin" && p !== null && p < 0.72) return true;
+
+  return false;
+}
+
+function coreThresholdsClear(row, fullBoardByMarketSide) {
+  const prob = getProb(row);
+  const edge = getEdge(row);
+  const books = getBooks(row);
+  const support = getSupport(row);
+  const grade = getGrade(row);
+  const tier = getTier(row);
+  const market = lower(row.market);
+  const side = upper(row.side);
+  const sideBias = getSideBias(row, fullBoardByMarketSide);
+
+  if (grade !== "GREEN") return { ok: false, reason: "core_requires_green_grade" };
+  if (support !== "OK") return { ok: false, reason: "core_requires_ok_support" };
+  if (books === null || books < 2) return { ok: false, reason: "core_requires_2plus_books" };
+  if (edge === null || edge < 0.08) return { ok: false, reason: "core_requires_8pct_edge" };
+  if (prob === null) return { ok: false, reason: "core_missing_probability" };
+  if (hasNegativeSideBias(row, fullBoardByMarketSide)) return { ok: false, reason: "core_blocks_negative_side_bias" };
+  if (sideBias?.tier === "WATCH") return { ok: false, reason: "core_blocks_watch_side_bias" };
+  if (market === "hrr" && side === "MORE") return { ok: false, reason: "core_blocks_hrr_more" };
+  if (isFantasy(row)) return { ok: false, reason: "core_blocks_fantasy" };
+  if (isLiveMicro(row)) return { ok: false, reason: "core_blocks_live_micro" };
+
+  if (tier === "goblin" && prob < 0.72) return { ok: false, reason: "core_goblin_requires_72pct" };
+  if (tier !== "goblin" && prob < 0.66) return { ok: false, reason: "core_standard_requires_66pct" };
+
+  if (market === "bases" && side === "MORE") {
+    if (tier === "goblin") {
+      if (prob < 0.74 || edge < 0.12 || sideBias?.tier !== "STRONG_POSITIVE") {
+        return { ok: false, reason: "core_bases_more_goblin_requires_74pct_12edge_strong_bias" };
+      }
+    } else {
+      if (prob < 0.70 || edge < 0.12 || sideBias?.tier !== "STRONG_POSITIVE") {
+        return { ok: false, reason: "core_bases_more_standard_requires_70pct_12edge_strong_bias" };
+      }
+    }
+  }
+
+  return { ok: true, reason: "core_thresholds_clear" };
+}
+
+function leanThresholdsClear(row, fullBoardByMarketSide) {
+  const prob = getProb(row);
+  const edge = getEdge(row);
+  const books = getBooks(row);
+  const support = getSupport(row);
+  const grade = getGrade(row);
+  const tier = getTier(row);
+
+  if (edge === null || edge <= 0) return { ok: false, reason: "lean_requires_positive_edge" };
+  if (prob === null || prob < 0.60) return { ok: false, reason: "lean_requires_60pct_probability" };
+  if (grade === "FADE") return { ok: false, reason: "lean_blocks_fade_grade" };
+  if (hasNegativeSideBias(row, fullBoardByMarketSide)) return { ok: false, reason: "lean_blocks_negative_side_bias" };
+  if (support !== "OK") return { ok: false, reason: "lean_requires_ok_support" };
+  if (books === null || books < 2) return { ok: false, reason: "lean_requires_2plus_books" };
+  if (tier === "goblin" && prob < 0.72) return { ok: false, reason: "lean_goblin_requires_72pct" };
+
+  return { ok: true, reason: "lean_thresholds_clear" };
 }
 
 function edgeBucket(row) {
@@ -179,8 +263,17 @@ function summarize(rows, fieldFn) {
 
 function cleanRow(row, classification, reasons, fullBoardByMarketSide) {
   const sideBias = getSideBias(row, fullBoardByMarketSide);
+  const stakeGuidance =
+    classification === "CORE" ? "official candidate / 1u max only after final slate review" :
+    classification === "LEAN" ? "0.25u max / optional only" :
+    classification === "WATCHLIST" ? "track only / wait for stronger confirmation" :
+    classification === "HIGH_PROBABILITY_WATCH" ? "track only / conflicting signal" :
+    classification === "RESEARCH" ? "research only / no bet" :
+    "blocked / no bet";
+
   return {
     class: classification,
+    stakeGuidance,
     reasons,
     player: row.player ?? null,
     team: row.team ?? row.resolvedTeam ?? null,
@@ -244,7 +337,6 @@ function classify(row, lookups) {
   const side = upper(row.side);
   const sideBias = getSideBias(row, lookups.fullBoardByMarketSide);
   const reasons = [];
-
   const lean = lookups.leanByKey.get(key(row));
   const blocked = lookups.blockedByKey.get(key(row));
 
@@ -299,80 +391,113 @@ function classify(row, lookups) {
     };
   }
 
-  if (grade === "FADE") {
-    if (prob !== null && prob >= 0.65) {
-      reasons.push("high_probability_but_grade_fade");
-      if (sideBias?.tier === "NEGATIVE" || sideBias?.tier === "STRONG_NEGATIVE") {
-        reasons.push("negative_side_bias");
-      }
-      if (blocked?.reason) reasons.push(`blocked:${blocked.reason}`);
-      return { classification: "HIGH_PROBABILITY_WATCH", reasons };
-    }
-
-    return { classification: "BLOCKED", reasons: ["grade_fade"] };
-  }
-
   if (edge !== null && edge < 0) {
     return { classification: "BLOCKED", reasons: ["negative_edge"] };
   }
 
-  if (sideBias?.tier === "NEGATIVE" || sideBias?.tier === "STRONG_NEGATIVE") {
-    if (prob !== null && prob >= 0.65) {
-      reasons.push("high_probability_but_negative_side_bias");
-      if (blocked?.reason) reasons.push(`blocked:${blocked.reason}`);
-      return { classification: "HIGH_PROBABILITY_WATCH", reasons };
-    }
-
-    return { classification: "BLOCKED", reasons: ["negative_side_bias"] };
+  if (grade === "FADE") {
+    reasons.push("grade_fade");
+    if (prob !== null && prob >= 0.65) reasons.push("high_probability_conflict");
+    if (sideBias?.tier === "NEGATIVE" || sideBias?.tier === "STRONG_NEGATIVE") reasons.push("negative_side_bias");
+    if (blocked?.reason) reasons.push(`blocked:${blocked.reason}`);
+    return { classification: "BLOCKED", reasons };
   }
 
-  if (lean) {
-    reasons.push("actionable_lean");
-    if (lean.leanNotes?.length) reasons.push(...lean.leanNotes);
-    return { classification: "WATCHLIST", reasons };
+  if (sideBias?.tier === "NEGATIVE" || sideBias?.tier === "STRONG_NEGATIVE") {
+    reasons.push("negative_side_bias");
+    if (prob !== null && prob >= 0.65) reasons.push("high_probability_conflict");
+    if (blocked?.reason) reasons.push(`blocked:${blocked.reason}`);
+    return { classification: "BLOCKED", reasons };
+  }
+
+  if (hasLowBookSupport(row)) {
+    reasons.push("low_book_support");
+    if (prob !== null && prob >= 0.70) reasons.push("high_probability_but_low_support");
+    if (sideBias?.tier === "STRONG_POSITIVE" && edge !== null && edge >= 0.05) {
+      reasons.push("strong_positive_side_bias");
+      return { classification: "WATCHLIST", reasons };
+    }
+    return { classification: "BLOCKED", reasons };
   }
 
   if (blocked) {
     const reason = blocked.reason || blocked.disabledReason || "blocked_candidate";
+    const leanGate = leanThresholdsClear(row, lookups.fullBoardByMarketSide);
+
+    if (leanGate.ok) {
+      return {
+        classification: "LEAN",
+        reasons: [
+          `blocked_but_lean_review:${reason}`,
+          leanGate.reason,
+          "not_official_core"
+        ]
+      };
+    }
+
     if (
       ["weak_confidence", "score_below_adaptive_minimum", "elite_score_below_adaptive_floor"].includes(reason) &&
       sideBias?.tier === "STRONG_POSITIVE" &&
       edge !== null &&
       edge >= 0.05
     ) {
-      return { classification: "WATCHLIST", reasons: [`blocked_but_watch:${reason}`, "strong_positive_side_bias"] };
+      return {
+        classification: "WATCHLIST",
+        reasons: [
+          `blocked_but_watch:${reason}`,
+          "strong_positive_side_bias",
+          leanGate.reason
+        ]
+      };
     }
 
-    return { classification: "BLOCKED", reasons: [`blocked:${reason}`] };
+    return { classification: "BLOCKED", reasons: [`blocked:${reason}`, leanGate.reason] };
   }
 
-  if (
-    grade === "GREEN" &&
-    support === "OK" &&
-    edge !== null &&
-    edge > 0 &&
-    prob !== null &&
-    prob >= 0.56 &&
-    !(sideBias?.tier === "NEGATIVE" || sideBias?.tier === "STRONG_NEGATIVE")
-  ) {
-    return { classification: "CORE", reasons: ["green_ok_positive_edge"] };
+  const coreGate = coreThresholdsClear(row, lookups.fullBoardByMarketSide);
+  if (coreGate.ok) {
+    return { classification: "CORE", reasons: [coreGate.reason] };
   }
 
-  if (
-    edge !== null &&
-    edge > 0 &&
-    sideBias?.tier === "STRONG_POSITIVE"
-  ) {
-    return { classification: "WATCHLIST", reasons: ["positive_edge_strong_side_bias"] };
+  const leanGate = leanThresholdsClear(row, lookups.fullBoardByMarketSide);
+  if (lean || leanGate.ok) {
+    reasons.push(lean ? "actionable_lean_source" : leanGate.reason);
+    if (lean?.leanNotes?.length) reasons.push(...lean.leanNotes);
+    reasons.push(coreGate.reason);
+    return { classification: "LEAN", reasons };
   }
 
-  if (support.includes("LOW") || books === 1) {
-    return { classification: "WATCHLIST", reasons: ["low_book_support"] };
+  if (isWeakHistoricalBucket(row)) {
+    return {
+      classification: "WATCHLIST",
+      reasons: [
+        "weak_historical_bucket",
+        coreGate.reason,
+        leanGate.reason
+      ]
+    };
   }
 
-  return { classification: "RESEARCH", reasons: ["needs_more_validation"] };
+  if (edge !== null && edge > 0 && sideBias?.tier === "STRONG_POSITIVE") {
+    return {
+      classification: "WATCHLIST",
+      reasons: [
+        "positive_edge_strong_side_bias",
+        coreGate.reason,
+        leanGate.reason
+      ]
+    };
+  }
+
+  return {
+    classification: "RESEARCH",
+    reasons: [
+      "needs_more_validation",
+      coreGate.reason,
+      leanGate.reason
+    ]
+  };
 }
-
 const enriched = readJson(SOURCES.enriched, []);
 const leanReport = readJson(SOURCES.leans, {});
 const blockedRaw = readJson(SOURCES.blocked, []);
@@ -450,10 +575,11 @@ const classified = baseRows.map(row => {
 
 const classOrder = {
   CORE: 0,
-  WATCHLIST: 1,
-  HIGH_PROBABILITY_WATCH: 2,
-  RESEARCH: 3,
-  BLOCKED: 4
+  LEAN: 1,
+  WATCHLIST: 2,
+  HIGH_PROBABILITY_WATCH: 3,
+  RESEARCH: 4,
+  BLOCKED: 5
 };
 
 classified.sort((a, b) =>
@@ -464,6 +590,7 @@ classified.sort((a, b) =>
 
 const byClass = {
   CORE: classified.filter(r => r.class === "CORE"),
+  LEAN: classified.filter(r => r.class === "LEAN"),
   WATCHLIST: classified.filter(r => r.class === "WATCHLIST"),
   HIGH_PROBABILITY_WATCH: classified.filter(r => r.class === "HIGH_PROBABILITY_WATCH"),
   RESEARCH: classified.filter(r => r.class === "RESEARCH"),
@@ -476,6 +603,7 @@ const report = {
   counts: {
     total: classified.length,
     core: byClass.CORE.length,
+    lean: byClass.LEAN.length,
     watchlist: byClass.WATCHLIST.length,
     highProbabilityWatch: byClass.HIGH_PROBABILITY_WATCH.length,
     research: byClass.RESEARCH.length,
@@ -494,7 +622,7 @@ const report = {
   },
   productionTarget: {
     desiredCandidateRange: "50-120",
-    currentNonBlocked: byClass.CORE.length + byClass.WATCHLIST.length + byClass.HIGH_PROBABILITY_WATCH.length + byClass.RESEARCH.length,
+    currentNonBlocked: byClass.CORE.length + byClass.LEAN.length + byClass.WATCHLIST.length + byClass.HIGH_PROBABILITY_WATCH.length + byClass.RESEARCH.length,
     note: "Report-only. Do not enforce until 3-5 slates validate classes."
   },
   shadowPromotionSummary: {
@@ -519,12 +647,13 @@ lines.push(`generatedAt: ${report.generatedAt}`);
 lines.push("");
 lines.push(`TOTAL: ${report.counts.total}`);
 lines.push(`CORE: ${report.counts.core}`);
+lines.push(`LEAN: ${report.counts.lean}`);
 lines.push(`WATCHLIST: ${report.counts.watchlist}`);
 lines.push(`HIGH_PROBABILITY_WATCH: ${report.counts.highProbabilityWatch}`);
 lines.push(`RESEARCH: ${report.counts.research}`);
 lines.push(`BLOCKED: ${report.counts.blocked}`);
 lines.push("");
-for (const className of ["CORE", "WATCHLIST", "HIGH_PROBABILITY_WATCH", "RESEARCH", "BLOCKED"]) {
+for (const className of ["CORE", "LEAN", "WATCHLIST", "HIGH_PROBABILITY_WATCH", "RESEARCH", "BLOCKED"]) {
   lines.push(className);
   lines.push("-".repeat(className.length));
   const rows = byClass[className].slice(0, 25);
