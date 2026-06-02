@@ -76,6 +76,42 @@ function team(row) {
 
 function opponentPitcherFromRow(row, probable) {
   const teamKey = team(row);
+
+  // Prefer current slate probable pitcher context over board-row pitcher fields.
+  // Board rows can hold stale opponentPitcher values from an older snapshot.
+  const directProbable = probable.opponentPitcherByTeam?.[teamKey] || null;
+  if (directProbable?.pitcher) {
+    return {
+      pitcher: directProbable.pitcher,
+      hand: directProbable.hand || directProbable.pitcherHand || directProbable.opponentPitcherHand || null,
+      opponent: directProbable.opponent || directProbable.opponentTeam || null,
+      gamePk: directProbable.gamePk || null,
+      source: "probable_pitcher_hands"
+    };
+  }
+
+  for (const g of Object.values(probable.games || {})) {
+    if (g.awayTeam === teamKey && g.homeProbablePitcher) {
+      return {
+        pitcher: g.homeProbablePitcher,
+        hand: g.homePitcherHand || null,
+        opponent: g.homeTeam || null,
+        gamePk: g.gamePk || null,
+        source: "probable_pitcher_hands_game"
+      };
+    }
+
+    if (g.homeTeam === teamKey && g.awayProbablePitcher) {
+      return {
+        pitcher: g.awayProbablePitcher,
+        hand: g.awayPitcherHand || null,
+        opponent: g.awayTeam || null,
+        gamePk: g.gamePk || null,
+        source: "probable_pitcher_hands_game"
+      };
+    }
+  }
+
   const fromBoard =
     row.opposingPitcher ||
     row.opponentPitcher ||
@@ -97,15 +133,7 @@ function opponentPitcherFromRow(row, probable) {
         row.handednessAdjustment?.opposingPitcherHand ||
         null,
       opponent: row.opponent || row.opponentTeam || null,
-      source: "board_row"
-    };
-  }
-
-  const fromProbable = probable.opponentPitcherByTeam?.[teamKey] || null;
-  if (fromProbable?.pitcher) {
-    return {
-      ...fromProbable,
-      source: "probable_pitcher_hands"
+      source: "board_row_fallback"
     };
   }
 

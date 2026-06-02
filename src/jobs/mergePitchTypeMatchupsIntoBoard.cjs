@@ -223,6 +223,58 @@ function isHitterMarket(row, arsenalByName) {
 }
 
 function opponentPitcherFromRow(row, probable) {
+  const t = team(row);
+
+  // Prefer current slate probable pitcher context over stale board-row fields.
+  const byTeam = probable?.opponentPitcherByTeam?.[t];
+  if (byTeam?.pitcher) {
+    return {
+      pitcher: byTeam.pitcher,
+      hand: byTeam.hand || byTeam.pitcherHand || byTeam.opponentPitcherHand || null,
+      opponent: byTeam.opponent || byTeam.opponentTeam || null,
+      gamePk: byTeam.gamePk || null,
+      source: "probable_pitcher_hands"
+    };
+  }
+
+  for (const g of Object.values(probable?.games || {})) {
+    if (g.awayTeam === t && g.homeProbablePitcher) {
+      return {
+        pitcher: g.homeProbablePitcher,
+        hand: g.homePitcherHand || null,
+        opponent: g.homeTeam || null,
+        gamePk: g.gamePk || null,
+        source: "probable_pitcher_hands_game"
+      };
+    }
+
+    if (g.homeTeam === t && g.awayProbablePitcher) {
+      return {
+        pitcher: g.awayProbablePitcher,
+        hand: g.awayPitcherHand || null,
+        opponent: g.awayTeam || null,
+        gamePk: g.gamePk || null,
+        source: "probable_pitcher_hands_game"
+      };
+    }
+  }
+
+  const opp = inferOpponentTeam(row);
+  const byOpponent =
+    probable?.pitcherByTeam?.[opp] ||
+    probable?.teamPitcherByTeam?.[opp] ||
+    null;
+
+  if (byOpponent?.pitcher) {
+    return {
+      pitcher: byOpponent.pitcher,
+      hand: byOpponent.hand || byOpponent.pitcherHand || null,
+      opponent: opp || null,
+      gamePk: byOpponent.gamePk || null,
+      source: "probable_pitcher_hands_opponent"
+    };
+  }
+
   const direct =
     row.pitchTypeOpponentPitcher ||
     row.opposingPitcher ||
@@ -237,7 +289,7 @@ function opponentPitcherFromRow(row, probable) {
   if (direct) {
     return {
       pitcher: direct,
-      source: "board_row",
+      source: "board_row_fallback",
       hand:
         row.opposingPitcherHand ||
         row.pitcherHand ||
@@ -247,34 +299,8 @@ function opponentPitcherFromRow(row, probable) {
     };
   }
 
-  const t = team(row);
-  const byTeam = probable?.opponentPitcherByTeam?.[t];
-
-  if (byTeam?.pitcher) {
-    return {
-      pitcher: byTeam.pitcher,
-      hand: byTeam.hand || null,
-      source: "probable_pitcher_hands"
-    };
-  }
-
-  const opp = inferOpponentTeam(row);
-  const byOpponent =
-    probable?.pitcherByTeam?.[opp] ||
-    probable?.teamPitcherByTeam?.[opp] ||
-    null;
-
-  if (byOpponent?.pitcher) {
-    return {
-      pitcher: byOpponent.pitcher,
-      hand: byOpponent.hand || null,
-      source: "probable_pitcher_hands_opponent"
-    };
-  }
-
   return null;
 }
-
 
 function buildPitcherProfileIndex(rows) {
   const out = new Map();
