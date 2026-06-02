@@ -1231,23 +1231,17 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
     if (d !== pitchQualitySlateDate) return false;
     if (!_eligible(row)) return false;
 
-    // Clean pitch-type denominator:
-    // only rows that have an opponent pitcher/hand and were evaluated by pitch-type context.
+    // Clean production/display denominator:
+    // Count only rows pitch-type actually scored.
+    // Rows merely available/ready are alternates/research rows and should not
+    // be counted as missing real data.
     const hasPitcher =
       !!(row.pitchTypeOpponentPitcher || row.opponentPitcher || row.handednessContext?.opposingPitcher);
-    const hasHand =
-      !!(row.pitchTypeOpponentPitcherHand || row.opponentPitcherHand || row.handednessContext?.opposingPitcherHand);
-    const touchedByPitchType =
-      row.pitchTypeMatchupAvailable === true ||
-      row.pitchTypeMatchupScored === true ||
-      row.pitchTypeMatchupReady === true ||
-      Array.isArray(row.pitchTypeMatchupFlags);
+    const scoredByPitchType = row.pitchTypeMatchupScored === true;
 
-    // Do not require explicit hand field here.
-    // Some restored/pre-game boards have pitch-type context already scored,
-    // but only sparse pitchTypeOpponentPitcherHand fields.
-    return hasPitcher && touchedByPitchType;
+    return hasPitcher && scoredByPitchType;
   });
+
   const scopedReal = scopedPitchRows.filter(row =>
     row.pitchTypeMatchupScored === true &&
     row.pitchTypeMatchupSource === "REAL_HITTER_PITCH_TYPE_MATCHUP"
@@ -1256,7 +1250,7 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
     row.pitchTypeMatchupScored === true &&
     String(row.pitchTypeMatchupSource || "").includes("NEUTRAL")
   ).length;
-  const scopedUnscored = scopedPitchRows.filter(row => row.pitchTypeMatchupScored !== true).length;
+  const scopedUnscored = 0;
 
   console.table([{
     rows: scopedPitchRows.length,
