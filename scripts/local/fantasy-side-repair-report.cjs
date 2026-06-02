@@ -109,6 +109,25 @@ function resultNorm(r) {
   return "";
 }
 
+function actualVal(r) {
+  return num(r.actual ?? r.actualValue ?? r.final ?? r.value ?? r.statValue, null);
+}
+
+function repairedResult(row, repairedSide) {
+  const existing = resultNorm(row);
+  if (existing) return existing;
+
+  const actual = actualVal(row);
+  const line = lineVal(row);
+  const side = sideNorm(repairedSide);
+
+  if (actual === null || line === null || !side) return "UNKNOWN";
+  if (actual === line) return "PUSH";
+  if (side === "MORE") return actual > line ? "HIT" : "MISS";
+  if (side === "LESS") return actual < line ? "HIT" : "MISS";
+  return "UNKNOWN";
+}
+
 function num(v, fallback = null) {
   const n = Number(v);
   return Number.isFinite(n) ? n : fallback;
@@ -267,6 +286,7 @@ function repairSide(r) {
 
 const repairedRows = gradeRows.map(r => {
   const repaired = repairSide(r);
+  const finalResult = repairedResult(r, repaired.side);
   return {
     date: DATE,
     player: playerName(r),
@@ -275,8 +295,8 @@ const repairedRows = gradeRows.map(r => {
     side: repaired.side,
     sideRepairSource: repaired.source,
     line: lineVal(r),
-    result: resultNorm(r) || "UNKNOWN",
-    actual: r.actual ?? r.actualValue ?? r.final ?? r.value ?? r.statValue ?? null,
+    result: finalResult,
+    actual: actualVal(r),
     tier: r.tier ?? r.oddsTier ?? null,
     sourceFile: r.sourceFile,
     raw: r
