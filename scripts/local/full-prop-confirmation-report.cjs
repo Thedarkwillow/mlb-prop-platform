@@ -543,6 +543,9 @@ const rows = props.map(row => {
     battingOrder: lineup?.battingOrder ?? null,
     lineupPosition: lineup?.position || null,
     pickfinderFound: !!pf,
+    pickfinderLine: pfVal(pf, ["pickfinderLine", "pfLine"]),
+    pickfinderStat: pfVal(pf, ["pickfinderStat", "pfStat"]),
+    pickfinderMatchType: pfVal(pf, ["pickfinderMatchType", "matchType"]),
     pickfinderL5: pfVal(pf, ["l5", "L5", "last5"]),
     pickfinderL10: pfVal(pf, ["l10", "L10", "last10"]),
     pickfinderL15: pfVal(pf, ["l15", "L15", "last15"]),
@@ -590,7 +593,7 @@ function showLine(r) {
     : `Lineup=${r.lineupStatus || "n/a"} start=${r.starting} bat=${r.battingOrder ?? "n/a"}`;
 
   const pf = r.pickfinderFound
-    ? `PF L5=${r.pickfinderL5 ?? "n/a"} L10=${r.pickfinderL10 ?? "n/a"} L15=${r.pickfinderL15 ?? "n/a"} Season=${r.pickfinderSeason ?? "n/a"} vsP=${r.pickfinderVsPitcher ?? "n/a"}`
+    ? `PF L5=${r.pickfinderL5 ?? "n/a"} L10=${r.pickfinderL10 ?? "n/a"} L15=${r.pickfinderL15 ?? "n/a"} Season=${r.pickfinderSeason ?? "n/a"} vsP=${r.pickfinderVsPitcher ?? "n/a"} pfLine=${r.pickfinderLine ?? "n/a"} match=${r.pickfinderMatchType || "exact"}`
     : "PF=not_checked";
 
   const perf = r.marketPerformanceAction

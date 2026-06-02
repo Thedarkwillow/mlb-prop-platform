@@ -112,16 +112,45 @@ for (const target of targets) {
   const side = String(target.side || "").toUpperCase();
   const line = Number(target.line);
 
-  const candidates = items.filter(item =>
+  const samePlayerMarket = items.filter(item =>
     norm(item.player_name) === norm(player) &&
-    targetMarketMatches(market, item) &&
+    targetMarketMatches(market, item)
+  );
+
+  const exactCandidates = samePlayerMarket.filter(item =>
     Math.abs(Number(item.line) - line) < 1e-9
   );
 
-  const item = candidates[0];
+  let item = exactCandidates[0] || null;
+  let matchType = "exact_line";
+
+  // PitchFinder sometimes exposes only nearby pitcher lines.
+  // Example: target K LESS 5.5, captured Pitcher Strikeouts 4.5.
+  // Use nearest same-player/same-market line as a fallback, but mark it clearly.
+  if (!item && samePlayerMarket.length) {
+    const sorted = samePlayerMarket
+      .map(x => ({ item: x, distance: Math.abs(Number(x.line) - line) }))
+      .filter(x => Number.isFinite(x.distance))
+      .sort((a, b) => a.distance - b.distance);
+
+    if (sorted.length && sorted[0].distance <= 1.5) {
+      item = sorted[0].item;
+      matchType = `nearby_line_${item.line}_for_target_${line}`;
+    }
+  }
 
   if (!item) {
-    misses.push({ player, market, side, line });
+    misses.push({
+      player,
+      market,
+      side,
+      line,
+      samePlayerMarketLines: samePlayerMarket.map(x => ({
+        stat: x.stat,
+        line: x.line,
+        position: x.player_position
+      })).slice(0, 20)
+    });
     continue;
   }
 
@@ -130,13 +159,21 @@ for (const target of targets) {
     market,
     side,
     line,
+    pickfinderLine: Number(item.line),
+    pickfinderStat: item.stat,
+    pickfinderMatchType: matchType,
     l5: sideAdjusted(item.hitRateLast5, side),
     l10: sideAdjusted(item.hitRateLast10, side),
     l15: sideAdjusted(item.hitRateLast15, side),
     season: sideAdjusted(item.hrSeason, side),
     vsPitcher: sideAdjusted(item.hitRateH2H, side),
+    averageLast10: item.averageLast10 ?? null,
+    differenceLast10: item.differenceLast10 ?? null,
     notes: [
       "auto PickFinder capture",
+      `matchType=${matchType}`,
+      `targetLine=${line}`,
+      `pickfinderLine=${item.line}`,
       `stat=${item.stat}`,
       `game=${item.game_string || ""}`,
       `avgLast10=${item.averageLast10 ?? "n/a"}`,
