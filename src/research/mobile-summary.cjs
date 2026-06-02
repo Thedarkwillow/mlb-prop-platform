@@ -175,13 +175,13 @@ const productionRows = Array.isArray(productionCandidates?.all) ? productionCand
 const productionCounts = productionCandidates?.counts || null;
 
 if (productionCounts) {
-  console.log(`CORE=${productionCounts.core ?? 0} | LEAN=${productionCounts.lean ?? 0} | WATCHLIST=${productionCounts.watchlist ?? 0} | RESEARCH=${productionCounts.research ?? 0} | BLOCKED=${productionCounts.blocked ?? 0}`);
+  console.log(`CORE=${productionCounts.core ?? 0} | LEAN=${productionCounts.lean ?? 0} | WATCHLIST=${productionCounts.watchlist ?? 0} | RESEARCH=${productionCounts.research ?? 0} | BLOCKED=${productionCounts.blocked ?? 0} | SHADOW_BLOCKED=${productionCounts.shadowBlocked ?? 0}`);
 }
 
 if (!productionRows.length) {
   console.log("No production candidate report yet. Run: node src/research/production-candidate-report.cjs");
 } else {
-  for (const className of ["CORE", "LEAN", "WATCHLIST", "RESEARCH", "BLOCKED"]) {
+  for (const className of ["CORE", "LEAN", "WATCHLIST", "RESEARCH", "BLOCKED", "SHADOW_BLOCKED"]) {
     const rows = productionRows
       .filter(r => String(r.class || "").toUpperCase() === className)
       .slice()
@@ -191,7 +191,7 @@ if (!productionRows.length) {
         if (bProb !== aProb) return bProb - aProb;
         return Number(b.edge ?? 0) - Number(a.edge ?? 0);
       })
-      .slice(0, className === "BLOCKED" ? 8 : 5);
+      .slice(0, className === "BLOCKED" ? 8 : className === "SHADOW_BLOCKED" ? 5 : 5);
 
     console.log("");
     console.log(className);
