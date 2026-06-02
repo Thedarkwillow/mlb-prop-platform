@@ -283,7 +283,9 @@
     "context:pitch-type:repair-ids:manual": "node src/research/apply-pitch-type-target-manual-ids.cjs",
     "context:real-quality": "node src/research/real-context-quality-audit.cjs",
     "context:pitch-type:reconcile": "node src/research/reconcile-pitch-type-real-coverage.cjs",
-    "context:pitch-type:sanitize-false-neutral": "node src/research/sanitize-pitch-type-false-neutral.cjs"
+    "context:pitch-type:sanitize-false-neutral": "node src/research/sanitize-pitch-type-false-neutral.cjs",
+    "context:pitch-type:neutral-fallback": "node scripts/local/apply-neutral-pitch-type-fallback.cjs",
+    "context:pitch-type:production": "npm run context:pitch-type && npm run context:pitch-type:neutral-fallback && npm run context:pitch-type:reconcile"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

@@ -359,6 +359,106 @@ function attachPitcherProfileOnly(next, pitcherName, pitcherProfiles) {
   return true;
 }
 
+function num(v, fallback = null) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function clamp(n, min, max) {
+  return Math.max(min, Math.min(max, n));
+}
+
+function round(n, d = 4) {
+  return Number(Number(n).toFixed(d));
+}
+
+function appendContextAdjustment(next, deltaPct, flags, source) {
+  const baseProjection = num(
+    next.contextAdjustedProjection ??
+    next.projection ??
+    next.rawProjection ??
+    next.mean,
+    null
+  );
+
+  const prior = next.contextAdjustment && typeof next.contextAdjustment === "object"
+    ? next.contextAdjustment
+    : {};
+
+  const priorDelta = num(prior.projectionDeltaPct, 0) || 0;
+  const priorProbDelta = num(prior.probDelta, 0) || 0;
+  const combinedDelta = clamp(priorDelta + deltaPct, -0.08, 0.08);
+
+  const priorFlags = Array.isArray(prior.flags)
+    ? prior.flags.filter(f => f && f !== "NEUTRAL_CONTEXT_FALLBACK")
+    : [];
+
+  next.contextAdjustment = {
+    ...prior,
+    source: prior.source && prior.source !== "NEUTRAL_FALLBACK" ? prior.source : source,
+    projectionDeltaPct: round(combinedDelta, 4),
+    probDelta: round(priorProbDelta, 4),
+    flags: [...new Set([...priorFlags, ...flags])]
+  };
+
+  if (baseProjection !== null && baseProjection > 0 && deltaPct !== 0) {
+    next.contextAdjustedProjection = round(baseProjection * (1 + deltaPct), 4);
+    next.projection = round(baseProjection * (1 + deltaPct), 4);
+  }
+
+  next.contextAdjustedReady = true;
+  next.pitchTypeContextImpactApplied = true;
+  next.pitchTypeContextImpactDeltaPct = round(deltaPct, 4);
+
+  return next;
+}
+
+function pitchTypeProjectionDelta(row) {
+  const m = market(row);
+  const score = num(row.pitchTypeMatchupScore, 0) || 0;
+  const tier = String(row.pitchTypeMatchupTier || "").toLowerCase();
+
+  if (row.pitchTypeMatchupScored !== true) return 0;
+  if (row.pitchTypeMatchupSource !== "REAL_HITTER_PITCH_TYPE_MATCHUP") return 0;
+
+  let delta = clamp(score * 0.01, -0.035, 0.035);
+
+  if (tier === "strong_boost") delta = Math.max(delta, 0.025);
+  else if (tier === "boost") delta = Math.max(delta, 0.0125);
+  else if (tier === "strong_downgrade") delta = Math.min(delta, -0.025);
+  else if (tier === "downgrade") delta = Math.min(delta, -0.0125);
+  else if (tier === "neutral" && Math.abs(delta) < 0.0025) delta = 0;
+
+  if (["hits", "singles", "walks", "stolen_bases"].includes(m)) delta *= 0.6;
+  if (m === "hitter_fantasy_score") delta *= 0.5;
+
+  return clamp(delta, -0.035, 0.035);
+}
+
+function applyPitchTypeContextImpact(next) {
+  const delta = pitchTypeProjectionDelta(next);
+
+  if (!delta) {
+    if (
+      next.pitchTypeMatchupScored === true &&
+      next.pitchTypeMatchupSource === "REAL_HITTER_PITCH_TYPE_MATCHUP"
+    ) {
+      appendContextAdjustment(next, 0, ["PITCH_TYPE_REAL_MATCHUP_NEUTRAL"], "PITCH_TYPE_CONTEXT");
+    }
+    return next;
+  }
+
+  const flag = delta > 0
+    ? "PITCH_TYPE_CONTEXT_PROJECTION_BOOST"
+    : "PITCH_TYPE_CONTEXT_PROJECTION_DOWN";
+
+  const tierFlag = next.pitchTypeMatchupTier
+    ? `PITCH_TYPE_TIER_${String(next.pitchTypeMatchupTier).toUpperCase()}`
+    : "PITCH_TYPE_TIER_UNKNOWN";
+
+  return appendContextAdjustment(next, delta, [flag, tierFlag], "PITCH_TYPE_CONTEXT");
+}
+
 function compactPitchTypes(rec) {
   return topPitchTypes(rec).slice(0, 5).map(p => ({
     pitchType: p.pitchType || p.type || p.code || p.name || p.pitch || null,
@@ -490,7 +590,8 @@ const out = board.map(row => {
       next.pitchTypeSource = "REAL_HITTER_PITCH_TYPE_MATCHUP";
       hitterScored += 1;
       readyRows += 1;
-    } else {
+    return applyPitchTypeContextImpact(next);
+      } else {
       next.pitchTypeMatchupReady = false;
       next.pitchTypeMatchupScored = false;
       next.pitchTypeMatchupSource = null;

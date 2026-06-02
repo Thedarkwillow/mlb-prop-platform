@@ -32,6 +32,85 @@ function normTeam(v) {
   return clean(v).toUpperCase().trim();
 }
 
+function prizepicksOpponent(p) {
+  const playerTeam = normTeam(p.player_team);
+  const away = normTeam(p.away_team);
+  const home = normTeam(p.home_team);
+  const descriptionOpponent = normTeam(p.description);
+
+  if (playerTeam && away && home) {
+    if (playerTeam === away) return home;
+    if (playerTeam === home) return away;
+  }
+
+  if (
+    descriptionOpponent &&
+    descriptionOpponent !== playerTeam &&
+    !descriptionOpponent.includes(" ") &&
+    descriptionOpponent.length <= 4
+  ) {
+    return descriptionOpponent;
+  }
+
+  return "";
+}
+
+function prizepicksGame(p) {
+  const playerTeam = normTeam(p.player_team);
+  const away = normTeam(p.away_team);
+  const home = normTeam(p.home_team);
+  const opponent = prizepicksOpponent(p);
+
+  if (away && home) return `${away} @ ${home}`;
+  if (playerTeam && opponent) return `${playerTeam} @ ${opponent}`;
+
+  return "";
+}
+
+function ballparkMatchesPrizepicksGame(bp, p) {
+  if (!bp) return false;
+
+  const ppTeam = normTeam(p.player_team);
+  const ppOpponent = prizepicksOpponent(p);
+  const bpTeam = normTeam(bp.team ?? bp.raw?.Team);
+  const bpOpponent = normTeam(bp.opponent ?? bp.raw?.Opponent);
+
+  if (!ppTeam || !ppOpponent || !bpTeam || !bpOpponent) return false;
+
+  return bpTeam === ppTeam && bpOpponent === ppOpponent;
+}
+
+function opponentFromGame(team, game) {
+  const t = normTeam(team);
+  const parts = String(game || "")
+    .replace(/\s+at\s+/gi, " @ ")
+    .split("@")
+    .map(x => normTeam(x));
+
+  if (parts.length !== 2 || !t) return "";
+  if (parts[0] === t) return parts[1];
+  if (parts[1] === t) return parts[0];
+  return "";
+}
+
+function isComboProp(p) {
+  const player = String(p.player_name || "");
+  const team = String(p.player_team || "");
+  return player.includes(" + ") || team.includes("/");
+}
+
+function comboGameFromTeam(p) {
+  const team = String(p.player_team || "").toUpperCase().trim();
+  const parts = team.split("/").map(x => normTeam(x)).filter(Boolean);
+  return parts.length === 2 ? `${parts[0]} @ ${parts[1]}` : "";
+}
+
+function comboOpponentFromTeam(p) {
+  const team = String(p.player_team || "").toUpperCase().trim();
+  const parts = team.split("/").map(x => normTeam(x)).filter(Boolean);
+  return parts.length === 2 ? parts[1] : "";
+}
+
 function normalizeMarket(stat) {
   const s = clean(stat).toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
 
@@ -191,6 +270,13 @@ const merged = prizepicks.map(p => {
   const ballparkMatchType = found.row ? found.matchType : fallback ? 'pitcher_fallback_recent_game_logs' : found.matchType;
   const proj = projection(bp, market);
   const line = Number(p.line);
+  const comboProp = isComboProp(p);
+  const ppOpponent = comboProp
+    ? comboOpponentFromTeam(p) || null
+    : prizepicksOpponent(p) || null;
+  const ppGame = comboProp
+    ? comboGameFromTeam(p) || null
+    : prizepicksGame(p) || null;
 
   const edge = (proj !== null && Number.isFinite(Number(proj)) && Number.isFinite(line))
     ? Number((Number(proj) - line).toFixed(3))
@@ -205,6 +291,9 @@ const merged = prizepicks.map(p => {
     recordType: 'merged_prop',
     player,
     team,
+    resolvedTeam: team,
+    opponent: ppOpponent,
+    resolvedOpponent: ppOpponent,
     market,
     stat: p.stat,
     line,
@@ -212,12 +301,13 @@ const merged = prizepicks.map(p => {
     projection: proj,
     edge,
     confidence: Number(confidence.toFixed(3)),
-    sourceType: desiredType,
+    sourceType: comboProp ? 'combo' : desiredType,
+    comboProp,
+    contextEligible: !comboProp,
     ballparkMatchType,
-    game: bp
-      ? `${clean(bp.team)} @ ${clean(bp.opponent)}`
-      : `${p.away_team} @ ${p.home_team}`,
-    gamePk: bp?.gamePk || null,
+    game: ppGame,
+    resolvedGame: ppGame,
+    gamePk: bp?.gamePk || p.game_id || p.gamePk || null,
     startTime: p.game_start,
     ballpark: bp
   };
