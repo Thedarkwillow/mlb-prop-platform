@@ -20,7 +20,11 @@ const OUT_TXT = `${OUT_DIR}/external-mlb-form-confirmation-${DATE}.txt`;
 const OUT_LATEST_TXT = `${OUT_DIR}/external-mlb-form-confirmation-latest.txt`;
 const CACHE_FILE = "data/external/mlb-player-search-cache.json";
 const PLAYER_INDEX_FILE = `data/external/mlb-player-index-${SEASON}.json`;
+const BOXSCORE_CACHE_FILE = `data/external/mlb-boxscore-cache-${SEASON}.json`;
+const PLAYBYPLAY_CACHE_FILE = `data/external/mlb-playbyplay-cache-${SEASON}.json`;
 let PLAYER_INDEX = null;
+let BOXSCORE_CACHE = null;
+let PLAYBYPLAY_CACHE = null;
 
 function readJson(file, fallback = null) {
   try { return JSON.parse(fs.readFileSync(file, "utf8")); }
@@ -194,6 +198,9 @@ function loadTargets() {
       battingOrder: r.battingOrder ?? r.bat ?? null,
       opponent: r.opponent || r.opp || "",
       game: r.game || r.gameString || "",
+      homeAway: r.homeAway || r.location || r.home_away || "",
+      opposingPitcher: r.opposingPitcher || r.opponentPitcher || r.probablePitcher || r.startingPitcher || r.oppPitcher || r.vsPitcher || "",
+      opposingPitcherHand: r.opposingPitcherHand || r.opponentPitcherHand || r.probablePitcherHand || r.pitcherHand || "",
       pickfinderFound: !!r.pickfinderFound,
       pickfinderL5: r.pickfinderL5 ?? null,
       pickfinderL10: r.pickfinderL10 ?? null,
@@ -315,12 +322,242 @@ async function getGameLog(playerId, group) {
   return splits
     .map(s => ({
       date: s.date || s.game?.gameDate || "",
+      gamePk: s.game?.gamePk || s.gamePk || null,
       opponent: s.opponent?.name || s.opponent?.abbreviation || "",
       isHome: s.isHome,
       stat: s.stat || {}
     }))
     .sort((a, b) => String(b.date).localeCompare(String(a.date)));
 }
+
+
+function loadBoxscoreCache() {
+  if (BOXSCORE_CACHE) return BOXSCORE_CACHE;
+  BOXSCORE_CACHE = readJson(BOXSCORE_CACHE_FILE, {});
+  return BOXSCORE_CACHE;
+}
+
+function saveBoxscoreCache() {
+  if (BOXSCORE_CACHE) writeJson(BOXSCORE_CACHE_FILE, BOXSCORE_CACHE);
+}
+
+function loadPlayByPlayCache() {
+  if (PLAYBYPLAY_CACHE) return PLAYBYPLAY_CACHE;
+  PLAYBYPLAY_CACHE = readJson(PLAYBYPLAY_CACHE_FILE, {});
+  return PLAYBYPLAY_CACHE;
+}
+
+function savePlayByPlayCache() {
+  if (PLAYBYPLAY_CACHE) writeJson(PLAYBYPLAY_CACHE_FILE, PLAYBYPLAY_CACHE);
+}
+
+async function getBoxscore(gamePk) {
+  if (!gamePk) return null;
+  const cache = loadBoxscoreCache();
+  const key = String(gamePk);
+  if (cache[key]) return cache[key];
+
+  const url = `https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore`;
+  const data = await fetchJson(url);
+  cache[key] = data;
+  return data;
+}
+
+async function getPlayByPlay(gamePk) {
+  if (!gamePk) return null;
+  const cache = loadPlayByPlayCache();
+  const key = String(gamePk);
+  if (cache[key]) return cache[key];
+
+  const url = `https://statsapi.mlb.com/api/v1/game/${gamePk}/playByPlay`;
+  const data = await fetchJson(url);
+  cache[key] = data;
+  return data;
+}
+
+function firstPitcherIdFromBoxTeam(teamBox) {
+  const ids = Array.isArray(teamBox?.pitchers) ? teamBox.pitchers : [];
+  return ids.length ? ids[0] : null;
+}
+
+function playerFromBoxscore(box, id) {
+  if (!box || !id) return null;
+  const key = `ID${id}`;
+  return box.teams?.home?.players?.[key] || box.teams?.away?.players?.[key] || null;
+}
+
+async function historicalOpponentStarterHand(gamePk, isHome) {
+  try {
+    const box = await getBoxscore(gamePk);
+    const opponentSide = isHome ? "away" : "home";
+    const oppTeam = box?.teams?.[opponentSide];
+    const pitcherId = firstPitcherIdFromBoxTeam(oppTeam);
+    const player = playerFromBoxscore(box, pitcherId);
+    return {
+      pitcherId,
+      pitcherName: player?.person?.fullName || null,
+      hand: player?.person?.pitchHand?.code || player?.person?.pitchHand?.description || null
+    };
+  } catch {
+    return { pitcherId: null, pitcherName: null, hand: null };
+  }
+}
+
+function inferCurrentHomeAway(row) {
+  const direct = String(row.homeAway || row.home_away || row.location || "").toLowerCase();
+  if (direct === "home" || direct === "away") return direct;
+
+  const game = String(row.game || row.gameString || "");
+  const team = String(row.team || "").trim();
+  if (game.includes("@") && team) {
+    const [away, home] = game.split("@").map(x => x.trim());
+    if (away === team) return "away";
+    if (home === team) return "home";
+  }
+
+  return null;
+}
+
+function extractNameLike(v) {
+  if (!v) return "";
+  if (typeof v === "string") return v;
+  if (typeof v === "object") return v.fullName || v.name || v.player || v.playerName || "";
+  return "";
+}
+
+function pickOpposingPitcherName(row) {
+  const keys = [
+    "opposingPitcher",
+    "opponentPitcher",
+    "probablePitcher",
+    "startingPitcher",
+    "oppPitcher",
+    "vsPitcher",
+    "pitcherOpponent"
+  ];
+
+  for (const k of keys) {
+    const name = extractNameLike(row[k]);
+    if (name && norm(name) !== norm(row.player)) return name;
+  }
+
+  return "";
+}
+
+function paValueFromEvent(play, market) {
+  const result = play?.result || {};
+  const event = String(result.event || "").toLowerCase();
+  const rbi = Number(result.rbi || 0);
+
+  if (market === "hits" || market === "bases" || market === "hrr") {
+    if (event === "single") return market === "bases" ? 1 : 1;
+    if (event === "double") return market === "bases" ? 2 : 1;
+    if (event === "triple") return market === "bases" ? 3 : 1;
+    if (event === "home run") return market === "bases" ? 4 : 1;
+    return 0;
+  }
+
+  if (market === "walks") {
+    return event.includes("walk") ? 1 : 0;
+  }
+
+  if (market === "rbis") {
+    return rbi;
+  }
+
+  if (market === "home_runs") {
+    return event === "home run" ? 1 : 0;
+  }
+
+  return null;
+}
+
+async function calcVsPitcherHistory(row, playerInfo, currentOpposingPitcherName, games) {
+  if (isPitcherMarket(row.market)) {
+    return { available: false, reason: "pitcher_market" };
+  }
+
+  if (!currentOpposingPitcherName) {
+    return { available: false, reason: "missing_current_opposing_pitcher" };
+  }
+
+  const cache = loadCache();
+  const pitcherInfo = await findPlayerId(currentOpposingPitcherName, cache);
+  saveCache(cache);
+
+  if (!pitcherInfo?.id || !playerInfo?.id) {
+    return { available: false, reason: "pitcher_or_batter_id_missing", pitcherName: currentOpposingPitcherName };
+  }
+
+  const plays = [];
+
+  for (const g of games) {
+    if (!g.gamePk) continue;
+
+    try {
+      const pbp = await getPlayByPlay(g.gamePk);
+      const allPlays = Array.isArray(pbp?.allPlays) ? pbp.allPlays : [];
+
+      for (const play of allPlays) {
+        const batterId = play?.matchup?.batter?.id;
+        const pitcherId = play?.matchup?.pitcher?.id;
+        if (Number(batterId) !== Number(playerInfo.id)) continue;
+        if (Number(pitcherId) !== Number(pitcherInfo.id)) continue;
+
+        const value = paValueFromEvent(play, row.market);
+        plays.push({
+          gamePk: g.gamePk,
+          date: g.date,
+          event: play?.result?.event || "",
+          description: play?.result?.description || "",
+          rbi: play?.result?.rbi || 0,
+          value
+        });
+      }
+    } catch {}
+  }
+
+  const usable = plays.filter(p => p.value !== null && p.value !== undefined);
+  const value = usable.reduce((a, b) => a + Number(b.value || 0), 0);
+
+  return {
+    available: true,
+    batterId: playerInfo.id,
+    pitcherId: pitcherInfo.id,
+    pitcherName: pitcherInfo.fullName || currentOpposingPitcherName,
+    plateAppearances: plays.length,
+    value,
+    clear: cleared(value, row.side, row.line),
+    events: plays.slice(-25)
+  };
+}
+
+async function addHistoricalStarterHands(games) {
+  const out = [];
+  for (const g of games) {
+    const starter = await historicalOpponentStarterHand(g.gamePk, g.isHome);
+    out.push({
+      ...g,
+      opponentStarterPitcherId: starter.pitcherId,
+      opponentStarterPitcherName: starter.pitcherName,
+      opponentStarterHand: starter.hand
+    });
+  }
+  return out;
+}
+
+function splitGamesByHomeAway(games, currentHomeAway) {
+  if (!currentHomeAway) return [];
+  const wantHome = currentHomeAway === "home";
+  return games.filter(g => Boolean(g.isHome) === wantHome);
+}
+
+function splitGamesByPitcherHand(games, hand) {
+  if (!hand) return [];
+  const h = String(hand).toUpperCase()[0];
+  return games.filter(g => String(g.opponentStarterHand || "").toUpperCase()[0] === h);
+}
+
 
 function inningsToOuts(v) {
   if (v === null || v === undefined) return null;
@@ -490,6 +727,9 @@ function buildLine(r) {
     `L10=${pct(r.externalL10?.hitRate)} avg=${val(r.externalL10?.average)}`,
     `L15=${pct(r.externalL15?.hitRate)} avg=${val(r.externalL15?.average)}`,
     `Season=${pct(r.externalSeason?.hitRate)} avg=${val(r.externalSeason?.average)} n=${r.externalSeason?.graded ?? 0}`,
+    `HA(${val(r.currentHomeAway)})=${pct(r.externalHomeAway?.hitRate)} n=${r.externalHomeAway?.graded ?? 0}`,
+    `Hand(${val(r.currentPitcherHand)})=${pct(r.externalPitcherHand?.hitRate)} n=${r.externalPitcherHand?.graded ?? 0}`,
+    `vsP=${r.externalVsPitcher?.available ? `${r.externalVsPitcher.pitcherName}: PA=${r.externalVsPitcher.plateAppearances} val=${r.externalVsPitcher.value} clear=${r.externalVsPitcher.clear}` : val(r.externalVsPitcher?.reason)}`,
     r.pickfinderFound
       ? `PF L10=${val(r.pickfinderL10)} Season=${val(r.pickfinderSeason)} vsP=${val(r.pickfinderVsPitcher)}`
       : "PF=not_checked",
@@ -546,10 +786,11 @@ async function main() {
 
     try {
       const logs = await getGameLog(playerInfo.id, group);
-      const games = logs.map(g => {
+      let games = logs.map(g => {
         const value = valueForMarket(row.market, g.stat);
         return {
           date: g.date,
+          gamePk: g.gamePk,
           opponent: g.opponent,
           isHome: g.isHome,
           value,
@@ -558,11 +799,23 @@ async function main() {
         };
       }).filter(g => g.value !== null && g.value !== undefined);
 
+      games = await addHistoricalStarterHands(games);
+
+      const currentHomeAway = inferCurrentHomeAway(row);
+      const currentPitcherHand = row.opposingPitcherHand || "";
+      const currentOpposingPitcherName = pickOpposingPitcherName(row);
+
+      const homeAwayGames = splitGamesByHomeAway(games, currentHomeAway);
+      const pitcherHandGames = splitGamesByPitcherHand(games, currentPitcherHand);
+      const vsPitcher = await calcVsPitcherHistory(row, playerInfo, currentOpposingPitcherName, games);
+
       const form = {
         l5: summarizeGames(games.slice(0, 5), row.side, row.line),
         l10: summarizeGames(games.slice(0, 10), row.side, row.line),
         l15: summarizeGames(games.slice(0, 15), row.side, row.line),
         season: summarizeGames(games, row.side, row.line),
+        homeAway: summarizeGames(homeAwayGames, row.side, row.line),
+        pitcherHand: summarizeGames(pitcherHandGames, row.side, row.line),
         recentGames: games.slice(0, 15)
       };
 
@@ -576,12 +829,18 @@ async function main() {
         mlbPrimaryPosition: playerInfo.primaryPosition,
         batSide: playerInfo.batSide,
         pitchHand: playerInfo.pitchHand,
+        currentHomeAway,
+        currentOpposingPitcherName,
+        currentPitcherHand,
         statGroup: group,
-        externalSource: "MLB Stats API gameLog",
+        externalSource: "MLB Stats API gameLog + boxscore/playByPlay v2",
         externalL5: form.l5,
         externalL10: form.l10,
         externalL15: form.l15,
         externalSeason: form.season,
+        externalHomeAway: form.homeAway,
+        externalPitcherHand: form.pitcherHand,
+        externalVsPitcher: vsPitcher,
         externalRecentGames: form.recentGames,
         ...grade
       });
@@ -605,6 +864,8 @@ async function main() {
   }
 
   saveCache(cache);
+  saveBoxscoreCache();
+  savePlayByPlayCache();
 
   const byDecision = {};
   for (const r of rows) byDecision[r.decision] = (byDecision[r.decision] || 0) + 1;
@@ -639,7 +900,7 @@ async function main() {
     "- MLB L5/L10/L15/Season are calculated from MLB game logs against the current PrizePicks line.",
     "- This does not use internal graded prop history.",
     "- PF fields appear only if PickFinder data is already present.",
-    "- Vs-pitcher detail is not included in v1.",
+    "- V2 adds home/away split, historical opponent starter hand split, and best-effort vs-pitcher history when current opposing pitcher is known.",
     ""
   ].join("\n");
 
