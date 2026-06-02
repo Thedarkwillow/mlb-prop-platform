@@ -351,19 +351,26 @@ console.log("");
   if (!report) return;
 
   const controlled =
-    rows(report.controlledUnlockAudit) ||
-    rows(report.controlledUnlocks) ||
-    [];
+    rows(report.unlocks).length ? rows(report.unlocks) :
+    rows(report.controlledUnlockAuditRows).length ? rows(report.controlledUnlockAuditRows) :
+    rows(report.controlledUnlockAuditCandidates).length ? rows(report.controlledUnlockAuditCandidates) :
+    rows(report.controlledUnlockCandidates).length ? rows(report.controlledUnlockCandidates) :
+    rows(report.controlledUnlocks).length ? rows(report.controlledUnlocks) :
+    rows(report.controlled);
 
   const nearMisses =
-    rows(report.topNoUnlockNearMisses) ||
-    rows(report.nearMisses) ||
-    [];
+    rows(report.rows).filter(r => String(r.controlledStatus || "").toUpperCase() === "NO_UNLOCK").length
+      ? rows(report.rows).filter(r => String(r.controlledStatus || "").toUpperCase() === "NO_UNLOCK")
+      : rows(report.topNoUnlockNearMisses).length ? rows(report.topNoUnlockNearMisses)
+      : rows(report.noUnlockNearMisses).length ? rows(report.noUnlockNearMisses)
+      : rows(report.nearMisses);
 
-  const total = Number(report.total ?? report.summary?.total ?? 0);
+  const total = Number(report.total ?? report.summary?.total ?? report.counts?.total ?? rows(report.rows).length ?? 0);
   const controlledCount = Number(
+    report.controlledUnlockAudit ??
     report.controlledUnlockAuditCount ??
     report.summary?.controlledUnlockAudit ??
+    report.counts?.controlledUnlockAudit ??
     controlled.length
   );
 
