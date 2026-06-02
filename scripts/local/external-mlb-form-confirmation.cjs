@@ -938,7 +938,7 @@ async function main() {
 
   const rows = [];
 
-  for (const row of targets) {
+  for (let row of targets) {
     const playerInfo = await findPlayerId(row.player, cache);
 
     if (playerInfo?.id) {
