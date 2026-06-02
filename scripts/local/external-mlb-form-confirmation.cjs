@@ -275,6 +275,39 @@ function findPricedBoardMatch(row, boardRows) {
   return pool[0] || null;
 }
 
+
+async function fillOpposingPitcherHand(row, cache) {
+  if (!row.opposingPitcher || row.opposingPitcherHand) return row;
+
+  try {
+    const pitcherInfo = await findPlayerId(row.opposingPitcher, cache);
+    const hand =
+      pitcherInfo?.pitchHand ||
+      pitcherInfo?.pitchHandCode ||
+      pitcherInfo?.throws ||
+      "";
+
+    if (hand) {
+      return {
+        ...row,
+        opposingPitcherHand: String(hand).toUpperCase()[0],
+        opposingPitcherHandSource: "mlb_player_index_lookup"
+      };
+    }
+  } catch (err) {
+    return {
+      ...row,
+      opposingPitcherHandSource: `lookup_failed:${err.message}`
+    };
+  }
+
+  return {
+    ...row,
+    opposingPitcherHandSource: "lookup_missing"
+  };
+}
+
+
 function enrichTargetFromBoard(row, boardMatch) {
   if (!boardMatch) return { ...row, boardMatchFound: false };
 
@@ -912,6 +945,7 @@ async function main() {
       row.originalMarket = row.market;
       row.market = pitcherAwareMarket(row.market, playerInfo, row);
       row.marketNormalizedByPlayer = row.originalMarket !== row.market;
+      row = await fillOpposingPitcherHand(row, cache);
     }
 
     if (!playerInfo?.id) {
