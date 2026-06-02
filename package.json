@@ -193,7 +193,7 @@
     "context:bullpen": "node src/research/build-bullpen-fatigue.cjs ${npm_config_date:-$(date +%F)} && node src/jobs/mergeBullpenFatigueIntoBoard.cjs",
     "context:pitcher-game-repair": "node src/jobs/repairPitcherGameContext.cjs ${npm_config_date:-$(date +%F)}",
     "context:catcher-framing": "node src/research/build-catcher-framing.cjs && node src/research/build-team-catcher-framing.cjs && node src/jobs/mergeCatcherFramingIntoBoard.cjs",
-    "context:pitch-type": "npm run context:pitch-type:production",
+    "context:pitch-type": "node src/jobs/mergePitchTypeMatchupsIntoBoard.cjs",
     "line-buckets": "node src/research/line-bucket-roi-report.cjs",
     "phase8:audit": "node src/research/phase8-candidate-audit.cjs",
     "board:repair-games": "node src/jobs/repairPrizePicksGames.cjs",
@@ -285,7 +285,8 @@
     "context:pitch-type:reconcile": "node src/research/reconcile-pitch-type-real-coverage.cjs",
     "context:pitch-type:sanitize-false-neutral": "node src/research/sanitize-pitch-type-false-neutral.cjs",
     "context:pitch-type:neutral-fallback": "node scripts/local/apply-neutral-pitch-type-fallback.cjs",
-    "context:pitch-type:production": "npm run context:pitch-type:production && npm run context:pitch-type:neutral-fallback && npm run context:pitch-type:reconcile"
+    "context:pitch-type:production": "npm run context:pitch-type:raw && npm run context:pitch-type:neutral-fallback && npm run context:pitch-type:reconcile",
+    "context:pitch-type:raw": "node src/jobs/mergePitchTypeMatchupsIntoBoard.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
