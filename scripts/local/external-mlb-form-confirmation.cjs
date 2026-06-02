@@ -18,6 +18,7 @@ const OUT_JSON = `${OUT_DIR}/external-mlb-form-confirmation-${DATE}.json`;
 const OUT_LATEST_JSON = `${OUT_DIR}/external-mlb-form-confirmation-latest.json`;
 const OUT_TXT = `${OUT_DIR}/external-mlb-form-confirmation-${DATE}.txt`;
 const OUT_LATEST_TXT = `${OUT_DIR}/external-mlb-form-confirmation-latest.txt`;
+const PRICED_BOARD_FILE = "outputs/priced-board.json";
 const CACHE_FILE = "data/external/mlb-player-search-cache.json";
 const PLAYER_INDEX_FILE = `data/external/mlb-player-index-${SEASON}.json`;
 const BOXSCORE_CACHE_FILE = `data/external/mlb-boxscore-cache-${SEASON}.json`;
@@ -166,9 +167,156 @@ function getRowsArray(data) {
   return [];
 }
 
+
+function teamNameVariants(team) {
+  const t = String(team || "").toUpperCase().trim();
+  const map = {
+    ARI: ["ARI", "AZ", "Arizona Diamondbacks"],
+    AZ: ["ARI", "AZ", "Arizona Diamondbacks"],
+    ATL: ["ATL", "Atlanta Braves"],
+    BAL: ["BAL", "Baltimore Orioles"],
+    BOS: ["BOS", "Boston Red Sox"],
+    CHC: ["CHC", "Chicago Cubs"],
+    CWS: ["CWS", "CHW", "Chicago White Sox"],
+    CHW: ["CWS", "CHW", "Chicago White Sox"],
+    CIN: ["CIN", "Cincinnati Reds"],
+    CLE: ["CLE", "Cleveland Guardians"],
+    COL: ["COL", "Colorado Rockies"],
+    DET: ["DET", "Detroit Tigers"],
+    HOU: ["HOU", "Houston Astros"],
+    KC: ["KC", "KCR", "Kansas City Royals"],
+    KCR: ["KC", "KCR", "Kansas City Royals"],
+    LAA: ["LAA", "Los Angeles Angels"],
+    LAD: ["LAD", "Los Angeles Dodgers"],
+    MIA: ["MIA", "Miami Marlins"],
+    MIL: ["MIL", "Milwaukee Brewers"],
+    MIN: ["MIN", "Minnesota Twins"],
+    NYM: ["NYM", "New York Mets"],
+    NYY: ["NYY", "New York Yankees"],
+    ATH: ["ATH", "OAK", "Athletics"],
+    OAK: ["ATH", "OAK", "Athletics"],
+    PHI: ["PHI", "Philadelphia Phillies"],
+    PIT: ["PIT", "Pittsburgh Pirates"],
+    SD: ["SD", "SDP", "San Diego Padres"],
+    SDP: ["SD", "SDP", "San Diego Padres"],
+    SEA: ["SEA", "Seattle Mariners"],
+    SF: ["SF", "SFG", "San Francisco Giants"],
+    SFG: ["SF", "SFG", "San Francisco Giants"],
+    STL: ["STL", "St. Louis Cardinals", "Saint Louis Cardinals"],
+    TB: ["TB", "TBR", "Tampa Bay Rays"],
+    TBR: ["TB", "TBR", "Tampa Bay Rays"],
+    TEX: ["TEX", "Texas Rangers"],
+    TOR: ["TOR", "Toronto Blue Jays"],
+    WSH: ["WSH", "WAS", "Washington Nationals"],
+    WAS: ["WSH", "WAS", "Washington Nationals"]
+  };
+  return map[t] || [t];
+}
+
+function stringHasTeam(game, team) {
+  const g = norm(game);
+  return teamNameVariants(team).some(v => g.includes(norm(v)));
+}
+
+function inferHomeAwayFromGame(game, team) {
+  if (!game || !team || !String(game).includes("@")) return "";
+  const [awayRaw, homeRaw] = String(game).split("@").map(x => x.trim());
+  if (stringHasTeam(awayRaw, team)) return "away";
+  if (stringHasTeam(homeRaw, team)) return "home";
+  return "";
+}
+
+function boardMarketCompatible(targetMarket, boardMarket) {
+  const t = marketNorm(targetMarket);
+  const b = marketNorm(boardMarket);
+
+  if (t === b) return true;
+
+  // Confirmation may normalize pitcher markets while board stores generic names.
+  if (t === "hits_allowed" && b === "hits") return true;
+  if (t === "runs_allowed" && b === "runs") return true;
+  if (t === "walks_allowed" && b === "walks") return true;
+
+  return false;
+}
+
+function loadPricedBoardRows() {
+  const data = readJson(PRICED_BOARD_FILE, []);
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.rows)) return data.rows;
+  return [];
+}
+
+function findPricedBoardMatch(row, boardRows) {
+  const player = norm(row.player);
+  const team = String(row.team || "").toUpperCase();
+  const market = marketNorm(row.market);
+  const line = Number(row.line);
+
+  const samePlayer = boardRows.filter(b => norm(b.player || b.playerName || b.name) === player);
+  if (!samePlayer.length) return null;
+
+  const samePlayerTeam = samePlayer.filter(b => {
+    const bt = String(b.team || b.resolvedTeam || "").toUpperCase();
+    return !team || bt === team;
+  });
+
+  const pool = samePlayerTeam.length ? samePlayerTeam : samePlayer;
+
+  const exact = pool.find(b =>
+    boardMarketCompatible(market, b.market || b.stat) &&
+    Math.abs(Number(b.line) - line) < 1e-9
+  );
+  if (exact) return exact;
+
+  const sameMarket = pool.find(b => boardMarketCompatible(market, b.market || b.stat));
+  if (sameMarket) return sameMarket;
+
+  return pool[0] || null;
+}
+
+function enrichTargetFromBoard(row, boardMatch) {
+  if (!boardMatch) return { ...row, boardMatchFound: false };
+
+  const game = row.game || boardMatch.resolvedGame || boardMatch.game || "";
+  const opponent = row.opponent || boardMatch.resolvedOpponent || boardMatch.opponent || "";
+  const homeAway = row.homeAway || inferHomeAwayFromGame(game, row.team || boardMatch.team || boardMatch.resolvedTeam);
+  const opposingPitcher =
+    row.opposingPitcher ||
+    boardMatch.pitchTypeOpponentPitcher ||
+    boardMatch.opposingPitcher ||
+    boardMatch.opponentPitcher ||
+    boardMatch.probablePitcher ||
+    "";
+  const opposingPitcherHand =
+    row.opposingPitcherHand ||
+    boardMatch.pitchTypeOpponentPitcherHand ||
+    boardMatch.opposingPitcherHand ||
+    boardMatch.opponentPitcherHand ||
+    boardMatch.probablePitcherHand ||
+    "";
+
+  return {
+    ...row,
+    game,
+    gamePk: row.gamePk || boardMatch.resolvedGamePk || boardMatch.gamePk || null,
+    opponent,
+    homeAway,
+    opposingPitcher,
+    opposingPitcherHand,
+    boardMatchFound: true,
+    boardSourceType: boardMatch.sourceType || "",
+    boardResolvedGame: boardMatch.resolvedGame || boardMatch.game || "",
+    boardPitchTypeOpponentPitcher: boardMatch.pitchTypeOpponentPitcher || "",
+    boardPitchTypeOpponentPitcherHand: boardMatch.pitchTypeOpponentPitcherHand || ""
+  };
+}
+
+
 function loadTargets() {
   const confirm = readJson("outputs/full-prop-confirmation/full-prop-confirmation-report-latest.json", {});
   const rows = getRowsArray(confirm);
+  const boardRows = loadPricedBoardRows();
 
   return rows
     .filter(r => [
@@ -208,7 +356,8 @@ function loadTargets() {
       pickfinderSeason: r.pickfinderSeason ?? null,
       pickfinderVsPitcher: r.pickfinderVsPitcher ?? null
     }))
-    .filter(r => r.player && r.market && r.side && r.line !== null);
+    .filter(r => r.player && r.market && r.side && r.line !== null)
+    .map(r => enrichTargetFromBoard(r, findPricedBoardMatch(r, boardRows)));
 }
 
 function loadCache() {
