@@ -50,6 +50,16 @@ function leanWatchlistLine(l, i) {
   return `${i + 1}. ${l.classification || "WATCHLIST"} | ${l.player} | ${l.team || ""} | ${l.market} ${l.side} ${l.line} | prob=${num(l.prob)} | edge=${num(l.edge)} | score=${num(l.score)} | confidence=${l.confidence || "?"} | stake=${l.stakeGuidance || "track only"} | reasons=${reasons} | note=${l.note || ""}`;
 }
 
+function productionLine(l, i) {
+  const reasons = Array.isArray(l.reasons) ? l.reasons.join(",") : "n/a";
+  return [
+    `${i + 1}. ${l.class || "?"} | ${l.player} | ${l.team || ""} | ${l.market} ${l.side} ${l.line}`,
+    `   tier=${l.oddsTier || "standard"} | prob=${num(l.prob)} | edge=${num(l.edge)} | books=${l.books ?? "?"} | support=${l.support || "?"} | grade=${l.grade || "?"} | sideBias=${l.sideBias?.tier || "?"}`,
+    `   stake=${l.stakeGuidance || "track only"}`,
+    `   reasons=${reasons}`
+  ].join("\n");
+}
+
 function slipLabel(size) {
   if (size === 2) return "2-MAN POWER";
   if (size === 3) return "3-MAN FLEX";
@@ -63,6 +73,7 @@ const validated = read("outputs/final-slips-validated.json", []);
 const playable = read("outputs/official-slip.json", []);
 const watchlist = read("outputs/watchlist-final-slips.json", []);
 const leanWatchlistCandidates = read("outputs/lean-watchlist-candidates.json", []);
+const productionCandidates = read("outputs/production-candidates.json", null);
 const coverage = read("outputs/distribution-coverage-report.json", {});
 const validationRules = read("data/results/validation-rules.json", null);
 
@@ -158,8 +169,45 @@ unique.slice(0, 10).forEach((l, i) => console.log(legLine(l, i)));
 if (!unique.length) console.log("None.");
 
 console.log("");
-console.log("LEAN / WATCHLIST CANDIDATES");
-console.log("---------------------------");
+console.log("PRODUCTION CANDIDATE CLASSES");
+console.log("----------------------------");
+const productionRows = Array.isArray(productionCandidates?.all) ? productionCandidates.all : [];
+const productionCounts = productionCandidates?.counts || null;
+
+if (productionCounts) {
+  console.log(`CORE=${productionCounts.core ?? 0} | LEAN=${productionCounts.lean ?? 0} | WATCHLIST=${productionCounts.watchlist ?? 0} | RESEARCH=${productionCounts.research ?? 0} | BLOCKED=${productionCounts.blocked ?? 0}`);
+}
+
+if (!productionRows.length) {
+  console.log("No production candidate report yet. Run: node src/research/production-candidate-report.cjs");
+} else {
+  for (const className of ["CORE", "LEAN", "WATCHLIST", "RESEARCH", "BLOCKED"]) {
+    const rows = productionRows
+      .filter(r => String(r.class || "").toUpperCase() === className)
+      .slice()
+      .sort((a, b) => {
+        const aProb = Number(a.prob ?? 0);
+        const bProb = Number(b.prob ?? 0);
+        if (bProb !== aProb) return bProb - aProb;
+        return Number(b.edge ?? 0) - Number(a.edge ?? 0);
+      })
+      .slice(0, className === "BLOCKED" ? 8 : 5);
+
+    console.log("");
+    console.log(className);
+    console.log("-".repeat(className.length));
+
+    if (!rows.length) {
+      console.log("none");
+    } else {
+      rows.forEach((l, i) => console.log(productionLine(l, i)));
+    }
+  }
+}
+
+console.log("");
+console.log("LEGACY LEAN / WATCHLIST CANDIDATES");
+console.log("----------------------------------");
 if (!Array.isArray(leanWatchlistCandidates) || !leanWatchlistCandidates.length) {
   console.log("None.");
 } else {
@@ -174,10 +222,11 @@ if (!Array.isArray(leanWatchlistCandidates) || !leanWatchlistCandidates.length) 
       if (bScore !== aScore) return bScore - aScore;
       return Number(b.prob ?? 0) - Number(a.prob ?? 0);
     })
-    .slice(0, 10)
+    .slice(0, 5)
     .forEach((l, i) => console.log(leanWatchlistLine(l, i)));
 }
 console.log("");
+
 console.log("CLV SUMMARY");
 console.log("-----------");
 if (!clv) {
