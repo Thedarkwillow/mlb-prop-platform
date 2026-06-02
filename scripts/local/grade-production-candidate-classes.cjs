@@ -210,7 +210,23 @@ function resultNorm(v) {
   if (["HIT", "WIN", "W", "CASH", "CORRECT"].includes(s)) return "HIT";
   if (["MISS", "LOSS", "L", "LOSE", "INCORRECT"].includes(s)) return "MISS";
   if (["PUSH", "VOID", "REFUND", "DNP"].includes(s)) return s;
+  if (["UNMATCHED", "NO_MATCH"].includes(s)) return "UNMATCHED";
+  if (["SHADOW_UNGRADED", "UNPRICED_SHADOW", "THEORETICAL_UNGRADED"].includes(s)) return "SHADOW_UNGRADED";
   return "";
+}
+
+function isShadowUngradedCandidate(c) {
+  const cls = String(c.class || c.classification || "").toUpperCase();
+  const support = String(c.support || c.marketSupportFlag || c.priceCoverageTier || "").toUpperCase();
+  const source = String(c.source || c.sourceFile || "").toLowerCase();
+  const reasons = Array.isArray(c.reasons) ? c.reasons.map(x => String(x).toLowerCase()) : [];
+
+  return (
+    support === "PHASE8_UNPRICED" ||
+    source === "phase8_audit" ||
+    cls === "SHADOW_BLOCKED" ||
+    reasons.includes("phase8_unpriced_shadow_blocked")
+  );
 }
 
 function gradeFromActual(candidate, graded) {
@@ -299,7 +315,7 @@ function fmtPct(v) {
 }
 
 function rowLine(x) {
-  return `${x.bucket}: total=${x.total} graded=${x.graded} hits=${x.hits} misses=${x.misses} pushes=${x.pushes} refunds=${x.refunds} unmatched=${x.unmatched} pending=${x.pending} hitRate=${fmtPct(x.hitRate)} roiProxy=${fmtPct(x.roiProxy)}`;
+  return `${x.bucket}: total=${x.total} graded=${x.graded} hits=${x.hits} misses=${x.misses} pushes=${x.pushes} refunds=${x.refunds} unmatched=${x.unmatched} shadowUngraded=${x.shadowUngraded || 0} pending=${x.pending} hitRate=${fmtPct(x.hitRate)} roiProxy=${fmtPct(x.roiProxy)}`;
 }
 
 const candidateFile = CANDIDATE_FILES.find(f => fs.existsSync(f));
@@ -341,7 +357,8 @@ const graded = candidates.map(c => {
   const rawResult = match ? gradeFromActual(c, match) : "UNMATCHED";
   const finalResult = resultNorm(rawResult);
   const isFinal = ["HIT", "MISS", "PUSH", "REFUND", "VOID", "DNP"].includes(finalResult);
-  const isUnmatched = rawResult === "UNMATCHED" || !isFinal;
+  const shadowUngraded = !isFinal && isShadowUngradedCandidate(c);
+  const result = shadowUngraded ? "SHADOW_UNGRADED" : (isFinal ? finalResult : "UNMATCHED");
 
   return {
     date: DATE,
@@ -360,13 +377,14 @@ const graded = candidates.map(c => {
     grade: c.grade || null,
     sideBias: c.sideBias?.tier || c.sideBias || null,
     reasons: c.reasons || [],
-    result: isUnmatched ? "UNMATCHED" : finalResult,
-    actual: isUnmatched ? null : (match?.actual ?? match?.actualValue ?? match?.final ?? match?.value ?? null),
-    matched: !isUnmatched,
-    unmatched: isUnmatched,
+    result,
+    actual: isFinal ? (match?.actual ?? match?.actualValue ?? match?.final ?? match?.value ?? null) : null,
+    matched: isFinal,
+    unmatched: result === "UNMATCHED",
+    shadowUngraded: result === "SHADOW_UNGRADED",
     pending: false,
-    matchKey: !isUnmatched && match ? candidateKey(match) : null,
-    gradeSourceFile: !isUnmatched ? (match?.gradeSourceFile || null) : null,
+    matchKey: isFinal ? candidateKey(match) : null,
+    gradeSourceFile: isFinal ? (match?.gradeSourceFile || null) : null,
     sourceCandidate: c
   };
 });
