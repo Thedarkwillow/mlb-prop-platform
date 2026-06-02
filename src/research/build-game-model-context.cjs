@@ -22,16 +22,19 @@ function read(path, fallback = {}) {
   }
 }
 
+function write(path, data) {
+  fs.mkdirSync(require("path").dirname(path), { recursive: true });
+  fs.writeFileSync(path, JSON.stringify(data, null, 2) + "\n");
+}
+
 function norm(v) {
   return String(v || "")
     .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/jr\.?|sr\.?|ii|iii|iv/g, "")
     .replace(/[^a-z0-9]+/g, "")
     .trim();
-}
-
-function teamAbbr(team) {
-  return String(team?.abbreviation || team?.teamCode || team?.fileCode || "").toUpperCase();
 }
 
 function handOf(player) {
@@ -40,6 +43,9 @@ function handOf(player) {
     player?.pitchHand?.description ||
     player?.batSide?.code ||
     player?.batSide?.description ||
+    player?.bats ||
+    player?.battingHand ||
+    player?.hand ||
     ""
   ).toUpperCase();
 
@@ -68,34 +74,48 @@ function arsenalFor(name, id, velocityCache) {
 
 function splitProfileFor(name, handedness) {
   const key = norm(name);
-  const rec = handedness.batters?.[key] || handedness.pitchers?.[key] || null;
-  if (!rec) return null;
-  return rec;
+  return handedness.batters?.[key] || handedness.pitchers?.[key] || null;
 }
 
 function currentLineupFor(team, lineups) {
-  const t = lineups.teams?.[team] || {};
-  const players =
+  const teamKey = String(team || "").toUpperCase();
+  const t = lineups.teams?.[teamKey] || {};
+
+  const fromPlayers = Object.values(lineups.players || {})
+    .filter(x => String(x.team || "").toUpperCase() === teamKey)
+    .sort((a, b) => {
+      const ao = Number(a.battingOrder || a.order || a.lineupSpot || 999);
+      const bo = Number(b.battingOrder || b.order || b.lineupSpot || 999);
+      if (ao !== bo) return ao - bo;
+      return String(a.player || a.name || "").localeCompare(String(b.player || b.name || ""));
+    });
+
+  const fallback =
     t.lineup ||
     t.projectedLineup ||
     t.confirmedLineup ||
     t.battingOrder ||
     [];
 
+  const players = fromPlayers.length ? fromPlayers : fallback;
   if (!Array.isArray(players)) return [];
 
   return players.map((x, idx) => ({
-    order: x.order || x.battingOrder || idx + 1,
+    order: x.order || x.battingOrder || x.lineupSpot || idx + 1,
     name: x.player || x.name || x.playerName || x.fullName || x.person?.fullName || String(x),
     id: x.id || x.playerId || x.person?.id || null,
-    bats: handOf(x) || x.bats || x.batSide || null,
+    bats: handOf(x) || x.bats || x.batSide || x.battingHand || null,
     position: x.position || x.pos || x.primaryPosition?.abbreviation || null,
-    status: x.status || t.lineupStatus || null
+    status: x.status || t.status || t.lineupStatus || null,
+    game: x.game || t.game || null,
+    gamePk: x.gamePk || t.gamePk || null,
+    source: x.source || null
   }));
 }
 
 function lineupHandCounts(lineup) {
   const counts = { L: 0, R: 0, S: 0, unknown: 0 };
+
   for (const p of lineup) {
     const h = String(p.bats || "").toUpperCase();
     if (h === "L") counts.L++;
@@ -103,6 +123,7 @@ function lineupHandCounts(lineup) {
     else if (h === "S") counts.S++;
     else counts.unknown++;
   }
+
   return {
     ...counts,
     total: lineup.length,
@@ -110,8 +131,9 @@ function lineupHandCounts(lineup) {
   };
 }
 
-function pitcherContext(team, p, velocity, handedness) {
+function pitcherContext(p, velocity, handedness) {
   if (!p?.pitcher) return null;
+
   return {
     name: p.pitcher,
     id: p.id || null,
@@ -126,11 +148,13 @@ function pitcherContext(team, p, velocity, handedness) {
 
 function teamContext(team, opponent, gamePk, lineups, handedness) {
   const lineup = currentLineupFor(team, lineups);
+  const teamMeta = lineups.teams?.[team] || {};
+
   return {
     team,
     opponent,
     gamePk,
-    lineupStatus: lineups.teams?.[team]?.lineupStatus || "unknown",
+    lineupStatus: teamMeta.lineupStatus || teamMeta.status || (lineup.length >= 8 ? "confirmed" : "unknown"),
     lineup,
     lineupHandCounts: lineupHandCounts(lineup),
     battingSplitsAvailable: lineup.filter(p => splitProfileFor(p.name, handedness)).length
@@ -142,114 +166,120 @@ function bullpenShell(team, opponent, gamePk) {
     team,
     opponent,
     gamePk,
-    status: "not_loaded_yet",
-    seasonRanks: {
-      eraRank: null,
-      whipRank: null
-    },
-    relievers: []
+    fatigue: null,
+    seasonRanks: {},
+    notes: ["context shell only; enriched later by context-depth-pack"]
   };
 }
 
-async function main() {
+function main() {
   const probables = read(PROBABLES, {});
   const velocity = read(VELO, {});
   const lineups = read(LINEUPS, {});
   const handedness = read(HAND, {});
   const pitchMatchups = read(PITCH_MATCHUPS, {});
 
-  const games = {};
-  const teams = {};
-
-  for (const [team, p] of Object.entries(probables.pitcherByTeam || {})) {
-    teams[team] = {
-      teamContext: teamContext(team, p.opponent || null, p.gamePk || null, lineups, handedness),
-      startingPitcher: pitcherContext(team, p, velocity, handedness),
-      bullpen: bullpenShell(team, p.opponent || null, p.gamePk || null)
-    };
-  }
-
-  for (const [gameKey, g] of Object.entries(probables.games || {})) {
-    const awayTeam = g.awayTeam || null;
-    const homeTeam = g.homeTeam || null;
-
-    games[gameKey] = {
-      gamePk: g.gamePk || null,
-      game: g.game || gameKey,
-      status: g.status || null,
-      awayTeam,
-      homeTeam,
-      away: awayTeam ? teams[awayTeam] || null : null,
-      home: homeTeam ? teams[homeTeam] || null : null,
-      marketContext: {
-        moneyline: null,
-        total: null,
-        weather: {
-          tempF: null,
-          precipitationChance: null,
-          dome: null
-        }
-      },
-      pitchTypeMatchups: {
-        available: Boolean(pitchMatchups?.matchups),
-        note: "Detailed hitter-vs-pitcher pitch-type matchup cache lives in data/savant/pitch-type-matchups.json"
-      }
-    };
-  }
-
   const out = {
-    recordType: "game_model_context",
-    date: DATE,
     generatedAt: new Date().toISOString(),
-    sourceFiles: {
+    date: DATE,
+    source: {
       probables: PROBABLES,
       velocity: VELO,
       lineups: LINEUPS,
       handedness: HAND,
       pitchMatchups: PITCH_MATCHUPS
     },
-    status: {
-      games: Object.keys(games).length,
-      teams: Object.keys(teams).length,
-      starters: Object.values(teams).filter(t => t.startingPitcher).length,
-      startersWithArsenal: Object.values(teams).filter(t => t.startingPitcher?.arsenal?.available).length,
-      teamsWithLineups: Object.values(teams).filter(t => t.teamContext?.lineup?.length).length,
-      bullpensLoaded: 0,
-      note: "Full structure is ready. Bullpen arms/workload and team market/weather fields can be populated by later source pulls."
+    sourceDates: {
+      probablesDate: probables.date || null,
+      lineupsDate: lineups.date || null,
+      lineupsRefreshedAt: lineups.refreshedAt || null
     },
-    games,
-    teams
+    games: {},
+    teams: {}
   };
 
-  fs.mkdirSync("data/context", { recursive: true });
-  fs.writeFileSync(OUT, JSON.stringify(out, null, 2) + "\n");
+  const games = probables.games || {};
 
+  for (const [gameKey, g] of Object.entries(games)) {
+    const awayTeam = g.awayTeam;
+    const homeTeam = g.homeTeam;
+    if (!awayTeam || !homeTeam) continue;
+
+    const awayPitcher = {
+      pitcher: g.awayProbablePitcher,
+      id: g.awayPitcherId,
+      hand: g.awayPitcherHand,
+      opponent: homeTeam,
+      gamePk: g.gamePk
+    };
+
+    const homePitcher = {
+      pitcher: g.homeProbablePitcher,
+      id: g.homePitcherId,
+      hand: g.homePitcherHand,
+      opponent: awayTeam,
+      gamePk: g.gamePk
+    };
+
+    out.teams[awayTeam] = {
+      team: awayTeam,
+      opponent: homeTeam,
+      gamePk: g.gamePk,
+      teamContext: teamContext(awayTeam, homeTeam, g.gamePk, lineups, handedness),
+      startingPitcher: pitcherContext(awayPitcher, velocity, handedness),
+      bullpen: bullpenShell(awayTeam, homeTeam, g.gamePk)
+    };
+
+    out.teams[homeTeam] = {
+      team: homeTeam,
+      opponent: awayTeam,
+      gamePk: g.gamePk,
+      teamContext: teamContext(homeTeam, awayTeam, g.gamePk, lineups, handedness),
+      startingPitcher: pitcherContext(homePitcher, velocity, handedness),
+      bullpen: bullpenShell(homeTeam, awayTeam, g.gamePk)
+    };
+
+    out.games[gameKey] = {
+      gamePk: g.gamePk,
+      game: g.game || gameKey,
+      status: g.status || null,
+      awayTeam,
+      homeTeam,
+      away: out.teams[awayTeam],
+      home: out.teams[homeTeam],
+      pitchTypeMatchups: Object.values(pitchMatchups.matchups || {}).filter(r => {
+        return String(r.team || "").toUpperCase() === awayTeam ||
+          String(r.team || "").toUpperCase() === homeTeam ||
+          String(r.opponent || "").toUpperCase() === awayTeam ||
+          String(r.opponent || "").toUpperCase() === homeTeam;
+      })
+    };
+  }
+
+  write(OUT, out);
+
+  const teams = Object.values(out.teams || {});
   console.log("GAME MODEL CONTEXT");
   console.log("==================");
-  console.log(`Date: ${DATE}`);
-  console.log(`Games: ${out.status.games}`);
-  console.log(`Teams: ${out.status.teams}`);
-  console.log(`Starters: ${out.status.starters}`);
-  console.log(`Starters with arsenal: ${out.status.startersWithArsenal}`);
-  console.log(`Teams with lineups: ${out.status.teamsWithLineups}`);
-  console.log(`Wrote ${OUT}`);
+  console.log("Date:", DATE);
+  console.log("Games:", Object.keys(out.games).length);
+  console.log("Teams:", teams.length);
+  console.log("Starters:", teams.filter(t => t.startingPitcher?.name).length);
+  console.log("Starters with arsenal:", teams.filter(t => t.startingPitcher?.arsenal?.available).length);
+  console.log("Teams with lineups:", teams.filter(t => (t.teamContext?.lineup || []).length >= 8).length);
+  console.log("Wrote", OUT);
 
-  console.table(
-    Object.values(teams).slice(0, 20).map(t => ({
-      team: t.teamContext.team,
-      opp: t.teamContext.opponent,
-      starter: t.startingPitcher?.name || null,
-      hand: t.startingPitcher?.hand || null,
-      arsenal: t.startingPitcher?.arsenal?.available || false,
-      primaryFB: t.startingPitcher?.arsenal?.primaryFastball || null,
-      veloDelta: t.startingPitcher?.arsenal?.velocityDelta ?? null,
-      lineup: t.teamContext.lineup.length,
-      bats: `L${t.teamContext.lineupHandCounts.L}/R${t.teamContext.lineupHandCounts.R}/S${t.teamContext.lineupHandCounts.S}`
-    }))
-  );
+  console.table(teams.map(t => ({
+    team: t.team,
+    opp: t.opponent,
+    starter: t.startingPitcher?.name || null,
+    hand: t.startingPitcher?.hand || null,
+    arsenal: Boolean(t.startingPitcher?.arsenal?.available),
+    primaryFB: t.startingPitcher?.arsenal?.primaryFastball || null,
+    veloDelta: t.startingPitcher?.arsenal?.velocityDelta ?? null,
+    lineup: t.teamContext?.lineup?.length || 0,
+    bats: `L${t.teamContext?.lineupHandCounts?.L || 0}/R${t.teamContext?.lineupHandCounts?.R || 0}/S${t.teamContext?.lineupHandCounts?.S || 0}`
+  })));
 }
 
-main().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+main();
