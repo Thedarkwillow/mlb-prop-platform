@@ -252,6 +252,65 @@ if (!roi) {
 }
 
 console.log("");
+
+  // PRODUCTION_CLASS_ROI_MOBILE_SECTION_V1
+  (function printProductionClassRoiMobileSection() {
+    const fs = require("fs");
+    const file = "outputs/production-candidate-class-roi-latest.json";
+
+    function readJson(path, fallback) {
+      try {
+        return JSON.parse(fs.readFileSync(path, "utf8"));
+      } catch {
+        return fallback;
+      }
+    }
+
+    function pct(v) {
+      const n = Number(v);
+      if (!Number.isFinite(n)) return "n/a";
+      return `${(n * 100).toFixed(1)}%`;
+    }
+
+    function fmt(row) {
+      if (!row) return "total=0 graded=0 hitRate=n/a roiProxy=n/a";
+      const total = Number(row.total ?? 0);
+      const graded = Number(row.graded ?? 0);
+      const hits = Number(row.hits ?? 0);
+      const misses = Number(row.misses ?? 0);
+      const pushes = Number(row.pushes ?? 0);
+      const refunds = Number(row.refunds ?? 0);
+      const unmatched = Number(row.unmatched ?? 0);
+      const pending = Number(row.pending ?? 0);
+      const shadowUngraded = Number(row.shadowUngraded ?? row.shadow_ungraded ?? 0);
+      const hitRate = row.hitRate ?? (graded ? hits / graded : null);
+      const roiProxy = row.roiProxy ?? (graded ? (hits - misses) / graded : null);
+      const extra = shadowUngraded ? ` shadowUngraded=${shadowUngraded}` : "";
+      return `total=${total} graded=${graded} hits=${hits} misses=${misses} pushes=${pushes} refunds=${refunds} unmatched=${unmatched} pending=${pending}${extra} hitRate=${pct(hitRate)} roiProxy=${pct(roiProxy)}`;
+    }
+
+    const report = readJson(file, null);
+
+    console.log("");
+    console.log("PRODUCTION CLASS ROI");
+    console.log("--------------------");
+
+    if (!report) {
+      console.log("No production candidate ROI yet. Run: npm run grade:production-candidates -- YYYY-MM-DD");
+      return;
+    }
+
+    console.log(`date=${report.date || "latest"} | candidateRows=${report.candidateRows ?? "n/a"} | gradeRows=${report.gradeRows ?? "n/a"}`);
+
+    const rows = Array.isArray(report.byClass) ? report.byClass : [];
+    const byClass = new Map(rows.map(r => [String(r.bucket || "").toUpperCase(), r]));
+
+    for (const cls of ["CORE", "LEAN", "WATCHLIST", "RESEARCH", "BLOCKED", "SHADOW_BLOCKED"]) {
+      console.log(`${cls}: ${fmt(byClass.get(cls))}`);
+    }
+  })();
+
+
 console.log("VALIDATION SAMPLE WARNINGS");
 console.log("--------------------------");
 if (!validationRules) {
