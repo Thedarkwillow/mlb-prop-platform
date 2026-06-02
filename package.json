@@ -287,7 +287,9 @@
     "context:pitch-type:neutral-fallback": "node scripts/local/apply-neutral-pitch-type-fallback.cjs",
     "context:pitch-type:production": "npm run context:pitch-type:raw && npm run context:pitch-type:neutral-fallback && npm run context:pitch-type:reconcile",
     "context:pitch-type:raw": "node src/jobs/mergePitchTypeMatchupsIntoBoard.cjs",
-    "candidates:production": "node src/research/production-candidate-report.cjs"
+    "candidates:production": "node src/research/production-candidate-report.cjs",
+    "grade:production-candidates": "node scripts/local/grade-production-candidate-classes.cjs",
+    "roi:production-candidates": "node scripts/local/grade-production-candidate-classes.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
