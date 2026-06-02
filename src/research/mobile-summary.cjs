@@ -391,9 +391,10 @@ console.log("");
   if (nearMisses.length) {
     console.log("Top no-unlock near misses:");
     nearMisses.slice(0, 5).forEach((r, i) => {
-      const misses = Array.isArray(r.misses)
-        ? r.misses.join(",")
-        : String(r.misses || r.missReasons || r.reason || "");
+      const missList = r.nearMissReasons || r.misses || r.missReasons || [];
+      const misses = Array.isArray(missList)
+        ? missList.join(",")
+        : String(missList || r.reason || "");
       console.log(`${i + 1}. ${r.player || r.name || "unknown"} | ${r.team || "?"} | prob=${fmtNum(r.prob ?? r.recommendedProb)} | edge=${fmtNum(r.edge ?? r.expectedValue)} | books=${r.books ?? r.bookCount ?? "?"} | grade=${r.grade || "UNKNOWN"} | misses=${misses || "n/a"}`);
     });
   }
