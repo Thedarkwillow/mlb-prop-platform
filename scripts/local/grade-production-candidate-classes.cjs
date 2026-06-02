@@ -18,6 +18,7 @@ const CANDIDATE_FILES = [
 ];
 
 const GRADE_SOURCES = [
+  `outputs/history/${DATE}-production-hitter-boxscore-grades.json`,
   `outputs/history/${DATE}-full-board-graded.json`,
   `outputs/history/${DATE}-decision-layer-grades.json`,
   `outputs/playable-final-slips-graded-${DATE}.json`,
