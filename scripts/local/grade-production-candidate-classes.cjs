@@ -338,7 +338,10 @@ const graded = candidates.map(c => {
   const k = candidateKey(c);
   const lk = looseKey(c);
   const match = exact.get(k) || loose.get(lk) || null;
-  const result = match ? gradeFromActual(c, match) : "UNMATCHED";
+  const rawResult = match ? gradeFromActual(c, match) : "UNMATCHED";
+  const finalResult = resultNorm(rawResult);
+  const isFinal = ["HIT", "MISS", "PUSH", "REFUND", "VOID", "DNP"].includes(finalResult);
+  const isUnmatched = rawResult === "UNMATCHED" || !isFinal;
 
   return {
     date: DATE,
@@ -357,11 +360,13 @@ const graded = candidates.map(c => {
     grade: c.grade || null,
     sideBias: c.sideBias?.tier || c.sideBias || null,
     reasons: c.reasons || [],
-    result,
-    actual: match?.actual ?? match?.actualValue ?? match?.final ?? match?.value ?? null,
-    matched: !!match,
-    matchKey: match ? candidateKey(match) : null,
-    gradeSourceFile: match?.gradeSourceFile || null,
+    result: isUnmatched ? "UNMATCHED" : finalResult,
+    actual: isUnmatched ? null : (match?.actual ?? match?.actualValue ?? match?.final ?? match?.value ?? null),
+    matched: !isUnmatched,
+    unmatched: isUnmatched,
+    pending: false,
+    matchKey: !isUnmatched && match ? candidateKey(match) : null,
+    gradeSourceFile: !isUnmatched ? (match?.gradeSourceFile || null) : null,
     sourceCandidate: c
   };
 });
