@@ -128,6 +128,9 @@ function getBooks(row) {
 function getSupport(row) {
   return norm(row.support ?? row.marketSupportFlag ?? row.priceCoverageTier ?? "");
 }
+function isPhase8Unpriced(row) {
+  return row.source === "phase8_audit" || getSupport(row) === "PHASE8_UNPRICED";
+}
 
 function getGrade(row) {
   return upper(row.grade ?? row.qualityGrade ?? row.savantReportGrade ?? "");
@@ -537,6 +540,10 @@ function classify(row, lookups) {
     reasons.push("negative_side_bias");
     if (prob !== null && prob >= 0.65) reasons.push("high_probability_conflict");
     if (blocked?.reason) reasons.push(`blocked:${blocked.reason}`);
+    if (isPhase8Unpriced(row)) {
+      reasons.push("phase8_unpriced_shadow_blocked");
+      return { classification: "SHADOW_BLOCKED", reasons };
+    }
     return { classification: "BLOCKED", reasons };
   }
 
@@ -726,7 +733,8 @@ const classOrder = {
   WATCHLIST: 2,
   HIGH_PROBABILITY_WATCH: 3,
   RESEARCH: 4,
-  BLOCKED: 5
+  SHADOW_BLOCKED: 5,
+  BLOCKED: 6
 };
 
 classified.sort((a, b) =>
@@ -741,6 +749,7 @@ const byClass = {
   WATCHLIST: classified.filter(r => r.class === "WATCHLIST"),
   HIGH_PROBABILITY_WATCH: classified.filter(r => r.class === "HIGH_PROBABILITY_WATCH"),
   RESEARCH: classified.filter(r => r.class === "RESEARCH"),
+  SHADOW_BLOCKED: classified.filter(r => r.class === "SHADOW_BLOCKED"),
   BLOCKED: classified.filter(r => r.class === "BLOCKED")
 };
 
@@ -755,6 +764,7 @@ const report = {
     watchlist: byClass.WATCHLIST.length,
     highProbabilityWatch: byClass.HIGH_PROBABILITY_WATCH.length,
     research: byClass.RESEARCH.length,
+    shadowBlocked: byClass.SHADOW_BLOCKED.length,
     blocked: byClass.BLOCKED.length,
     playableOfficialSlips: Array.isArray(playable) ? playable.length : 0
   },
@@ -810,7 +820,7 @@ lines.push(`HIGH_PROBABILITY_WATCH: ${report.counts.highProbabilityWatch}`);
 lines.push(`RESEARCH: ${report.counts.research}`);
 lines.push(`BLOCKED: ${report.counts.blocked}`);
 lines.push("");
-for (const className of ["CORE", "LEAN", "WATCHLIST", "HIGH_PROBABILITY_WATCH", "RESEARCH", "BLOCKED"]) {
+for (const className of ["CORE", "LEAN", "WATCHLIST", "HIGH_PROBABILITY_WATCH", "RESEARCH", "SHADOW_BLOCKED", "BLOCKED"]) {
   lines.push(className);
   lines.push("-".repeat(className.length));
   const rows = byClass[className].slice(0, 25);
