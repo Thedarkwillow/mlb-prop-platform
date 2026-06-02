@@ -3,6 +3,31 @@ const fs = require("fs");
 const BOARD = "outputs/priced-board.json";
 const OUT_DIR = "outputs/context";
 const STRICT = process.env.STRICT_CONTEXT_GUARD === "1";
+const COVERAGE_MODE = String(process.env.CONTEXT_COVERAGE_MODE || process.env.COVERAGE_MODE || "auto").toLowerCase();
+
+function modeDefault(name) {
+  const table = {
+    auto: {
+      pitchTypeRealMin: 0.85,
+      pitchTypeUnscoredMax: 0.02,
+      handednessMin: 0.80,
+      contextAdjustedMin: 0.70
+    },
+    strict: {
+      pitchTypeRealMin: 0.90,
+      pitchTypeUnscoredMax: 0.02,
+      handednessMin: 0.85,
+      contextAdjustedMin: 0.75
+    },
+    relaxed: {
+      pitchTypeRealMin: 0.75,
+      pitchTypeUnscoredMax: 0.05,
+      handednessMin: 0.70,
+      contextAdjustedMin: 0.60
+    }
+  };
+  return table[COVERAGE_MODE]?.[name] ?? table.auto[name];
+}
 
 function readJson(file, fallback) {
   try {
@@ -191,10 +216,10 @@ function main() {
   };
 
   const thresholds = {
-    pitchTypeRealMin: Number(process.env.MIN_REAL_PITCH_TYPE || 0.90),
-    pitchTypeUnscoredMax: Number(process.env.MAX_UNSCORED_PITCH_TYPE || 0.02),
-    handednessMin: Number(process.env.MIN_HANDEDNESS || 0.80),
-    contextAdjustedMin: Number(process.env.MIN_CONTEXT_ADJUSTED || 0.70)
+    pitchTypeRealMin: Number(process.env.MIN_REAL_PITCH_TYPE || modeDefault("pitchTypeRealMin")),
+    pitchTypeUnscoredMax: Number(process.env.MAX_UNSCORED_PITCH_TYPE || modeDefault("pitchTypeUnscoredMax")),
+    handednessMin: Number(process.env.MIN_HANDEDNESS || modeDefault("handednessMin")),
+    contextAdjustedMin: Number(process.env.MIN_CONTEXT_ADJUSTED || modeDefault("contextAdjustedMin"))
   };
 
   const checks = [
