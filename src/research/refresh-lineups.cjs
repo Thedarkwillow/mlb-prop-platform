@@ -1,7 +1,21 @@
 const fs = require("fs");
 const path = require("path");
 
-const DATE = process.argv[2] || process.env.npm_config_date || new Date().toISOString().slice(0, 10);
+function todayPtDate() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(new Date());
+}
+
+const DATE =
+  process.env.SLATE_DATE ||
+  process.env.npm_config_date ||
+  process.argv[2] ||
+  todayPtDate();
+
 const BASE = "https://statsapi.mlb.com/api/v1";
 const LIVE_BASE = "https://statsapi.mlb.com/api/v1.1";
 
