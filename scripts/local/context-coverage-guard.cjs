@@ -118,13 +118,12 @@ function main() {
     const hasPitcher =
       !!(row.pitchTypeOpponentPitcher || row.opponentPitcher || row.handednessContext?.opposingPitcher);
 
-    const touchedByPitchType =
-      row.pitchTypeMatchupAvailable === true ||
-      row.pitchTypeMatchupScored === true ||
-      row.pitchTypeMatchupReady === true ||
-      Array.isArray(row.pitchTypeMatchupFlags);
+    // Clean production denominator:
+    // Count only rows pitch-type actually scored. Rows merely marked available/ready
+    // are board alternates or unpriced/research rows and should not drag down coverage.
+    const scoredByPitchType = row.pitchTypeMatchupScored === true;
 
-    return hasPitcher && touchedByPitchType;
+    return hasPitcher && scoredByPitchType;
   });
 
   const realPitchRows = cleanPitchRows.filter(row =>
