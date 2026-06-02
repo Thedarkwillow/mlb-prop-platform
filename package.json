@@ -299,7 +299,8 @@
     "context:coverage:relaxed": "CONTEXT_COVERAGE_MODE=relaxed node scripts/local/context-coverage-guard.cjs",
     "audit:bases-more-half": "node scripts/local/bases-more-half-controlled-audit.cjs",
     "report:hrr": "node scripts/local/hrr-side-line-report.cjs",
-    "grade:manual": "node scripts/local/grade-manual-lean-watchlist.cjs"
+    "grade:manual": "node scripts/local/grade-manual-lean-watchlist.cjs",
+    "report:fantasy-side": "node scripts/local/fantasy-side-repair-report.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
