@@ -308,6 +308,97 @@ async function fillOpposingPitcherHand(row, cache) {
 }
 
 
+
+function compactHandednessSplit(split = null) {
+  if (!split || typeof split !== "object") return null;
+
+  return {
+    pa: split.pa ?? split.PA ?? null,
+    pitches: split.pitches ?? null,
+    avg: split.avg ?? split.ba ?? split.xba ?? null,
+    xba: split.xba ?? null,
+    xwoba: split.xwoba ?? null,
+    xslg: split.xslg ?? null,
+    kRate: split.kRate ?? split.k_rate ?? null,
+    bbRate: split.bbRate ?? split.bb_rate ?? null,
+    whiffRate: split.whiffRate ?? null,
+    hardHitRate: split.hardHitRate ?? null,
+    barrelRate: split.barrelRate ?? null,
+    quality: split.quality ?? null
+  };
+}
+
+function pickHandSplitFromContext(handednessContext, pitcherHand) {
+  if (!handednessContext || !pitcherHand) return null;
+
+  const h = String(pitcherHand).toUpperCase()[0];
+
+  const candidates = h === "L"
+    ? [
+        handednessContext.vsLHP,
+        handednessContext.vsLhp,
+        handednessContext.vsLeft,
+        handednessContext.vsLHB,
+        handednessContext.left,
+        handednessContext.L
+      ]
+    : [
+        handednessContext.vsRHP,
+        handednessContext.vsRhp,
+        handednessContext.vsRight,
+        handednessContext.vsRHB,
+        handednessContext.right,
+        handednessContext.R
+      ];
+
+  return candidates.find(x => x && typeof x === "object") || null;
+}
+
+function buildGeneralHandProfile(row) {
+  const hand = row.opposingPitcherHand || row.currentPitcherHand || "";
+  const ctx = row.boardHandednessContext || row.handednessContext || null;
+
+  const split = pickHandSplitFromContext(ctx, hand);
+
+  if (!split) {
+    return {
+      available: false,
+      reason: hand ? "missing_board_handedness_split" : "missing_current_pitcher_hand",
+      hand: hand || null
+    };
+  }
+
+  const compact = compactHandednessSplit(split);
+  const pa = Number(compact?.pa || 0);
+
+  return {
+    available: true,
+    source: "priced_board_handednessContext",
+    hand: String(hand).toUpperCase()[0],
+    splitKey: String(hand).toUpperCase()[0] === "L" ? "vsLHP" : "vsRHP",
+    enoughSample: pa >= 25,
+    ...compact
+  };
+}
+
+function fmtProfile(profile) {
+  if (!profile) return "n/a";
+  if (!profile.available) return profile.reason || "n/a";
+
+  return [
+    `HandProfile(${profile.hand})`,
+    `pa=${profile.pa ?? "n/a"}`,
+    `xba=${profile.xba ?? profile.avg ?? "n/a"}`,
+    `xwoba=${profile.xwoba ?? "n/a"}`,
+    `xslg=${profile.xslg ?? "n/a"}`,
+    `k%=${profile.kRate ?? "n/a"}`,
+    `bb%=${profile.bbRate ?? "n/a"}`,
+    `quality=${profile.quality ?? "n/a"}`,
+    `sample=${profile.enoughSample ? "OK" : "LIGHT"}`
+  ].join(" ");
+}
+
+
 function enrichTargetFromBoard(row, boardMatch) {
   if (!boardMatch) return { ...row, boardMatchFound: false };
 
@@ -341,7 +432,10 @@ function enrichTargetFromBoard(row, boardMatch) {
     boardSourceType: boardMatch.sourceType || "",
     boardResolvedGame: boardMatch.resolvedGame || boardMatch.game || "",
     boardPitchTypeOpponentPitcher: boardMatch.pitchTypeOpponentPitcher || "",
-    boardPitchTypeOpponentPitcherHand: boardMatch.pitchTypeOpponentPitcherHand || ""
+    boardPitchTypeOpponentPitcherHand: boardMatch.pitchTypeOpponentPitcherHand || "",
+    boardHandednessContext: boardMatch.handednessContext || null,
+    boardHandednessMatchType: boardMatch.handednessMatchType || "",
+    boardHandednessReady: boardMatch.handednessReady ?? null
   };
 }
 
@@ -911,6 +1005,8 @@ function buildLine(r) {
     `Season=${pct(r.externalSeason?.hitRate)} avg=${val(r.externalSeason?.average)} n=${r.externalSeason?.graded ?? 0}`,
     `HA(${val(r.currentHomeAway)})=${pct(r.externalHomeAway?.hitRate)} n=${r.externalHomeAway?.graded ?? 0}`,
     `Hand(${val(r.currentPitcherHand)})=${pct(r.externalPitcherHand?.hitRate)} n=${r.externalPitcherHand?.graded ?? 0}`,
+    fmtProfile(r.externalGeneralHandProfile),
+    `HandSignal=${r.externalHandSignalUsed || "none"}`,
     `vsP=${r.externalVsPitcher?.available ? `${r.externalVsPitcher.pitcherName}: PA=${r.externalVsPitcher.plateAppearances} val=${r.externalVsPitcher.value} clear=${r.externalVsPitcher.clear}` : val(r.externalVsPitcher?.reason)}`,
     r.pickfinderFound
       ? `PF L10=${val(r.pickfinderL10)} Season=${val(r.pickfinderSeason)} vsP=${val(r.pickfinderVsPitcher)}`
@@ -991,6 +1087,10 @@ async function main() {
       const homeAwayGames = splitGamesByHomeAway(games, currentHomeAway);
       const pitcherHandGames = splitGamesByPitcherHand(games, currentPitcherHand);
       const vsPitcher = await calcVsPitcherHistory(row, playerInfo, currentOpposingPitcherName, games);
+      const generalHandProfile = buildGeneralHandProfile({
+        ...row,
+        currentPitcherHand
+      });
 
       const form = {
         l5: summarizeGames(games.slice(0, 5), row.side, row.line),
@@ -1023,6 +1123,10 @@ async function main() {
         externalSeason: form.season,
         externalHomeAway: form.homeAway,
         externalPitcherHand: form.pitcherHand,
+        externalGeneralHandProfile: generalHandProfile,
+        externalHandSignalUsed: (form.pitcherHand?.graded || 0) >= 5
+          ? "game_log_hand_split"
+          : (generalHandProfile?.available ? "general_handedness_profile" : "none"),
         externalVsPitcher: vsPitcher,
         externalRecentGames: form.recentGames,
         ...grade
@@ -1084,6 +1188,7 @@ async function main() {
     "- This does not use internal graded prop history.",
     "- PF fields appear only if PickFinder data is already present.",
     "- V2 adds home/away split, historical opponent starter hand split, and best-effort vs-pitcher history when current opposing pitcher is known.",
+    "- V3 adds general hitter vs pitcher-hand profile from priced-board/Savant handedness context when line-specific hand split has too little sample.",
     ""
   ].join("\n");
 
