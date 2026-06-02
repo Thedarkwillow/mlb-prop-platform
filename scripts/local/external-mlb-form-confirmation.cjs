@@ -108,6 +108,44 @@ function isPitcherMarket(market) {
   ].includes(marketNorm(market));
 }
 
+function isPitcherPlayerInfo(playerInfo) {
+  const pos = String(
+    playerInfo?.primaryPosition ||
+    playerInfo?.position ||
+    playerInfo?.mlbPrimaryPosition ||
+    ""
+  ).toUpperCase();
+  return pos === "P" || pos.includes("PITCH");
+}
+
+function pitcherAwareMarket(market, playerInfo = null, row = {}) {
+  const m = marketNorm(market);
+  const rowText = [
+    row.playerType,
+    row.position,
+    row.playerPosition,
+    row.sourceType,
+    row.recordSourceType,
+    row.market,
+    row.stat
+  ].map(x => String(x || "").toUpperCase()).join(" ");
+
+  const pitcherLike =
+    isPitcherPlayerInfo(playerInfo) ||
+    rowText.includes("PITCHER") ||
+    rowText.includes(" P ");
+
+  if (!pitcherLike) return m;
+
+  if (m === "hits") return "hits_allowed";
+  if (m === "runs") return "runs_allowed";
+  if (m === "walks") return "walks_allowed";
+  if (m === "fantasy_score") return "pitcher_fantasy_score";
+  if (m === "hitter_fantasy_score") return "pitcher_fantasy_score";
+
+  return m;
+}
+
 function statGroupForMarket(market) {
   return isPitcherMarket(market) ? "pitching" : "hitting";
 }
@@ -480,6 +518,12 @@ async function main() {
 
   for (const row of targets) {
     const playerInfo = await findPlayerId(row.player, cache);
+
+    if (playerInfo?.id) {
+      row.originalMarket = row.market;
+      row.market = pitcherAwareMarket(row.market, playerInfo, row);
+      row.marketNormalizedByPlayer = row.originalMarket !== row.market;
+    }
 
     if (!playerInfo?.id) {
       rows.push({
