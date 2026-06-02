@@ -13,7 +13,8 @@ const SOURCES = {
   shadowPromotion: "outputs/shadow-promotion-audit-latest.json",
   fantasyReadiness: "outputs/fantasy-readiness-report.json",
   fullBoardLearning: "data/learning/full-board-market-learning.json",
-  sportsbookBoard: "outputs/sportsbook-enriched-board.json"
+  sportsbookBoard: "outputs/sportsbook-enriched-board.json",
+  phase8Audit: "outputs/phase8-candidate-audit.json"
 };
 
 function detectSlateDate() {
@@ -295,6 +296,76 @@ function summarize(rows, fieldFn) {
     .sort((a, b) => b.count - a.count || String(a.bucket).localeCompare(String(b.bucket)));
 }
 
+function asArray(v) {
+  if (Array.isArray(v)) return v;
+  if (v && typeof v === "object") {
+    for (const k of ["candidates", "rows", "all"]) {
+      if (Array.isArray(v[k])) return v[k];
+    }
+  }
+  return [];
+}
+function isPhase8Importable(row) {
+  if (!row || typeof row !== "object") return false;
+  if (!row.player || !row.market || !row.side) return false;
+  if (row.line === undefined || row.line === null) return false;
+  if (row.comboProp === true || row.contextEligible === false) return false;
+  if (isLiveMicro(row)) return false;
+
+  const prob = getProb(row);
+  const edge = getEdge(row);
+  if (prob === null || edge === null) return false;
+  if (prob < 0.50 || edge <= 0) return false;
+
+  const market = lower(row.market);
+  const side = upper(row.side);
+
+  // Keep fantasy and HRR available for research classification, but do not let
+  // raw Phase 8 flood very noisy unsupported markets.
+  const allowedMarkets = new Set([
+    "bases",
+    "hits",
+    "hrr",
+    "runs",
+    "rbis",
+    "singles",
+    "doubles",
+    "walks",
+    "stolen_bases",
+    "hitter_fantasy_score",
+    "strikeouts",
+    "pitching_outs",
+    "pitches_thrown",
+    "hits_allowed",
+    "earned_runs_allowed",
+    "walks_allowed"
+  ]);
+  if (!allowedMarkets.has(market)) return false;
+
+  // Goblins/demons remain MORE-only by platform rule.
+  const tier = getTier(row);
+  if ((tier === "goblin" || tier === "demon") && side !== "MORE") return false;
+
+  return true;
+}
+function normalizePhase8Row(row) {
+  return {
+    ...row,
+    source: row.source || "PHASE8_CANDIDATE_AUDIT",
+    phase8Imported: true,
+    prob: getProb(row),
+    edge: getEdge(row),
+    support: row.support || row.marketSupportFlag || "PHASE8_UNPRICED",
+    grade: row.grade || row.qualityGrade || row.savantReportGrade || "UNKNOWN",
+    books: getBooks(row),
+    reason: row.reason || row.phase8Status || null,
+    phase8Status: row.phase8Status || null,
+    phase8Problems: Array.isArray(row.phase8Problems) ? row.phase8Problems : [],
+    preferredSignals: Array.isArray(row.preferredSignals) ? row.preferredSignals : [],
+    avoidSignals: Array.isArray(row.avoidSignals) ? row.avoidSignals : []
+  };
+}
+
 function cleanRow(row, classification, reasons, fullBoardByMarketSide) {
   const sideBias = getSideBias(row, fullBoardByMarketSide);
   const stakeGuidance =
@@ -339,7 +410,12 @@ function cleanRow(row, classification, reasons, fullBoardByMarketSide) {
     source: row.source ?? row.sourceFile ?? null,
     leanStatus: row.leanStatus ?? null,
     leanNotes: row.leanNotes ?? null,
-    blockedReason: row.reason ?? row.disabledReason ?? null
+    blockedReason: row.reason ?? row.disabledReason ?? null,
+    phase8Imported: row.phase8Imported === true,
+    phase8Status: row.phase8Status ?? null,
+    phase8Problems: Array.isArray(row.phase8Problems) ? row.phase8Problems : [],
+    preferredSignals: Array.isArray(row.preferredSignals) ? row.preferredSignals : [],
+    avoidSignals: Array.isArray(row.avoidSignals) ? row.avoidSignals : []
   };
 }
 
@@ -545,6 +621,7 @@ const enriched = readJson(SOURCES.enriched, []);
 const leanReport = readJson(SOURCES.leans, {});
 const blockedRaw = readJson(SOURCES.blocked, []);
 const sportsbookBoard = readJson(SOURCES.sportsbookBoard, []);
+const phase8Audit = readJson(SOURCES.phase8Audit, {});
 const playable = readJson(SOURCES.playable, []);
 const shadowPromotion = readJson(SOURCES.shadowPromotion, {});
 const fantasyReadiness = readJson(SOURCES.fantasyReadiness, {});
@@ -577,6 +654,22 @@ for (const row of Array.isArray(blockedRaw) ? blockedRaw : []) {
   if (!seen.has(k)) {
     seen.add(k);
     baseRows.push(row);
+  }
+}
+const phase8Rows = asArray(phase8Audit)
+  .filter(isPhase8Importable)
+  .sort((a, b) =>
+    (getProb(b) ?? -999) - (getProb(a) ?? -999) ||
+    (getEdge(b) ?? -999) - (getEdge(a) ?? -999)
+  )
+  .slice(0, 150);
+
+for (const row of phase8Rows) {
+  const normalized = normalizePhase8Row(row);
+  const k = key(normalized);
+  if (!seen.has(k)) {
+    seen.add(k);
+    baseRows.push(normalized);
   }
 }
 
@@ -653,6 +746,14 @@ const report = {
     research: byClass.RESEARCH.length,
     blocked: byClass.BLOCKED.length,
     playableOfficialSlips: Array.isArray(playable) ? playable.length : 0
+  },
+  sourceCounts: {
+    enriched: Array.isArray(enriched) ? enriched.length : 0,
+    leans: leans.length,
+    blocked: Array.isArray(blockedRaw) ? blockedRaw.length : 0,
+    sportsbookBoard: Array.isArray(sportsbookBoard) ? sportsbookBoard.length : 0,
+    phase8Raw: asArray(phase8Audit).length,
+    phase8Imported: phase8Rows.length
   },
   summaries: {
     byClass: summarize(classified, r => r.class),
