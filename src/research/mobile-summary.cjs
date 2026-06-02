@@ -313,6 +313,85 @@ console.log("");
   })();
 
 
+// BASES_MORE_HALF_CONTROLLED_AUDIT_MOBILE_SECTION_V1
+(function printBasesMoreHalfControlledAuditSection() {
+  const fs = require("fs");
+  const file = "outputs/bases-more-half-controlled-audit-latest.json";
+
+  function readJson(path, fallback) {
+    try {
+      if (!fs.existsSync(path)) return fallback;
+      return JSON.parse(fs.readFileSync(path, "utf8"));
+    } catch {
+      return fallback;
+    }
+  }
+
+  function pct(v) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return "n/a";
+    return `${(n * 100).toFixed(2)}%`;
+  }
+
+  function fmtNum(v) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return "n/a";
+    return n.toFixed(4);
+  }
+
+  function rows(v) {
+    if (!v) return [];
+    if (Array.isArray(v)) return v;
+    if (Array.isArray(v.rows)) return v.rows;
+    if (Array.isArray(v.candidates)) return v.candidates;
+    return [];
+  }
+
+  const report = readJson(file, null);
+  if (!report) return;
+
+  const controlled =
+    rows(report.controlledUnlockAudit) ||
+    rows(report.controlledUnlocks) ||
+    [];
+
+  const nearMisses =
+    rows(report.topNoUnlockNearMisses) ||
+    rows(report.nearMisses) ||
+    [];
+
+  const total = Number(report.total ?? report.summary?.total ?? 0);
+  const controlledCount = Number(
+    report.controlledUnlockAuditCount ??
+    report.summary?.controlledUnlockAudit ??
+    controlled.length
+  );
+
+  console.log("");
+  console.log("BASES MORE 0.5 CONTROLLED AUDIT");
+  console.log("--------------------------------");
+  console.log(`date=${report.date || report.slateDate || "unknown"} | total=${total || "n/a"} | controlledUnlockAudit=${controlledCount}`);
+
+  if (controlled.length) {
+    console.log("Controlled unlock audit:");
+    controlled.slice(0, 5).forEach((r, i) => {
+      console.log(`${i + 1}. ${r.player || r.name || "unknown"} | ${r.team || "?"} | bases MORE 0.5 | ${r.oddsTier || r.tier || "standard"} | prob=${pct(r.prob ?? r.recommendedProb)} | edge=${fmtNum(r.edge ?? r.expectedValue)} | books=${r.books ?? r.bookCount ?? "?"} | grade=${r.grade || "UNKNOWN"}`);
+    });
+  } else {
+    console.log("Controlled unlock audit: none");
+  }
+
+  if (nearMisses.length) {
+    console.log("Top no-unlock near misses:");
+    nearMisses.slice(0, 5).forEach((r, i) => {
+      const misses = Array.isArray(r.misses)
+        ? r.misses.join(",")
+        : String(r.misses || r.missReasons || r.reason || "");
+      console.log(`${i + 1}. ${r.player || r.name || "unknown"} | ${r.team || "?"} | prob=${fmtNum(r.prob ?? r.recommendedProb)} | edge=${fmtNum(r.edge ?? r.expectedValue)} | books=${r.books ?? r.bookCount ?? "?"} | grade=${r.grade || "UNKNOWN"} | misses=${misses || "n/a"}`);
+    });
+  }
+})();
+
 console.log("VALIDATION SAMPLE WARNINGS");
 console.log("--------------------------");
 if (!validationRules) {
