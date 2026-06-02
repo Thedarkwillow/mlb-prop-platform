@@ -297,7 +297,9 @@
     "context:coverage:auto": "CONTEXT_COVERAGE_MODE=auto node scripts/local/context-coverage-guard.cjs",
     "context:coverage:strict": "CONTEXT_COVERAGE_MODE=strict STRICT_CONTEXT_GUARD=1 node scripts/local/context-coverage-guard.cjs",
     "context:coverage:relaxed": "CONTEXT_COVERAGE_MODE=relaxed node scripts/local/context-coverage-guard.cjs",
-    "audit:bases-more-half": "node scripts/local/bases-more-half-controlled-audit.cjs"
+    "audit:bases-more-half": "node scripts/local/bases-more-half-controlled-audit.cjs",
+    "report:hrr": "node scripts/local/hrr-side-line-report.cjs",
+    "grade:manual": "node scripts/local/grade-manual-lean-watchlist.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
