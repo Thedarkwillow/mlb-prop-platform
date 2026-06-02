@@ -229,6 +229,52 @@ function isShadowUngradedCandidate(c) {
   );
 }
 
+function rawResultText(row) {
+  return String(
+    row?.result ??
+    row?.gradeResult ??
+    row?.outcome ??
+    row?.status ??
+    row?.hitMiss ??
+    ""
+  ).toUpperCase().trim();
+}
+
+function hasActualValue(row) {
+  return num(
+    row?.actual ??
+    row?.actualValue ??
+    row?.final ??
+    row?.value ??
+    row?.statValue,
+    null
+  ) !== null;
+}
+
+function gradeSourceScore(row) {
+  const r = rawResultText(row);
+  const normalized = resultNorm(r);
+
+  // Best: finished explicit grade.
+  if (["HIT", "MISS", "PUSH", "REFUND", "VOID", "DNP"].includes(normalized)) return 100;
+
+  // Good: has actual/stat value, so gradeFromActual can calculate it.
+  if (hasActualValue(row)) return 80;
+
+  // Bad placeholders should not block better matches later.
+  if (["UNMATCHED", "NO_MATCH", "PENDING", "UNGRADED", "UNKNOWN", ""].includes(r)) return 0;
+
+  return 10;
+}
+
+function putBestMatch(map, key, row) {
+  if (!key) return;
+  const existing = map.get(key);
+  if (!existing || gradeSourceScore(row) > gradeSourceScore(existing)) {
+    map.set(key, row);
+  }
+}
+
 function gradeFromActual(candidate, graded) {
   const existing = resultNorm(
     graded.result ??
@@ -346,8 +392,10 @@ const loose = new Map();
 for (const row of gradeRows) {
   const k = candidateKey(row);
   const lk = looseKey(row);
-  if (!exact.has(k)) exact.set(k, row);
-  if (!loose.has(lk)) loose.set(lk, row);
+
+  // Prefer real final/actual grade rows over placeholder UNMATCHED/PENDING rows.
+  putBestMatch(exact, k, row);
+  putBestMatch(loose, lk, row);
 }
 
 const graded = candidates.map(c => {
