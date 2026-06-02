@@ -17,6 +17,43 @@ const SOURCES = {
   phase8Audit: "outputs/phase8-candidate-audit.json"
 };
 
+
+function isControlledHrrLessCandidate(c) {
+  const market = String(c.market || c.stat || "").toLowerCase().trim();
+  const side = String(c.side || c.pick || c.recommendedSide || "").toUpperCase().trim();
+  const tier = String(c.oddsTier || c.tier || "standard").toLowerCase().trim();
+  const line = Number(c.line ?? c.ppLine ?? c.prizepicksLine);
+
+  if (market !== "hrr" && market !== "hits+runs+rbis" && market !== "hits runs rbis") return false;
+  if (side !== "LESS" && side !== "UNDER") return false;
+
+  // PrizePicks special-tier rule: goblin/demon LESS is not playable.
+  if (tier === "goblin" || tier === "demon") return false;
+
+  // Controlled promotion only for validated HRR LESS line buckets.
+  if (![2.5, 3.5, 4.5].includes(line)) return false;
+
+  return true;
+}
+
+function controlledHrrLessReasons(c) {
+  const misses = [];
+  const prob = Number(c.prob ?? c.recommendedProb ?? c.pickProb ?? c.adjustedProb ?? c.winProb ?? c.probability);
+  const edge = Number(c.edge ?? c.expectedValue ?? c.ev ?? c.trueEV ?? c.trueEv ?? c.modelEdge);
+  const books = Number(c.books ?? c.bookCount ?? c.supportingBooks ?? c.marketBooks ?? c.vegasBooks ?? 0);
+  const grade = String(c.grade || c.marketGrade || c.vegasGrade || "UNKNOWN").toUpperCase();
+  const sideBias = String(c.sideBias?.tier || c.sideBias || c.sideBiasTier || "").toUpperCase();
+
+  if (!Number.isFinite(prob) || prob < 0.63) misses.push("hrr_less_prob_below_63");
+  if (!Number.isFinite(edge) || edge <= 0) misses.push("hrr_less_edge_not_positive");
+  if (!Number.isFinite(books) || books < 2) misses.push("hrr_less_books_below_2");
+  if (!["GREEN", "NEUTRAL", "UNKNOWN"].includes(grade)) misses.push(`hrr_less_grade_${grade.toLowerCase()}`);
+  if (grade === "UNKNOWN" && books < 3) misses.push("hrr_less_unknown_grade_needs_3_books");
+  if (sideBias.includes("NEGATIVE")) misses.push("hrr_less_negative_side_bias");
+
+  return misses;
+}
+
 function detectSlateDate() {
   const explicit =
     process.env.SLATE_DATE ||
@@ -742,6 +779,38 @@ classified.sort((a, b) =>
   (b.prob ?? -999) - (a.prob ?? -999) ||
   (b.edge ?? -999) - (a.edge ?? -999)
 );
+
+
+// CONTROLLED_HRR_LESS_CLASSIFIED_OVERLAY_V1
+if (Array.isArray(classified)) {
+  for (const c of classified) {
+    if (!isControlledHrrLessCandidate(c)) continue;
+
+    const misses = controlledHrrLessReasons(c);
+    const existingReasons = Array.isArray(c.reasons) ? c.reasons : [];
+    c.reasons = existingReasons.filter(r => String(r) !== "hrr_tracking_only_until_controlled_thresholds_clear");
+
+    c.hrrLessControlledCandidate = true;
+    c.officialEligible = false;
+
+    if (misses.length === 0) {
+      c.class = "LEAN";
+      c.classification = "LEAN";
+      c.candidateClass = "LEAN";
+      c.stake = "controlled lean / track 0.25u max";
+      c.reasons.push("controlled_hrr_less_lean_unlock");
+      c.reasons.push("not_official_until_multi_slate_validation");
+    } else {
+      const currentClass = c.class || c.classification || "WATCHLIST";
+      c.class = currentClass === "RESEARCH" ? "WATCHLIST" : currentClass;
+      c.classification = c.class;
+      c.candidateClass = c.class;
+      c.stake = c.stake || "track only / wait for stronger confirmation";
+      c.reasons.push("controlled_hrr_less_watch");
+      c.reasons.push(...misses);
+    }
+  }
+}
 
 const byClass = {
   CORE: classified.filter(r => r.class === "CORE"),
