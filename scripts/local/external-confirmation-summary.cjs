@@ -12,10 +12,13 @@ const DATE =
     day: "2-digit"
   }).format(new Date());
 
-const FILES = [
-  `outputs/external-confirmation/external-mlb-form-confirmation-${DATE}.json`,
-  "outputs/external-confirmation/external-mlb-form-confirmation-latest.json"
-];
+const explicitDateArg = !!(process.argv[2] || process.env.SLATE_DATE || process.env.npm_config_date);
+const FILES = explicitDateArg
+  ? [`outputs/external-confirmation/external-mlb-form-confirmation-${DATE}.json`]
+  : [
+      `outputs/external-confirmation/external-mlb-form-confirmation-${DATE}.json`,
+      "outputs/external-confirmation/external-mlb-form-confirmation-latest.json"
+    ];
 
 function readJson(file, fallback = null) {
   try { return JSON.parse(fs.readFileSync(file, "utf8")); }
