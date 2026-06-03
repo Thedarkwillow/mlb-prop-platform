@@ -2,6 +2,19 @@ const fs = require("fs");
 
 const DATE = process.argv[2] || process.env.npm_config_date || new Date().toISOString().slice(0, 10);
 
+
+function visibleProductionCount(rows) {
+  return Array.isArray(rows) ? rows.length : 0;
+}
+
+function productionCountFromReport(report, keys) {
+  if (!report || typeof report !== "object") return 0;
+  for (const key of keys) {
+    if (Array.isArray(report[key])) return report[key].length;
+  }
+  return 0;
+}
+
 function read(path, fallback) {
   try {
     if (!fs.existsSync(path)) return fallback;
@@ -189,7 +202,14 @@ const productionRows = Array.isArray(productionCandidates?.all) ? productionCand
 const productionCounts = productionCandidates?.counts || null;
 
 if (productionCounts) {
-  console.log(`CORE=${productionCounts.core ?? 0} | LEAN=${productionCounts.lean ?? 0} | WATCHLIST=${productionCounts.watchlist ?? 0} | RESEARCH=${productionCounts.research ?? 0} | BLOCKED=${productionCounts.blocked ?? 0} | SHADOW_BLOCKED=${productionCounts.shadowBlocked ?? 0}`);
+  const productionCoreCount = productionCountFromReport(production, ["core", "CORE"]);
+const productionLeanCount = productionCountFromReport(production, ["lean", "LEAN"]);
+const productionWatchlistCount = productionCountFromReport(production, ["watchlist", "WATCHLIST"]);
+const productionResearchCount = productionCountFromReport(production, ["research", "RESEARCH"]);
+const productionBlockedCount = productionCountFromReport(production, ["blocked", "BLOCKED"]);
+const productionShadowBlockedCount = productionCountFromReport(production, ["shadowBlocked", "shadow_blocked", "SHADOW_BLOCKED"]);
+
+console.log(`CORE=${productionCoreCount} | LEAN=${productionLeanCount} | WATCHLIST=${productionWatchlistCount} | RESEARCH=${productionResearchCount} | BLOCKED=${productionBlockedCount} | SHADOW_BLOCKED=${productionShadowBlockedCount}`);
 }
 
 if (!productionRows.length) {
