@@ -150,7 +150,8 @@ console.log(`Distribution coverage: ${coverage.coverage ?? coverage.overallCover
 console.log("");
 console.log("BEST VALIDATED SLIP");
 console.log("-------------------");
-if (!Array.isArray(playableSlips) || playableSlips.filter(hasCompletePlayableSlip).length === 0) {
+const playableForBestSlipGuard = readJson("outputs/playable-final-slips.json", []);
+if (!Array.isArray(playableForBestSlipGuard) || playableForBestSlipGuard.filter(hasCompletePlayableSlip).length === 0) {
   console.log("none");
   console.log("Reason: no complete playable slips cleared official filters.");
 } else
