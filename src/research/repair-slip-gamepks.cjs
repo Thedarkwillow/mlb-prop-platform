@@ -25,11 +25,48 @@ function parseGame(g) {
   return { away:a, home:b };
 }
 
-async function getJson(url) {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`${r.status} ${url}`);
-  return r.json();
+
+async function fetchWithRetry(url) {
+  const headers = {
+    "Accept": "application/json,text/plain,*/*",
+    "User-Agent": "Mozilla/5.0 MLBPropPlatform/1.0",
+    "Origin": "https://www.mlb.com",
+    "Referer": "https://www.mlb.com/"
+  };
+
+  const urls = [url];
+
+  // MLB Stats API sometimes rejects hydrate=team with 406.
+  if (url.includes("/schedule?") && url.includes("hydrate=team")) {
+    urls.push(url.replace(/([?&])hydrate=team(&?)/, (m, p1, p2) => p2 ? p1 : ""));
+  }
+
+  // Clean accidental trailing ? or &.
+  for (let i = 0; i < urls.length; i++) {
+    urls[i] = urls[i].replace(/[?&]$/, "");
+  }
+
+  let lastErr = null;
+
+  for (const u of [...new Set(urls)]) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const r = await fetch(u, { headers });
+
+      if (r.ok) return await r.json();
+
+      const text = await r.text().catch(() => "");
+      lastErr = new Error(`${r.status} ${r.statusText || ""}: ${u} ${text.slice(0, 200)}`.trim());
+
+      if (![403, 406, 429, 500, 502, 503, 504].includes(r.status)) break;
+
+      await new Promise(resolve => setTimeout(resolve, 350 * attempt));
+    }
+  }
+
+  throw lastErr || new Error(`Fetch failed: ${url}`);
 }
+
+async function getJson(url) { return fetchWithRetry(url); }
 
 (async () => {
   const raw = JSON.parse(fs.readFileSync(IN, "utf8"));

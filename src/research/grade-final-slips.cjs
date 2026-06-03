@@ -28,48 +28,48 @@ function result(actual, side, line) {
   return "UNKNOWN";
 }
 
-async function fetchJson(url) {
-  const variants = [
-    url,
-    url.includes("/api/v1.1/game/") ? url.replace("/api/v1.1/game/", "/api/v1/game/") : null,
-    url.includes("/feed/live") && !url.includes("?") ? `${url}?language=en` : null,
-    url.includes("/api/v1.1/game/") && url.includes("/feed/live") && !url.includes("?")
-      ? `${url.replace("/api/v1.1/game/", "/api/v1/game/")}?language=en`
-      : null
-  ].filter(Boolean);
+
+async function fetchWithRetry(url) {
+  const headers = {
+    "Accept": "application/json,text/plain,*/*",
+    "User-Agent": "Mozilla/5.0 MLBPropPlatform/1.0",
+    "Origin": "https://www.mlb.com",
+    "Referer": "https://www.mlb.com/"
+  };
+
+  const urls = [url];
+
+  // MLB Stats API sometimes rejects hydrate=team with 406.
+  if (url.includes("/schedule?") && url.includes("hydrate=team")) {
+    urls.push(url.replace(/([?&])hydrate=team(&?)/, (m, p1, p2) => p2 ? p1 : ""));
+  }
+
+  // Clean accidental trailing ? or &.
+  for (let i = 0; i < urls.length; i++) {
+    urls[i] = urls[i].replace(/[?&]$/, "");
+  }
 
   let lastErr = null;
 
-  for (const candidate of [...new Set(variants)]) {
+  for (const u of [...new Set(urls)]) {
     for (let attempt = 1; attempt <= 3; attempt++) {
-      try {
-        const r = await fetch(candidate, {
-          headers: {
-            "Accept": "application/json,text/plain,*/*",
-            "User-Agent": "Mozilla/5.0 mlb-prop-platform"
-          }
-        });
+      const r = await fetch(u, { headers });
 
-        if (r.ok) return await r.json();
+      if (r.ok) return await r.json();
 
-        const text = await r.text().catch(() => "");
-        lastErr = new Error(`fetch failed ${r.status}: ${candidate}${text ? ` | ${text.slice(0, 120)}` : ""}`);
+      const text = await r.text().catch(() => "");
+      lastErr = new Error(`${r.status} ${r.statusText || ""}: ${u} ${text.slice(0, 200)}`.trim());
 
-        /*
-          406 from MLB Stats API is usually endpoint/content negotiation weirdness.
-          Do not waste retries on same candidate; try fallback URL variant.
-        */
-        if (r.status === 406 || r.status === 404) break;
-      } catch (err) {
-        lastErr = err;
-      }
+      if (![403, 406, 429, 500, 502, 503, 504].includes(r.status)) break;
 
-      await new Promise(resolve => setTimeout(resolve, 250 * attempt));
+      await new Promise(resolve => setTimeout(resolve, 350 * attempt));
     }
   }
 
-  throw lastErr || new Error(`fetch failed: ${url}`);
+  throw lastErr || new Error(`Fetch failed: ${url}`);
 }
+
+async function fetchJson(url) { return fetchWithRetry(url); }
 
 async function getSchedule(date) {
   return fetchJson(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}&hydrate=team`);
