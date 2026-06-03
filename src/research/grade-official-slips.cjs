@@ -81,35 +81,73 @@ function getLegs(payload) {
   throw new Error("Could not find legs in official slip file");
 }
 
-function actualForMarket(stats, market) {
-  const batting = stats?.batting || {};
+function normMarketName(market) {
+  return String(market || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function hasPitchingStats(stats) {
   const pitching = stats?.pitching || {};
+  return Object.keys(pitching).length > 0;
+}
+
+function normalizeOfficialMarketForStats(market, stats) {
+  const m = normMarketName(market);
+
+  if (!hasPitchingStats(stats)) return m;
+
+  // PrizePicks/board sometimes labels pitcher allowed props generically.
+  if (m === "hits") return "hits_allowed";
+  if (m === "runs") return "runs_allowed";
+  if (m === "walks") return "walks_allowed";
+  if (m === "earned_runs") return "earned_runs_allowed";
+
+  return m;
+}
+
+function actualForMarket(stats, market) {
+  market = normalizeOfficialMarketForStats(market, stats);
+
+  const batting = stats.batting || {};
+  const pitching = stats.pitching || {};
 
   if (market === "hits") return Number(batting.hits || 0);
 
   if (market === "bases" || market === "total_bases") {
-    return (
-      Number(batting.hits || 0) +
-      Number(batting.doubles || 0) +
-      2 * Number(batting.triples || 0) +
-      3 * Number(batting.homeRuns || 0)
-    );
+    const singles = Number(batting.hits || 0)
+      - Number(batting.doubles || 0)
+      - Number(batting.triples || 0)
+      - Number(batting.homeRuns || 0);
+    return singles
+      + 2 * Number(batting.doubles || 0)
+      + 3 * Number(batting.triples || 0)
+      + 4 * Number(batting.homeRuns || 0);
   }
 
   if (market === "runs") return Number(batting.runs || 0);
   if (market === "rbis" || market === "rbi") return Number(batting.rbi || 0);
+
   if (market === "hrr") {
     return Number(batting.hits || 0) + Number(batting.runs || 0) + Number(batting.rbi || 0);
   }
+
   if (market === "home_runs" || market === "hr") return Number(batting.homeRuns || 0);
+  if (market === "walks") return Number(batting.baseOnBalls || batting.walks || 0);
+  if (market === "hitter_strikeouts") return Number(batting.strikeOuts || 0);
 
   if (market === "strikeouts") return Number(pitching.strikeOuts || 0);
   if (market === "earned_runs_allowed") return Number(pitching.earnedRuns || 0);
+  if (market === "runs_allowed") return Number(pitching.runs || 0);
   if (market === "hits_allowed") return Number(pitching.hits || 0);
+  if (market === "walks_allowed") return Number(pitching.baseOnBalls || pitching.walks || 0);
 
   if (market === "pitching_outs") {
-    const ip = String(pitching.inningsPitched || "0");
-    const [whole, frac] = ip.split(".");
+    const outs = pitching.outs;
+    if (outs != null) return Number(outs);
+    const innings = String(pitching.inningsPitched || "0");
+    const [whole, frac] = innings.split(".");
     return Number(whole || 0) * 3 + Number(frac || 0);
   }
 
@@ -140,7 +178,13 @@ async function buildPlayerIndex() {
       const home = g.teams.home.team.abbreviation;
       const game = `${away} @ ${home}`;
 
-      const box = await fetchJson(`https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore`);
+      let box = null;
+    try {
+      box = await fetchJson(`https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore`);
+    } catch (err) {
+      console.warn(`Skipping unavailable boxscore ${game.gamePk || gamePk}: ${err.message}`);
+      continue;
+    }
 
       for (const side of ["away", "home"]) {
         const players = box.teams?.[side]?.players || {};
