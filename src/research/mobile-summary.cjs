@@ -202,12 +202,13 @@ const productionRows = Array.isArray(productionCandidates?.all) ? productionCand
 const productionCounts = productionCandidates?.counts || null;
 
 if (productionCounts) {
-  const productionCoreCount = productionCountFromReport(production, ["core", "CORE"]);
-const productionLeanCount = productionCountFromReport(production, ["lean", "LEAN"]);
-const productionWatchlistCount = productionCountFromReport(production, ["watchlist", "WATCHLIST"]);
-const productionResearchCount = productionCountFromReport(production, ["research", "RESEARCH"]);
-const productionBlockedCount = productionCountFromReport(production, ["blocked", "BLOCKED"]);
-const productionShadowBlockedCount = productionCountFromReport(production, ["shadowBlocked", "shadow_blocked", "SHADOW_BLOCKED"]);
+  const productionForCounts = read("outputs/production-candidates.json", {});
+const productionCoreCount = productionCountFromReport(productionForCounts, ["core", "CORE"]);
+const productionLeanCount = productionCountFromReport(productionForCounts, ["lean", "LEAN"]);
+const productionWatchlistCount = productionCountFromReport(productionForCounts, ["watchlist", "WATCHLIST"]);
+const productionResearchCount = productionCountFromReport(productionForCounts, ["research", "RESEARCH"]);
+const productionBlockedCount = productionCountFromReport(productionForCounts, ["blocked", "BLOCKED"]);
+const productionShadowBlockedCount = productionCountFromReport(productionForCounts, ["shadowBlocked", "shadow_blocked", "SHADOW_BLOCKED"]);
 
 console.log(`CORE=${productionCoreCount} | LEAN=${productionLeanCount} | WATCHLIST=${productionWatchlistCount} | RESEARCH=${productionResearchCount} | BLOCKED=${productionBlockedCount} | SHADOW_BLOCKED=${productionShadowBlockedCount}`);
 }
