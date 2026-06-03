@@ -151,7 +151,16 @@ console.log("");
 console.log("BEST VALIDATED SLIP");
 console.log("-------------------");
 const playableForBestSlipGuard = read("outputs/playable-final-slips.json", []);
-if (!Array.isArray(playableForBestSlipGuard) || playableForBestSlipGuard.filter(hasCompletePlayableSlip).length === 0) {
+const completePlayableForBestSlipGuard = Array.isArray(playableForBestSlipGuard)
+  ? playableForBestSlipGuard.filter(slip => {
+      const legs = Array.isArray(slip?.legs) ? slip.legs : [];
+      const size = Number(slip?.size || legs.length || 0);
+      const status = String(slip?.status || "").toUpperCase();
+      return legs.length >= 2 && (!size || legs.length >= size) && status !== "INCOMPLETE";
+    })
+  : [];
+
+if (completePlayableForBestSlipGuard.length === 0) {
   console.log("none");
   console.log("Reason: no complete playable slips cleared official filters.");
 } else
