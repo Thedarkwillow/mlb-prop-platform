@@ -7,6 +7,7 @@ const DATE =
   new Date().toISOString().slice(0, 10);
 
 const BOARD_FILES = [
+  "outputs/sportsbook-enriched-board.json",
   "outputs/priced-board.json",
   `outputs/priced-board-${DATE}.json`
 ];
