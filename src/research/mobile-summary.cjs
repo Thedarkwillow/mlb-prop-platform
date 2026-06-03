@@ -150,6 +150,10 @@ console.log(`Distribution coverage: ${coverage.coverage ?? coverage.overallCover
 console.log("");
 console.log("BEST VALIDATED SLIP");
 console.log("-------------------");
+if (!Array.isArray(playableSlips) || playableSlips.filter(hasCompletePlayableSlip).length === 0) {
+  console.log("none");
+  console.log("Reason: no complete playable slips cleared official filters.");
+} else
 if (!bestValidated) {
   console.log("None.");
 } else {
@@ -258,7 +262,15 @@ console.log("");
     const fs = require("fs");
     const file = "outputs/production-candidate-class-roi-latest.json";
 
-    function readJson(path, fallback) {
+    
+function hasCompletePlayableSlip(slip) {
+  const legs = Array.isArray(slip?.legs) ? slip.legs : [];
+  const size = Number(slip?.size || legs.length || 0);
+  const status = String(slip?.status || "").toUpperCase();
+  return legs.length >= 2 && (!size || legs.length >= size) && status !== "INCOMPLETE";
+}
+
+function readJson(path, fallback) {
       try {
         return JSON.parse(fs.readFileSync(path, "utf8"));
       } catch {
