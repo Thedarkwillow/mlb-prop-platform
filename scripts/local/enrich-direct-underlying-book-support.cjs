@@ -26,11 +26,8 @@ const OUT_LATEST_JSON = "outputs/direct-underlying-book-support-audit-latest.jso
 const OUT_LATEST_TXT = "outputs/direct-underlying-book-support-audit-latest.txt";
 
 function readJson(file, fallback = null) {
-  try {
-    return JSON.parse(fs.readFileSync(file, "utf8"));
-  } catch {
-    return fallback;
-  }
+  try { return JSON.parse(fs.readFileSync(file, "utf8")); }
+  catch { return fallback; }
 }
 
 function writeJson(file, data) {
@@ -55,16 +52,16 @@ function asNum(v, fallback = 0) {
   return Number.isFinite(n) ? n : fallback;
 }
 
-function sideOf(row) {
-  return String(row?.side || row?.pick || row?.direction || "").toUpperCase();
+function playerOf(row) {
+  return String(row?.player || row?.playerName || row?.name || row?.displayName || "");
 }
 
 function marketOf(row) {
-  return String(row?.market || row?.statType || row?.stat_type || row?.prop || "").toLowerCase();
+  return String(row?.market || row?.statType || row?.stat_type || row?.prop || "");
 }
 
-function playerOf(row) {
-  return String(row?.player || row?.playerName || row?.name || row?.displayName || "");
+function sideOf(row) {
+  return String(row?.side || row?.pick || row?.direction || "").toUpperCase();
 }
 
 function lineOf(row) {
@@ -82,27 +79,46 @@ function booksOf(row) {
     row?.bookSupport,
     row?.supportBooks,
     row?.matchedBooks,
+    row?.sportsbookBookCount,
+    row?.sportsbook?.bookCount,
+    row?.sportsbook?.books,
     row?.pricing?.books,
     row?.pricing?.bookCount,
     row?.vegas?.books,
     row?.vegas?.bookCount
   ];
+
   for (const v of vals) {
     const n = Number(v);
     if (Number.isFinite(n) && n > 0) return n;
   }
+
+  if (Array.isArray(row?.sportsbooks)) return row.sportsbooks.length;
   if (Array.isArray(row?.bookNames)) return row.bookNames.length;
   if (Array.isArray(row?.booksMatched)) return row.booksMatched.length;
   if (Array.isArray(row?.matchedBookNames)) return row.matchedBookNames.length;
+
   return 0;
 }
 
 function supportOf(row) {
-  return String(row?.support || row?.bookSupportStatus || row?.supportStatus || "").toUpperCase();
+  return String(
+    row?.support ||
+    row?.marketSupportFlag ||
+    row?.bookSupportStatus ||
+    row?.supportStatus ||
+    ""
+  ).toUpperCase();
 }
 
 function gradeOf(row) {
-  return String(row?.grade || row?.validationGrade || row?.decisionGrade || row?.qualityGrade || "").toUpperCase();
+  return String(
+    row?.grade ||
+    row?.validationGrade ||
+    row?.decisionGrade ||
+    row?.qualityGrade ||
+    ""
+  ).toUpperCase();
 }
 
 function sideBiasOf(row) {
@@ -110,13 +126,14 @@ function sideBiasOf(row) {
     row?.sideBias ??
     row?.sideBiasLabel ??
     row?.side_bias ??
-    row?.sideBias?.label ??
     row?.fullBoardSideBias?.label ??
     row?.sideBiasSummary?.label ??
     "";
+
   if (typeof raw === "object" && raw) {
     return String(raw.label || raw.status || raw.bias || raw.sideBias || "UNKNOWN").toUpperCase();
   }
+
   return String(raw || "UNKNOWN").toUpperCase();
 }
 
@@ -133,6 +150,7 @@ function keyOf(row) {
   const market = norm(marketOf(row));
   const side = norm(sideOf(row));
   const line = String(lineOf(row) ?? "").trim();
+
   if (!player || !market || !side || !line) return null;
   return `${player}|${market}|${side}|${line}`;
 }
@@ -140,13 +158,14 @@ function keyOf(row) {
 function isDirectUnderlyingEligible(row) {
   const market = norm(marketOf(row));
   const side = sideOf(row);
+
   if (side !== "MORE" && side !== "LESS") return false;
 
-  // These are sportsbook-underlying markets we can match directly.
   return [
     "hits",
     "bases",
     "total_bases",
+    "hrr",
     "walks",
     "strikeouts",
     "hitter_strikeouts",
@@ -191,6 +210,8 @@ function flattenRows(payload) {
 
 function buildBoardIndex(board) {
   const index = new Map();
+  let supportKeys = 0;
+
   for (const { row } of flattenRows(board)) {
     if (!isDirectUnderlyingEligible(row)) continue;
 
@@ -198,27 +219,26 @@ function buildBoardIndex(board) {
     if (!key) continue;
 
     const books = booksOf(row);
-    const support = supportOf(row);
-    const grade = gradeOf(row);
-    const tier = tierOf(row);
-
-    // Need a row that has actual book/pricing support.
     if (books <= 0) continue;
+
+    supportKeys++;
 
     const candidate = {
       player: playerOf(row),
       market: marketOf(row),
       side: sideOf(row),
       line: lineOf(row),
-      tier,
+      tier: tierOf(row),
       books,
-      support: support || (books >= 2 ? "OK" : "LOW_BOOK_SUPPORT"),
-      grade: grade || "UNKNOWN",
+      support: supportOf(row) || (books >= 2 ? "OK" : "LOW_BOOK_SUPPORT"),
+      grade: gradeOf(row) || "UNKNOWN",
       sideBias: sideBiasOf(row),
       prob: probOf(row),
       edge: edgeOf(row),
-      sourceTier: tier,
-      sourceKey: key
+      sourceKey: key,
+      sportsbookMatch: !!row?.sportsbookMatch,
+      sportsbookMatchType: row?.sportsbookMatchType ?? null,
+      sportsbooks: Array.isArray(row?.sportsbooks) ? row.sportsbooks : []
     };
 
     const existing = index.get(key);
@@ -226,7 +246,8 @@ function buildBoardIndex(board) {
       index.set(key, candidate);
     }
   }
-  return index;
+
+  return { index, supportKeys };
 }
 
 function shouldPatch(row) {
@@ -235,8 +256,8 @@ function shouldPatch(row) {
 
   const market = norm(marketOf(row));
 
-  // Do not treat fantasy/HRR as direct underlying. Those need synthetic support later.
-  if (market === "hrr" || market.includes("fantasy")) return false;
+  // Fantasy is not a direct sportsbook market. HRR is allowed only when sportsbook board has exact HRR support.
+  if (market.includes("fantasy")) return false;
 
   const support = supportOf(row);
   const grade = gradeOf(row);
@@ -256,156 +277,178 @@ function patchRow(row, match) {
   if (!shouldPatch(row)) return false;
 
   const currentBooks = booksOf(row);
-  const currentGrade = gradeOf(row);
+  if (match.books <= currentBooks) return false;
 
-  row.bookSupportType = "DIRECT_UNDERLYING_MARKET";
+  row.books = match.books;
+  row.support = match.support || (match.books >= 2 ? "OK" : "LOW_BOOK_SUPPORT");
+  row.grade = gradeOf(row) && gradeOf(row) !== "UNKNOWN"
+    ? gradeOf(row)
+    : (match.grade || "UNKNOWN");
+
   row.underlyingBookSupport = {
-    type: "DIRECT_UNDERLYING_MARKET",
-    note: "Underlying sportsbook market matched by player/market/side/line. This supports the stat market, not the PrizePicks special payout.",
+    patched: true,
+    source: "sportsbook-enriched-board",
     books: match.books,
-    support: match.support,
-    grade: match.grade,
+    support: row.support,
+    grade: row.grade,
     sideBias: match.sideBias,
-    sourceTier: match.sourceTier,
-    sourceKey: match.sourceKey
+    sportsbookMatch: match.sportsbookMatch,
+    sportsbookMatchType: match.sportsbookMatchType,
+    sportsbooks: match.sportsbooks
   };
-
-  row.books = Math.max(currentBooks, match.books);
-  row.bookCount = Math.max(asNum(row.bookCount, 0), match.books);
-  row.support = match.books >= 2 ? "OK" : "LOW_BOOK_SUPPORT";
-
-  if (!currentGrade || currentGrade === "UNKNOWN") {
-    row.grade = match.grade || "UNKNOWN";
-  }
-
-  row.directUnderlyingSupportPatched = true;
-  row.directUnderlyingSupportDate = DATE;
-
-  const cls = String(row.class || row.candidateClass || row.status || "").toUpperCase();
-  if (cls.includes("RESEARCH") || cls.includes("SHADOW") || cls.includes("BLOCKED")) {
-    row.promotionLocked = true;
-    row.promotionLockReason = "Direct underlying book support attached, but row remains in original no-bet class until validated promotion rules approve it.";
-  }
 
   return true;
 }
 
+function processTargetFile(file, boardIndex) {
+  const payload = readJson(file, null);
+  if (!payload) return null;
+
+  const rows = flattenRows(payload);
+  const patched = [];
+  const unmatched = [];
+
+  for (const { row, path } of rows) {
+    if (!shouldPatch(row)) continue;
+
+    const key = keyOf(row);
+    if (!key) continue;
+
+    const match = boardIndex.get(key);
+    if (!match) {
+      unmatched.push({
+        file,
+        path,
+        player: playerOf(row),
+        market: marketOf(row),
+        side: sideOf(row),
+        line: lineOf(row),
+        tier: tierOf(row),
+        books: booksOf(row),
+        support: supportOf(row) || "UNKNOWN",
+        grade: gradeOf(row) || "UNKNOWN",
+        reason: "NO_MATCHING_DIRECT_UNDERLYING_BOOK_ROW"
+      });
+      continue;
+    }
+
+    if (patchRow(row, match)) {
+      patched.push({
+        file,
+        path,
+        player: playerOf(row),
+        market: marketOf(row),
+        side: sideOf(row),
+        line: lineOf(row),
+        tier: tierOf(row),
+        books: match.books,
+        support: row.support,
+        grade: row.grade,
+        sourceKey: match.sourceKey
+      });
+    }
+  }
+
+  writeJson(file, payload);
+
+  return {
+    file,
+    rows: rows.length,
+    candidates: rows.filter(({ row }) => shouldPatch(row)).length,
+    patched: patched.length,
+    unmatched: unmatched.length,
+    patchedRows: patched,
+    unmatchedRows: unmatched
+  };
+}
+
 function main() {
-  const boardFile = BOARD_FILES.find(f => fs.existsSync(f));
-  const board = boardFile ? readJson(boardFile, []) : [];
-  const boardIndex = buildBoardIndex(board);
+  let boardFile = null;
+  let board = null;
+
+  for (const file of BOARD_FILES) {
+    const data = readJson(file, null);
+    if (data) {
+      boardFile = file;
+      board = data;
+      break;
+    }
+  }
+
+  if (!board) {
+    console.error("No board file found.");
+    process.exit(1);
+  }
+
+  const { index: boardIndex, supportKeys } = buildBoardIndex(board);
+
+  const files = [];
+  const patchedRows = [];
+  const unmatchedRows = [];
+
+  for (const file of TARGET_FILES) {
+    if (!fs.existsSync(file)) continue;
+    const result = processTargetFile(file, boardIndex);
+    if (!result) continue;
+    files.push({
+      file: result.file,
+      rows: result.rows,
+      candidates: result.candidates,
+      patched: result.patched,
+      unmatched: result.unmatched
+    });
+    patchedRows.push(...result.patchedRows);
+    unmatchedRows.push(...result.unmatchedRows);
+  }
 
   const audit = {
     date: DATE,
     generatedAt: new Date().toISOString(),
-    boardFile: boardFile || null,
-    boardSupportKeys: boardIndex.size,
-    files: [],
-    patchedRows: [],
-    unmatchedRows: []
+    boardFile,
+    boardSupportKeys: supportKeys,
+    summary: {
+      files: files.length,
+      patchedRows: patchedRows.length,
+      unmatchedRows: unmatchedRows.length
+    },
+    files,
+    patchedRows,
+    unmatchedRows,
+    note: "Direct sportsbook support only. Fantasy remains research-only. HRR may receive direct support when sportsbook-enriched-board has exact HRR line support."
   };
-
-  for (const file of TARGET_FILES) {
-    if (!fs.existsSync(file)) continue;
-
-    const payload = readJson(file, null);
-    if (!payload) continue;
-
-    const rows = flattenRows(payload);
-    let candidates = 0;
-    let patched = 0;
-    let unmatched = 0;
-
-    for (const item of rows) {
-      const row = item.row;
-      if (!shouldPatch(row)) continue;
-
-      candidates += 1;
-      const key = keyOf(row);
-      const match = key ? boardIndex.get(key) : null;
-
-      if (match) {
-        if (patchRow(row, match)) {
-          patched += 1;
-          audit.patchedRows.push({
-            file,
-            path: item.path,
-            player: playerOf(row),
-            market: marketOf(row),
-            side: sideOf(row),
-            line: lineOf(row),
-            tier: tierOf(row),
-            books: booksOf(row),
-            support: supportOf(row),
-            grade: gradeOf(row),
-            bookSupportType: row.bookSupportType
-          });
-        }
-      } else {
-        unmatched += 1;
-        audit.unmatchedRows.push({
-          file,
-          path: item.path,
-          player: playerOf(row),
-          market: marketOf(row),
-          side: sideOf(row),
-          line: lineOf(row),
-          tier: tierOf(row),
-          currentBooks: booksOf(row),
-          currentSupport: supportOf(row),
-          currentGrade: gradeOf(row),
-          reason: "NO_MATCHING_DIRECT_UNDERLYING_BOOK_ROW"
-        });
-      }
-    }
-
-    if (patched > 0) writeJson(file, payload);
-
-    audit.files.push({
-      file,
-      rows: rows.length,
-      candidates,
-      patched,
-      unmatched
-    });
-  }
 
   const lines = [];
   lines.push("DIRECT UNDERLYING BOOK SUPPORT ENRICHMENT");
   lines.push("========================================");
   lines.push(`date: ${DATE}`);
-  lines.push(`boardFile: ${boardFile || "none"}`);
-  lines.push(`boardSupportKeys: ${boardIndex.size}`);
+  lines.push(`boardFile: ${boardFile}`);
+  lines.push(`boardSupportKeys: ${supportKeys}`);
   lines.push("");
   lines.push("FILES");
   lines.push("-----");
-  for (const f of audit.files) {
+  for (const f of files) {
     lines.push(`${f.file} | rows=${f.rows} | candidates=${f.candidates} | patched=${f.patched} | unmatched=${f.unmatched}`);
   }
   lines.push("");
   lines.push("PATCHED ROWS");
   lines.push("------------");
-  if (!audit.patchedRows.length) {
+  if (!patchedRows.length) {
     lines.push("none");
   } else {
-    audit.patchedRows.slice(0, 80).forEach((r, i) => {
-      lines.push(`${i + 1}. ${r.player} | ${r.market} ${r.side} ${r.line} | ${r.tier} | books=${r.books} | support=${r.support} | grade=${r.grade} | ${r.bookSupportType}`);
+    patchedRows.slice(0, 80).forEach((r, i) => {
+      lines.push(`${i + 1}. ${r.player} | ${r.market} ${r.side} ${r.line} | ${r.tier} | books=${r.books} | support=${r.support} | grade=${r.grade}`);
     });
   }
   lines.push("");
   lines.push("UNMATCHED DIRECT UNDERLYING ROWS");
   lines.push("--------------------------------");
-  if (!audit.unmatchedRows.length) {
+  if (!unmatchedRows.length) {
     lines.push("none");
   } else {
-    audit.unmatchedRows.slice(0, 80).forEach((r, i) => {
-      lines.push(`${i + 1}. ${r.player} | ${r.market} ${r.side} ${r.line} | ${r.tier} | books=${r.currentBooks} | support=${r.currentSupport || "none"} | grade=${r.currentGrade || "none"} | ${r.reason}`);
+    unmatchedRows.slice(0, 80).forEach((r, i) => {
+      lines.push(`${i + 1}. ${r.player} | ${r.market} ${r.side} ${r.line} | ${r.tier} | books=${r.books} | support=${r.support} | grade=${r.grade} | ${r.reason}`);
     });
   }
-  lines.push("");
-  lines.push("NOTE");
-  lines.push("----");
-  lines.push("This only upgrades direct underlying sportsbook/stat support. It does not synthesize HRR or fantasy support and does not promote research/shadow/blocked rows to bets.");
 
   writeJson(OUT_AUDIT_JSON, audit);
   writeJson(OUT_LATEST_JSON, audit);
@@ -413,7 +456,6 @@ function main() {
   writeText(OUT_LATEST_TXT, lines.join("\n"));
 
   console.log(lines.join("\n"));
-  console.log("");
   console.log(`saved: ${OUT_AUDIT_JSON}`);
   console.log(`saved: ${OUT_AUDIT_TXT}`);
 }
