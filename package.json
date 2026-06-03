@@ -306,7 +306,8 @@
     "confirm:props": "node scripts/local/full-prop-confirmation-report.cjs",
     "confirm:external": "node scripts/local/external-mlb-form-confirmation.cjs",
     "external:summary": "node scripts/local/external-confirmation-summary.cjs",
-    "external:track": "node scripts/local/track-external-confirmation.cjs"
+    "external:track": "node scripts/local/track-external-confirmation.cjs",
+    "official:filter": "node scripts/local/harden-official-filters.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
