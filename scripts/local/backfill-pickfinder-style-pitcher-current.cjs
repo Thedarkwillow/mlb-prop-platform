@@ -51,6 +51,41 @@ function norm(v) {
     .trim();
 }
 
+
+function loadPlayerPeopleIndex(file) {
+  const raw = readJson(file, {});
+  const people = Array.isArray(raw)
+    ? raw
+    : Array.isArray(raw.people)
+      ? raw.people
+      : [];
+  return people
+    .filter(p => p && p.id && (p.fullName || p.nameFirstLast || p.firstLastName))
+    .map(p => ({
+      ...p,
+      _pfName: p.fullName || p.nameFirstLast || p.firstLastName,
+      _pfId: p.id,
+      _pfTeamId: p.currentTeam?.id || null,
+      _pfPosition: p.primaryPosition?.abbreviation || p.primaryPosition?.name || ""
+    }));
+}
+
+function findPlayerIndexMatch(playerIndex, player) {
+  const target = norm(player);
+  let hit = playerIndex.find(p => norm(p._pfName) === target);
+  if (hit) return hit;
+
+  hit = playerIndex.find(p => {
+    const n = norm(p._pfName);
+    return n && (n.includes(target) || target.includes(n));
+  });
+  return hit || null;
+}
+
+function playerIdFromIndexRow(p) {
+  return p?._pfId || p?.id || p?.mlbPlayerId || p?.playerId || null;
+}
+
 function marketNorm(v) {
   const s = norm(v).replace(/\s+/g, "_");
   const aliases = {
@@ -315,7 +350,7 @@ async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
   const targets = loadTargets();
-  const playerIndex = readJson(PLAYER_INDEX_FILE, []);
+  const playerIndex = loadPlayerPeopleIndex(PLAYER_INDEX_FILE);
   const playerMap = indexPlayers(playerIndex);
   const cache = readJson(GAMELOG_CACHE_FILE, {});
 
@@ -368,7 +403,7 @@ async function main() {
 
     rows.push({
       ...t,
-      mlbPlayerId: p.id,
+      mlbPlayerId: playerIdFromIndexRow(p),
       status: "OK",
       pfStatus,
       l5,
