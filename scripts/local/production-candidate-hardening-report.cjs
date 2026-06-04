@@ -621,7 +621,19 @@ const report = {
     CORE: topRows(hardened.filter(r => r.hardenedClass === "CORE")),
     LEAN: topRows(hardened.filter(r => r.hardenedClass === "LEAN")),
     LESS_CONTROLLED_WATCH: topRows(hardened.filter(r => r.hardenedClass === "LESS_CONTROLLED_WATCH")),
+    LESS_CONTROLLED_WATCH_PF_CONFIRMED: topRows(hardened.filter(r =>
+      r.hardenedClass === "LESS_CONTROLLED_WATCH" && r.pfStatus === "PF_CONFIRMED"
+    )),
+    LESS_CONTROLLED_WATCH_NO_PF_CONFIRMATION: topRows(hardened.filter(r =>
+      r.hardenedClass === "LESS_CONTROLLED_WATCH" && r.pfStatus !== "PF_CONFIRMED"
+    )),
     CONTROLLED_WATCH: topRows(hardened.filter(r => r.hardenedClass === "CONTROLLED_WATCH")),
+    CONTROLLED_WATCH_PF_CONFIRMED: topRows(hardened.filter(r =>
+      r.hardenedClass === "CONTROLLED_WATCH" && r.pfStatus === "PF_CONFIRMED"
+    )),
+    CONTROLLED_WATCH_NO_PF_CONFIRMATION: topRows(hardened.filter(r =>
+      r.hardenedClass === "CONTROLLED_WATCH" && r.pfStatus !== "PF_CONFIRMED"
+    )),
     WATCHLIST: topRows(hardened.filter(r => r.hardenedClass === "WATCHLIST")),
     RESEARCH: topRows(hardened.filter(r => r.hardenedClass === "RESEARCH")),
     BLOCKED: topRows(hardened.filter(r => r.hardenedClass === "BLOCKED")),
