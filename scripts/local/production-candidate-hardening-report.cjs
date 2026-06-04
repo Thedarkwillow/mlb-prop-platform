@@ -481,7 +481,12 @@ function applyPfConfirmationToHardenedRows(hardened, confirmationMap) {
   for (const row of hardened) {
     const confirmation = confirmationMap.get(propKeyForConfirmation(row)) || {};
     const summary = confirmationSummaryFor(row, confirmation);
-    if (isPitcherPfMarket(row.market, row)) {
+    const hasPitcherBackfill =
+      confirmation.pitcherBackfill?.source === "pickfinder_style_pitcher_backfill" ||
+      confirmation.source === "pickfinder_style_pitcher_backfill" ||
+      confirmation.sampleNotes?.source === "MLB Stats API pitcher gameLog";
+
+    if (isPitcherPfMarket(row.market, row) && !hasPitcherBackfill) {
       summary.pfStatus = "PF_NOT_APPLICABLE_PITCHER";
     }
     row.pfStatus = summary.pfStatus;
