@@ -49,15 +49,95 @@ function compactProfile(r) {
   return ` | Profile(${p.hand}) PA=${val(p.pa)} xBA=${val(p.xba ?? p.avg)} xwOBA=${val(p.xwoba)} xSLG=${val(p.xslg)} sample=${p.enoughSample ? "OK" : "LIGHT"}`;
 }
 
+function hasExternalDetail(r) {
+  return Boolean(
+    r.externalGrade ||
+    r.externalScore !== undefined ||
+    r.externalL10 ||
+    r.externalSeason ||
+    r.externalHomeAway ||
+    r.externalPitcherHand ||
+    r.externalHandSignalUsed ||
+    r.externalVsPitcher ||
+    r.externalGeneralHandProfile ||
+    r.form ||
+    r.lineup ||
+    r.pickfinder
+  );
+}
+
+function gradeLabel(r) {
+  return r.externalGrade || r.grade || "UNKNOWN";
+}
+
+function scoreLabel(r) {
+  return r.externalScore ?? r.score ?? "n/a";
+}
+
+function formSummary(r) {
+  if (!r.form) return null;
+  if (typeof r.form === "string") return `Form=${r.form}`;
+  const parts = [];
+  if (r.form.l10HitRate != null) parts.push(`L10=${pct(r.form.l10HitRate)}`);
+  if (r.form.seasonHitRate != null) parts.push(`Season=${pct(r.form.seasonHitRate)}`);
+  if (r.form.average != null) parts.push(`avg=${val(r.form.average)}`);
+  if (r.form.graded != null) parts.push(`n=${val(r.form.graded)}`);
+  return parts.length ? `Form ${parts.join(" ")}` : null;
+}
+
+function lineupSummary(r) {
+  if (!r.lineup) return null;
+  if (typeof r.lineup === "string") return `Lineup=${r.lineup}`;
+  const status = r.lineup.status || r.lineup.confirmed || r.lineup.source || null;
+  return status ? `Lineup=${status}` : null;
+}
+
+function pickfinderSummary(r) {
+  if (!r.pickfinder) return null;
+  if (typeof r.pickfinder === "string") return `PF=${r.pickfinder}`;
+  const parts = [];
+  if (r.pickfinder.status) parts.push(r.pickfinder.status);
+  if (r.pickfinder.battingOrder) parts.push(`bat=${r.pickfinder.battingOrder}`);
+  if (r.pickfinder.pitcherHand) parts.push(`vs ${r.pickfinder.pitcherHand}`);
+  return parts.length ? `PF=${parts.join(" ")}` : null;
+}
+
 function line(r, i) {
-  return [
-    `${i + 1}. ${r.decision} | EXT ${r.externalGrade}(${r.externalScore}) | ${r.player} | ${r.team || ""} | ${prop(r)}`,
-    `MLB L10=${pct(r.externalL10?.hitRate)} Season=${pct(r.externalSeason?.hitRate)} avg=${val(r.externalSeason?.average)} n=${val(r.externalSeason?.graded)}`,
-    `HA(${val(r.currentHomeAway || r.homeAway)})=${pct(r.externalHomeAway?.hitRate)} n=${val(r.externalHomeAway?.graded)}`,
-    `Hand(${val(r.currentPitcherHand || r.opposingPitcherHand)})=${pct(r.externalPitcherHand?.hitRate)} n=${val(r.externalPitcherHand?.graded)}`,
-    `Signal=${val(r.externalHandSignalUsed)}${compactProfile(r)}`,
-    `vsP=${r.externalVsPitcher?.available ? `${r.externalVsPitcher.pitcherName}: PA=${r.externalVsPitcher.plateAppearances} clear=${r.externalVsPitcher.clear}` : val(r.externalVsPitcher?.reason)}`
-  ].join(" | ");
+  const head = `${i + 1}. ${r.decision} | EXT ${gradeLabel(r)}(${scoreLabel(r)}) | ${r.player} | ${r.team || ""} | ${prop(r)} | tier=${val(r.tier)} | prob=${val(r.prob)} | edge=${val(r.edge)} | books=${val(r.books)}`;
+
+  const details = [];
+
+  if (r.externalL10 || r.externalSeason) {
+    details.push(`MLB L10=${pct(r.externalL10?.hitRate)} Season=${pct(r.externalSeason?.hitRate)} avg=${val(r.externalSeason?.average)} n=${val(r.externalSeason?.graded)}`);
+  }
+
+  if (r.externalHomeAway) {
+    details.push(`HA(${val(r.currentHomeAway || r.homeAway)})=${pct(r.externalHomeAway?.hitRate)} n=${val(r.externalHomeAway?.graded)}`);
+  }
+
+  if (r.externalPitcherHand) {
+    details.push(`Hand(${val(r.currentPitcherHand || r.opposingPitcherHand)})=${pct(r.externalPitcherHand?.hitRate)} n=${val(r.externalPitcherHand?.graded)}`);
+  }
+
+  if (r.externalHandSignalUsed || r.externalGeneralHandProfile) {
+    details.push(`Signal=${val(r.externalHandSignalUsed)}${compactProfile(r)}`);
+  }
+
+  if (r.externalVsPitcher) {
+    details.push(`vsP=${r.externalVsPitcher?.available ? `${r.externalVsPitcher.pitcherName}: PA=${r.externalVsPitcher.plateAppearances} clear=${r.externalVsPitcher.clear}` : val(r.externalVsPitcher?.reason)}`);
+  }
+
+  const form = formSummary(r);
+  const lineup = lineupSummary(r);
+  const pf = pickfinderSummary(r);
+  if (form) details.push(form);
+  if (lineup) details.push(lineup);
+  if (pf) details.push(pf);
+
+  if (Array.isArray(r.notes) && r.notes.length) details.push(`notes=${r.notes.join(",")}`);
+  if (Array.isArray(r.reasons) && r.reasons.length) details.push(`reasons=${r.reasons.join(",")}`);
+
+  return details.length ? `${head} | ${details.join(" | ")}` : head;
 }
 
 function section(title, rows) {
