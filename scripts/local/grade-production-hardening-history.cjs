@@ -289,7 +289,7 @@ const report = {
   gradeFiles: GRADE_FILES.filter(f => fs.existsSync(f)),
   summary: summarize(graded),
   byClass,
-  byFlag: summarizeByFlag(rows),
+  byFlag: summarizeByFlag(gradedRows),
   byMarketSide,
   rows: graded,
 };
