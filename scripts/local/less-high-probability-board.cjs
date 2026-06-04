@@ -570,6 +570,29 @@ function main() {
     );
   }));
 
+  const fantasyLess = sortRows(lessRows.filter(row => {
+    const prob = getProb(row) ?? 0;
+    return prob >= 0.55 && isFantasy(row);
+  }));
+
+  const hrrLess = sortRows(lessRows.filter(row => {
+    const prob = getProb(row) ?? 0;
+    return prob >= 0.55 && isHrr(row);
+  }));
+
+  const otherLess = sortRows(lessRows.filter(row => {
+    const prob = getProb(row) ?? 0;
+    return (
+      prob >= 0.55 &&
+      !isPitcherLessMarket(row) &&
+      !isFantasy(row) &&
+      !isHrr(row) &&
+      !isBlocked(row) &&
+      !isResearch(row) &&
+      !isShadow(row)
+    );
+  }));
+
   const blockedLess = sortRows(lessRows.filter(row => {
     const prob = getProb(row) ?? 0;
     return prob >= 0.55 && isBlocked(row);
@@ -592,6 +615,9 @@ function main() {
       watchlistLess: watchlistLess.length,
       pitcherLess: pitcherLess.length,
       hitterLess: hitterLess.length,
+      fantasyLess: fantasyLess.length,
+      hrrLess: hrrLess.length,
+      otherLess: otherLess.length,
       blockedLess: blockedLess.length,
       researchLess: researchLess.length
     },
@@ -607,6 +633,9 @@ function main() {
     watchlistLess,
     pitcherLess,
     hitterLess,
+    fantasyLess,
+    hrrLess,
+    otherLess,
     blockedLess,
     researchLess
   };
@@ -630,6 +659,12 @@ function main() {
   txt.push(...section("PITCHER LESS", pitcherLess));
   txt.push("");
   txt.push(...section("HITTER LESS", hitterLess));
+  txt.push("");
+  txt.push(...section("FANTASY LESS", fantasyLess));
+  txt.push("");
+  txt.push(...section("HRR LESS", hrrLess));
+  txt.push("");
+  txt.push(...section("OTHER LESS", otherLess));
   txt.push("");
   txt.push(...section("BLOCKED LESS", blockedLess));
   txt.push("");
