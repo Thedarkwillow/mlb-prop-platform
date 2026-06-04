@@ -169,6 +169,44 @@ function keyOf(row) {
   return `${player}|${market}|${side}|${line}`;
 }
 
+
+function aliasKeysFor(row) {
+  const player = norm(playerOf(row));
+  const market = norm(marketOf(row));
+  const side = norm(sideOf(row));
+  const line = String(lineOf(row) ?? "").trim();
+  if (!player || !market || !side || !line) return [];
+
+  const aliases = new Set();
+  function add(marketAlias) {
+    aliases.add(`${player}|${marketAlias}|${side}|${line}`);
+  }
+
+  // Direct support fallback aliases only. These do not change the model market.
+  if (market === "walks") add("walks_allowed");
+  if (market === "runs") add("runs_allowed");
+  if (market === "earned_runs") add("earned_runs_allowed");
+  if (market === "outs" || market === "pitcher_outs" || market === "outs_recorded") add("pitching_outs");
+  if (market === "total_bases") add("bases");
+
+  return [...aliases];
+}
+
+function findBoardMatch(row, boardIndex) {
+  const exact = keyOf(row);
+  if (exact && boardIndex.has(exact)) {
+    return { match: boardIndex.get(exact), matchedKey: exact, matchType: "EXACT" };
+  }
+
+  for (const key of aliasKeysFor(row)) {
+    if (boardIndex.has(key)) {
+      return { match: boardIndex.get(key), matchedKey: key, matchType: "MARKET_ALIAS" };
+    }
+  }
+
+  return { match: null, matchedKey: null, matchType: null };
+}
+
 function isDirectUnderlyingEligible(row) {
   const market = norm(marketOf(row));
   const side = sideOf(row);
@@ -401,7 +439,8 @@ function patchRow(row, match) {
     sideBias: match.sideBias,
     sportsbookMatch: match.sportsbookMatch,
     sportsbookMatchType: match.sportsbookMatchType,
-    sportsbooks: match.sportsbooks
+    sportsbooks: match.sportsbooks,
+    matchType: match.matchType || null
   };
 
   return true;
@@ -420,8 +459,8 @@ function processTargetFile(file, boardIndex, diagnosticRows) {
 
     const key = keyOf(row);
     if (!key) continue;
-
-    const match = boardIndex.get(key);
+    const found = findBoardMatch(row, boardIndex);
+    const match = found.match;
     if (!match) {
       const diagnosis = diagnoseUnmatched(row, diagnosticRows);
       unmatched.push({
@@ -453,7 +492,9 @@ function processTargetFile(file, boardIndex, diagnosticRows) {
         books: match.books,
         support: row.support,
         grade: row.grade,
-        sourceKey: match.sourceKey
+        sourceKey: match.sourceKey,
+        matchedKey: found.matchedKey,
+        matchType: found.matchType
       });
     }
   }
