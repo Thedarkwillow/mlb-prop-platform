@@ -239,8 +239,8 @@ const productionCounts = productionRowsDeduped.length
 
 if (productionCounts) {
   function countDisplayedProductionClass(className) {
-  if (!Array.isArray(productionRows)) return 0;
-  return productionRows.filter(row => {
+  if (!Array.isArray(productionRowsDeduped)) return 0;
+  return productionRowsDeduped.filter(row => {
     const cls = String(
       row?.class ||
       row?.candidateClass ||
@@ -263,11 +263,11 @@ const productionShadowBlockedCount = countDisplayedProductionClass("SHADOW_BLOCK
 console.log(`CORE=${productionCoreCount} | LEAN=${productionLeanCount} | WATCHLIST=${productionWatchlistCount} | RESEARCH=${productionResearchCount} | BLOCKED=${productionBlockedCount} | SHADOW_BLOCKED=${productionShadowBlockedCount}`);
 }
 
-if (!productionRows.length) {
+if (!productionRowsDeduped.length) {
   console.log("No production candidate report yet. Run: node src/research/production-candidate-report.cjs");
 } else {
   for (const className of ["CORE", "LEAN", "WATCHLIST", "RESEARCH", "BLOCKED", "SHADOW_BLOCKED"]) {
-    const rows = productionRows
+    const rows = productionRowsDeduped
       .filter(r => String(r.class || "").toUpperCase() === className)
       .slice()
       .sort((a, b) => {
