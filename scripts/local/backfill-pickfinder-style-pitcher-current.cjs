@@ -248,6 +248,7 @@ function sideFromBoardRow(row) {
 
 function loadTargets() {
   const board = flatten(readJson(CURRENT_BOARD_FILE, []));
+  const playerIndex = loadPlayerPeopleIndex(PLAYER_INDEX_FILE);
   const targets = [];
 
   for (const row of board) {
@@ -261,6 +262,18 @@ function loadTargets() {
       "";
 
     if (!player || String(player).includes("+")) continue;
+
+    const playerIndexMatch = findPlayerDirect(playerIndex, { player });
+    const position = String(
+      playerIndexMatch?.primaryPosition?.abbreviation ||
+      playerIndexMatch?.primaryPosition?.type ||
+      playerIndexMatch?.primaryPosition?.name ||
+      ""
+    ).toLowerCase();
+
+    if (!playerIndexMatch || !(position === "p" || position.includes("pitcher"))) {
+      continue;
+    }
 
     const rawMarket = row.market || row.statType || row.stat || row.projectionType || row.type;
     const market = marketNorm(rawMarket);
