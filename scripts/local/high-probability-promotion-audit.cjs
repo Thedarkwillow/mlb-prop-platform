@@ -104,19 +104,62 @@ function extractBucketFromFile(bucket, file) {
     };
   }
 
-  const buckets =
-    data.buckets ||
-    data.byBucket ||
-    data.results ||
-    data.summary ||
-    {};
+  function findBucketObject(v) {
+    if (!v || typeof v !== "object") return null;
 
-  const source =
-    buckets[bucket.bucketKey] ||
-    (Array.isArray(buckets) ? buckets.find(x => x.key === bucket.bucketKey || x.bucket === bucket.bucketKey || x.name === bucket.bucketKey) : null) ||
-    data[bucket.bucketKey];
+    if (Array.isArray(v)) {
+      for (const x of v) {
+        const found = findBucketObject(x);
+        if (found) return found;
+      }
+      return null;
+    }
 
+    const names = [
+      v.key,
+      v.bucket,
+      v.name,
+      v.label,
+      v.bucketKey,
+      v.category,
+      v.section
+    ].map(x => String(x || "").toUpperCase());
+
+    if (names.includes(String(bucket.bucketKey || "").toUpperCase())) return v;
+
+    if (v[bucket.bucketKey]) return v[bucket.bucketKey];
+
+    for (const val of Object.values(v)) {
+      const found = findBucketObject(val);
+      if (found) return found;
+    }
+
+    return null;
+  }
+
+  const source = findBucketObject(data);
   if (!source) return null;
+
+  const rows =
+    Array.isArray(source.rows) ? source.rows :
+    Array.isArray(source.results) ? source.results :
+    Array.isArray(source.items) ? source.items :
+    Array.isArray(source.props) ? source.props :
+    [];
+
+  if (rows.length) {
+    const gradedRows = rows.filter(r => ["HIT", "MISS", "PUSH"].includes(String(r.result || "").toUpperCase()));
+    return {
+      date,
+      file,
+      total: rows.length,
+      graded: gradedRows.length,
+      hits: gradedRows.filter(r => String(r.result || "").toUpperCase() === "HIT").length,
+      misses: gradedRows.filter(r => String(r.result || "").toUpperCase() === "MISS").length,
+      pushes: gradedRows.filter(r => String(r.result || "").toUpperCase() === "PUSH").length,
+      unmatched: rows.length - gradedRows.length
+    };
+  }
 
   return {
     date,
