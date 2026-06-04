@@ -144,40 +144,71 @@ function classify(row, prob, edge) {
   const t = tier(row);
   const side = sideNorm(row.side || row.pick || row.direction || row.recommendation);
 
-  if (market === "pitcher_fantasy_score") {
+  if (side !== "MORE" && side !== "LESS") {
     return {
-      class: "RESEARCH",
-      stakeGuidance: "track only / pitcher fantasy scale not production verified",
-      reasons: ["PITCHER_FANTASY_TRACK_ONLY", "not_official", "not_slip_builder_allowed"]
-    };
-  }
-
-  if (market === "pitches_thrown") {
-    return {
-      class: "RESEARCH",
-      stakeGuidance: "secondary research only / pitch count volatility",
-      reasons: ["PITCH_COUNT_SECONDARY_ONLY", "not_official", "not_slip_builder_allowed"]
+      include: false,
+      class: "BLOCKED",
+      stakeGuidance: "blocked / invalid side",
+      reasons: ["INVALID_SIDE"]
     };
   }
 
   if (t === "demon") {
     return {
+      include: false,
       class: "RESEARCH",
-      stakeGuidance: "demon research only",
-      reasons: ["DEMON_RESEARCH_ONLY", "not_official", "not_slip_builder_allowed"]
+      stakeGuidance: "demon research only / excluded from production candidates",
+      reasons: ["DEMON_RESEARCH_ONLY", "excluded_from_production_merge"]
     };
   }
 
   if ((t === "goblin" || t === "demon") && side !== "MORE") {
     return {
+      include: false,
       class: "BLOCKED",
       stakeGuidance: "blocked / special tier LESS not allowed",
       reasons: ["SPECIAL_TIER_LESS_BLOCKED"]
     };
   }
 
-  if (prob >= 0.65 && edge !== null && edge > 0) {
+  if (market === "pitches_thrown") {
     return {
+      include: false,
+      class: "RESEARCH",
+      stakeGuidance: "secondary research only / excluded from production candidates",
+      reasons: ["PITCH_COUNT_SECONDARY_ONLY", "excluded_from_production_merge"]
+    };
+  }
+
+  if (market === "pitcher_fantasy_score") {
+    if (prob < 0.50 || edge === null || edge <= 0) {
+      return {
+        include: false,
+        class: "RESEARCH",
+        stakeGuidance: "pitcher fantasy track-only / weak or invalid model support",
+        reasons: ["PITCHER_FANTASY_TRACK_ONLY", "weak_or_negative_model_support", "excluded_from_production_merge"]
+      };
+    }
+    return {
+      include: true,
+      class: "RESEARCH",
+      stakeGuidance: "track only / pitcher fantasy scale not production verified",
+      reasons: ["PITCHER_FANTASY_TRACK_ONLY", "not_official", "not_slip_builder_allowed"]
+    };
+  }
+
+  if (edge === null || edge <= 0) {
+    return {
+      include: false,
+      class: "SHADOW_BLOCKED",
+      stakeGuidance: "blocked / non-positive edge",
+      reasons: ["PITCHER_NON_POSITIVE_EDGE", "excluded_from_production_merge"]
+    };
+  }
+
+  if (prob >= 0.65) {
+    return {
+      include: true,
       class: "WATCHLIST",
       stakeGuidance: "track only / pitcher production coverage candidate",
       reasons: ["PITCHER_BOARD_MODEL_PROB_VALID", "production_coverage_merge", "not_official"]
@@ -186,6 +217,7 @@ function classify(row, prob, edge) {
 
   if (prob >= 0.55) {
     return {
+      include: true,
       class: "RESEARCH",
       stakeGuidance: "research only / probability below watch threshold",
       reasons: ["PITCHER_BOARD_MODEL_PROB_LOW", "not_official"]
@@ -193,9 +225,10 @@ function classify(row, prob, edge) {
   }
 
   return {
+    include: false,
     class: "SHADOW_BLOCKED",
     stakeGuidance: "blocked / model probability too low",
-    reasons: ["PITCHER_MODEL_DISAGREES", "not_official"]
+    reasons: ["PITCHER_MODEL_DISAGREES", "excluded_from_production_merge"]
   };
 }
 
@@ -251,6 +284,14 @@ for (const r of pitcherBoard) {
     reasons: c.reasons,
     ...base
   };
+
+  if (!c.include) {
+    missing.push({
+      ...row,
+      reason: "EXCLUDED_BY_STRICT_PITCHER_COVERAGE_RULES"
+    });
+    continue;
+  }
 
   if (!existing.has(key(row))) {
     valid.push(row);
