@@ -51,6 +51,27 @@ const BUCKETS = [
     watchHitRate: 0.6,
     requiredDays: 2
   },
+
+  {
+    key: "SHADOW_HITS_MORE_HIGH_PROB",
+    label: "Shadow hits MORE high probability",
+    sourcePattern: /^outputs\/high-probability-bucket-grades-(\d{4}-\d{2}-\d{2})\.json$/,
+    bucketKey: "SHADOW_HITS_MORE_HIGH_PROB",
+    minGraded: 30,
+    promoteHitRate: 0.65,
+    watchHitRate: 0.6,
+    requiredDays: 2
+  },
+  {
+    key: "SHADOW_BASES_MORE_HIGH_PROB",
+    label: "Shadow bases MORE high probability",
+    sourcePattern: /^outputs\/high-probability-bucket-grades-(\d{4}-\d{2}-\d{2})\.json$/,
+    bucketKey: "SHADOW_BASES_MORE_HIGH_PROB",
+    minGraded: 30,
+    promoteHitRate: 0.65,
+    watchHitRate: 0.6,
+    requiredDays: 2
+  },
   {
     key: "SHADOW_HITS_BASES_HIGH_PROB",
     label: "Shadow hits/bases high probability",
