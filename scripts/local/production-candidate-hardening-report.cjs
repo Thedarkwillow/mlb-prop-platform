@@ -1,6 +1,7 @@
 const fs = require("fs");
 const FULL_CONFIRMATION_FILE = "outputs/full-prop-confirmation/full-prop-confirmation-report-latest.json";
 const EXTERNAL_CONFIRMATION_FILE = "outputs/external-confirmation/external-mlb-form-confirmation-latest.json";
+const PICKFINDER_BACKFILL_FILE = "data/pickfinder/pickfinder-style-backfill-latest.json";
 
 const DATE =
   process.argv[2] ||
@@ -301,6 +302,24 @@ function loadConfirmationRows(file) {
   return [];
 }
 
+
+function pfStatusRank(status) {
+  const s = String(status || "");
+  if (s === "PF_CONFIRMED") return 4;
+  if (s === "PF_WEAK") return 3;
+  if (s === "PF_MISSING_LINEUP") return 2;
+  if (s === "PF_NOT_CHECKED") return 1;
+  return 0;
+}
+
+function mergeConfirmation(existing = {}, incoming = {}) {
+  const out = { ...existing, ...incoming };
+  const a = existing.pfStatus || existing.pickfinderStatus || "";
+  const b = incoming.pfStatus || incoming.pickfinderStatus || "";
+  out.pfStatus = pfStatusRank(b) >= pfStatusRank(a) ? b || a : a || b;
+  return out;
+}
+
 function buildConfirmationMap() {
   const map = new Map();
 
@@ -316,10 +335,32 @@ function buildConfirmationMap() {
     map.set(key, { ...(map.get(key) || {}), external: r });
   }
 
+  for (const r of loadConfirmationRows(PICKFINDER_BACKFILL_FILE)) {
+    const key = propKeyForConfirmation(r);
+    if (!key) continue;
+    map.set(key, mergeConfirmation(map.get(key), {
+      ...r,
+      pfStatus: r.pfStatus || r.pickfinderStatus || "PF_NOT_CHECKED",
+      backfill: {
+        l5: r.l5 || null,
+        l10: r.l10 || null,
+        l15: r.l15 || null,
+        season: r.season || null,
+        splitHomeAway: r.splitHomeAway || null,
+        vsPitcher: r.vsPitcher || null,
+        source: "pickfinder_style_backfill"
+      }
+    }));
+  }
   return map;
 }
 
-function pickfinderStatusFromConfirmation(row, confirmation = {}) {
+function pickfinderStatusFromConfirmation(row, confirmation = {
+  const directPfStatus = confirmation.pfStatus || confirmation.pickfinderStatus;
+  if (["PF_CONFIRMED", "PF_WEAK", "PF_NOT_CHECKED", "PF_MISSING_LINEUP"].includes(directPfStatus)) {
+    return directPfStatus;
+  }
+}) {
   const full = confirmation.full || null;
   const external = confirmation.external || null;
   const blob = JSON.stringify({ full, external });
