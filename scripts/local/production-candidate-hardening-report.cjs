@@ -355,9 +355,23 @@ function buildConfirmationMap() {
   return map;
 }
 
+
+function isPitcherPfMarket(market) {
+  return [
+    "strikeouts",
+    "hits_allowed",
+    "walks_allowed",
+    "earned_runs_allowed",
+    "runs_allowed",
+    "pitching_outs",
+    "pitches_thrown",
+    "pitcher_fantasy_score"
+  ].includes(marketNorm(market));
+}
+
 function pickfinderStatusFromConfirmation(row, confirmation = {}) {
   const directPfStatus = confirmation.pfStatus || confirmation.pickfinderStatus;
-  if (["PF_CONFIRMED", "PF_WEAK", "PF_NOT_CHECKED", "PF_MISSING_LINEUP"].includes(directPfStatus)) {
+  if (["PF_CONFIRMED", "PF_WEAK", "PF_NOT_CHECKED", "PF_MISSING_LINEUP", "PF_NOT_APPLICABLE_PITCHER"].includes(directPfStatus)) {
     return directPfStatus;
   }
 
@@ -413,6 +427,9 @@ function applyPfConfirmationToHardenedRows(hardened, confirmationMap) {
   for (const row of hardened) {
     const confirmation = confirmationMap.get(propKeyForConfirmation(row)) || {};
     const summary = confirmationSummaryFor(row, confirmation);
+    if (isPitcherPfMarket(row.market)) {
+      summary.pfStatus = "PF_NOT_APPLICABLE_PITCHER";
+    }
     row.pfStatus = summary.pfStatus;
     row.confirmation = summary;
 
@@ -421,6 +438,7 @@ function applyPfConfirmationToHardenedRows(hardened, confirmationMap) {
     if (summary.pfStatus === "PF_WEAK" && !row.flags.includes("pf_weak")) row.flags.push("pf_weak");
     if (summary.pfStatus === "PF_NOT_CHECKED" && !row.flags.includes("pf_not_checked")) row.flags.push("pf_not_checked");
     if (summary.pfStatus === "PF_MISSING_LINEUP" && !row.flags.includes("pf_missing_lineup")) row.flags.push("pf_missing_lineup");
+    if (summary.pfStatus === "PF_NOT_APPLICABLE_PITCHER" && !row.flags.includes("pf_not_applicable_pitcher")) row.flags.push("pf_not_applicable_pitcher");
   }
   return hardened;
 }
