@@ -412,7 +412,13 @@ function main() {
   const { file: boardFile, keys: boardKeys } = buildBoardKeySet();
   const allRows = collectRows();
 
-  const lessRows = allRows.filter(row => isLess(row) && isCurrentSlate(row, boardKeys));
+  // PrizePicks/priced-board often stores only MORE-side board rows.
+  // Production candidates can still contain model-generated LESS rows for the current slate.
+  // Do not require LESS candidates to have an exact LESS key in priced-board, or the LESS report will be empty.
+  const lessRows = allRows.filter(row => isLess(row) && (
+    isCurrentSlate(row, boardKeys) ||
+    /production-candidates|lean-final-slips|high-probability/i.test(String(row._sourceFile || row.sourceFile || row.source || ""))
+  ));
 
   const actionableLess = sortRows(lessRows.filter(row => {
     const prob = getProb(row) ?? 0;
