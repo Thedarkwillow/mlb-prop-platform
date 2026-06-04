@@ -264,6 +264,99 @@ function buildBoardIndex(board) {
   return { index, supportKeys };
 }
 
+
+function buildDiagnosticRows(board) {
+  return flattenRows(board)
+    .map(({ row }) => ({
+      player: playerOf(row),
+      playerKey: norm(playerOf(row)),
+      market: marketOf(row),
+      marketKey: norm(marketOf(row)),
+      side: sideOf(row),
+      sideKey: norm(sideOf(row)),
+      line: lineOf(row),
+      lineKey: String(lineOf(row) ?? "").trim(),
+      books: booksOf(row),
+      support: supportOf(row),
+      grade: gradeOf(row)
+    }))
+    .filter(r => r.playerKey && r.marketKey);
+}
+
+function diagnoseUnmatched(row, diagnosticRows) {
+  const playerKey = norm(playerOf(row));
+  const marketKey = norm(marketOf(row));
+  const sideKey = norm(sideOf(row));
+  const lineKey = String(lineOf(row) ?? "").trim();
+
+  const samePlayer = diagnosticRows.filter(r => r.playerKey === playerKey);
+  if (!samePlayer.length) {
+    return {
+      reason: "NO_DIRECT_BOOK_PLAYER_AVAILABLE",
+      samePlayer: 0,
+      sameMarket: 0,
+      sameLine: 0,
+      sameSide: 0,
+      nearMarkets: []
+    };
+  }
+
+  const sameMarket = samePlayer.filter(r => r.marketKey === marketKey);
+  if (!sameMarket.length) {
+    return {
+      reason: "DIRECT_BOOK_PLAYER_FOUND_MARKET_MISSING",
+      samePlayer: samePlayer.length,
+      sameMarket: 0,
+      sameLine: 0,
+      sameSide: 0,
+      nearMarkets: [...new Set(samePlayer.map(r => r.market).filter(Boolean))].slice(0, 10)
+    };
+  }
+
+  const sameLine = sameMarket.filter(r => r.lineKey === lineKey);
+  if (!sameLine.length) {
+    return {
+      reason: "DIRECT_BOOK_PLAYER_MARKET_FOUND_LINE_MISSING",
+      samePlayer: samePlayer.length,
+      sameMarket: sameMarket.length,
+      sameLine: 0,
+      sameSide: 0,
+      nearLines: [...new Set(sameMarket.map(r => String(r.line)).filter(Boolean))].slice(0, 10)
+    };
+  }
+
+  const sameSide = sameLine.filter(r => r.sideKey === sideKey);
+  if (!sameSide.length) {
+    return {
+      reason: "DIRECT_BOOK_PLAYER_MARKET_LINE_FOUND_SIDE_MISSING",
+      samePlayer: samePlayer.length,
+      sameMarket: sameMarket.length,
+      sameLine: sameLine.length,
+      sameSide: 0,
+      nearSides: [...new Set(sameLine.map(r => r.side).filter(Boolean))].slice(0, 10)
+    };
+  }
+
+  const supported = sameSide.filter(r => Number(r.books) > 0);
+  if (!supported.length) {
+    return {
+      reason: "DIRECT_BOOK_MATCH_EXISTS_BUT_NO_BOOK_COUNT",
+      samePlayer: samePlayer.length,
+      sameMarket: sameMarket.length,
+      sameLine: sameLine.length,
+      sameSide: sameSide.length
+    };
+  }
+
+  return {
+    reason: "DIRECT_BOOK_MATCH_EXISTS_BUT_PATCH_FAILED",
+    samePlayer: samePlayer.length,
+    sameMarket: sameMarket.length,
+    sameLine: sameLine.length,
+    sameSide: sameSide.length
+  };
+}
+
 function shouldPatch(row) {
   if (!row || typeof row !== "object") return false;
   if (!isDirectUnderlyingEligible(row)) return false;
@@ -314,7 +407,7 @@ function patchRow(row, match) {
   return true;
 }
 
-function processTargetFile(file, boardIndex) {
+function processTargetFile(file, boardIndex, diagnosticRows) {
   const payload = readJson(file, null);
   if (!payload) return null;
 
@@ -330,6 +423,7 @@ function processTargetFile(file, boardIndex) {
 
     const match = boardIndex.get(key);
     if (!match) {
+      const diagnosis = diagnoseUnmatched(row, diagnosticRows);
       unmatched.push({
         file,
         path,
@@ -341,7 +435,8 @@ function processTargetFile(file, boardIndex) {
         books: booksOf(row),
         support: supportOf(row) || "UNKNOWN",
         grade: gradeOf(row) || "UNKNOWN",
-        reason: "NO_MATCHING_DIRECT_UNDERLYING_BOOK_ROW"
+        reason: diagnosis.reason,
+        diagnosis
       });
       continue;
     }
@@ -395,6 +490,7 @@ function main() {
   }
 
   const { index: boardIndex, supportKeys } = buildBoardIndex(board);
+  const diagnosticRows = buildDiagnosticRows(board);
 
   const files = [];
   const patchedRows = [];
@@ -402,7 +498,7 @@ function main() {
 
   for (const file of TARGET_FILES) {
     if (!fs.existsSync(file)) continue;
-    const result = processTargetFile(file, boardIndex);
+    const result = processTargetFile(file, boardIndex, diagnosticRows);
     if (!result) continue;
     files.push({
       file: result.file,
@@ -421,10 +517,14 @@ function main() {
     boardFile,
     boardSupportKeys: supportKeys,
     summary: {
-    remainingProblemRows: readRemainingProblemRows(),
+      remainingProblemRows: readRemainingProblemRows(),
       files: files.length,
       patchedRows: patchedRows.length,
-      unmatchedRows: unmatchedRows.length
+      unmatchedRows: unmatchedRows.length,
+      unmatchedByReason: unmatchedRows.reduce((acc, r) => {
+        acc[r.reason || "UNKNOWN"] = (acc[r.reason || "UNKNOWN"] || 0) + 1;
+        return acc;
+      }, {})
     },
     files,
     patchedRows,
