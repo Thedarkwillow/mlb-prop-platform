@@ -198,8 +198,25 @@ if (!unique.length) console.log("None.");
 console.log("");
 console.log("PRODUCTION CANDIDATE CLASSES");
 console.log("----------------------------");
-const productionRows = Array.isArray(productionCandidates?.all) ? productionCandidates.all : [];
-const productionCounts = productionCandidates?.counts || null;
+const productionRows = Array.isArray(productionCandidates)
+  ? productionCandidates
+  : Array.isArray(productionCandidates?.all)
+    ? productionCandidates.all
+    : Array.isArray(productionCandidates?.rows)
+      ? productionCandidates.rows
+      : Array.isArray(productionCandidates?.candidates)
+        ? productionCandidates.candidates
+        : [];
+
+const productionCounts = productionCandidates?.counts || (
+  productionRows.length
+    ? productionRows.reduce((acc, r) => {
+        const k = String(r.class || r.bucket || "UNKNOWN").toUpperCase();
+        acc[k] = (acc[k] || 0) + 1;
+        return acc;
+      }, {})
+    : null
+);
 
 if (productionCounts) {
   function countDisplayedProductionClass(className) {
