@@ -1,3 +1,4 @@
+// PRODUCTION_CANDIDATE_CLASS_HARDENED
 const fs = require("fs");
 
 const DATE = process.argv[2] || process.env.npm_config_date || new Date().toISOString().slice(0, 10);
@@ -268,7 +269,7 @@ if (!productionRowsDeduped.length) {
 } else {
   for (const className of ["CORE", "LEAN", "WATCHLIST", "RESEARCH", "BLOCKED", "SHADOW_BLOCKED"]) {
     const rows = productionRowsDeduped
-      .filter(r => String(r.class || "").toUpperCase() === className)
+      .filter(r => String(safeCandidateClass(r)).toUpperCase() === className)
       .slice()
       .sort((a, b) => {
         const aProb = Number(a.prob ?? 0);
@@ -1481,3 +1482,47 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
   }
 })();
 
+
+
+function safeCandidateClass(row) {
+  const raw = String(
+    row?.class ||
+    row?.candidateClass ||
+    row?.classification ||
+    row?.productionClass ||
+    row?.bucket ||
+    ""
+  ).toUpperCase();
+
+  if (raw === "CORE") return "CORE";
+  if (raw === "LEAN") return "LEAN";
+  if (raw === "WATCHLIST") return "WATCHLIST";
+  if (raw === "RESEARCH") return "RESEARCH";
+  if (raw === "BLOCKED") return "BLOCKED";
+  if (raw === "SHADOW_BLOCKED") return "SHADOW_BLOCKED";
+
+  const lowered = raw.toLowerCase();
+  if (/shadow/.test(lowered) && /block/.test(lowered)) return "SHADOW_BLOCKED";
+  if (/blocked|avoid|ban|suppressed|invalid/.test(lowered)) return "BLOCKED";
+  if (/core|elite|strong/.test(lowered)) return "CORE";
+  if (/lean|playable|solid|standard/.test(lowered)) return "LEAN";
+  if (/watch|thin/.test(lowered)) return "WATCHLIST";
+  if (/research|unknown|unclassified/.test(lowered)) return "RESEARCH";
+
+  const score = Number(row?.score ?? row?.officialScore ?? row?.modelScore ?? row?.probability ?? row?.prob ?? NaN);
+  const ev = Number(row?.ev ?? row?.EV ?? row?.expectedValue ?? NaN);
+
+  if (Number.isFinite(score)) {
+    if (score >= 0.72) return "CORE";
+    if (score >= 0.62) return "LEAN";
+    if (score >= 0.54) return "WATCHLIST";
+  }
+
+  if (Number.isFinite(ev)) {
+    if (ev >= 1.18) return "CORE";
+    if (ev >= 1.06) return "LEAN";
+    if (ev >= 1.00) return "WATCHLIST";
+  }
+
+  return "RESEARCH";
+}

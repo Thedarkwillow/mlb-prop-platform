@@ -16,7 +16,8 @@ const CONTEXT_FILES = {
   handednessSplits: 'data/savant/handedness-splits.json',
   probablePitcherHands: 'data/context/probable-pitcher-hands.json',
   umpireContext: 'data/context/umpires.json',
-  catcherFraming: 'data/context/catcher-framing.json'
+  catcherFraming: 'data/context/catcher-framing.json',
+  gameLogForm: 'data/context/player-game-log-form.json'
 };
 
 function readJson(path, fallback = {}) {
@@ -1074,11 +1075,112 @@ function applyMarketIntelligence(row, prob, ev) {
   };
 }
 
+
+function pitcherRollingProjectionFallback(row, market) {
+  const m = String(market || "").toLowerCase();
+  const player = String(row.player || row.playerName || "");
+  if (!player || player.includes("+")) return null;
+
+  function nkey(s) {
+    return String(s || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+  }
+
+  const formRows = Array.isArray(CTX.gameLogForm) ? CTX.gameLogForm : [];
+  if (!pitcherRollingProjectionFallback._byPlayer) {
+    pitcherRollingProjectionFallback._byPlayer = new Map();
+    for (const f of formRows) {
+      const k = nkey(f.key || f.player);
+      if (k) pitcherRollingProjectionFallback._byPlayer.set(k, f);
+    }
+  }
+
+  const form = pitcherRollingProjectionFallback._byPlayer.get(nkey(player));
+  const pitcher = form?.pitcher || {};
+
+  function valid(v, allowZero = false) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return null;
+    if (allowZero ? n >= 0 : n > 0) return n;
+    return null;
+  }
+
+  function fromRow(...keys) {
+    for (const k of keys) {
+      const n = valid(row[k]);
+      if (n !== null) return n;
+    }
+    return null;
+  }
+
+  function fromForm(field, allowZero = false) {
+    const windows = ["last5", "last10", "last15", "season"];
+    for (const w of windows) {
+      const bucket = pitcher?.[w];
+      const games = Number(bucket?.games ?? 0);
+      if (!Number.isFinite(games) || games <= 0) continue;
+      const n = valid(bucket?.[field], allowZero);
+      if (n !== null) return n;
+    }
+    return null;
+  }
+
+  if (m === "pitching_outs" || m === "outs") {
+    return (
+      fromRow("pitcherLast5OutsPerGame", "pitcherLast10OutsPerGame", "pitcherLast15OutsPerGame", "pitcherSeasonOutsPerGame") ??
+      fromForm("outsPerGame")
+    );
+  }
+
+  if (m === "strikeouts" || m === "pitcher_strikeouts") {
+    return (
+      fromRow("pitcherLast5StrikeoutsPerGame", "pitcherLast10StrikeoutsPerGame", "pitcherLast15StrikeoutsPerGame", "pitcherSeasonStrikeoutsPerGame") ??
+      fromForm("strikeoutsPerGame")
+    );
+  }
+
+  if (m === "hits_allowed") {
+    return (
+      fromRow("pitcherLast5HitsAllowedPerGame", "pitcherLast10HitsAllowedPerGame", "pitcherLast15HitsAllowedPerGame", "pitcherSeasonHitsAllowedPerGame") ??
+      fromForm("hitsAllowedPerGame")
+    );
+  }
+
+  if (m === "earned_runs_allowed" || m === "runs_allowed") {
+    return (
+      fromRow("pitcherLast5EarnedRunsPerGame", "pitcherLast10EarnedRunsPerGame", "pitcherLast15EarnedRunsPerGame", "pitcherSeasonEarnedRunsPerGame") ??
+      fromForm("earnedRunsPerGame", true)
+    );
+  }
+
+  if (m === "walks_allowed") {
+    return (
+      fromRow("pitcherLast5WalksAllowedPerGame", "pitcherLast10WalksAllowedPerGame", "pitcherLast15WalksAllowedPerGame", "pitcherSeasonWalksAllowedPerGame") ??
+      fromForm("walksAllowedPerGame", true)
+    );
+  }
+
+  return null;
+}
+
+function validPositiveProjection(v) {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0;
+}
+
 const board = JSON.parse(fs.readFileSync(IN_FILE, 'utf8'));
 
 const priced = board.map(row => {
   const market = canonicalMarket(row);
-  const repairedProjection = projectionFromBallpark(row, market);
+  const primaryProjection = projectionFromBallpark(row, market);
+  const rollingPitcherProjection = pitcherRollingProjectionFallback(row, market);
+  const repairedProjection = validPositiveProjection(primaryProjection)
+    ? primaryProjection
+    : rollingPitcherProjection;
 
   if (
     row.recordType !== 'merged_prop' ||
@@ -1125,6 +1227,60 @@ const priced = board.map(row => {
   }
 
   let recommendedProb = recommendedSide === 'MORE' ? overProb : underProb;
+
+  if (!Number.isFinite(Number(recommendedProb)) || Number(recommendedProb) < 0.5) {
+    return {
+      ...row,
+      pricingStatus: 'DISABLED',
+      unpricedReason: 'RECOMMENDED_SIDE_PROB_BELOW_50',
+      rawProjection: round(repairedProjection),
+      contextAdjustedProjection: round(contextProjection),
+      projection: round(contextProjection),
+      overProb: round(overProb),
+      underProb: round(underProb),
+      recommendedSide: null,
+      recommendedProb: null,
+      expectedValue: null,
+      confidenceBucket: 'pass',
+      disabledByNegativeEdgeGuard: true
+    };
+  }
+
+  if (!Number.isFinite(Number(recommendedProb)) || Number(recommendedProb) < 0.5) {
+    return {
+      ...row,
+      pricingStatus: 'DISABLED',
+      unpricedReason: 'RECOMMENDED_SIDE_PROB_BELOW_50',
+      rawProjection: round(repairedProjection),
+      contextAdjustedProjection: round(contextProjection),
+      projection: round(contextProjection),
+      overProb: round(overProb),
+      underProb: round(underProb),
+      recommendedSide: null,
+      recommendedProb: null,
+      expectedValue: null,
+      confidenceBucket: 'pass',
+      disabledByNegativeEdgeGuard: true
+    };
+  }
+
+  if (!Number.isFinite(Number(recommendedProb)) || Number(recommendedProb) < 0.5) {
+    return {
+      ...row,
+      pricingStatus: 'DISABLED',
+      unpricedReason: 'RECOMMENDED_SIDE_PROB_BELOW_50',
+      rawProjection: round(repairedProjection),
+      contextAdjustedProjection: round(contextProjection),
+      projection: round(contextProjection),
+      overProb: round(overProb),
+      underProb: round(underProb),
+      recommendedSide: null,
+      recommendedProb: null,
+      expectedValue: null,
+      confidenceBucket: 'pass',
+      disabledByNegativeEdgeGuard: true
+    };
+  }
 
   const savantFormResult = applySavantRollingForm(
     { ...row, recommendedSide },
@@ -1186,6 +1342,38 @@ if (recommendedSide === 'MORE') {
   } else {
     underProb = recommendedProb;
     overProb = 1 - recommendedProb;
+  }
+
+  if (!Number.isFinite(Number(recommendedProb)) || Number(recommendedProb) < 0.5) {
+    return {
+      ...row,
+      pricingStatus: 'DISABLED',
+      unpricedReason: 'FINAL_RECOMMENDED_SIDE_PROB_BELOW_50',
+      rawProjection: round(repairedProjection),
+      contextAdjustedProjection: round(contextProjection),
+      projection: round(contextProjection),
+      overProb: round(overProb),
+      underProb: round(underProb),
+      recommendedSide: null,
+      recommendedProb: null,
+      expectedValue: null,
+      confidenceBucket: 'pass',
+      disabledByFinalNegativeEdgeGuard: true,
+      contextAdjustment: contextResult.context,
+      savantRollingForm: savantFormResult.savantRollingForm,
+      contactQualityAdjusted: Boolean(contactQualityResult.adjustment?.applied),
+      contactQualityAdjustment: contactQualityResult.adjustment,
+      handednessMatched: directHandedness.handednessMatched,
+      handednessReady: directHandedness.handednessReady,
+      handednessMatchType: directHandedness.handednessMatchType,
+      handednessContext: directHandedness.handednessContext,
+      handednessAdjustment: handednessResult.handednessAdjustment,
+      calibrationAdjustment: calibrationResult.calibration,
+      umpireFramingAdjusted: Boolean(umpireFramingResult.adjustment?.applied),
+      umpireFramingAdjustment: umpireFramingResult.adjustment,
+      marketIntelligence: intel.marketIntelligence,
+      adaptiveIntelligenceVersion: 'tier_a_v1'
+    };
   }
 
   return {
