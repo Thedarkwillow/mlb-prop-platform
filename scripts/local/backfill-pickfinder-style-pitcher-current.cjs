@@ -185,47 +185,133 @@ function propKey(r) {
   ].join("|");
 }
 
-function loadTargets() {
-  const candidates = flatten(readJson("outputs/production-candidates.json", []));
-  const hardening = flatten(readJson(`outputs/production-candidate-hardening-${DATE}.json`, []));
-  const all = [...candidates, ...hardening];
+function isPitcherOnlyMarket(market) {
+  const m = marketNorm(market);
+  return [
+    "hits_allowed",
+    "walks_allowed",
+    "earned_runs_allowed",
+    "runs_allowed",
+    "pitching_outs",
+    "pitches_thrown",
+    "pitcher_fantasy_score"
+  ].includes(m);
+}
 
-  const seen = new Set();
+function isPitcherStrikeoutRow(row, playerName) {
+  const m = marketNorm(row.market || row.statType || row.stat || row.projectionType || row.type);
+  if (m !== "strikeouts") return false;
+
+  // Exclude combo props.
+  if (String(playerName || "").includes("+")) return false;
+
+  // Exclude obvious hitter strikeout props by requiring pitcher-like metadata when available.
+  const pos = String(
+    row.position ||
+    row.primaryPosition ||
+    row.playerPosition ||
+    row.participantPosition ||
+    row.positionAbbreviation ||
+    ""
+  ).toLowerCase();
+
+  const role = String(
+    row.role ||
+    row.playerRole ||
+    row.participantRole ||
+    row.type ||
+    ""
+  ).toLowerCase();
+
+  if (pos && !["p", "sp", "rp", "pitcher"].includes(pos)) return false;
+  if (role && role.includes("batter")) return false;
+
+  // If no useful metadata exists, keep only higher pitcher-style K lines.
+  // Hitter strikeout props are usually 0.5/1.5/2.5.
+  const line = Number(row.line ?? row.lineScore ?? row.target ?? row.value);
+  return Number.isFinite(line) && line >= 3.5;
+}
+
+function sideFromBoardRow(row) {
+  const raw = String(row.side || row.pick || row.direction || row.recommendation || "").toUpperCase();
+  if (raw === "MORE" || raw === "LESS") return raw;
+
+  const tier = String(row.tier || row.oddsTier || "").toLowerCase();
+
+  // Goblins/demons are playable MORE-only in our system.
+  if (tier === "goblin" || tier === "demon") return "MORE";
+
+  // Standard board rows often have no side because the board just lists the line.
+  // Backfill is confirmation only, so create both directions for standards.
+  return null;
+}
+
+function loadTargets() {
+  const board = flatten(readJson(CURRENT_BOARD_FILE, []));
   const targets = [];
 
-  for (const r of all) {
-    const market = marketNorm(r.market || r.statType);
-    if (!isPitcherMarket(market, r)) continue;
+  for (const row of board) {
+    const player =
+      row.player ||
+      row.playerName ||
+      row.name ||
+      row.participantName ||
+      row.displayName ||
+      row.fullName ||
+      "";
 
-    const player = r.player || r.playerName || r.name;
-    const side = String(r.side || r.pick || "").toUpperCase();
-    const line = Number(r.line ?? r.value);
+    if (!player || String(player).includes("+")) continue;
 
-    if (!player || !side || !Number.isFinite(line)) continue;
+    const rawMarket = row.market || row.statType || row.stat || row.projectionType || row.type;
+    const market = marketNorm(rawMarket);
 
-    const row = {
+    const pitcherMarket =
+      isPitcherOnlyMarket(rawMarket) ||
+      isPitcherStrikeoutRow(row, player);
+
+    if (!pitcherMarket) continue;
+
+    const line = Number(row.line ?? row.lineScore ?? row.target ?? row.value);
+    if (!Number.isFinite(line)) continue;
+
+    const base = {
       player,
-      team: r.team || null,
+      team: row.team || row.teamAbbr || row.teamCode || row.currentTeam || null,
+      opponent: row.opponent || row.opp || row.opponentTeam || null,
       market,
-      side,
       line,
-      tier: r.tier || r.oddsTier || null,
-      modelClass: r.hardenedClass || r.class || r.decision || null,
-      prob: r.prob ?? null,
-      edge: r.edge ?? null,
-      books: r.books ?? null,
-      grade: r.grade ?? null,
-      opponent: r.opponent || r.opponentTeam || null,
-      position: r.position || r.playerPosition || r.pos || null
+      tier: row.tier || row.oddsTier || null,
+      prob: row.prob ?? row.probability ?? null,
+      edge: row.edge ?? null,
+      books: row.books ?? row.bookCount ?? null,
+      grade: row.grade ?? null,
+      source: "current_priced_board"
     };
 
-    const key = uniqueKey(row);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    targets.push(row);
+    const side = sideFromBoardRow(row);
+
+    if (side) {
+      targets.push({ ...base, side });
+    } else {
+      targets.push({ ...base, side: "MORE" });
+      targets.push({ ...base, side: "LESS" });
+    }
   }
 
-  return targets;
+  const seen = new Set();
+  return targets.filter(t => {
+    const key = [
+      norm(t.player),
+      norm(t.team),
+      marketNorm(t.market),
+      t.side,
+      Number(t.line)
+    ].join("|");
+
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function indexPlayers(index) {
