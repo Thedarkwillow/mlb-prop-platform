@@ -208,15 +208,34 @@ const productionRows = Array.isArray(productionCandidates)
         ? productionCandidates.candidates
         : [];
 
-const productionCounts = productionCandidates?.counts || (
-  productionRows.length
-    ? productionRows.reduce((acc, r) => {
-        const k = String(r.class || r.bucket || "UNKNOWN").toUpperCase();
-        acc[k] = (acc[k] || 0) + 1;
-        return acc;
-      }, {})
-    : null
-);
+function productionDisplayKey(r) {
+  return [
+    String(r.class || r.bucket || "UNKNOWN").toUpperCase(),
+    String(r.player || "").toLowerCase().trim(),
+    String(r.team || "").toLowerCase().trim(),
+    String(r.market || "").toLowerCase().trim(),
+    String(r.side || "").toUpperCase().trim(),
+    String(r.line ?? "").trim(),
+    String(r.oddsTier || r.tier || "standard").toLowerCase().trim()
+  ].join("|");
+}
+
+const productionRowsDeduped = [];
+const productionSeen = new Set();
+for (const r of productionRows) {
+  const k = productionDisplayKey(r);
+  if (productionSeen.has(k)) continue;
+  productionSeen.add(k);
+  productionRowsDeduped.push(r);
+}
+
+const productionCounts = productionRowsDeduped.length
+  ? productionRowsDeduped.reduce((acc, r) => {
+      const k = String(r.class || r.bucket || "UNKNOWN").toUpperCase();
+      acc[k] = (acc[k] || 0) + 1;
+      return acc;
+    }, {})
+  : null;
 
 if (productionCounts) {
   function countDisplayedProductionClass(className) {
