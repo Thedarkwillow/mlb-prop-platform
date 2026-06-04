@@ -21,11 +21,13 @@ function flatten(v, out = []) {
     return out;
   }
   if (typeof v !== "object") return out;
+
   if (
     v.player || v.playerName || v.name ||
     v.market || v.statType || v.stat ||
     v.side || v.line || v.prob || v.probability
   ) out.push(v);
+
   for (const val of Object.values(v)) {
     if (val && typeof val === "object") flatten(val, out);
   }
@@ -112,7 +114,6 @@ const audit = missing.map(r => {
   const samePlayer = candidates.filter(c => norm(getPlayer(c)) === player);
   const samePlayerMarket = samePlayer.filter(c => getMarket(c) === market);
   const samePlayerMarketSide = samePlayerMarket.filter(c => getSide(c) === side);
-
   const exact = samePlayerMarketSide.find(c => getLine(c) === line) || null;
 
   return {
@@ -146,7 +147,6 @@ const audit = missing.map(r => {
   };
 });
 
-fs.mkdirSync("outputs", { recursive: true });
 fs.writeFileSync(outFile, JSON.stringify({
   date,
   reportFile,
@@ -157,10 +157,13 @@ fs.writeFileSync(outFile, JSON.stringify({
 
 console.log(`date=${date}`);
 console.log(`missingModelProbRows=${missing.length}`);
+
 const byReason = {};
 for (const r of audit) byReason[r.reason] = (byReason[r.reason] || 0) + 1;
 console.log("byReason=" + JSON.stringify(byReason, null, 2));
-for (const r of audit.slice(0, 30)) {
+
+for (const r of audit.slice(0, 40)) {
   console.log(`${r.player} | ${r.market} ${r.side} ${r.line} | ${r.reason} | counts=${JSON.stringify(r.candidateCounts)}`);
 }
+
 console.log(`saved: ${outFile}`);
