@@ -148,7 +148,7 @@ function classOf(row, exact, loose) {
   if (exact?.books > 0) return "MATCHER_MISSED_EXACT_SUPPORTED_ROW";
   if (loose.length > 0) return "LINE_OR_TIER_NOT_SUPPORTED_AT_BOOKS";
   if (tier === "goblin" || tier === "demon") return "SPECIAL_TIER_NO_BOOK_ROW";
-  return "NO_BOOK_ROW_FOUND";
+  return "NO_LOCAL_SPORTSBOOK_SOURCE_ROW";
 }
 
 const audit = readJson(AUDIT_FILE, {});
@@ -268,7 +268,7 @@ classified.slice(0, 80).forEach((r, i) => {
   } else if (r.looseBookRows.length) {
     lines.push(`   loose lines=${r.looseBookRows.map(x => `${x.line}:${x.books || 0}b:${x.support || "UNK"}`).join(", ")}`);
   } else {
-    lines.push("   no sportsbook-enriched row found for player/market/side");
+    lines.push("   no local sportsbook source row found; not repairable without new odds data");
   }
 });
 
