@@ -1,3 +1,36 @@
+
+function addShadowHitBaseSplits(results) {
+  const shadow = results.SHADOW_HIGH_PROBABILITY;
+  if (!shadow || !Array.isArray(shadow.rows)) return;
+
+  const build = (key, label, marketName) => {
+    const rows = shadow.rows.filter(r => String(r.market || "").toLowerCase() === marketName);
+    const gradedRows = rows.filter(r => ["HIT", "MISS", "PUSH"].includes(String(r.result || "").toUpperCase()));
+    const hits = gradedRows.filter(r => String(r.result || "").toUpperCase() === "HIT").length;
+    const misses = gradedRows.filter(r => String(r.result || "").toUpperCase() === "MISS").length;
+    const pushes = gradedRows.filter(r => String(r.result || "").toUpperCase() === "PUSH").length;
+    const refunds = gradedRows.filter(r => String(r.result || "").toUpperCase() === "REFUND").length;
+    const unmatched = rows.length - gradedRows.length;
+
+    results[key] = {
+      key,
+      label,
+      total: rows.length,
+      graded: gradedRows.length,
+      hits,
+      misses,
+      pushes,
+      refunds,
+      unmatched,
+      hitRate: gradedRows.length ? hits / gradedRows.length : null,
+      rows,
+    };
+  };
+
+  build("SHADOW_HITS_MORE_HIGH_PROB", "Shadow hits MORE high probability", "hits");
+  build("SHADOW_BASES_MORE_HIGH_PROB", "Shadow bases MORE high probability", "bases");
+}
+
 const fs = require("fs");
 
 const DATE =
@@ -243,6 +276,8 @@ const buckets = getBuckets(high);
 const summaries = Object.fromEntries(
   Object.entries(buckets).map(([name, rows]) => [name, summarize(name, rows, gradeByExact)])
 );
+
+addShadowHitBaseSplits(results);
 
 const report = {
   date: DATE,
