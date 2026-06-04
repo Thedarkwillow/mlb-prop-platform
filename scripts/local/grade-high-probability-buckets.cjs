@@ -277,8 +277,6 @@ const summaries = Object.fromEntries(
   Object.entries(buckets).map(([name, rows]) => [name, summarize(name, rows, gradeByExact)])
 );
 
-addShadowHitBaseSplits(results);
-
 const report = {
   date: DATE,
   source: HIGH_FILE,
@@ -286,6 +284,8 @@ const report = {
   note: "Matches by player + market + side + line and intentionally ignores tier for research grading.",
   summaries,
 };
+addShadowHitBaseSplits(report.buckets || report.results || report.summary || {});
+
 
 const lines = [];
 lines.push("HIGH-PROBABILITY BUCKET GRADES");
