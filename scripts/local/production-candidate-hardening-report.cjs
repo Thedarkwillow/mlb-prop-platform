@@ -2,6 +2,7 @@ const fs = require("fs");
 const FULL_CONFIRMATION_FILE = "outputs/full-prop-confirmation/full-prop-confirmation-report-latest.json";
 const EXTERNAL_CONFIRMATION_FILE = "outputs/external-confirmation/external-mlb-form-confirmation-latest.json";
 const PICKFINDER_BACKFILL_FILE = "data/pickfinder/pickfinder-style-backfill-latest.json";
+const PICKFINDER_PITCHER_BACKFILL_FILE = "data/pickfinder/pickfinder-style-pitcher-backfill-latest.json";
 
 const DATE =
   process.argv[2] ||
@@ -333,6 +334,24 @@ function buildConfirmationMap() {
     const key = propKeyForConfirmation(r);
     if (!key.replace(/\|/g, "")) continue;
     map.set(key, { ...(map.get(key) || {}), external: r });
+  }
+
+  for (const r of loadConfirmationRows(PICKFINDER_PITCHER_BACKFILL_FILE)) {
+    const key = propKeyForConfirmation(r);
+    if (!key) continue;
+    map.set(key, mergeConfirmation(map.get(key), {
+      ...r,
+      pfStatus: r.pfStatus || r.pickfinderStatus || "PF_NOT_CHECKED",
+      pitcherBackfill: {
+        l5: r.l5 || null,
+        l10: r.l10 || null,
+        l15: r.l15 || null,
+        season: r.season || null,
+        vsOpponent: r.vsOpponent || null,
+        supportStats: r.supportStats || null,
+        source: "pickfinder_style_pitcher_backfill"
+      }
+    }));
   }
 
   for (const r of loadConfirmationRows(PICKFINDER_BACKFILL_FILE)) {

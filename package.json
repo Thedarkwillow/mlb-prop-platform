@@ -325,7 +325,8 @@
     "production:hardening": "node scripts/local/production-candidate-hardening-report.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "roi:production-hardening": "node scripts/local/grade-production-hardening-history.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "audit:less-threshold": "node scripts/local/less-threshold-audit.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
-    "backfill:pickfinder": "node scripts/local/backfill-pickfinder-style-current.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
+    "backfill:pickfinder": "node scripts/local/backfill-pickfinder-style-current.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
+    "backfill:pickfinder:pitcher": "node scripts/local/backfill-pickfinder-style-pitcher-current.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
