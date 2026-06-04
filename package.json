@@ -319,7 +319,7 @@
     "audit:unpriced:gaps": "node scripts/local/classify-unpriced-book-gaps.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "grade:highprob": "node scripts/local/grade-high-probability-buckets.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)} && node scripts/local/repair-highprob-shadow-splits.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "grade:highprob:hrr": "node scripts/local/grade-high-probability-hrr-synthetic.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
-    "audit:highprob:promotion": "node scripts/local/high-probability-promotion-audit.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
+    "audit:highprob:promotion": "node scripts/local/high-probability-promotion-audit.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)} && node scripts/local/repair-highprob-fantasy-suppression.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "grade:promotion:watch": "node scripts/local/grade-promotion-watch-buckets.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "unlock:highprob": "node scripts/local/build-controlled-highprob-unlocks.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
   },
