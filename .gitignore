@@ -34,3 +34,4 @@ outputs/pitcher-production-coverage-merge*.json
 outputs/pitcher-pf-clean-report*.json
 outputs/pitcher-pf-clean-report*.txt
 outputs/hitter-pf-model-disagrees*.json
+data/private/
