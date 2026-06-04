@@ -327,7 +327,9 @@
     "audit:less-threshold": "node scripts/local/less-threshold-audit.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "backfill:pickfinder": "node scripts/local/backfill-pickfinder-style-current.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "backfill:pickfinder:pitcher": "node scripts/local/backfill-pickfinder-style-pitcher-current.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
-    "report:pitcher-pf": "node scripts/local/build-pitcher-pf-clean-report.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
+    "report:pitcher-pf": "node scripts/local/build-pitcher-pf-clean-report.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
+    "production:pitcher-coverage": "node scripts/local/merge-pitcher-board-coverage-into-production.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
+    "audit:pitcher-coverage": "node scripts/local/audit-current-pitcher-projection-gap.cjs && node scripts/local/audit-production-pitcher-coverage.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
