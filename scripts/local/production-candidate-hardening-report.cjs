@@ -160,14 +160,48 @@ function uniqueRows(rows) {
   return out;
 }
 
+function scoreCandidateSource(rows) {
+  let okSupport = 0;
+  let withBooks = 0;
+  let green = 0;
+  let usable = 0;
+
+  for (const row of rows) {
+    const support = getSupport(row);
+    const books = getBooks(row);
+    const grade = getGrade(row);
+
+    if (support === "OK") okSupport++;
+    if (books >= 2) withBooks++;
+    if (grade === "GREEN") green++;
+    if (row.player || row.playerName) usable++;
+  }
+
+  return {
+    rows: rows.length,
+    usable,
+    okSupport,
+    withBooks,
+    green,
+    score: okSupport * 5 + withBooks * 4 + green * 2 + usable * 0.01,
+  };
+}
+
 function readProductionCandidates() {
+  const candidates = [];
+
   for (const file of INPUTS) {
     const data = readJson(file);
     if (!data) continue;
     const rows = uniqueRows(flatten(data));
-    if (rows.length) return { file, data, rows };
+    if (!rows.length) continue;
+    candidates.push({ file, data, rows, sourceScore: scoreCandidateSource(rows) });
   }
-  return { file: null, data: null, rows: [] };
+
+  if (!candidates.length) return { file: null, data: null, rows: [], sourceScore: null };
+
+  candidates.sort((a, b) => b.sourceScore.score - a.sourceScore.score);
+  return candidates[0];
 }
 
 function readHighProbUnlocks() {
@@ -383,6 +417,7 @@ const report = {
   date: DATE,
   generatedAt: new Date().toISOString(),
   sourceFile: prod.file,
+  sourceQuality: prod.sourceScore || null,
   highProbUnlockFile: highProb.file,
   policy: {
     mode: "REPORT_ONLY",
@@ -417,6 +452,7 @@ lines.push("=========================================");
 lines.push(`date=${DATE}`);
 lines.push(`mode=REPORT_ONLY`);
 lines.push(`source=${prod.file || "missing"}`);
+lines.push(`sourceQuality=${JSON.stringify(prod.sourceScore || {})}`);
 lines.push(`highProbUnlocks=${highProb.file || "missing"}`);
 lines.push("");
 lines.push("SUMMARY");
