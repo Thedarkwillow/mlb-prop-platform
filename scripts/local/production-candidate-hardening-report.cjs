@@ -356,32 +356,37 @@ function buildConfirmationMap() {
 }
 
 
-function isPitcherPfMarket(market) {
-  const m = String(market ?? "")
+function isPitcherPfMarket(market, row = {}) {
+  const raw = String(market ?? "")
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, " ")
     .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\s+/g, "_");
+    .trim();
+
+  const normalized = raw.replace(/\s+/g, "_");
 
   const aliases = {
     "pitcher_strikeouts": "strikeouts",
+    "strikeouts": "strikeouts",
     "hits_allowed": "hits_allowed",
     "pitcher_hits_allowed": "hits_allowed",
     "walks_allowed": "walks_allowed",
     "pitcher_walks_allowed": "walks_allowed",
     "earned_runs_allowed": "earned_runs_allowed",
+    "pitcher_earned_runs_allowed": "earned_runs_allowed",
     "runs_allowed": "runs_allowed",
+    "pitcher_runs_allowed": "runs_allowed",
     "pitching_outs": "pitching_outs",
+    "outs": "pitching_outs",
     "pitches_thrown": "pitches_thrown",
     "pitcher_fantasy_score": "pitcher_fantasy_score"
   };
 
-  const key = aliases[m] || m;
+  const m = aliases[normalized] || normalized;
 
-  return [
+  if ([
     "strikeouts",
     "hits_allowed",
     "walks_allowed",
@@ -390,7 +395,13 @@ function isPitcherPfMarket(market) {
     "pitching_outs",
     "pitches_thrown",
     "pitcher_fantasy_score"
-  ].includes(key);
+  ].includes(m)) return true;
+
+  // Generic "runs" with a pitcher-style line is really runs_allowed.
+  // Hitter runs props are normally 0.5, so keep those PF-checkable.
+  if (m === "runs" && Number(row.line) >= 1.5) return true;
+
+  return false;
 }
 
 function pickfinderStatusFromConfirmation(row, confirmation = {}) {
@@ -451,7 +462,7 @@ function applyPfConfirmationToHardenedRows(hardened, confirmationMap) {
   for (const row of hardened) {
     const confirmation = confirmationMap.get(propKeyForConfirmation(row)) || {};
     const summary = confirmationSummaryFor(row, confirmation);
-    if (isPitcherPfMarket(row.market)) {
+    if (isPitcherPfMarket(row.market, row)) {
       summary.pfStatus = "PF_NOT_APPLICABLE_PITCHER";
     }
     row.pfStatus = summary.pfStatus;
