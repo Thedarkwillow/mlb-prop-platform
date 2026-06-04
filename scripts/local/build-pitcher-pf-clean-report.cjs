@@ -232,11 +232,23 @@ function pfScore(row) {
 }
 
 function bucketFor(row, modelProb) {
-  const market = marketNorm(row.market);
+  const market = String(row.market || "").toLowerCase();
+  const tier = String(row.tier || "").toLowerCase();
+  const pfStatus = row.pfStatus || "PF_CONFIRMED";
+  const pf = Number(row.pfScore ?? pfScore(row));
+  const mp = Number(modelProb);
 
   if (market === "pitcher_fantasy_score") return "FANTASY_TRACK_ONLY";
   if (market === "pitches_thrown") return "PITCH_COUNT_SECONDARY";
-  if (modelProb == null) return "PF_CONFIRMED_MODEL_PROB_MISSING";
+  if (tier === "demon") return "DEMON_RESEARCH_ONLY";
+  if (pfStatus !== "PF_CONFIRMED") return "NOT_PF_CONFIRMED";
+  if (!Number.isFinite(mp)) return "PF_CONFIRMED_MODEL_PROB_MISSING";
+  if (!Number.isFinite(pf)) return "PF_CONFIRMED_PF_SCORE_MISSING";
+
+  if (mp >= 0.65 && pf >= 0.65) return "PITCHER_PF_ACTIONABLE_WATCH";
+  if (mp >= 0.60 && pf >= 0.65) return "PITCHER_PF_REVIEW_WATCH";
+  if (mp < 0.55) return "MODEL_DISAGREES";
+
   return "PF_CONFIRMED_WITH_MODEL_PROB";
 }
 
