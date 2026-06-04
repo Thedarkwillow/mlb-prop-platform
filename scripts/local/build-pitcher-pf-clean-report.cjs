@@ -236,13 +236,14 @@ function bucketFor(row, modelProb) {
   const tier = String(row.tier || "").toLowerCase();
   const pfStatus = row.pfStatus || "PF_CONFIRMED";
   const pf = Number(row.pfScore ?? pfScore(row));
-  const mp = Number(modelProb);
+  const hasModelProb = modelProb != null && Number.isFinite(Number(modelProb));
+  const mp = hasModelProb ? Number(modelProb) : null;
 
   if (market === "pitcher_fantasy_score") return "FANTASY_TRACK_ONLY";
   if (market === "pitches_thrown") return "PITCH_COUNT_SECONDARY";
   if (tier === "demon") return "DEMON_RESEARCH_ONLY";
   if (pfStatus !== "PF_CONFIRMED") return "NOT_PF_CONFIRMED";
-  if (!Number.isFinite(mp)) return "PF_CONFIRMED_MODEL_PROB_MISSING";
+  if (!hasModelProb) return "PF_CONFIRMED_MODEL_PROB_MISSING";
   if (!Number.isFinite(pf)) return "PF_CONFIRMED_PF_SCORE_MISSING";
 
   if (mp >= 0.65 && pf >= 0.65) return "PITCHER_PF_ACTIONABLE_WATCH";
@@ -298,15 +299,30 @@ const confirmed = pfRows
     return b.pfScore - a.pfScore;
   });
 
-const primary = confirmed.filter(r =>
-  r.bucket === "PF_CONFIRMED_WITH_MODEL_PROB" ||
-  r.bucket === "PF_CONFIRMED_MODEL_PROB_MISSING"
-).filter(r => !["pitcher_fantasy_score", "pitches_thrown"].includes(marketNorm(r.market)));
-
-const withModelProb = confirmed.filter(r => r.bucket === "PF_CONFIRMED_WITH_MODEL_PROB");
+const actionableWatch = confirmed.filter(r => r.bucket === "PITCHER_PF_ACTIONABLE_WATCH");
+const reviewWatch = confirmed.filter(r => r.bucket === "PITCHER_PF_REVIEW_WATCH");
+const modelDisagrees = confirmed.filter(r => r.bucket === "MODEL_DISAGREES");
+const withModelProb = confirmed.filter(r =>
+  [
+    "PITCHER_PF_ACTIONABLE_WATCH",
+    "PITCHER_PF_REVIEW_WATCH",
+    "MODEL_DISAGREES",
+    "PF_CONFIRMED_WITH_MODEL_PROB"
+  ].includes(r.bucket)
+);
 const missingModelProb = confirmed.filter(r => r.bucket === "PF_CONFIRMED_MODEL_PROB_MISSING");
 const pitchCountSecondary = confirmed.filter(r => r.bucket === "PITCH_COUNT_SECONDARY");
 const fantasyTrackOnly = confirmed.filter(r => r.bucket === "FANTASY_TRACK_ONLY");
+const demonResearchOnly = confirmed.filter(r => r.bucket === "DEMON_RESEARCH_ONLY");
+const primary = confirmed.filter(r =>
+  [
+    "PITCHER_PF_ACTIONABLE_WATCH",
+    "PITCHER_PF_REVIEW_WATCH",
+    "MODEL_DISAGREES",
+    "PF_CONFIRMED_WITH_MODEL_PROB",
+    "PF_CONFIRMED_MODEL_PROB_MISSING"
+  ].includes(r.bucket)
+);
 
 const summary = {
   date: DATE,
@@ -316,8 +332,12 @@ const summary = {
   withModelProb: withModelProb.length,
   missingModelProb: missingModelProb.length,
   primaryRows: primary.length,
+  actionableWatch: actionableWatch.length,
+  reviewWatch: reviewWatch.length,
+  modelDisagrees: modelDisagrees.length,
   pitchCountSecondary: pitchCountSecondary.length,
   fantasyTrackOnly: fantasyTrackOnly.length,
+  demonResearchOnly: demonResearchOnly.length,
   policy: {
     official: false,
     note: "Pitcher PF confirmation is research/confirmation only until model probability is present and market-specific validation clears.",
@@ -347,7 +367,12 @@ lines.push(`pfConfirmedRows=${summary.pfConfirmedRows}`);
 lines.push(`withModelProb=${summary.withModelProb}`);
 lines.push(`missingModelProb=${summary.missingModelProb}`);
 lines.push(`primaryRows=${summary.primaryRows}`);
+lines.push(`actionableWatch=${summary.actionableWatch}`);
+lines.push(`reviewWatch=${summary.reviewWatch}`);
+lines.push(`modelDisagrees=${summary.modelDisagrees}`);
 lines.push(`pitchCountSecondary=${summary.pitchCountSecondary}`);
+lines.push(`fantasyTrackOnly=${summary.fantasyTrackOnly}`);
+lines.push(`demonResearchOnly=${summary.demonResearchOnly}`);
 lines.push(`fantasyTrackOnly=${summary.fantasyTrackOnly}`);
 lines.push("");
 lines.push("POLICY");
@@ -357,6 +382,33 @@ lines.push("Do not treat PF_CONFIRMED alone as an official play.");
 lines.push("Pitcher fantasy is track-only, separate from primary/actionable.");
 lines.push("Pitches thrown is secondary only.");
 lines.push("modelProb=NA means no clean production model probability was matched.");
+lines.push("");
+
+lines.push("ACTIONABLE WATCH");
+lines.push("----------------");
+if (!actionableWatch.length) {
+  lines.push("none");
+} else {
+  actionableWatch.forEach((r, i) => lines.push(formatRow(r, i + 1)));
+}
+lines.push("");
+
+lines.push("REVIEW WATCH");
+lines.push("------------");
+if (!reviewWatch.length) {
+  lines.push("none");
+} else {
+  reviewWatch.forEach((r, i) => lines.push(formatRow(r, i + 1)));
+}
+lines.push("");
+
+lines.push("MODEL DISAGREES");
+lines.push("---------------");
+if (!modelDisagrees.length) {
+  lines.push("none");
+} else {
+  modelDisagrees.forEach((r, i) => lines.push(formatRow(r, i + 1)));
+}
 lines.push("");
 
 lines.push("PRIMARY PF_CONFIRMED PITCHER PROPS");
