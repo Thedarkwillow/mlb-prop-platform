@@ -27,6 +27,8 @@ const SOURCES = [
   `outputs/production-candidate-hardening-${DATE}.json`,
   "outputs/full-prop-confirmation/full-prop-confirmation-report-latest.json"
 ];
+const CURRENT_BOARD_FILE = "outputs/priced-board.json";
+
 
 function readJson(file, fallback = null) {
   try {
@@ -363,10 +365,79 @@ function avg(v) {
   return Number(v).toFixed(2);
 }
 
+
+function propKeyForCurrentBoard(row) {
+  const player = norm(row.player || row.playerName || row.name || row.fullName || row.participantName || row.displayName);
+  let market = marketNorm(row.market || row.statType || row.stat || row.projectionType || row.type);
+  const side = norm(row.side || row.pick || row.direction || row.recommendation || row.selection).toUpperCase();
+  const line = Number(row.line ?? row.lineScore ?? row.target ?? row.value ?? row.threshold);
+
+  // Current board may call pitcher runs "runs", while the pitcher backfill normalizes it to runs_allowed.
+  if (market === "runs" && Number(line) >= 1.5) market = "runs_allowed";
+
+  if (!player || !market || !side || !Number.isFinite(line)) return "";
+  return `${player}|${market}|${side}|${line}`;
+}
+
+function currentBoardPropKeys() {
+  const board = readJson(CURRENT_BOARD_FILE, []);
+  const rows = [];
+  function flatten(v) {
+    if (!v) return;
+    if (Array.isArray(v)) {
+      for (const x of v) flatten(x);
+      return;
+    }
+    if (typeof v !== "object") return;
+    const hasPropShape =
+      v.player || v.playerName || v.name || v.fullName || v.participantName ||
+      v.market || v.statType || v.stat || v.projectionType ||
+      v.line || v.lineScore || v.target || v.value;
+    if (hasPropShape) rows.push(v);
+    for (const val of Object.values(v)) {
+      if (val && typeof val === "object") flatten(val);
+    }
+  }
+  flatten(board);
+  const keys = new Set();
+  for (const r of rows) {
+    const k = propKeyForCurrentBoard(r);
+    if (k) keys.add(k);
+  }
+  return keys;
+}
+
+function filterTargetsToCurrentBoard(targets) {
+  const boardKeys = currentBoardPropKeys();
+  if (!boardKeys.size) {
+    console.warn("WARNING: current board key set is empty; keeping raw pitcher targets");
+    return targets;
+  }
+
+  const kept = [];
+  const dropped = [];
+  for (const t of targets) {
+    const key = propKeyForCurrentBoard(t);
+    if (key && boardKeys.has(key)) kept.push(t);
+    else dropped.push(t);
+  }
+
+  console.log(`currentBoardPitcherFilter=kept:${kept.length} dropped_stale:${dropped.length}`);
+  if (dropped.length) {
+    console.log("DROPPED STALE PITCHER TARGETS:");
+    for (const r of dropped.slice(0, 30)) {
+      console.log(`- ${r.player || r.playerName || "NA"} | ${r.team || "NA"} | ${r.market} ${r.side} ${r.line}`);
+    }
+  }
+
+  return kept;
+}
+
+
 async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
-  const targets = loadTargets();
+  const targets = filterTargetsToCurrentBoard(loadTargets());
   const playerIndex = loadPlayerPeopleIndex(PLAYER_INDEX_FILE);
   const cache = readJson(GAMELOG_CACHE_FILE, {});
 
