@@ -265,10 +265,18 @@ function classifyHardened(row, highProbKeys = new Set()) {
   const lowBook = books < 2;
   const unpriced = /UNPRICED|UNKNOWN|NO_BOOK|NO_LOCAL/.test(support);
   const highProbControlled =
-    highProbKeys.has("STANDARD_STRIKEOUTS_LESS") &&
-    market === "strikeouts" &&
-    side === "LESS" &&
-    tier === "standard";
+    (
+      highProbKeys.has("STANDARD_STRIKEOUTS_LESS") &&
+      market === "strikeouts" &&
+      side === "LESS" &&
+      tier === "standard"
+    ) ||
+    (
+      highProbKeys.has("SHADOW_HITS_MORE_HIGH_PROB") &&
+      market === "hits" &&
+      side === "MORE" &&
+      tier === "goblin"
+    );
 
   if (isFantasy(row)) flags.push("fantasy_not_production_ready");
   if (isHrrMore(row)) flags.push("hrr_more_research_only");
@@ -284,6 +292,18 @@ function classifyHardened(row, highProbKeys = new Set()) {
   let stake = "research only / no bet";
 
   if (
+    highProbControlled &&
+    supportOk &&
+    books >= 2 &&
+    gradeGreen &&
+    !isFantasy(row) &&
+    !isDemon(row) &&
+    !isHrrMore(row)
+  ) {
+    hardenedClass = "CONTROLLED_WATCH";
+    stake = "controlled watch only / no official bet";
+    flags.push("controlled_highprob_unlock");
+  } else if (
     isFantasy(row) ||
     isHrrMore(row) ||
     isDemon(row) ||
@@ -401,7 +421,7 @@ const byMarketSide = countBy(hardened, r => `${r.market}|${r.side}`);
 const byTier = countBy(hardened, "tier");
 
 const productionCount = hardened.filter(r =>
-  ["CORE", "LEAN", "WATCHLIST"].includes(r.hardenedClass)
+  ["CORE", "LEAN", "WATCHLIST", "CONTROLLED_WATCH"].includes(r.hardenedClass)
 ).length;
 
 const warnings = [];
@@ -438,6 +458,7 @@ const report = {
   classes: {
     CORE: topRows(hardened.filter(r => r.hardenedClass === "CORE")),
     LEAN: topRows(hardened.filter(r => r.hardenedClass === "LEAN")),
+    CONTROLLED_WATCH: topRows(hardened.filter(r => r.hardenedClass === "CONTROLLED_WATCH")),
     WATCHLIST: topRows(hardened.filter(r => r.hardenedClass === "WATCHLIST")),
     RESEARCH: topRows(hardened.filter(r => r.hardenedClass === "RESEARCH")),
     BLOCKED: topRows(hardened.filter(r => r.hardenedClass === "BLOCKED")),
@@ -466,7 +487,7 @@ lines.push(`tiers=${JSON.stringify(byTier)}`);
 lines.push(`warnings=${warnings.length ? warnings.join(",") : "none"}`);
 lines.push("");
 
-for (const cls of ["CORE", "LEAN", "WATCHLIST", "RESEARCH", "BLOCKED", "SHADOW_BLOCKED"]) {
+for (const cls of ["CORE", "LEAN", "CONTROLLED_WATCH", "WATCHLIST", "RESEARCH", "BLOCKED", "SHADOW_BLOCKED"]) {
   const rows = report.classes[cls] || [];
   lines.push(cls);
   lines.push("-".repeat(cls.length));
