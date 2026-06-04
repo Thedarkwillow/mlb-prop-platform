@@ -74,12 +74,36 @@ function normalizeBucketRows(audit) {
 }
 
 function stat(row, key) {
-  return Number(
+  const value =
     row?.[key] ??
     row?.summary?.[key] ??
     row?.totals?.[key] ??
-    0
-  );
+    row?.aggregate?.[key] ??
+    row?.overall?.[key] ??
+    row?.result?.[key] ??
+    row?.stats?.[key] ??
+    row?.daily?.[0]?.[key] ??
+    0;
+
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function getHitRate(row, graded, hits) {
+  const value =
+    row?.hitRate ??
+    row?.summary?.hitRate ??
+    row?.totals?.hitRate ??
+    row?.aggregate?.hitRate ??
+    row?.overall?.hitRate ??
+    row?.result?.hitRate ??
+    row?.stats?.hitRate ??
+    row?.daily?.[0]?.hitRate ??
+    null;
+
+  const n = Number(value);
+  if (Number.isFinite(n)) return n > 1 ? n / 100 : n;
+  return graded > 0 ? hits / graded : null;
 }
 
 const audit = readJson(AUDIT_FILE);
@@ -100,11 +124,7 @@ for (const row of rows) {
   const graded = stat(row, "graded");
   const hits = stat(row, "hits");
   const misses = stat(row, "misses");
-  const hitRateRaw =
-    row.hitRate ??
-    row.summary?.hitRate ??
-    row.totals?.hitRate ??
-    (graded > 0 ? hits / graded : null);
+  const hitRateRaw = getHitRate(row, graded, hits);
 
   const base = {
     key,
