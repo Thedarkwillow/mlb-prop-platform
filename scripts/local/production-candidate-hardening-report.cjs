@@ -1,4 +1,6 @@
 const fs = require("fs");
+const FULL_CONFIRMATION_FILE = "outputs/full-prop-confirmation/full-prop-confirmation-report-latest.json";
+const EXTERNAL_CONFIRMATION_FILE = "outputs/external-confirmation/external-mlb-form-confirmation-latest.json";
 
 const DATE =
   process.argv[2] ||
@@ -40,6 +42,16 @@ function writeText(file, text) {
 function num(v, fallback = 0) {
   const n = Number(v);
   return Number.isFinite(n) ? n : fallback;
+}
+
+function norm(v) {
+  return String(v ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function str(v) {
@@ -269,6 +281,102 @@ function isBadReason(reasons) {
   );
 }
 
+
+function propKeyForConfirmation(row) {
+  return [
+    norm(row.player || row.playerName || row.name || ""),
+    String(row.team || "").toUpperCase(),
+    normMarket(row.market || row.statType || row.stat || ""),
+    normSide(row.side || row.direction || ""),
+    String(row.line ?? row.target ?? row.threshold ?? "")
+  ].join("|");
+}
+
+function loadConfirmationRows(file) {
+  const data = readJson(file, null);
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.rows)) return data.rows;
+  if (Array.isArray(data.candidates)) return data.candidates;
+  return [];
+}
+
+function buildConfirmationMap() {
+  const map = new Map();
+
+  for (const r of loadConfirmationRows(FULL_CONFIRMATION_FILE)) {
+    const key = propKeyForConfirmation(r);
+    if (!key.replace(/\|/g, "")) continue;
+    map.set(key, { ...(map.get(key) || {}), full: r });
+  }
+
+  for (const r of loadConfirmationRows(EXTERNAL_CONFIRMATION_FILE)) {
+    const key = propKeyForConfirmation(r);
+    if (!key.replace(/\|/g, "")) continue;
+    map.set(key, { ...(map.get(key) || {}), external: r });
+  }
+
+  return map;
+}
+
+function pickfinderStatusFromConfirmation(row, confirmation = {}) {
+  const full = confirmation.full || null;
+  const external = confirmation.external || null;
+  const blob = JSON.stringify({ full, external });
+
+  if (/missing_lineup/i.test(blob)) return "PF_MISSING_LINEUP";
+
+  const hasPf =
+    /PF L5=|PF L10=|pickfinder_available|pfLine=|match=exact_line/i.test(blob) ||
+    !!full?.pickfinder ||
+    !!external?.pickfinder;
+
+  const notChecked = /PF=not_checked|pickfinder_not_checked/i.test(blob);
+
+  if (hasPf) {
+    const weak =
+      /L10=([0-4]?[0-9](?:\.\d+)?)(\s|%)/i.test(blob) ||
+      /Season=([0-4]?[0-9](?:\.\d+)?)(\s|%)/i.test(blob) ||
+      /vsP=([0-3]?[0-9](?:\.\d+)?)(\s|%)/i.test(blob);
+    return weak ? "PF_WEAK" : "PF_CONFIRMED";
+  }
+
+  const positiveExternal =
+    /l10_60_plus|l15_60_plus|season_60_plus|KEEP_SMALL_LEAN|RESEARCH_PLUS|WATCH_ONLY/i.test(blob);
+
+  if (positiveExternal) return "PF_CONFIRMED";
+  if (notChecked) return "PF_NOT_CHECKED";
+  return "PF_NOT_CHECKED";
+}
+
+function confirmationSummaryFor(row, confirmation = {}) {
+  const full = confirmation.full || null;
+  const external = confirmation.external || null;
+  return {
+    fullDecision: full?.decision || null,
+    externalDecision: external?.decision || null,
+    externalScore: external?.score ?? null,
+    pfStatus: pickfinderStatusFromConfirmation(row, confirmation)
+  };
+}
+
+function applyPfConfirmationToHardenedRows(hardened, confirmationMap) {
+  for (const row of hardened) {
+    const confirmation = confirmationMap.get(propKeyForConfirmation(row)) || {};
+    const summary = confirmationSummaryFor(row, confirmation);
+    row.pfStatus = summary.pfStatus;
+    row.confirmation = summary;
+
+    row.flags = Array.isArray(row.flags) ? row.flags : [];
+    if (summary.pfStatus === "PF_CONFIRMED" && !row.flags.includes("pf_confirmed")) row.flags.push("pf_confirmed");
+    if (summary.pfStatus === "PF_WEAK" && !row.flags.includes("pf_weak")) row.flags.push("pf_weak");
+    if (summary.pfStatus === "PF_NOT_CHECKED" && !row.flags.includes("pf_not_checked")) row.flags.push("pf_not_checked");
+    if (summary.pfStatus === "PF_MISSING_LINEUP" && !row.flags.includes("pf_missing_lineup")) row.flags.push("pf_missing_lineup");
+  }
+  return hardened;
+}
+
+
 function classifyHardened(row, highProbKeys = new Set()) {
   const player = str(row.player || row.playerName);
   const market = normMarket(row.market);
@@ -459,9 +567,12 @@ if (highProb.data && Array.isArray(highProb.data.unlocks)) {
 }
 
 const hardened = prod.rows.map(row => classifyHardened(row, highProbKeys));
+const confirmationMap = buildConfirmationMap();
+applyPfConfirmationToHardenedRows(hardened, confirmationMap);
 
 const byOldClass = countBy(hardened, "oldClass");
 const byHardenedClass = countBy(hardened, "hardenedClass");
+  const byPfStatus = countBy(hardened, "pfStatus");
 const byMarketSide = countBy(hardened, r => `${r.market}|${r.side}`);
 const byTier = countBy(hardened, "tier");
 
@@ -500,6 +611,7 @@ const report = {
     productionPool: productionCount,
     byOldClass,
     byHardenedClass,
+    byPfStatus,
     byTier,
     warnings,
   },
@@ -534,6 +646,7 @@ lines.push(`productionPool=${report.summary.productionPool}`);
 lines.push(`targetProductionCandidates=50-120`);
 lines.push(`oldClasses=${JSON.stringify(byOldClass)}`);
 lines.push(`hardenedClasses=${JSON.stringify(byHardenedClass)}`);
+lines.push(`pfStatus=${JSON.stringify(byPfStatus)}`);
 lines.push(`tiers=${JSON.stringify(byTier)}`);
 lines.push(`warnings=${warnings.length ? warnings.join(",") : "none"}`);
 lines.push("");
