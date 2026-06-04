@@ -1157,6 +1157,50 @@ async function main() {
   const byDecision = {};
   for (const r of rows) byDecision[r.decision] = (byDecision[r.decision] || 0) + 1;
 
+  const compactRows = rows.map(r => ({
+    decision: r.decision,
+    score: r.score,
+    class: r.class || r.oldClass || r.candidateClass || null,
+    player: r.player,
+    team: r.team,
+    market: r.market,
+    side: r.side,
+    line: r.line,
+    tier: r.tier || r.oddsTier || null,
+    prob: r.prob,
+    edge: r.edge,
+    books: r.books,
+    grade: r.grade,
+    support: r.support,
+    lineup: r.lineup ? {
+      status: r.lineup.status,
+      confirmed: r.lineup.confirmed,
+      start: r.lineup.start,
+      battingOrder: r.lineup.battingOrder
+    } : null,
+    pickfinder: r.pickfinder ? {
+      available: r.pickfinder.available,
+      l5: r.pickfinder.l5,
+      l10: r.pickfinder.l10,
+      l15: r.pickfinder.l15,
+      season: r.pickfinder.season,
+      vsP: r.pickfinder.vsP,
+      pfLine: r.pickfinder.pfLine,
+      match: r.pickfinder.match
+    } : null,
+    form: r.form ? {
+      l5: r.form.l5,
+      l10: r.form.l10,
+      l15: r.form.l15,
+      season: r.form.season,
+      homeAway: r.form.homeAway,
+      vsHand: r.form.vsHand,
+      vsPitcher: r.form.vsPitcher
+    } : null,
+    notes: r.notes || [],
+    reasons: r.reasons || []
+  }));
+
   const output = {
     generatedAt: new Date().toISOString(),
     date: DATE,
@@ -1167,7 +1211,7 @@ async function main() {
       rows: rows.length,
       byDecision
     },
-    rows
+    rows: compactRows
   };
 
   const txt = [
