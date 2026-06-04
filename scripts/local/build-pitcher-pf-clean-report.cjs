@@ -183,6 +183,78 @@ function buildModelIndex(...sources) {
 }
 
 
+
+function buildNamedModelIndex(name, source) {
+  const idx = buildModelIndex(source);
+  return { name, exact: idx.exact, loose: idx.loose };
+}
+
+function findBestModelMatch(row, side, indexes) {
+  const exactKey = propKey(row);
+  const looseKey = loosePropKey(row);
+
+  // First pass: exact match with usable probability.
+  for (const idx of indexes) {
+    const candidate = idx.exact.get(exactKey);
+    const modelProb = extractModelProb(candidate, side);
+    if (modelProb != null) {
+      return {
+        row: candidate,
+        modelProb,
+        source: `${idx.name}:exact_prop_match`,
+        matchType: "exact_prop_match"
+      };
+    }
+  }
+
+  // Second pass: loose match with usable probability.
+  for (const idx of indexes) {
+    const candidate = idx.loose.get(looseKey);
+    const modelProb = extractModelProb(candidate, side);
+    if (modelProb != null) {
+      return {
+        row: candidate,
+        modelProb,
+        source: `${idx.name}:loose_side_agnostic_match`,
+        matchType: "loose_side_agnostic_match"
+      };
+    }
+  }
+
+  // Third pass: exact row exists, but no usable model probability.
+  for (const idx of indexes) {
+    const candidate = idx.exact.get(exactKey);
+    if (candidate) {
+      return {
+        row: candidate,
+        modelProb: null,
+        source: `${idx.name}:exact_prop_match_no_model_prob`,
+        matchType: "exact_prop_match_no_model_prob"
+      };
+    }
+  }
+
+  // Fourth pass: loose row exists, but no usable model probability.
+  for (const idx of indexes) {
+    const candidate = idx.loose.get(looseKey);
+    if (candidate) {
+      return {
+        row: candidate,
+        modelProb: null,
+        source: `${idx.name}:loose_side_agnostic_match_no_model_prob`,
+        matchType: "loose_side_agnostic_match_no_model_prob"
+      };
+    }
+  }
+
+  return {
+    row: null,
+    modelProb: null,
+    source: "missing",
+    matchType: "missing"
+  };
+}
+
 function actionablePitcherPfBucket(row) {
   const market = String(row.market || "").toLowerCase();
   const tier = String(row.tier || "").toLowerCase();
@@ -284,20 +356,23 @@ const hardening = readJson(HARDENING_FILE, {});
 const production = readJson(PRODUCTION_FILE, {});
 const board = readJson(BOARD_FILE, []);
 
-const modelIndex = buildModelIndex(hardening, production, board);
+const modelIndexes = [
+  buildNamedModelIndex("production", production),
+  buildNamedModelIndex("hardening", hardening),
+  buildNamedModelIndex("priced_board", board)
+];
 const pfRows = Array.isArray(pf.rows) ? pf.rows : [];
 
 const confirmed = pfRows
   .filter(r => r.pfStatus === "PF_CONFIRMED")
   .map(r => {
-    const exact = modelIndex.exact.get(propKey(r));
-    const loose = modelIndex.loose.get(loosePropKey(r));
-    const modelRow = exact || loose || null;
-    const modelProb = extractModelProb(modelRow, r.side);
+    const modelMatch = findBestModelMatch(r, r.side, modelIndexes);
+    const modelProb = modelMatch.modelProb;
     const enriched = {
       ...r,
       modelProb,
-      modelProbSource: exact ? "exact_prop_match" : loose ? "loose_side_agnostic_match" : "missing",
+      modelProbSource: modelMatch.source,
+      modelProbMatchType: modelMatch.matchType,
       modelProbQuality: modelProbQuality({ modelProb }),
       pfScore: pfScore(r),
       bucket: bucketFor(r, modelProb)
