@@ -357,6 +357,30 @@ function buildConfirmationMap() {
 
 
 function isPitcherPfMarket(market) {
+  const m = String(market ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\s+/g, "_");
+
+  const aliases = {
+    "pitcher_strikeouts": "strikeouts",
+    "hits_allowed": "hits_allowed",
+    "pitcher_hits_allowed": "hits_allowed",
+    "walks_allowed": "walks_allowed",
+    "pitcher_walks_allowed": "walks_allowed",
+    "earned_runs_allowed": "earned_runs_allowed",
+    "runs_allowed": "runs_allowed",
+    "pitching_outs": "pitching_outs",
+    "pitches_thrown": "pitches_thrown",
+    "pitcher_fantasy_score": "pitcher_fantasy_score"
+  };
+
+  const key = aliases[m] || m;
+
   return [
     "strikeouts",
     "hits_allowed",
@@ -366,7 +390,7 @@ function isPitcherPfMarket(market) {
     "pitching_outs",
     "pitches_thrown",
     "pitcher_fantasy_score"
-  ].includes(marketNorm(market));
+  ].includes(key);
 }
 
 function pickfinderStatusFromConfirmation(row, confirmation = {}) {
