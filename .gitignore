@@ -26,3 +26,11 @@ ballpark/package-lock.json
 data/oddsapi/
 data/vegas-raw.json
 snapshot-loop.log
+
+# Generated production/pitcher coverage artifacts
+outputs/production-candidates*.json
+outputs/production-candidates*.txt
+outputs/pitcher-production-coverage-merge*.json
+outputs/pitcher-pf-clean-report*.json
+outputs/pitcher-pf-clean-report*.txt
+outputs/hitter-pf-model-disagrees*.json
