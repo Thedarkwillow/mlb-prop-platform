@@ -373,7 +373,7 @@ lines.push(`modelDisagrees=${summary.modelDisagrees}`);
 lines.push(`pitchCountSecondary=${summary.pitchCountSecondary}`);
 lines.push(`fantasyTrackOnly=${summary.fantasyTrackOnly}`);
 lines.push(`demonResearchOnly=${summary.demonResearchOnly}`);
-lines.push(`fantasyTrackOnly=${summary.fantasyTrackOnly}`);
+
 lines.push("");
 lines.push("POLICY");
 lines.push("------");
