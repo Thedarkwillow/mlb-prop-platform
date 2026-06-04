@@ -70,6 +70,23 @@ function loadPlayerPeopleIndex(file) {
     }));
 }
 
+
+function findPlayerDirect(playerIndex, target) {
+  const player = target.player || target.playerName || target.name || "";
+  if (!player) return null;
+
+  const exact = playerIndex.find(p =>
+    norm(p.fullName || p.nameFirstLast || p.firstLastName || p._pfName) === norm(player)
+  );
+  if (exact) return exact;
+
+  const loose = playerIndex.find(p => {
+    const n = norm(p.fullName || p.nameFirstLast || p.firstLastName || p._pfName);
+    const q = norm(player);
+    return n && q && (n.includes(q) || q.includes(n));
+  });
+  return loose || null;
+}
 function findPlayerIndexMatch(playerIndex, player) {
   const target = norm(player);
   let hit = playerIndex.find(p => norm(p._pfName) === target);
@@ -351,7 +368,6 @@ async function main() {
 
   const targets = loadTargets();
   const playerIndex = loadPlayerPeopleIndex(PLAYER_INDEX_FILE);
-  const playerMap = indexPlayers(playerIndex);
   const cache = readJson(GAMELOG_CACHE_FILE, {});
 
   let matchedPlayers = 0;
@@ -359,7 +375,7 @@ async function main() {
   const rows = [];
 
   for (const t of targets) {
-    const p = findPlayer(playerMap, t);
+    const p = findPlayerDirect(playerIndex, t);
     if (!p) {
       missedPlayers++;
       rows.push({
