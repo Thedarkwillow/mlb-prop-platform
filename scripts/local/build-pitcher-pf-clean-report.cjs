@@ -231,6 +231,17 @@ function pfScore(row) {
   return (l10 * 0.6) + (season * 0.4);
 }
 
+
+function modelProbQuality(row) {
+  const mp = row.modelProb;
+  if (mp == null || !Number.isFinite(Number(mp))) return "NO_MODEL_PROB";
+  const n = Number(mp);
+  if (n > 0 && n < 0.10) return "LOW_PLACEHOLDER_OR_NON_PROBABILITY";
+  if (n >= 0.10 && n < 0.50) return "LOW_MODEL_PROBABILITY";
+  if (n >= 0.50 && n <= 1) return "VALID_MODEL_PROBABILITY";
+  return "INVALID_MODEL_PROBABILITY";
+}
+
 function bucketFor(row, modelProb) {
   const market = String(row.market || "").toLowerCase();
   const tier = String(row.tier || "").toLowerCase();
@@ -262,7 +273,7 @@ function formatRow(row, i = null) {
     `L10=${pct(row.l10?.rate)} n=${nVal(row.l10)} | ` +
     `Season=${pct(row.season?.rate)} n=${nVal(row.season)} | ` +
     `avg=${avgVal(row.season) == null ? "NA" : avgVal(row.season).toFixed(2)} | ` +
-    `tier=${row.tier || "NA"} | bucket=${row.bucket}`
+    `tier=${row.tier || "NA"} | modelProbQuality=${row.modelProbQuality || modelProbQuality(row)} | bucket=${row.bucket}`
   );
 }
 
@@ -287,6 +298,7 @@ const confirmed = pfRows
       ...r,
       modelProb,
       modelProbSource: exact ? "exact_prop_match" : loose ? "loose_side_agnostic_match" : "missing",
+      modelProbQuality: modelProbQuality({ modelProb }),
       pfScore: pfScore(r),
       bucket: bucketFor(r, modelProb)
     };
