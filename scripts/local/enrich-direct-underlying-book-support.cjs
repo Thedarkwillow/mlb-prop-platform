@@ -38,6 +38,20 @@ function writeText(file, text) {
   fs.writeFileSync(file, text.endsWith("\n") ? text : text + "\n");
 }
 
+function readRemainingProblemRows() {
+  const audit =
+    readJson(`outputs/unpriced-unknown-book-support-audit-${DATE}.json`, null) ||
+    readJson("outputs/unpriced-unknown-book-support-audit-latest.json", null) ||
+    {};
+  return Number(
+    audit?.problemRows ??
+    audit?.summary?.problemRows ??
+    audit?.counts?.problemRows ??
+    0
+  ) || 0;
+}
+
+
 function norm(v) {
   return String(v || "")
     .toLowerCase()
@@ -407,6 +421,7 @@ function main() {
     boardFile,
     boardSupportKeys: supportKeys,
     summary: {
+    remainingProblemRows: readRemainingProblemRows(),
       files: files.length,
       patchedRows: patchedRows.length,
       unmatchedRows: unmatchedRows.length
