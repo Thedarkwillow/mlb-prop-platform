@@ -394,6 +394,30 @@ function isNegativeSide(row) {
   return sideBiasText(row).includes("NEGATIVE");
 }
 
+function isPitcherLessMarket(row) {
+  const market = normMarket(marketName(row));
+  if (["pitching_outs", "strikeouts", "hits_allowed", "walks_allowed", "runs_allowed", "earned_runs_allowed"].includes(market)) {
+    return true;
+  }
+
+  // Some pitcher runs_allowed rows arrive normalized as "runs".
+  // Treat runs LESS as pitcher-side only when row evidence points to a pitcher prop.
+  if (market === "runs") {
+    const text = JSON.stringify({
+      player: row.player || row.playerName || "",
+      market: row.market || row.statType || "",
+      source: row.source || "",
+      reasons: row.reasons || [],
+      game: row.game || "",
+      team: row.team || ""
+    }).toLowerCase();
+
+    return /pitch|starter|pitcher|wrobleski|runs_allowed/.test(text);
+  }
+
+  return false;
+}
+
 function isCurrentSlate(row, boardKeys) {
   if (!boardKeys || boardKeys.size === 0) return true;
   return boardKeys.has(rowKey(row));
@@ -529,7 +553,7 @@ function main() {
     const market = normMarket(marketName(row));
     return (
       prob >= 0.55 &&
-      ["pitching_outs", "strikeouts", "hits_allowed", "walks_allowed", "runs_allowed", "earned_runs_allowed"].includes(market) &&
+      isPitcherLessMarket(row) &&
       !isFantasy(row) &&
       !isHrr(row)
     );
@@ -540,7 +564,7 @@ function main() {
     const market = normMarket(marketName(row));
     return (
       prob >= 0.55 &&
-      !["pitching_outs", "strikeouts", "hits_allowed", "walks_allowed", "runs_allowed", "earned_runs_allowed"].includes(market) &&
+      !isPitcherLessMarket(row) &&
       !isFantasy(row) &&
       !isHrr(row)
     );
