@@ -1,0 +1,192 @@
+[
+  {
+    "date": "2026-06-04",
+    "generatedAt": "2026-06-04T12:50:17.839Z",
+    "overall": {
+      "graded": 37966,
+      "hits": 30940,
+      "misses": 7026,
+      "avgModelProb": 0.7105161683622122,
+      "actualHitRate": 0.8149396828741505,
+      "calibrationGap": 0.10442351451193832
+    },
+    "testBuckets": {
+      "55.0%+": {
+        "graded": 31990,
+        "hits": 26624,
+        "misses": 5366,
+        "avgModelProb": 0.7546926043850205,
+        "actualHitRate": 0.8322600812753985,
+        "calibrationGap": 0.07756747689037802
+      },
+      "57.5%+": {
+        "graded": 30622,
+        "hits": 25612,
+        "misses": 5010,
+        "avgModelProb": 0.7632705482234654,
+        "actualHitRate": 0.8363921363725426,
+        "calibrationGap": 0.07312158814907721
+      },
+      "60.0%+": {
+        "graded": 28955,
+        "hits": 24409,
+        "misses": 4546,
+        "avgModelProb": 0.7733432010102385,
+        "actualHitRate": 0.842997755137282,
+        "calibrationGap": 0.06965455412704358
+      },
+      "62.5%+": {
+        "graded": 27021,
+        "hits": 23034,
+        "misses": 3987,
+        "avgModelProb": 0.7848013480994702,
+        "actualHitRate": 0.8524480959253914,
+        "calibrationGap": 0.06764674782592117
+      },
+      "65.0%+": {
+        "graded": 24782,
+        "hits": 21391,
+        "misses": 3391,
+        "avgModelProb": 0.7980883001301535,
+        "actualHitRate": 0.8631668146235171,
+        "calibrationGap": 0.06507851449336355
+      },
+      "67.5%+": {
+        "graded": 22283,
+        "hits": 19488,
+        "misses": 2795,
+        "avgModelProb": 0.8132556254769103,
+        "actualHitRate": 0.8745680563658395,
+        "calibrationGap": 0.061312430888929126
+      }
+    },
+    "byMarket": {
+      "runs": {
+        "graded": 7848,
+        "hits": 6452,
+        "misses": 1396,
+        "avgModelProb": 0.749560552446993,
+        "actualHitRate": 0.8221202854230377,
+        "calibrationGap": 0.07255973297604468,
+        "recommendation": "TEST_55_PERCENT_LESS_WATCH"
+      },
+      "hrr": {
+        "graded": 3568,
+        "hits": 2544,
+        "misses": 1024,
+        "avgModelProb": 0.5208855780506696,
+        "actualHitRate": 0.7130044843049327,
+        "calibrationGap": 0.1921189062542631,
+        "recommendation": "WATCH_ONLY_NEEDS_SPLIT"
+      },
+      "hits": {
+        "graded": 4267,
+        "hits": 3518,
+        "misses": 749,
+        "avgModelProb": 0.7389750889228188,
+        "actualHitRate": 0.82446683852824,
+        "calibrationGap": 0.08549174960542116,
+        "recommendation": "TEST_55_PERCENT_LESS_WATCH"
+      },
+      "pitching_outs": {
+        "graded": 259,
+        "hits": 234,
+        "misses": 25,
+        "avgModelProb": 0.5459310097689329,
+        "actualHitRate": 0.9034749034749034,
+        "calibrationGap": 0.3575438937059705,
+        "recommendation": "TEST_55_PERCENT_LESS_WATCH"
+      },
+      "strikeouts": {
+        "graded": 754,
+        "hits": 715,
+        "misses": 39,
+        "avgModelProb": 0.6169297256404536,
+        "actualHitRate": 0.9482758620689655,
+        "calibrationGap": 0.33134613642851196,
+        "recommendation": "TEST_55_PERCENT_LESS_WATCH"
+      },
+      "rbis": {
+        "graded": 8049,
+        "hits": 6771,
+        "misses": 1278,
+        "avgModelProb": 0.7721398610002971,
+        "actualHitRate": 0.841222512113306,
+        "calibrationGap": 0.06908265111300893,
+        "recommendation": "TEST_55_PERCENT_LESS_WATCH"
+      },
+      "bases": {
+        "graded": 4680,
+        "hits": 3437,
+        "misses": 1243,
+        "avgModelProb": 0.5937810668676105,
+        "actualHitRate": 0.7344017094017095,
+        "calibrationGap": 0.140620642534099,
+        "recommendation": "TEST_55_PERCENT_LESS_WATCH"
+      },
+      "walks": {
+        "graded": 3805,
+        "hits": 2962,
+        "misses": 843,
+        "avgModelProb": 0.684260376331618,
+        "actualHitRate": 0.778449408672799,
+        "calibrationGap": 0.09418903234118103,
+        "recommendation": "TEST_55_PERCENT_LESS_WATCH"
+      },
+      "home_runs": {
+        "graded": 4037,
+        "hits": 3661,
+        "misses": 376,
+        "avgModelProb": 0.871242054327504,
+        "actualHitRate": 0.9068615308397324,
+        "calibrationGap": 0.03561947651222841,
+        "recommendation": "TEST_57_5_PERCENT_LESS_WATCH"
+      },
+      "hits_allowed": {
+        "graded": 317,
+        "hits": 283,
+        "misses": 34,
+        "avgModelProb": 0.4925502468365629,
+        "actualHitRate": 0.8927444794952681,
+        "calibrationGap": 0.40019423265870524,
+        "recommendation": "TEST_55_PERCENT_LESS_WATCH"
+      },
+      "earned_runs_allowed": {
+        "graded": 279,
+        "hits": 266,
+        "misses": 13,
+        "avgModelProb": 0.5165744220499966,
+        "actualHitRate": 0.953405017921147,
+        "calibrationGap": 0.43683059587115036,
+        "recommendation": "TEST_55_PERCENT_LESS_WATCH"
+      },
+      "walks_allowed": {
+        "graded": 94,
+        "hits": 89,
+        "misses": 5,
+        "avgModelProb": 0.5676096751412597,
+        "actualHitRate": 0.9468085106382979,
+        "calibrationGap": 0.37919883549703814,
+        "recommendation": "TEST_55_PERCENT_LESS_WATCH"
+      },
+      "pitcher_fantasy_score": {
+        "graded": 4,
+        "hits": 4,
+        "misses": 0,
+        "avgModelProb": 0.9495,
+        "actualHitRate": 1,
+        "calibrationGap": 0.05049999999999999,
+        "recommendation": "WATCH_ONLY_NEEDS_SPLIT"
+      },
+      "singles": {
+        "graded": 5,
+        "hits": 4,
+        "misses": 1,
+        "avgModelProb": 0.5076,
+        "actualHitRate": 0.8,
+        "calibrationGap": 0.2924,
+        "recommendation": "RESEARCH_ONLY_UNKNOWN_MARKET"
+      }
+    }
+  }
+]

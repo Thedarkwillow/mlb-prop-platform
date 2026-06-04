@@ -323,7 +323,8 @@
     "grade:promotion:watch": "node scripts/local/grade-promotion-watch-buckets.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "unlock:highprob": "node scripts/local/build-controlled-highprob-unlocks.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "production:hardening": "node scripts/local/production-candidate-hardening-report.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
-    "roi:production-hardening": "node scripts/local/grade-production-hardening-history.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
+    "roi:production-hardening": "node scripts/local/grade-production-hardening-history.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
+    "audit:less-threshold": "node scripts/local/less-threshold-audit.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
