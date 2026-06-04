@@ -3,6 +3,7 @@ const FULL_CONFIRMATION_FILE = "outputs/full-prop-confirmation/full-prop-confirm
 const EXTERNAL_CONFIRMATION_FILE = "outputs/external-confirmation/external-mlb-form-confirmation-latest.json";
 const PICKFINDER_BACKFILL_FILE = "data/pickfinder/pickfinder-style-backfill-latest.json";
 const PICKFINDER_PITCHER_BACKFILL_FILE = "data/pickfinder/pickfinder-style-pitcher-backfill-latest.json";
+const CURRENT_BOARD_FILE = "outputs/priced-board.json";
 
 const DATE =
   process.argv[2] ||
@@ -320,6 +321,101 @@ function mergeConfirmation(existing = {}, incoming = {}) {
   out.pfStatus = pfStatusRank(b) >= pfStatusRank(a) ? b || a : a || b;
   return out;
 }
+
+
+
+function normName(v) {
+  return String(v ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function marketNormLocal(v) {
+  const s = normName(v);
+  const map = {
+    "hits runs rbis": "hrr",
+    "hits+runs+rbis": "hrr",
+    "hrr": "hrr",
+    "total bases": "bases",
+    "bases": "bases",
+    "hits": "hits",
+    "runs": "runs",
+    "rbis": "rbis",
+    "walks": "walks",
+    "strikeouts": "strikeouts",
+    "pitcher strikeouts": "strikeouts",
+    "hits allowed": "hits_allowed",
+    "pitcher hits allowed": "hits_allowed",
+    "walks allowed": "walks_allowed",
+    "pitcher walks allowed": "walks_allowed",
+    "earned runs allowed": "earned_runs_allowed",
+    "pitcher earned runs allowed": "earned_runs_allowed",
+    "runs allowed": "runs_allowed",
+    "pitcher runs allowed": "runs_allowed",
+    "pitching outs": "pitching_outs",
+    "outs": "pitching_outs",
+    "pitches thrown": "pitches_thrown",
+    "pitcher fantasy score": "pitcher_fantasy_score"
+  };
+  return map[s] || s.replace(/\s+/g, "_");
+}
+
+function propKeyForCurrentBoard(row) {
+  const player = normName(row.player || row.playerName || row.name || row.fullName || row.participantName || row.displayName);
+  let market = marketNormLocal(row.market || row.statType || row.stat || row.projectionType || row.type);
+  const side = String(row.side || row.pick || row.direction || row.recommendation || row.selection || "").toUpperCase().trim();
+  const line = Number(row.line ?? row.lineScore ?? row.target ?? row.value ?? row.threshold);
+
+  if (market === "runs" && Number(line) >= 1.5) market = "runs_allowed";
+
+  if (!player || !market || !side || !Number.isFinite(line)) return "";
+  return `${player}|${market}|${side}|${line}`;
+}
+
+function currentBoardPropKeys() {
+  const board = readJson(CURRENT_BOARD_FILE, []);
+  const rows = [];
+
+  function flatten(v) {
+    if (!v) return;
+    if (Array.isArray(v)) {
+      for (const x of v) flatten(x);
+      return;
+    }
+    if (typeof v !== "object") return;
+
+    const hasPropShape =
+      v.player || v.playerName || v.name || v.fullName || v.participantName ||
+      v.market || v.statType || v.stat || v.projectionType ||
+      v.line || v.lineScore || v.target || v.value;
+
+    if (hasPropShape) rows.push(v);
+
+    for (const val of Object.values(v)) {
+      if (val && typeof val === "object") flatten(val);
+    }
+  }
+
+  flatten(board);
+
+  const keys = new Set();
+  for (const r of rows) {
+    const k = propKeyForCurrentBoard(r);
+    if (k) keys.add(k);
+  }
+  return keys;
+}
+
+function isCurrentBoardProp(row, boardKeys) {
+  if (!boardKeys || !boardKeys.size) return true;
+  const key = propKeyForCurrentBoard(row);
+  return key && boardKeys.has(key);
+}
+
 
 function buildConfirmationMap() {
   const map = new Map();
@@ -693,6 +789,22 @@ if (highProb.data && Array.isArray(highProb.data.unlocks)) {
 }
 
 const hardened = prod.rows.map(row => classifyHardened(row, highProbKeys));
+
+const currentBoardKeys = currentBoardPropKeys();
+for (const row of hardened) {
+  if (isPitcherPfMarket(row.market, row) && !isCurrentBoardProp(row, currentBoardKeys)) {
+    row.hardenedClass = "OFF_BOARD_STALE";
+    row.stake = "off current board / no bet";
+    row.pfStatus = "PF_NOT_APPLICABLE_PITCHER";
+    row.flags = Array.isArray(row.flags) ? row.flags : [];
+    row.reasons = Array.isArray(row.reasons) ? row.reasons : [];
+    if (!row.flags.includes("off_board_stale_pitcher")) row.flags.push("off_board_stale_pitcher");
+    if (!row.reasons.includes("off_board_stale_pitcher_not_on_current_priced_board")) {
+      row.reasons.push("off_board_stale_pitcher_not_on_current_priced_board");
+    }
+  }
+}
+
 const confirmationMap = buildConfirmationMap();
 applyPfConfirmationToHardenedRows(hardened, confirmationMap);
 
