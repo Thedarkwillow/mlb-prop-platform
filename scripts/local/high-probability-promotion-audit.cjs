@@ -13,6 +13,36 @@ const OUT_LATEST_TXT = "outputs/high-probability-promotion-audit-latest.txt";
 
 const BUCKETS = [
   {
+    key: "GOBLIN_STRIKEOUTS_MORE",
+    label: "Goblin strikeouts MORE",
+    sourcePattern: /^outputs\/promotion-watch-bucket-grades-(\d{4}-\d{2}-\d{2})\.json$/,
+    bucketKey: "GOBLIN_STRIKEOUTS_MORE",
+    minGraded: 30,
+    promoteHitRate: 0.65,
+    watchHitRate: 0.60,
+    requiredDays: 2
+  },
+  {
+    key: "GOBLIN_WALKS_ALLOWED_MORE",
+    label: "Goblin walks_allowed MORE",
+    sourcePattern: /^outputs\/promotion-watch-bucket-grades-(\d{4}-\d{2}-\d{2})\.json$/,
+    bucketKey: "GOBLIN_WALKS_ALLOWED_MORE",
+    minGraded: 30,
+    promoteHitRate: 0.65,
+    watchHitRate: 0.60,
+    requiredDays: 2
+  },
+  {
+    key: "STANDARD_STRIKEOUTS_LESS",
+    label: "Standard strikeouts LESS",
+    sourcePattern: /^outputs\/promotion-watch-bucket-grades-(\d{4}-\d{2}-\d{2})\.json$/,
+    bucketKey: "STANDARD_STRIKEOUTS_LESS",
+    minGraded: 30,
+    promoteHitRate: 0.65,
+    watchHitRate: 0.60,
+    requiredDays: 2
+  },
+  {
     key: "HRR_MORE_HIGH_PROB",
     label: "HRR MORE high probability",
     sourcePattern: /^outputs\/high-probability-hrr-synthetic-grades-(\d{4}-\d{2}-\d{2})\.json$/,
