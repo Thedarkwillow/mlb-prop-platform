@@ -40,6 +40,31 @@ function writeText(file, text) {
   fs.writeFileSync(file, text.endsWith("\n") ? text : text + "\n");
 }
 
+function flatten(v, out = [], seen = new Set()) {
+  if (!v || typeof v !== "object") return out;
+  if (seen.has(v)) return out;
+  seen.add(v);
+  if (Array.isArray(v)) {
+    for (const x of v) flatten(x, out, seen);
+    return out;
+  }
+  if (
+    v.player ||
+    v.playerName ||
+    v.name ||
+    v.market ||
+    v.statType ||
+    v.side ||
+    v.direction ||
+    v.line !== undefined ||
+    v.target !== undefined
+  ) {
+    out.push(v);
+  }
+  for (const x of Object.values(v)) flatten(x, out, seen);
+  return out;
+}
+
 function norm(v) {
   return String(v || "")
     .toLowerCase()
@@ -414,11 +439,45 @@ function main() {
 
   // PrizePicks/priced-board often stores only MORE-side board rows.
   // Production candidates can still contain model-generated LESS rows for the current slate.
-  // Do not require LESS candidates to have an exact LESS key in priced-board, or the LESS report will be empty.
-  const lessRows = allRows.filter(row => isLess(row) && (
-    isCurrentSlate(row, boardKeys) ||
-    /production-candidates|lean-final-slips|high-probability/i.test(String(row._sourceFile || row.sourceFile || row.source || ""))
-  ));
+  // Keep model/report LESS rows even when priced-board has no exact LESS-side key.
+  const sourceRows = [];
+  for (const file of SOURCE_FILES) {
+    const data = readJson(file, null);
+    if (!data) continue;
+    sourceRows.push(...flatten(data).map(r => ({ ...r, _sourceFile: file })));
+  }
+  const seenCandidateRows = new Set();
+  const candidateRows = [];
+  for (const row of [...allRows, ...sourceRows]) {
+    const key = rowKey(row) || JSON.stringify([
+      row.player || row.playerName || row.name || "",
+      row.market || row.statType || "",
+      row.side || row.direction || "",
+      row.line ?? row.target ?? row.threshold ?? ""
+    ]);
+    if (seenCandidateRows.has(key)) continue;
+    seenCandidateRows.add(key);
+    candidateRows.push(row);
+  }
+
+  const lessRows = candidateRows.filter(row => {
+    if (!isLess(row)) return false;
+    if (isCurrentSlate(row, boardKeys)) return true;
+
+    const fromModelSource = /production-candidates|lean-final-slips|high-probability/i.test(
+      String(row._sourceFile || row.sourceFile || row.source || "")
+    );
+    if (!fromModelSource) return false;
+
+    // Stale guard: model-generated LESS rows with no game/slate evidence can leak from older reports.
+    // Keep only rows with a game/matchup or current usable support.
+    const hasGame = !!String(row.game || row.matchup || row.gameInfo || "").trim();
+    const support = supportText(row);
+    const books = getBooks(row);
+    if (!hasGame && support !== "OK" && books < 2) return false;
+
+    return true;
+  });
 
   const actionableLess = sortRows(lessRows.filter(row => {
     const prob = getProb(row) ?? 0;
