@@ -28,7 +28,7 @@
     "odds": "node src/research/oddsapi-dk-mlb-props.cjs && node src/research/convert-oddsapi-props.cjs && node src/research/odds-api-summary.cjs",
     "snap": "node src/research/odds-snapshot.cjs",
     "clv": "NODE_OPTIONS='--max-old-space-size=4096' node src/research/clv-report.cjs",
-    "roi": "node src/research/roi-summary.cjs",
+    "roi": "node src/research/roi-summary.cjs && node scripts/local/repair-invalid-partial-roi.cjs ${npm_config_date:-$(date +%F)}",
     "validate": "node src/research/validation-cycle.cjs ${npm_config_date:-$(date +%F)}",
     "calibration:report": "node src/research/calibration-report.cjs ${npm_config_date:-$(date +%F)}",
     "clv:buckets": "NODE_OPTIONS='--max-old-space-size=4096' node src/research/clv-buckets.cjs ${npm_config_date:-$(date +%F)}",
