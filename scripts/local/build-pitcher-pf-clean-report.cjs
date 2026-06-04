@@ -182,6 +182,27 @@ function buildModelIndex(...sources) {
   return { exact, loose };
 }
 
+
+function actionablePitcherPfBucket(row) {
+  const market = String(row.market || "").toLowerCase();
+  const tier = String(row.tier || "").toLowerCase();
+  const modelProb = Number(row.modelProb);
+  const pfScore = Number(row.pfScore);
+  const pfStatus = row.pfStatus || row.pickfinderStatus || row.status;
+
+  if (market === "pitcher_fantasy_score") return "FANTASY_TRACK_ONLY";
+  if (market === "pitches_thrown") return "PITCH_COUNT_SECONDARY";
+  if (tier === "demon") return "DEMON_RESEARCH_ONLY";
+  if (pfStatus !== "PF_CONFIRMED") return "NOT_PF_CONFIRMED";
+  if (!Number.isFinite(modelProb)) return "PF_CONFIRMED_MODEL_PROB_MISSING";
+  if (!Number.isFinite(pfScore)) return "PF_CONFIRMED_PF_SCORE_MISSING";
+
+  if (modelProb >= 0.65 && pfScore >= 0.65) return "PITCHER_PF_ACTIONABLE_WATCH";
+  if (modelProb >= 0.60 && pfScore >= 0.65) return "PITCHER_PF_REVIEW_WATCH";
+  if (modelProb < 0.55) return "MODEL_DISAGREES";
+  return "PF_CONFIRMED_WITH_MODEL_PROB";
+}
+
 function pct(v) {
   if (v == null || !Number.isFinite(Number(v))) return "NA";
   return `${(Number(v) * 100).toFixed(1)}%`;
@@ -213,7 +234,7 @@ function pfScore(row) {
 function bucketFor(row, modelProb) {
   const market = marketNorm(row.market);
 
-  if (market === "pitcher_fantasy_score") return "FANTASY_EXCLUDED";
+  if (market === "pitcher_fantasy_score") return "FANTASY_TRACK_ONLY";
   if (market === "pitches_thrown") return "PITCH_COUNT_SECONDARY";
   if (modelProb == null) return "PF_CONFIRMED_MODEL_PROB_MISSING";
   return "PF_CONFIRMED_WITH_MODEL_PROB";
@@ -273,7 +294,7 @@ const primary = confirmed.filter(r =>
 const withModelProb = confirmed.filter(r => r.bucket === "PF_CONFIRMED_WITH_MODEL_PROB");
 const missingModelProb = confirmed.filter(r => r.bucket === "PF_CONFIRMED_MODEL_PROB_MISSING");
 const pitchCountSecondary = confirmed.filter(r => r.bucket === "PITCH_COUNT_SECONDARY");
-const fantasyExcluded = confirmed.filter(r => r.bucket === "FANTASY_EXCLUDED");
+const fantasyTrackOnly = confirmed.filter(r => r.bucket === "FANTASY_TRACK_ONLY");
 
 const summary = {
   date: DATE,
@@ -284,7 +305,7 @@ const summary = {
   missingModelProb: missingModelProb.length,
   primaryRows: primary.length,
   pitchCountSecondary: pitchCountSecondary.length,
-  fantasyExcluded: fantasyExcluded.length,
+  fantasyTrackOnly: fantasyTrackOnly.length,
   policy: {
     official: false,
     note: "Pitcher PF confirmation is research/confirmation only until model probability is present and market-specific validation clears.",
@@ -301,7 +322,7 @@ const out = {
     withModelProb,
     missingModelProb,
     pitchCountSecondary,
-    fantasyExcluded
+    fantasyTrackOnly
   }
 };
 
@@ -315,13 +336,13 @@ lines.push(`withModelProb=${summary.withModelProb}`);
 lines.push(`missingModelProb=${summary.missingModelProb}`);
 lines.push(`primaryRows=${summary.primaryRows}`);
 lines.push(`pitchCountSecondary=${summary.pitchCountSecondary}`);
-lines.push(`fantasyExcluded=${summary.fantasyExcluded}`);
+lines.push(`fantasyTrackOnly=${summary.fantasyTrackOnly}`);
 lines.push("");
 lines.push("POLICY");
 lines.push("------");
 lines.push("Pitcher PF confirmation is research/confirmation only.");
 lines.push("Do not treat PF_CONFIRMED alone as an official play.");
-lines.push("Pitcher fantasy is excluded from primary.");
+lines.push("Pitcher fantasy is track-only, separate from primary/actionable.");
 lines.push("Pitches thrown is secondary only.");
 lines.push("modelProb=NA means no clean production model probability was matched.");
 lines.push("");
@@ -362,12 +383,12 @@ if (!pitchCountSecondary.length) {
 }
 
 lines.push("");
-lines.push("PITCHER FANTASY EXCLUDED");
+lines.push("PITCHER FANTASY TRACK ONLY");
 lines.push("------------------------");
-if (!fantasyExcluded.length) {
+if (!fantasyTrackOnly.length) {
   lines.push("none");
 } else {
-  fantasyExcluded.forEach((r, i) => lines.push(formatRow(r, i + 1)));
+  fantasyTrackOnly.forEach((r, i) => lines.push(formatRow(r, i + 1)));
 }
 
 fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2) + "\n");
