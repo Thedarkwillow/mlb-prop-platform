@@ -112,6 +112,13 @@ function keyOf(r) {
 }
 
 function getClasses(hardening) {
+  if (Array.isArray(hardening?.allRows)) {
+    return hardening.allRows.map(r => ({
+      ...r,
+      hardenedClass: r.hardenedClass || r.class || "UNKNOWN",
+    }));
+  }
+
   const classes = hardening?.classes || {};
   const rows = [];
   for (const [cls, arr] of Object.entries(classes)) {

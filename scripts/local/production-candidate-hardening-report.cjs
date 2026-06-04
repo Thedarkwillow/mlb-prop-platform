@@ -455,6 +455,7 @@ const report = {
     warnings,
   },
   byMarketSide,
+  allRows: hardened,
   classes: {
     CORE: topRows(hardened.filter(r => r.hardenedClass === "CORE")),
     LEAN: topRows(hardened.filter(r => r.hardenedClass === "LEAN")),
