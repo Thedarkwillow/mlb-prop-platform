@@ -465,9 +465,12 @@ const byHardenedClass = countBy(hardened, "hardenedClass");
 const byMarketSide = countBy(hardened, r => `${r.market}|${r.side}`);
 const byTier = countBy(hardened, "tier");
 
-const productionCount = hardened.filter(r =>
-  ["CORE", "LEAN", "WATCHLIST", "CONTROLLED_WATCH"].includes(r.hardenedClass)
-).length;
+const productionCount =
+  (byHardenedClass.CORE || 0) +
+  (byHardenedClass.LEAN || 0) +
+  (byHardenedClass.LESS_CONTROLLED_WATCH || 0) +
+  (byHardenedClass.CONTROLLED_WATCH || 0) +
+  (byHardenedClass.WATCHLIST || 0);
 
 const warnings = [];
 if (hardened.length > 120) warnings.push(`candidate_pool_too_large:${hardened.length}_rows`);
