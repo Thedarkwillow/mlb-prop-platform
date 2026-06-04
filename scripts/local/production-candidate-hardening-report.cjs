@@ -233,6 +233,36 @@ function isStandard(row) {
   return normTier(row) === "standard";
 }
 
+function isGoodLessMarket(market) {
+  return new Set([
+    "strikeouts",
+    "earned_runs_allowed",
+    "pitching_outs",
+    "hits_allowed",
+    "walks_allowed",
+    "home_runs",
+    "rbis",
+    "hits",
+    "runs",
+    "walks",
+    "bases",
+  ]).has(normMarket(market));
+}
+
+function isLessControlledWatchCandidate(row, market, side, tier, prob, books, support, grade, sideBiasTier) {
+  if (side !== "LESS") return false;
+  if (!isGoodLessMarket(market)) return false;
+  if (prob < 0.55) return false;
+  if (tier === "demon") return false;
+  if (isFantasy(row)) return false;
+  if (normMarket(market) === "hrr") return false;
+  if (sideBiasTier === "NEGATIVE") return false;
+
+  const supportOk = support === "OK" || books >= 2;
+  const gradeOk = grade === "GREEN" || grade === "NEUTRAL";
+  return supportOk && gradeOk;
+}
+
 function isBadReason(reasons) {
   return reasons.some(r =>
     /blocked|research|shadow|fade|negative|weak|unknown|unpriced|fantasy|hrr_more_research|failed_market_gate/i.test(r)
@@ -277,7 +307,19 @@ function classifyHardened(row, highProbKeys = new Set()) {
       side === "MORE" &&
       tier === "goblin"
     );
+  const lessControlledWatch = isLessControlledWatchCandidate(
+    row,
+    market,
+    side,
+    tier,
+    prob,
+    books,
+    support,
+    grade,
+    sideBiasTier
+  );
 
+  if (lessControlledWatch) flags.push("less_controlled_watch_55pct_floor");
   if (isFantasy(row)) flags.push("fantasy_not_production_ready");
   if (isHrrMore(row)) flags.push("hrr_more_research_only");
   if (isDemon(row)) flags.push("demon_research_only");
@@ -291,7 +333,10 @@ function classifyHardened(row, highProbKeys = new Set()) {
   let hardenedClass = "RESEARCH";
   let stake = "research only / no bet";
 
-  if (
+  if (lessControlledWatch) {
+    hardenedClass = "LESS_CONTROLLED_WATCH";
+    stake = "controlled LESS watch only / no official bet";
+  } else if (
     highProbControlled &&
     supportOk &&
     books >= 2 &&
@@ -430,6 +475,7 @@ if (productionCount > 120) warnings.push(`production_pool_too_large:${production
 if (productionCount < 50) warnings.push(`production_pool_below_target:${productionCount}_rows`);
 if ((byHardenedClass.CORE || 0) === 0) warnings.push("no_core_candidates");
 if ((byHardenedClass.LEAN || 0) === 0) warnings.push("no_lean_candidates");
+if ((byHardenedClass.LESS_CONTROLLED_WATCH || 0) > 0) warnings.push(`less_controlled_watch_report_only:${byHardenedClass.LESS_CONTROLLED_WATCH}_rows`);
 if ((byHardenedClass.RESEARCH || 0) > 50) warnings.push("research_pool_too_large");
 if ((byHardenedClass.SHADOW_BLOCKED || 0) > 50) warnings.push("shadow_blocked_pool_too_large");
 
@@ -459,6 +505,7 @@ const report = {
   classes: {
     CORE: topRows(hardened.filter(r => r.hardenedClass === "CORE")),
     LEAN: topRows(hardened.filter(r => r.hardenedClass === "LEAN")),
+    LESS_CONTROLLED_WATCH: topRows(hardened.filter(r => r.hardenedClass === "LESS_CONTROLLED_WATCH")),
     CONTROLLED_WATCH: topRows(hardened.filter(r => r.hardenedClass === "CONTROLLED_WATCH")),
     WATCHLIST: topRows(hardened.filter(r => r.hardenedClass === "WATCHLIST")),
     RESEARCH: topRows(hardened.filter(r => r.hardenedClass === "RESEARCH")),
@@ -488,7 +535,7 @@ lines.push(`tiers=${JSON.stringify(byTier)}`);
 lines.push(`warnings=${warnings.length ? warnings.join(",") : "none"}`);
 lines.push("");
 
-for (const cls of ["CORE", "LEAN", "CONTROLLED_WATCH", "WATCHLIST", "RESEARCH", "BLOCKED", "SHADOW_BLOCKED"]) {
+for (const cls of ["CORE", "LEAN", "LESS_CONTROLLED_WATCH", "CONTROLLED_WATCH", "WATCHLIST", "RESEARCH", "BLOCKED", "SHADOW_BLOCKED"]) {
   const rows = report.classes[cls] || [];
   lines.push(cls);
   lines.push("-".repeat(cls.length));
