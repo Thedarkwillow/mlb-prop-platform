@@ -285,7 +285,10 @@ if (!productionRowsDeduped.length) {
     if (!rows.length) {
       console.log("none");
     } else {
-      rows.forEach((l, i) => console.log(productionLine(l, i)));
+      rows.forEach((l, i) => {
+        if (i > 0) console.log("");
+        console.log(productionLine(l, i));
+      });
     }
   }
 }
