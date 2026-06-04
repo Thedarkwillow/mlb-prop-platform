@@ -355,38 +355,46 @@ function buildConfirmationMap() {
   return map;
 }
 
-function pickfinderStatusFromConfirmation(row, confirmation = {
+function pickfinderStatusFromConfirmation(row, confirmation = {}) {
   const directPfStatus = confirmation.pfStatus || confirmation.pickfinderStatus;
   if (["PF_CONFIRMED", "PF_WEAK", "PF_NOT_CHECKED", "PF_MISSING_LINEUP"].includes(directPfStatus)) {
     return directPfStatus;
   }
-}) {
-  const full = confirmation.full || null;
-  const external = confirmation.external || null;
-  const blob = JSON.stringify({ full, external });
 
-  if (/missing_lineup/i.test(blob)) return "PF_MISSING_LINEUP";
+  const notes = [
+    confirmation.notes,
+    confirmation.note,
+    confirmation.reason,
+    ...(Array.isArray(confirmation.reasons) ? confirmation.reasons : []),
+    ...(Array.isArray(confirmation.flags) ? confirmation.flags : [])
+  ].filter(Boolean).join(" ").toLowerCase();
 
-  const hasPf =
-    /PF L5=|PF L10=|pickfinder_available|pfLine=|match=exact_line/i.test(blob) ||
-    !!full?.pickfinder ||
-    !!external?.pickfinder;
+  if (notes.includes("missing_lineup") || notes.includes("missing lineup")) {
+    return "PF_MISSING_LINEUP";
+  }
 
-  const notChecked = /PF=not_checked|pickfinder_not_checked/i.test(blob);
+  const pf = confirmation.pickfinder || confirmation.pf || confirmation.PF || null;
+  const pfText = JSON.stringify(pf || confirmation).toLowerCase();
 
-  if (hasPf) {
+  if (
+    pfText.includes("pf_confirmed") ||
+    pfText.includes("pickfinder_available") ||
+    pfText.includes("exact_line") ||
+    pfText.includes("l10") ||
+    pfText.includes("season")
+  ) {
     const weak =
-      /L10=([0-4]?[0-9](?:\.\d+)?)(\s|%)/i.test(blob) ||
-      /Season=([0-4]?[0-9](?:\.\d+)?)(\s|%)/i.test(blob) ||
-      /vsP=([0-3]?[0-9](?:\.\d+)?)(\s|%)/i.test(blob);
+      pfText.includes("weak") ||
+      pfText.includes("below_45") ||
+      pfText.includes("pf_weak");
+
     return weak ? "PF_WEAK" : "PF_CONFIRMED";
   }
 
-  const positiveExternal =
-    /l10_60_plus|l15_60_plus|season_60_plus|KEEP_SMALL_LEAN|RESEARCH_PLUS|WATCH_ONLY/i.test(blob);
+  if (pfText.includes("not_checked") || pfText.includes("pickfinder_not_checked")) {
+    return "PF_NOT_CHECKED";
+  }
 
-  if (positiveExternal) return "PF_CONFIRMED";
-  if (notChecked) return "PF_NOT_CHECKED";
   return "PF_NOT_CHECKED";
 }
 
