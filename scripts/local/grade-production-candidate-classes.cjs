@@ -226,7 +226,7 @@ function isShadowUngradedCandidate(c) {
     support === "PHASE8_UNPRICED" ||
     source === "phase8_audit" ||
     cls === "SHADOW_BLOCKED" ||
-    reasons.includes("phase8_unpriced_shadow_blocked")
+    reasons.includes("shadow_bucket_not_approved")
   );
 }
 

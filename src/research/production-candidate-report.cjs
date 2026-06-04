@@ -578,7 +578,7 @@ function classify(row, lookups) {
     if (prob !== null && prob >= 0.65) reasons.push("high_probability_conflict");
     if (blocked?.reason) reasons.push(`blocked:${blocked.reason}`);
     if (isPhase8Unpriced(row)) {
-      reasons.push("phase8_unpriced_shadow_blocked");
+      reasons.push("shadow_bucket_not_approved");
       return { classification: "SHADOW_BLOCKED", reasons };
     }
     return { classification: "BLOCKED", reasons };
