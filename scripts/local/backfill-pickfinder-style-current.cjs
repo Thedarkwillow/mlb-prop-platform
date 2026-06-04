@@ -365,10 +365,13 @@ async function main() {
       : [];
     const vsPitcher = hitRate(vsPitcherGames, side, line, market);
 
+    const hasCheckedSample = [l5, l10, l15, season, homeAway, vsPitcher]
+      .some(split => split && Number(split.n || 0) > 0);
+
     const pfStatus =
       season.n >= 20 && l10.n >= 10 && l10.rate >= 0.6 && season.rate >= 0.6
         ? "PF_CONFIRMED"
-        : season.n >= 10 && (l10.rate ?? 0) < 0.45
+        : hasCheckedSample
           ? "PF_WEAK"
           : "PF_NOT_CHECKED";
 
