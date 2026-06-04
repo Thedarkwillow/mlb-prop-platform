@@ -663,7 +663,20 @@ lines.push(`tiers=${JSON.stringify(byTier)}`);
 lines.push(`warnings=${warnings.length ? warnings.join(",") : "none"}`);
 lines.push("");
 
-for (const cls of ["CORE", "LEAN", "LESS_CONTROLLED_WATCH", "CONTROLLED_WATCH", "WATCHLIST", "RESEARCH", "BLOCKED", "SHADOW_BLOCKED"]) {
+for (const cls of [
+  "CORE",
+  "LEAN",
+  "LESS_CONTROLLED_WATCH",
+  "LESS_CONTROLLED_WATCH_PF_CONFIRMED",
+  "LESS_CONTROLLED_WATCH_NO_PF_CONFIRMATION",
+  "CONTROLLED_WATCH",
+  "CONTROLLED_WATCH_PF_CONFIRMED",
+  "CONTROLLED_WATCH_NO_PF_CONFIRMATION",
+  "WATCHLIST",
+  "RESEARCH",
+  "BLOCKED",
+  "SHADOW_BLOCKED"
+]) {
   const rows = report.classes[cls] || [];
   lines.push(cls);
   lines.push("-".repeat(cls.length));
