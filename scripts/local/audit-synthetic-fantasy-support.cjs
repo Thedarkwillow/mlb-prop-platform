@@ -82,6 +82,48 @@ function componentMarketsOf(row) {
   return Array.isArray(a) ? a : [];
 }
 
+
+function norm(v) {
+  return String(v || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9.]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function rowKey(r) {
+  return [
+    r.file,
+    norm(r.player),
+    norm(r.market),
+    norm(r.side),
+    String(r.line ?? "").trim(),
+    norm(r.tier)
+  ].join("|");
+}
+
+function supportRank(r) {
+  if (r.syntheticGrade === "SYNTHETIC_GREEN") return 5;
+  if (r.syntheticGrade === "SYNTHETIC_NEUTRAL") return 4;
+  if (r.syntheticBooks > 0) return 3;
+  if (Array.isArray(r.componentMarkets) && r.componentMarkets.length > 0) return 2;
+  if (r.syntheticGrade === "SYNTHETIC_UNKNOWN") return 1;
+  return 0;
+}
+
+function dedupeRows(rows) {
+  const best = new Map();
+  for (const r of rows) {
+    const key = rowKey(r);
+    const old = best.get(key);
+    if (!old || supportRank(r) > supportRank(old)) {
+      best.set(key, r);
+    }
+  }
+  return Array.from(best.values());
+}
+
 function flattenRows(payload) {
   const out = [];
   const seen = new Set();
@@ -152,19 +194,23 @@ for (const file of FILES) {
   }
 }
 
-const byStatus = rows.reduce((acc, r) => {
+const dedupedRows = dedupeRows(rows);
+
+const byStatus = dedupedRows.reduce((acc, r) => {
   acc[r.status] = (acc[r.status] || 0) + 1;
   return acc;
 }, {});
 
-const noComponentRows = rows.filter(r => r.status === "FANTASY_NO_COMPONENT_SUPPORT");
+const noComponentRows = dedupedRows.filter(r => r.status === "FANTASY_NO_COMPONENT_SUPPORT");
 
 const audit = {
   date: DATE,
-  totalFantasyRows: rows.length,
+  rawFantasyRows: rows.length,
+  totalFantasyRows: dedupedRows.length,
+  deduped: true,
   noComponentRows: noComponentRows.length,
   byStatus,
-  rows,
+  rows: dedupedRows,
   noComponentRowsList: noComponentRows,
   policy: {
     fantasyNormalBookSupport: false,
@@ -179,7 +225,7 @@ const lines = [];
 lines.push("SYNTHETIC FANTASY SUPPORT QUALITY");
 lines.push("=================================");
 lines.push(`date: ${DATE}`);
-lines.push(`totalFantasyRows: ${rows.length}`);
+lines.push(`rawFantasyRows: ${rows.length}`);\nlines.push(`totalFantasyRows: ${dedupedRows.length}`);\nlines.push("deduped: true");
 lines.push(`noComponentRows: ${noComponentRows.length}`);
 lines.push("");
 lines.push("BY STATUS");
