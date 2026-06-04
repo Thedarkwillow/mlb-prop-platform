@@ -148,6 +148,66 @@ function summarize(rows) {
   return { total, graded, hits, misses, pushes, refunds, unmatched, hitRate, roiProxy };
 }
 
+
+function summarizeByFlag(rows) {
+  const out = {};
+  for (const row of rows) {
+    const flags = Array.isArray(row.flags) && row.flags.length ? row.flags : ["no_flags"];
+    for (const flag of flags) {
+      if (!out[flag]) {
+        out[flag] = {
+          flag,
+          total: 0,
+          graded: 0,
+          hits: 0,
+          misses: 0,
+          pushes: 0,
+          refunds: 0,
+          unmatched: 0,
+          hitRate: null,
+          roiProxy: null,
+        };
+      }
+
+      const b = out[flag];
+      b.total++;
+
+      const result = String(row.result || row.gradeResult || "").toUpperCase();
+      if (result === "HIT") {
+        b.graded++;
+        b.hits++;
+      } else if (result === "MISS") {
+        b.graded++;
+        b.misses++;
+      } else if (result === "PUSH") {
+        b.graded++;
+        b.pushes++;
+      } else if (result === "REFUND") {
+        b.refunds++;
+      } else {
+        b.unmatched++;
+      }
+    }
+  }
+
+  for (const b of Object.values(out)) {
+    if (b.graded > 0) {
+      b.hitRate = b.hits / b.graded;
+      b.roiProxy = (b.hits - b.misses) / b.graded;
+    }
+  }
+
+  return Object.fromEntries(
+    Object.entries(out).sort((a, b) => {
+      const ag = a[1].graded || 0;
+      const bg = b[1].graded || 0;
+      const ar = a[1].hitRate ?? -1;
+      const br = b[1].hitRate ?? -1;
+      return bg - ag || br - ar;
+    })
+  );
+}
+
 function pct(v) {
   return v == null ? "n/a" : `${(v * 100).toFixed(1)}%`;
 }
@@ -229,6 +289,7 @@ const report = {
   gradeFiles: GRADE_FILES.filter(f => fs.existsSync(f)),
   summary: summarize(graded),
   byClass,
+  byFlag: summarizeByFlag(rows),
   byMarketSide,
   rows: graded,
 };
@@ -252,6 +313,14 @@ for (const [cls, s] of Object.entries(byClass)) {
   lines.push(`${cls}: total=${s.total} graded=${s.graded} hits=${s.hits} misses=${s.misses} pushes=${s.pushes} refunds=${s.refunds} unmatched=${s.unmatched} hitRate=${pct(s.hitRate)} roiProxy=${pct(s.roiProxy)}`);
 }
 lines.push("");
+
+lines.push("");
+lines.push("BY BLOCK / REASON FLAG");
+lines.push("----------------------");
+for (const [flag, b] of Object.entries(report.byFlag || {})) {
+  lines.push(`${flag}: total=${b.total} graded=${b.graded} hits=${b.hits} misses=${b.misses} unmatched=${b.unmatched} hitRate=${pct(b.hitRate)} roiProxy=${pct(b.roiProxy)}`);
+}
+
 lines.push("TOP GRADED ROWS");
 lines.push("---------------");
 for (const r of graded.filter(r => r.result !== "UNMATCHED").slice(0, 30)) {
