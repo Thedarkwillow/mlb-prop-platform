@@ -268,7 +268,7 @@
     "unlocks:readiness": "node src/research/controlled-unlock-readiness.cjs",
     "savant:arsenal:compact": "node src/learning/compact-savant-arsenal-cache.cjs",
     "savant:velo:compact": "npm run savant:velo && npm run savant:arsenal:compact",
-    "savant:velo:full": "npm run savant:velo && npm run savant:arsenal:compact",
+    "savant:velo:full": "npm run context:starter-bulk-targets && npm run savant:velo && npm run savant:arsenal:compact",
     "context:bullpen:merge": "node src/jobs/mergeBullpenFatigueIntoBoard.cjs",
     "explain:blocked": "node src/research/blocked-candidate-explain-report.cjs",
     "slips:leans:inject-controlled": "node src/research/inject-controlled-unlocks-into-lean-report.cjs",
@@ -334,7 +334,8 @@
     "audit:pf-disagree-hitters": "node scripts/audit/hitter-pf-disagree-audit.cjs",
     "cleanup:compress:safe": "node scripts/maintenance/safe-compression-cleanup.cjs",
     "cleanup:compress:dry": "DRY_RUN=1 node scripts/maintenance/safe-compression-cleanup.cjs",
-    "repair:pitcher-projections:upstream": "node scripts/repair/upstream-pitcher-projection-repair.cjs"
+    "repair:pitcher-projections:upstream": "node scripts/repair/upstream-pitcher-projection-repair.cjs",
+    "context:starter-bulk-targets": "node scripts/local/build-30-team-starter-bulk-pitcher-cache-targets.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

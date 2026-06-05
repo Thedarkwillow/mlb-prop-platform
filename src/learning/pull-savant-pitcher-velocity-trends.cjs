@@ -24,6 +24,7 @@ const BOARD = "outputs/priced-board.json";
 const TARGETS = "outputs/context/real-pitch-type-target-list-latest.json";
 const ID_REPAIR = "outputs/context/pitch-type-target-mlb-id-repair-latest.json";
 const MANUAL_IDS = "data/context/manual-mlbam-ids.json";
+const STARTER_BULK_TARGETS = "data/context/starter-bulk-pitcher-cache-targets.json";
 const OUT = "data/savant/pitcher-velocity-trends.json";
 const RAW_DIR = "data/savant/velocity-raw";
 
@@ -80,6 +81,7 @@ function collectPitchers() {
   const idByName = new Map();
 
   const manualIds = read(MANUAL_IDS, {});
+  const starterBulkTargets = read(STARTER_BULK_TARGETS, {});
   for (const [key, rec] of Object.entries(manualIds.players || {})) {
     if (!rec?.mlbamId) continue;
     idByName.set(norm(rec.name || key), rec.mlbamId);
@@ -145,6 +147,22 @@ function collectPitchers() {
     });
 
     addIdName(name, id);
+  }
+
+  // 0) Saved 30-team starter / bulk pitcher cache targets.
+  for (const p of Array.isArray(starterBulkTargets.pitchers) ? starterBulkTargets.pitchers : []) {
+    addPitcher({
+      pitcher: p.pitcher || p.name || p.player,
+      id: p.pitcherId || p.id || p.mlbamId || p.mlbId || null,
+      team: p.team || null,
+      opponent: p.opponent || null,
+      hand: p.hand || null,
+      gamePk: p.gamePk || null,
+      role: p.role || "starter_bulk"
+    }, {
+      role: p.role || "starter_bulk",
+      source: "starter_bulk_pitcher_cache_targets"
+    });
   }
 
   // 1) Existing pitching-staffs source.
