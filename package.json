@@ -338,7 +338,8 @@
     "context:starter-bulk-targets": "node scripts/local/build-30-team-starter-bulk-pitcher-cache-targets.cjs",
     "hitter:pf": "node scripts/local/build-hitter-pf-clean-report.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "fantasy:pf": "node scripts/local/build-fantasy-pf-style-report.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
-    "backtest:reverse-pf-under": "node scripts/local/backtest-hitter-reverse-pf-under-context.cjs"
+    "backtest:reverse-pf-under": "node scripts/local/backtest-hitter-reverse-pf-under-context.cjs",
+    "reverse-pf:watch": "node scripts/local/extract-reverse-pf-under-watch.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
