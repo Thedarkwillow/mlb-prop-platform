@@ -17,7 +17,7 @@
     "calibration:curves": "node src/research/calibration-curves.cjs",
     "show": "node src/research/show-todays-slips.cjs",
     "status": "node src/research/status.cjs",
-    "mobile": "SLATE_DATE=${SLATE_DATE:-${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}}; export SLATE_DATE; npm_config_date=$SLATE_DATE; export npm_config_date && npm run official:guard && node src/research/mobile-summary.cjs $SLATE_DATE && npm run external:summary -- ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
+    "mobile": "node src/research/mobile-summary.cjs | tee outputs/mobile-summary.txt",
     "final": "npm run pipeline $npm_config_date && npm run status && npm run summary $npm_config_date && npm run decision && npm run show",
     "grade:watchlist": "node src/research/grade-watchlist-slips.cjs ${npm_config_date:-$(date +%F)}",
     "history": "node src/research/show-history.cjs ${npm_config_date:-$(date +%F)}",
@@ -347,7 +347,14 @@
     "fantasy:less:grade-history": "node scripts/local/grade-fantasy-less-history.cjs",
     "audit:support-repair": "node scripts/local/audit-direct-support-repair.cjs",
     "audit:support-unmatched": "node scripts/local/drilldown-direct-support-unmatched.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
-    "audit:pitcher-vegas": "node scripts/local/audit-pitcher-vegas-coverage.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
+    "audit:pitcher-vegas": "node scripts/local/audit-pitcher-vegas-coverage.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
+    "pickfinder:capture": "node scripts/local/capture-pickfinder-persistent.cjs",
+    "pickfinder:normalize": "node scripts/local/normalize-pickfinder-lineups.cjs",
+    "pickfinder:audit": "node scripts/local/audit-pickfinder-vs-model.cjs",
+    "pickfinder:explore": "node scripts/local/explore-pickfinder-players.cjs",
+    "pickfinder:full": "node scripts/local/capture-pickfinder-mlb-full.cjs",
+    "pickfinder:pitchers": "node scripts/local/normalize-pickfinder-pitcher-profiles.cjs",
+    "pickfinder:support": "node scripts/local/enrich-pickfinder-support.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

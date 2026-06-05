@@ -1367,7 +1367,7 @@ console.log("CONTEXT HEALTH");
     process.env.SLATE_DATE ||
     process.env.npm_config_date ||
     process.argv[2] ||
-    slateDate;
+    DATE;
   function _dateOnly(v) {
     if (!v) return null;
     const d = new Date(v);
