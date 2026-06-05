@@ -341,7 +341,8 @@
     "backtest:reverse-pf-under": "node scripts/local/backtest-hitter-reverse-pf-under-context.cjs",
     "reverse-pf:watch": "node scripts/local/extract-reverse-pf-under-watch.cjs",
     "backtest:fantasy-less": "node scripts/local/backtest-fantasy-less.cjs",
-    "fantasy:less:grade-watch": "node scripts/local/grade-fantasy-less-watchlists.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
+    "fantasy:less:grade-watch": "node scripts/local/grade-fantasy-less-watchlists.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
+    "backtest:fantasy-ou": "node scripts/local/backtest-fantasy-over-under.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
