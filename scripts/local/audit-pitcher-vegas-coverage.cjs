@@ -114,13 +114,33 @@ const board = read(BOARD_FILE, []);
 const vegasRaw = read(VEGAS_FILE, []);
 
 const prodRows = flat(prod.all || prod.classes || prod)
-  .filter(r => player(r) && isPitcherMarket(r));
+  .filter(r => player(r) && isPitcherMarket(r))
+  .map(r => ({ ...r, auditSource: "production" }));
 
 const boardRows = flat(board)
-  .filter(r => player(r) && isPitcherMarket(r));
+  .filter(r => player(r) && isPitcherMarket(r))
+  .map(r => ({ ...r, auditSource: "board" }));
+
+function isPricedBoardRow(r) {
+  const status = String(r.pricingStatus || "").toUpperCase();
+  const support = String(r.support || r.marketSupportFlag || "").toUpperCase();
+  const grade = String(r.grade || r.qualityGrade || "").toUpperCase();
+  const prob = Number(r.prob ?? r.recommendedProb ?? r.calibratedDistributionProb);
+  const edge = Number(r.edge ?? r.expectedValue ?? r.sportsbookEdge);
+  return (
+    status === "PRICED" ||
+    support === "OK" ||
+    grade === "GREEN" ||
+    (Number.isFinite(prob) && prob > 0 && Number.isFinite(edge))
+  );
+}
+
+const pricedBoardRows = boardRows
+  .filter(isPricedBoardRow)
+  .map(r => ({ ...r, auditSource: "priced_board" }));
 
 const byKey = new Map();
-for (const r of [...prodRows, ...boardRows]) {
+for (const r of [...prodRows, ...pricedBoardRows, ...boardRows]) {
   const k = uniqKey(r);
   if (!byKey.has(k)) byKey.set(k, r);
 }
@@ -192,6 +212,7 @@ function classify(row) {
     line: ln,
     tier: row.oddsTier || row.tier || "standard",
     source: row.source || row.recordType || row.class || row.classification || "",
+    sourceGroup: row.auditSource || "",
     productionClass: row.class || row.classification || row.candidateClass || "",
     support: row.support || row.marketSupportFlag || "",
     grade: row.grade || row.qualityGrade || "",
@@ -234,6 +255,7 @@ const report = {
   },
   counts: {
     productionPitcherRows: prodRows.length,
+    pricedBoardPitcherRows: pricedBoardRows.length,
     boardPitcherRows: boardRows.length,
     uniquePitcherRows: rows.length,
     vegasPitcherRows: vegasRows.length
@@ -241,6 +263,11 @@ const report = {
   summary: {
     byCoverage: group(rows, r => r.coverage),
     byMarketCoverage: group(rows, r => `${r.market}|${r.coverage}`),
+    productionByCoverage: group(rows.filter(r => r.sourceGroup === "production"), r => r.coverage),
+    productionByMarketCoverage: group(rows.filter(r => r.sourceGroup === "production"), r => `${r.market}|${r.coverage}`),
+    pricedBoardByCoverage: group(rows.filter(r => r.sourceGroup === "priced_board"), r => r.coverage),
+    pricedBoardByMarketCoverage: group(rows.filter(r => r.sourceGroup === "priced_board"), r => `${r.market}|${r.coverage}`),
+    boardByCoverage: group(rows.filter(r => r.sourceGroup === "board"), r => r.coverage),
     unsupportedByMarket: group(rows.filter(r => !["EXACT_SUPPORTED", "EXACT_LOW_BOOK"].includes(r.coverage)), r => r.market)
   },
   rows
@@ -256,6 +283,7 @@ lines.push(`PITCHER VEGAS COVERAGE AUDIT ${DATE}`);
 lines.push("===================================");
 lines.push("");
 lines.push(`productionPitcherRows: ${report.counts.productionPitcherRows}`);
+lines.push(`pricedBoardPitcherRows: ${report.counts.pricedBoardPitcherRows}`);
 lines.push(`boardPitcherRows: ${report.counts.boardPitcherRows}`);
 lines.push(`uniquePitcherRows: ${report.counts.uniquePitcherRows}`);
 lines.push(`vegasPitcherRows: ${report.counts.vegasPitcherRows}`);
@@ -265,6 +293,26 @@ for (const r of report.summary.byCoverage) lines.push(`${r.bucket}: ${r.rows}`);
 lines.push("");
 lines.push("BY MARKET + COVERAGE");
 for (const r of report.summary.byMarketCoverage) lines.push(`${r.bucket}: ${r.rows}`);
+
+lines.push("");
+lines.push("PRODUCTION ONLY BY COVERAGE");
+for (const r of report.summary.productionByCoverage) lines.push(`${r.bucket}: ${r.rows}`);
+
+lines.push("");
+lines.push("PRODUCTION ONLY BY MARKET + COVERAGE");
+for (const r of report.summary.productionByMarketCoverage) lines.push(`${r.bucket}: ${r.rows}`);
+
+lines.push("");
+lines.push("PRICED BOARD ONLY BY COVERAGE");
+for (const r of report.summary.pricedBoardByCoverage) lines.push(`${r.bucket}: ${r.rows}`);
+
+lines.push("");
+lines.push("PRICED BOARD ONLY BY MARKET + COVERAGE");
+for (const r of report.summary.pricedBoardByMarketCoverage) lines.push(`${r.bucket}: ${r.rows}`);
+
+lines.push("");
+lines.push("ALL BOARD ONLY BY COVERAGE");
+for (const r of report.summary.boardByCoverage) lines.push(`${r.bucket}: ${r.rows}`);
 lines.push("");
 lines.push("UNSUPPORTED DETAILS");
 for (const r of rows.filter(x => !["EXACT_SUPPORTED", "EXACT_LOW_BOOK"].includes(x.coverage)).slice(0, 200)) {
@@ -283,6 +331,16 @@ console.log("BY COVERAGE");
 console.table(report.summary.byCoverage);
 console.log("BY MARKET + COVERAGE");
 console.table(report.summary.byMarketCoverage);
+console.log("PRODUCTION ONLY BY COVERAGE");
+console.table(report.summary.productionByCoverage);
+console.log("PRODUCTION ONLY BY MARKET + COVERAGE");
+console.table(report.summary.productionByMarketCoverage);
+console.log("PRICED BOARD ONLY BY COVERAGE");
+console.table(report.summary.pricedBoardByCoverage);
+console.log("PRICED BOARD ONLY BY MARKET + COVERAGE");
+console.table(report.summary.pricedBoardByMarketCoverage);
+console.log("ALL BOARD ONLY BY COVERAGE");
+console.table(report.summary.boardByCoverage);
 console.log("UNSUPPORTED SAMPLE");
 console.table(rows.filter(r => !["EXACT_SUPPORTED", "EXACT_LOW_BOOK"].includes(r.coverage)).slice(0, 40).map(r => ({
   player: r.player,
