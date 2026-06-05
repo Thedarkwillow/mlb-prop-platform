@@ -174,8 +174,38 @@ function isExplicitPitcherMarket(row, arsenalByName) {
     .toUpperCase()
     .trim();
 
-  // Explicit pitcher markets must win over dirty PrizePicks sourceType.
-  // Plain "strikeouts" is intentionally handled separately because it can be hitter Ks or pitcher Ks.
+  const player = String(row.player || row.playerName || row.name || "").trim();
+  const playerKey = norm(player);
+
+  const comboOrTeamRow =
+    player.includes("+") ||
+    String(row.team || row.resolvedTeam || "").includes("/") ||
+    sourceType === "combo" ||
+    sourceType === "team";
+
+  // Plain "strikeouts" is ambiguous and MUST be classified before trusting
+  // dirty PrizePicks sourceType. Many hitter K rows arrive as sourceType="pitcher".
+  if (m === "strikeouts") {
+    if (comboOrTeamRow) return false;
+
+    const hasOpponentPitcher =
+      row.opposingPitcher ||
+      row.opponentPitcher ||
+      row.probablePitcher ||
+      row.pitchTypeOpponentPitcher ||
+      row.handednessContext?.opposingPitcher ||
+      row.handednessAdjustment?.opposingPitcher;
+
+    // Hitter strikeout props have an opposing pitcher. They should use hitter-vs-pitcher matchup,
+    // not pitcher-prop arsenal.
+    if (hasOpponentPitcher) return false;
+
+    // Pitcher strikeout props should only enter pitcher arsenal branch when the player
+    // is actually a pitcher in the arsenal cache or explicitly position P.
+    return position === "P" || arsenalByName.has(playerKey);
+  }
+
+  // Explicit pitcher-only markets must win over dirty PrizePicks sourceType.
   if (
     m.includes("pitching") ||
     m.includes("outs") ||
@@ -189,16 +219,11 @@ function isExplicitPitcherMarket(row, arsenalByName) {
     return true;
   }
 
-  if (sourceType === "pitcher" || position === "P") return true;
   if (sourceType === "batter" || sourceType === "hitter") return false;
-
-  if (m === "strikeouts") {
-    return arsenalByName.has(norm(row.player));
-  }
+  if (sourceType === "pitcher" || position === "P") return true;
 
   return false;
 }
-
 const HITTER_MARKETS = new Set([
   "hits",
   "strikeouts",
