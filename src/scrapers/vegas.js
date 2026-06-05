@@ -13,6 +13,7 @@ const MARKETS = [
   'batter_runs_scored',
   'batter_rbis',
   'pitcher_strikeouts',
+  'pitcher_walks',
 ];
 
 const OUT = 'data/vegas-latest.json';

@@ -28,7 +28,7 @@ function market(v){
   if (m === "pitcher_strikeouts") m = "strikeouts";
   if (m === "pitcher_outs" || m === "outs_recorded") m = "pitching_outs";
   if (m === "pitcher_hits_allowed") m = "hits_allowed";
-  if (m === "pitcher_walks_allowed") m = "walks_allowed";
+  if (m === "pitcher_walks" || m === "pitcher_walks_allowed") m = "walks_allowed";
   if (m === "pitcher_earned_runs") m = "earned_runs_allowed";
   return m;
 }

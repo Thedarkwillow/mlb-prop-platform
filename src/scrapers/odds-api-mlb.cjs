@@ -11,7 +11,8 @@ const REGIONS = "us";
 const MARKETS = [
   "batter_hits",
   "batter_total_bases",
-  "pitcher_strikeouts"
+  "pitcher_strikeouts",
+  "pitcher_walks"
 ].join(",");
 
 const URL =
