@@ -354,7 +354,8 @@
     "pickfinder:explore": "node scripts/local/explore-pickfinder-players.cjs",
     "pickfinder:full": "node scripts/local/capture-pickfinder-mlb-full.cjs",
     "pickfinder:pitchers": "node scripts/local/normalize-pickfinder-pitcher-profiles.cjs",
-    "pickfinder:support": "node scripts/local/enrich-pickfinder-support.cjs"
+    "pickfinder:support": "node scripts/local/enrich-pickfinder-support.cjs",
+    "audit:filter-loss": "node scripts/local/filter-loss-lean-audit.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
