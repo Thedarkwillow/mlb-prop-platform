@@ -346,7 +346,8 @@
     "fantasy:less:snapshot": "node scripts/local/save-fantasy-less-watchlists.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "fantasy:less:grade-history": "node scripts/local/grade-fantasy-less-history.cjs",
     "audit:support-repair": "node scripts/local/audit-direct-support-repair.cjs",
-    "audit:support-unmatched": "node scripts/local/drilldown-direct-support-unmatched.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
+    "audit:support-unmatched": "node scripts/local/drilldown-direct-support-unmatched.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
+    "audit:pitcher-vegas": "node scripts/local/audit-pitcher-vegas-coverage.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
