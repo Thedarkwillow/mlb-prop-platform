@@ -66,28 +66,36 @@ function isPitcherMarket(row, splits = { pitchers: {} }) {
   const position = String(row.position || row.playerPosition || '').toUpperCase();
   const key = playerKey(row);
 
+  // Explicit pitcher markets must override dirty playerType/sourceType labels.
+  // Some PrizePicks/board rows incorrectly mark pitcher props as hitter/batter.
+  const explicitPitcherMarket =
+    m.includes('pitching') ||
+    m.includes('pitching_outs') ||
+    m.includes('outs') ||
+    m.includes('earned_runs_allowed') ||
+    m.includes('hits_allowed') ||
+    m.includes('walks_allowed') ||
+    m.includes('runs_allowed') ||
+    m.includes('pitches_thrown') ||
+    m.includes('pitcher_fantasy');
+
+  if (explicitPitcherMarket) return true;
+
   // Plain "strikeouts" can be hitter strikeouts or pitcher strikeouts.
   // Do not trust dirty playerType/sourceType alone for strikeouts.
   if (m === 'strikeouts') {
     return (
       Boolean(splits.pitchers?.[key]) ||
       position === 'P' ||
+      sourceType === 'pitcher' ||
       isExplicitPitcherStrikeout(row)
     );
   }
 
-  if (sourceType === 'batter' || sourceType === 'hitter') return false;
   if (sourceType === 'pitcher' || position === 'P') return true;
+  if (sourceType === 'batter' || sourceType === 'hitter') return false;
 
-  return (
-    m.includes('pitching') ||
-    m.includes('outs') ||
-    m.includes('earned_runs_allowed') ||
-    m.includes('hits_allowed') ||
-    m.includes('walks_allowed') ||
-    m.includes('pitches_thrown') ||
-    m.includes('pitcher_fantasy')
-  );
+  return false;
 }
 
 function playerKey(row) {
