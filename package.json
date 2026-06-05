@@ -345,7 +345,8 @@
     "backtest:fantasy-ou": "node scripts/local/backtest-fantasy-over-under.cjs",
     "fantasy:less:snapshot": "node scripts/local/save-fantasy-less-watchlists.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "fantasy:less:grade-history": "node scripts/local/grade-fantasy-less-history.cjs",
-    "audit:support-repair": "node scripts/local/audit-direct-support-repair.cjs"
+    "audit:support-repair": "node scripts/local/audit-direct-support-repair.cjs",
+    "audit:support-unmatched": "node scripts/local/drilldown-direct-support-unmatched.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
