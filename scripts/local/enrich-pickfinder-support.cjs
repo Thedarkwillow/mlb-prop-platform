@@ -107,11 +107,15 @@ function marketAliases(market, rawObj = {}) {
   if (base === "earned_runs_allowed") {
     set.add("runs");
     set.add("runs_allowed");
+    set.add("earned_runs");
+    set.add("pitcher_runs");
   }
 
   if (base === "runs") {
     set.add("earned_runs_allowed");
     set.add("runs_allowed");
+    set.add("earned_runs");
+    set.add("pitcher_runs");
   }
 
   if (base === "walks") {
@@ -279,7 +283,49 @@ function supportClass(pf, candSide) {
 }
 
 function probability(c) {
-  return c.probability ?? c.prob ?? c.finalProbability ?? c.calibratedProbability ?? c.p ?? null;
+  const vals = [
+    c.probability,
+    c.prob,
+    c.finalProbability,
+    c.calibratedProbability,
+    c.modelProbability,
+    c.trueProbability,
+    c.winProbability,
+    c.p,
+    c.edgeProbability,
+    c.finalProb,
+    c.calibratedProb,
+    c.rawProbability,
+    c.modelProb,
+    c.evProbability,
+    c.raw?.probability,
+    c.raw?.prob,
+    c.raw?.finalProbability,
+    c.raw?.calibratedProbability,
+    c.raw?.finalProb,
+    c.raw?.calibratedProb,
+    c.raw?.modelProb,
+    c.raw?.evProbability,
+    c.leg?.probability,
+    c.leg?.prob,
+    c.leg?.finalProbability,
+    c.leg?.calibratedProbability,
+    c.leg?.finalProb,
+    c.leg?.calibratedProb,
+    c.leg?.modelProb,
+    c.legs?.[0]?.probability,
+    c.legs?.[0]?.prob,
+    c.legs?.[0]?.finalProbability,
+    c.legs?.[0]?.calibratedProbability,
+    c.legs?.[0]?.finalProb,
+    c.legs?.[0]?.calibratedProb,
+    c.legs?.[0]?.modelProb
+  ];
+  for (const v of vals) {
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
 }
 
 const pfPropsFile = readJson(PF_PROPS, null);
@@ -400,6 +446,18 @@ lines.push("");
 lines.push("UNMATCHED CANDIDATES SAMPLE");
 for (const x of enriched.filter(x => !x.pickfinderMatched).slice(0, 80)) {
   lines.push(`${x.player} ${x.market} aliases=${x.marketAliases.join("|")} ${x.side} ${x.line} prob=${x.probability} current=${x.currentSupportClass || x.disabledReason || "-"}`);
+}
+
+
+lines.push("");
+lines.push("NEAR PF NAME/LINE MATCHES");
+for (const x of enriched.filter(x => !x.pickfinderMatched).slice(0, 40)) {
+  const near = pfProps
+    .filter(p => normName(pfPlayer(p)) === normName(x.player) || pfLine(p) === x.line)
+    .slice(0, 12)
+    .map(p => `${pfPlayer(p)} | ${p.stat} | line=${p.line} | apps=${appCount(p.apps)}`);
+  lines.push(`${x.player} ${x.market} ${x.side} ${x.line}`);
+  for (const n of near) lines.push(`  near: ${n}`);
 }
 
 fs.writeFileSync(TXT, lines.join("\n") + "\n");
