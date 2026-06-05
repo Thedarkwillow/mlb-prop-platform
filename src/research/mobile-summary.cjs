@@ -391,7 +391,7 @@ function readJson(path, fallback) {
     const report = readJson(file, null);
 
     console.log("");
-    console.log("PRODUCTION CLASS ROI");
+    console.log("HISTORICAL PRODUCTION CLASS ROI — NOT TODAY\'S SLATE");
     console.log("--------------------");
 
     if (!report) {
@@ -534,7 +534,7 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
   const file = "outputs/candidate-class-roi-report.json";
   if (!fs.existsSync(file)) {
     console.log("");
-    console.log("CANDIDATE ROI SUMMARY");
+    console.log("HISTORICAL CANDIDATE ROI SUMMARY — NOT TODAY\'S SLATE");
     console.log("---------------------");
     console.log("No candidate ROI report yet. Run: npm run roi:candidates");
     return;
@@ -638,7 +638,7 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
     .sort((a, b) => String(b.bucket ?? b.date ?? "").localeCompare(String(a.bucket ?? a.date ?? "")))[0];
 
   console.log("");
-  console.log("CANDIDATE ROI SUMMARY");
+  console.log("HISTORICAL CANDIDATE ROI SUMMARY — NOT TODAY\'S SLATE");
   console.log("---------------------");
 
   if (overall) {
@@ -779,7 +779,7 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
   const edge = readJson(edgeFile, null);
 
   console.log("");
-  console.log("MANUAL PROPS SUMMARY");
+  console.log("HISTORICAL MANUAL PROPS SUMMARY — NOT TODAY\'S SLATE");
   console.log("--------------------");
 
   if (!summary) {
@@ -912,7 +912,7 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
   }
 
   console.log("");
-  console.log("SHADOW / WATCHLIST SUMMARY");
+  console.log("HISTORICAL SHADOW / WATCHLIST SUMMARY — NOT TODAY\'S SLATE");
   console.log("--------------------------");
 
   const auditFile = "outputs/shadow-promotion-audit-latest.json";

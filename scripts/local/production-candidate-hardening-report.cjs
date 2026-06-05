@@ -621,6 +621,7 @@ function classifyHardened(row, highProbKeys = new Set()) {
   const gradeUsable = grade === "GREEN" || grade === "NEUTRAL";
   const strongSide = sideBiasTier === "STRONG_POSITIVE";
   const watchSide = sideBiasTier === "WATCH";
+  const neutralSide = sideBiasTier === "UNKNOWN" || sideBiasTier === "NEUTRAL" || !sideBiasTier;
   const negativeSide = sideBiasTier === "NEGATIVE";
   const lowBook = books < 2;
   const unpriced = /UNPRICED|UNKNOWN|NO_BOOK|NO_LOCAL/.test(support);
@@ -712,17 +713,19 @@ function classifyHardened(row, highProbKeys = new Set()) {
     books >= 2 &&
     supportOk &&
     gradeUsable &&
-    (strongSide || watchSide) &&
+    (strongSide || watchSide || neutralSide) &&
     !isFantasy(row) &&
     !isDemon(row) &&
     !isHrrMore(row)
   ) {
+    if (neutralSide) flags.push("neutral_side_bias_allowed_for_lean");
     hardenedClass = "LEAN";
     stake = "0.25u max / optional lean review only";
   } else if (
     highProbControlled ||
-    (prob >= 0.55 && edge > 0 && (strongSide || watchSide))
+    (prob >= 0.55 && edge > 0 && (strongSide || watchSide || neutralSide))
   ) {
+    if (neutralSide) flags.push("neutral_side_bias_allowed_for_watchlist");
     hardenedClass = "WATCHLIST";
     stake = "track only / wait for confirmation";
   } else {
