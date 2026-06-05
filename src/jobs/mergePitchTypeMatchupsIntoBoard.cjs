@@ -196,13 +196,17 @@ function isExplicitPitcherMarket(row, arsenalByName) {
       row.handednessContext?.opposingPitcher ||
       row.handednessAdjustment?.opposingPitcher;
 
-    // Hitter strikeout props have an opposing pitcher. They should use hitter-vs-pitcher matchup,
-    // not pitcher-prop arsenal.
+    // If PrizePicks/source cleanup explicitly says hitter/batter, keep it hitter-side.
+    if (sourceType === "batter" || sourceType === "hitter") return false;
+
+    // Pitcher strikeout props can still carry stale opposingPitcher fields from joins.
+    // If the player itself is a real pitcher in the arsenal cache or position P, pitcher arsenal wins.
+    if (position === "P" || arsenalByName.has(playerKey)) return true;
+
+    // Otherwise, a strikeout row with an opposing pitcher is a hitter K prop.
     if (hasOpponentPitcher) return false;
 
-    // Pitcher strikeout props should only enter pitcher arsenal branch when the player
-    // is actually a pitcher in the arsenal cache or explicitly position P.
-    return position === "P" || arsenalByName.has(playerKey);
+    return false;
   }
 
   // Explicit pitcher-only markets must win over dirty PrizePicks sourceType.
