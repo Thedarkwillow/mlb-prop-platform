@@ -1054,7 +1054,19 @@ if (!playable.length && !watchlist.length) console.log("No slips found. Run: npm
   const retentionDays = pick(cleanup, ["retentionDays"], "n/a");
 
   console.log("");
-  console.log("CONTEXT HEALTH");
+  
+console.log("");
+console.log("FANTASY POLICY / RESEARCH STATUS");
+console.log("--------------------------------");
+console.log("Overall: research-only / no official or lean promotion yet.");
+console.log("Pitcher Fantasy MORE: HARD SUPPRESS — historical diagnostic is very poor.");
+console.log("Pitcher Fantasy LESS: UNPROVEN — not enough matched/graded rows yet.");
+console.log("Hitter Fantasy LESS 6.5-8.5: RESEARCH WATCH only.");
+console.log("Hitter Fantasy LESS 9.5-12.5: RESEARCH WATCH only.");
+console.log("Hitter Fantasy LESS 4.5-5.5: BLOCK / AVOID based on direct grading.");
+console.log("Fantasy LESS tracking starts honestly from 2026-06-04 via date-specific snapshots.");
+
+console.log("CONTEXT HEALTH");
   console.log("--------------");
   console.log(`Board rows checked: ${totalRows || "n/a"}`);
   console.table([
