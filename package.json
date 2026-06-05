@@ -94,7 +94,7 @@
     "context:refresh": "node src/jobs/contextRefresh.js",
     "context:lineups": "node src/research/refresh-lineups.cjs",
     "context:catchers": "node src/research/import-catcher-framing.cjs",
-    "context:umpires": "node src/research/import-umpire-scorecards.cjs && node src/research/import-today-umpires.cjs ${npm_config_date:-$(date +%F)} && node src/jobs/mergeUmpiresIntoBoard.cjs",
+    "context:umpires": "node src/research/import-umpire-scorecards.cjs && node src/research/pull-today-umpires.cjs ${npm_config_date:-$(date +%F)} || true && node src/research/import-today-umpires.cjs ${npm_config_date:-$(date +%F)} && node src/jobs/mergeUmpiresIntoBoard.cjs ${npm_config_date:-$(date +%F)}",
     "context:savant-catchers": "node src/research/pull-savant-catcher-framing.cjs",
     "context:umpire-scorecards": "node src/research/import-umpire-scorecards.cjs",
     "context:umpscorecards": "node src/research/pull-umpscorecards.cjs",
