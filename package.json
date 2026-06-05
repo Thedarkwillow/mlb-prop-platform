@@ -343,7 +343,8 @@
     "backtest:fantasy-less": "node scripts/local/backtest-fantasy-less.cjs",
     "fantasy:less:grade-watch": "node scripts/local/grade-fantasy-less-watchlists.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "backtest:fantasy-ou": "node scripts/local/backtest-fantasy-over-under.cjs",
-    "fantasy:less:snapshot": "node scripts/local/save-fantasy-less-watchlists.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
+    "fantasy:less:snapshot": "node scripts/local/save-fantasy-less-watchlists.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
+    "fantasy:less:grade-history": "node scripts/local/grade-fantasy-less-history.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
