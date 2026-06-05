@@ -335,7 +335,8 @@
     "cleanup:compress:safe": "node scripts/maintenance/safe-compression-cleanup.cjs",
     "cleanup:compress:dry": "DRY_RUN=1 node scripts/maintenance/safe-compression-cleanup.cjs",
     "repair:pitcher-projections:upstream": "node scripts/repair/upstream-pitcher-projection-repair.cjs",
-    "context:starter-bulk-targets": "node scripts/local/build-30-team-starter-bulk-pitcher-cache-targets.cjs"
+    "context:starter-bulk-targets": "node scripts/local/build-30-team-starter-bulk-pitcher-cache-targets.cjs",
+    "hitter:pf": "node scripts/local/build-hitter-pf-clean-report.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
