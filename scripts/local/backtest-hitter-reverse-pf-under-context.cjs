@@ -217,6 +217,26 @@ function group(rows, fn){
   return Object.entries(map).map(([bucket,rs]) => ({bucket, ...summarize(rs)}))
     .sort((a,b)=>b.graded-a.graded);
 }
+function lineBucket(r){
+  const l = Number(r.line);
+  if (!Number.isFinite(l)) return "line_unknown";
+  if (l <= 0.5) return "0.5";
+  if (l <= 1.5) return "1.5";
+  if (l <= 2.5) return "2.5";
+  if (l <= 3.5) return "3.5";
+  if (l <= 4.5) return "4.5";
+  return "5.5_plus";
+}
+function scoreBucket(r){
+  const s = Number(r.score);
+  if (!Number.isFinite(s)) return "score_unknown";
+  if (s >= 0.70) return "0.70_plus";
+  if (s >= 0.65) return "0.65_0.70";
+  if (s >= 0.60) return "0.60_0.65";
+  if (s >= 0.55) return "0.55_0.60";
+  return "below_0.55";
+}
+
 
 const gradeFiles = fs.existsSync(HIST_DIR)
   ? fs.readdirSync(HIST_DIR).filter(f => /^\d{4}-\d{2}-\d{2}-full-board-graded\.json$/.test(f)).map(f => f.slice(0,10)).sort()
@@ -330,7 +350,11 @@ const report = {
   },
   byStatus: group(rows, r => r.status),
   byMarketStatus: group(rows, r => `${r.market}|${r.status}`),
+  byMarketLineStatus: group(rows, r => `${r.market}|${lineBucket(r)}|${r.status}`),
+  byMarketLine: group(rows, r => `${r.market}|${lineBucket(r)}`),
+  watchByMarketLine: group(rows.filter(r => r.status === "REVERSE_CONTEXT_WATCH_UNDER"), r => `${r.market}|${lineBucket(r)}`),
   confirmedByMarket: group(rows.filter(r => r.status === "REVERSE_CONTEXT_CONFIRMED_UNDER"), r => r.market),
+  byScoreBucket: group(rows, r => scoreBucket(r)),
   rows
 };
 
@@ -353,6 +377,19 @@ for (const r of report.byStatus) lines.push(`${r.bucket}: graded=${r.graded} hit
 lines.push("");
 lines.push("CONFIRMED BY MARKET");
 for (const r of report.confirmedByMarket) lines.push(`${r.bucket}: graded=${r.graded} hits=${r.hits} misses=${r.misses} hitRate=${r.hitRate} roiProxy=${r.roiProxy}`);
+
+lines.push("");
+lines.push("WATCH BY MARKET + LINE");
+for (const r of report.watchByMarketLine) lines.push(`${r.bucket}: graded=${r.graded} hits=${r.hits} misses=${r.misses} hitRate=${r.hitRate} roiProxy=${r.roiProxy}`);
+
+lines.push("");
+lines.push("ALL BY MARKET + LINE");
+for (const r of report.byMarketLine) lines.push(`${r.bucket}: graded=${r.graded} hits=${r.hits} misses=${r.misses} hitRate=${r.hitRate} roiProxy=${r.roiProxy}`);
+
+lines.push("");
+lines.push("BY SCORE BUCKET");
+for (const r of report.byScoreBucket) lines.push(`${r.bucket}: graded=${r.graded} hits=${r.hits} misses=${r.misses} hitRate=${r.hitRate} roiProxy=${r.roiProxy}`);
+
 fs.writeFileSync(outTxt, lines.join("\n"));
 
 console.log(report.summary);
@@ -360,5 +397,11 @@ console.log("BY STATUS");
 console.table(report.byStatus);
 console.log("CONFIRMED BY MARKET");
 console.table(report.confirmedByMarket);
+console.log("WATCH BY MARKET + LINE");
+console.table(report.watchByMarketLine);
+console.log("ALL BY MARKET + LINE");
+console.table(report.byMarketLine);
+console.log("BY SCORE BUCKET");
+console.table(report.byScoreBucket);
 console.log(`saved: ${outJson}`);
 console.log(`saved: ${outTxt}`);
