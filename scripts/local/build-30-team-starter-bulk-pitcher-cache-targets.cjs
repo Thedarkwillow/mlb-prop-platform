@@ -173,18 +173,27 @@ async function main() {
     const gs = num(st.gamesStarted);
     const games = num(st.games);
     const ip = num(st.ip);
+    const relief = num(st.reliefAppearances);
     const avgIpPerGame = num(st.avgIpPerGame);
     const avgIpPerRelief = num(st.avgIpPerRelief);
 
     const isProbable = t.roleHints.includes("probable_starter");
-    const isStarter = isProbable || gs >= 2 || (gs >= 1 && ip >= 8);
+    const isStarter =
+      isProbable ||
+      gs >= 2 ||
+      (gs >= 1 && ip >= 8);
+
+    // Strict bulk/long-relief only.
+    // Do NOT classify normal one-inning relievers as starter/bulk just because
+    // they have accumulated 15+ season innings.
     const isBulk =
       !isStarter &&
-      games >= 4 &&
+      games >= 3 &&
+      relief >= 2 &&
       (
-        avgIpPerRelief >= 1.6 ||
-        avgIpPerGame >= 1.8 ||
-        ip >= 15
+        avgIpPerRelief >= 1.75 ||
+        avgIpPerGame >= 2.0 ||
+        (ip >= 25 && avgIpPerRelief >= 1.35)
       );
 
     t.role =
