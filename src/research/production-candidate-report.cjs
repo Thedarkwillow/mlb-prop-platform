@@ -14,6 +14,7 @@ const SOURCES = {
   fantasyReadiness: "outputs/fantasy-readiness-report.json",
   fullBoardLearning: "data/learning/full-board-market-learning.json",
   sportsbookBoard: "outputs/sportsbook-enriched-board.json",
+    vegasRaw: "data/vegas-raw.json",
   phase8Audit: "outputs/phase8-candidate-audit.json"
 };
 
@@ -131,6 +132,153 @@ function key(row) {
     String(row.line ?? "")
   ].join("|");
 }
+
+
+function supportNormName(v) {
+  return String(v ?? "")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/jr\.?|sr\.?|ii|iii|iv/g, "")
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function supportMarket(v) {
+  let m = String(v?.market || v?.stat || v?.type || v || "").toLowerCase().replace(/\s+/g, "_");
+  if (m === "total_bases" || m === "batter_total_bases") m = "bases";
+  if (m === "batter_hits") m = "hits";
+  if (m === "batter_rbis" || m === "runs_batted_in") m = "rbis";
+  if (m === "batter_runs_scored") m = "runs";
+  if (m === "batter_walks") m = "walks";
+  if (m === "batter_home_runs") m = "hr";
+  if (m === "batter_hits_runs_rbis" || m === "hits+runs+rbis" || m === "hits_runs_rbis") m = "hrr";
+  if (m === "pitcher_strikeouts") m = "strikeouts";
+  if (m === "pitcher_outs" || m === "outs_recorded") m = "pitching_outs";
+  if (m === "pitcher_hits_allowed") m = "hits_allowed";
+  if (m === "pitcher_walks_allowed") m = "walks_allowed";
+  if (m === "pitcher_earned_runs") m = "earned_runs_allowed";
+  return m;
+}
+
+function supportSide(row) {
+  const raw = upper(row.side ?? row.recommendedSide ?? row.playableSide ?? row.outcome ?? row.selection ?? "");
+  if (raw === "OVER") return "MORE";
+  if (raw === "UNDER") return "LESS";
+  return raw;
+}
+
+function supportLine(row) {
+  const n = num(row.line ?? row.points ?? row.point ?? row.target ?? row.value ?? row.threshold, null);
+  return n === null ? null : Number(n);
+}
+
+function supportPlayer(row) {
+  return row.player || row.playerName || row.name || row.participant || row.description || "";
+}
+
+function supportKey(row) {
+  const l = supportLine(row);
+  return [
+    supportNormName(supportPlayer(row)),
+    supportMarket(row),
+    supportSide(row),
+    l === null ? "" : String(l)
+  ].join("|");
+}
+
+function supportPlayerMarketSideKey(row) {
+  return [
+    supportNormName(supportPlayer(row)),
+    supportMarket(row),
+    supportSide(row)
+  ].join("|");
+}
+
+function buildVegasSupportIndex(rows) {
+  const exact = new Map();
+  const nearby = new Map();
+
+  for (const row of Array.isArray(rows) ? rows : []) {
+    const sportsbook = String(row.sportsbook || row.book || row.bookmaker || row.sportsbookTitle || "").trim();
+    const odds = num(row.odds ?? row.price, null);
+    const l = supportLine(row);
+    const player = supportPlayer(row);
+    const m = supportMarket(row);
+    const sd = supportSide(row);
+
+    if (!sportsbook || !player || !m || !["MORE", "LESS"].includes(sd)) continue;
+    if (l === null || odds === null) continue;
+
+    const normalized = {
+      sportsbook,
+      sportsbookTitle: row.sportsbookTitle || row.title || sportsbook,
+      market: m,
+      player,
+      side: sd,
+      line: l,
+      odds,
+      impliedProb: num(row.impliedProb, null),
+      lastUpdate: row.lastUpdate || row.last_update || null,
+      source: row.source || "vegas_raw"
+    };
+
+    const k = supportKey(normalized);
+    if (!exact.has(k)) exact.set(k, []);
+    exact.get(k).push(normalized);
+
+    const pm = supportPlayerMarketSideKey(normalized);
+    if (!nearby.has(pm)) nearby.set(pm, []);
+    nearby.get(pm).push(normalized);
+  }
+
+  return { exact, nearby };
+}
+
+function summarizeSupportRows(rows) {
+  const books = [...new Set(rows.map(r => r.sportsbook).filter(Boolean))];
+  const lines = [...new Set(rows.map(r => r.line).filter(v => Number.isFinite(Number(v))))].sort((a,b)=>Number(a)-Number(b));
+  return { books: books.length, sportsbookNames: books, lines, rows: rows.length };
+}
+
+function applyVegasSupport(row, supportIndex) {
+  if (!supportIndex) return row;
+
+  const exactRows = supportIndex.exact.get(supportKey(row)) || [];
+  if (exactRows.length) {
+    const summary = summarizeSupportRows(exactRows);
+    return {
+      ...row,
+      books: summary.books,
+      sportsbookBookCount: summary.books,
+      support: summary.books >= 2 ? "OK" : "LOW_BOOK_SUPPORT",
+      marketSupportFlag: summary.books >= 2 ? "OK" : "LOW_BOOK_SUPPORT",
+      grade: summary.books >= 2 ? "GREEN" : "UNKNOWN",
+      supportSource: "data/vegas-raw.json",
+      supportMatchType: "EXACT",
+      supportSportsbooks: summary.sportsbookNames,
+      supportRows: summary.rows
+    };
+  }
+
+  const pmRows = supportIndex.nearby.get(supportPlayerMarketSideKey(row)) || [];
+  const targetLine = supportLine(row);
+  const nearRows = targetLine === null ? [] : pmRows.filter(r => Math.abs(Number(r.line) - Number(targetLine)) <= 1);
+
+  if (nearRows.length) {
+    const summary = summarizeSupportRows(nearRows);
+    return {
+      ...row,
+      directSupportNearby: true,
+      directSupportNearbySource: "data/vegas-raw.json",
+      directSupportNearbyBooks: summary.books,
+      directSupportNearbyLines: summary.lines,
+      directSupportNearbyRows: summary.rows,
+      supportMatchType: "NEAR_LINE_ONLY"
+    };
+  }
+
+  return row;
+}
+
 
 function marketSideKey(row) {
   return `${lower(row.market)} ${upper(row.side)}`.trim();
@@ -442,6 +590,13 @@ function cleanRow(row, classification, reasons, fullBoardByMarketSide) {
     edge: getEdge(row),
     books: getBooks(row),
     support: getSupport(row) || null,
+    supportSource: row.supportSource || null,
+    supportMatchType: row.supportMatchType || null,
+    supportSportsbooks: row.supportSportsbooks || [],
+    supportRows: row.supportRows || null,
+    directSupportNearby: Boolean(row.directSupportNearby),
+    directSupportNearbyBooks: row.directSupportNearbyBooks || null,
+    directSupportNearbyLines: row.directSupportNearbyLines || [],
     grade: getGrade(row) || null,
     sideBias,
     lineBucket: lineBucket(row),
@@ -696,6 +851,8 @@ const enriched = readJson(SOURCES.enriched, []);
 const leanReport = readJson(SOURCES.leans, {});
 const blockedRaw = readJson(SOURCES.blocked, []);
 const sportsbookBoard = readJson(SOURCES.sportsbookBoard, []);
+const vegasRaw = readJson(SOURCES.vegasRaw, []);
+const vegasSupportIndex = buildVegasSupportIndex(vegasRaw);
 const phase8Audit = readJson(SOURCES.phase8Audit, {});
 const playable = readJson(SOURCES.playable, []);
 const shadowPromotion = readJson(SOURCES.shadowPromotion, {});
@@ -779,9 +936,18 @@ const lookups = {
   fullBoardByMarketSide
 };
 
-const classified = baseRows.map(row => {
+const classified = baseRows.map(rawRow => {
+
+
+  const row = applyVegasSupport(rawRow, vegasSupportIndex);
+
+
   const c = classify(row, lookups);
+
+
   return cleanRow(row, c.classification, c.reasons, fullBoardByMarketSide);
+
+
 });
 
 const classOrder = {
@@ -862,6 +1028,7 @@ const report = {
     leans: leans.length,
     blocked: Array.isArray(blockedRaw) ? blockedRaw.length : 0,
     sportsbookBoard: Array.isArray(sportsbookBoard) ? sportsbookBoard.length : 0,
+    vegasRaw: Array.isArray(vegasRaw) ? vegasRaw.length : 0,
     phase8Raw: asArray(phase8Audit).length,
     phase8Imported: phase8Rows.length
   },
