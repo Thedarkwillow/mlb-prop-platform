@@ -175,10 +175,25 @@ function actualForMarket(playerRecord, market) {
 }
 
 function gradeSlip(legs) {
-  const hits = legs.filter(x => x.result === "HIT").length;
-  const misses = legs.filter(x => x.result === "MISS").length;
-  const pushes = legs.filter(x => x.result === "PUSH").length;
-  const unknown = legs.filter(x => x.result === "UNKNOWN").length;
+  const safeLegs = Array.isArray(legs) ? legs : [];
+
+  if (safeLegs.length === 0) {
+    return {
+      hits: 0,
+      misses: 0,
+      pushes: 0,
+      unknown: 0,
+      clean: false,
+      result: "NO_LEGS",
+      noLegs: true,
+      reason: "slip_has_zero_normalized_legs"
+    };
+  }
+
+  const hits = safeLegs.filter(x => x.result === "HIT").length;
+  const misses = safeLegs.filter(x => x.result === "MISS").length;
+  const pushes = safeLegs.filter(x => x.result === "PUSH").length;
+  const unknown = safeLegs.filter(x => x.result === "UNKNOWN").length;
 
   return {
     hits,
@@ -188,6 +203,13 @@ function gradeSlip(legs) {
     clean: unknown === 0,
     result: unknown > 0 ? "UNKNOWN" : misses === 0 ? "HIT" : "MISS"
   };
+}
+
+function normalizeSlipLegs(slip) {
+  for (const key of ["legs", "picks", "entries", "props", "slipLegs", "selections", "lineup", "plays"]) {
+    if (Array.isArray(slip?.[key])) return slip[key];
+  }
+  return [];
 }
 
 (async () => {
@@ -209,7 +231,8 @@ function gradeSlip(legs) {
   for (const slip of playableSlips) {
     const gradedLegs = [];
 
-    for (const leg of slip.legs || []) {
+    const rawLegs = normalizeSlipLegs(slip);
+      for (const leg of rawLegs) {
       // Never trust stored gamePk for grading.
       // It can be stale from archived/previous slates.
       const gamePk = resolveGamePkFromSchedule(schedule, leg.game);

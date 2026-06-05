@@ -496,6 +496,24 @@ function isControlledHrrLess(row) {
   );
 }
 
+
+function hasUntrustedDirectSupport(row) {
+  const support = getSupport(row);
+  const grade = getGrade(row);
+  const books = getBooks(row);
+
+  if (!Number.isFinite(Number(books)) || Number(books) < 2) return true;
+  if (!support || support === "UNKNOWN") return true;
+  if (support.includes("PHASE8_UNPRICED")) return true;
+  if (support.includes("UNPRICED")) return true;
+  if (support.includes("LOW")) return true;
+  if (support.includes("MISSING")) return true;
+  if (support !== "OK") return true;
+  if (!grade || grade === "UNKNOWN") return true;
+
+  return false;
+}
+
 function classify(row, lookups) {
   const prob = getProb(row);
   const edge = getEdge(row);
@@ -584,9 +602,11 @@ function classify(row, lookups) {
     return { classification: "BLOCKED", reasons };
   }
 
-  if (hasLowBookSupport(row)) {
-    reasons.push("low_book_support");
-    if (prob !== null && prob >= 0.70) reasons.push("high_probability_but_low_support");
+  if (hasLowBookSupport(row) || hasUntrustedDirectSupport(row)) {
+    reasons.push(hasLowBookSupport(row) ? "low_book_support" : "untrusted_direct_support");
+    if (support) reasons.push(`support_${support.toLowerCase()}`);
+    if (grade) reasons.push(`grade_${grade.toLowerCase()}`);
+    if (prob !== null && prob >= 0.70) reasons.push("high_probability_but_untrusted_support");
     if (sideBias?.tier === "STRONG_POSITIVE" && edge !== null && edge >= 0.05) {
       reasons.push("strong_positive_side_bias");
       return { classification: "WATCHLIST", reasons };
