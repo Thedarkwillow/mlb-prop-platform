@@ -33,7 +33,7 @@ function historyFiles(){
   const dir = "outputs/history";
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir)
-    .filter(f => /^\d{4}-\d{2}-\d{2}-full-board-graded\.json$/.test(f))
+    .filter(f => /^\d{4}-\d{2}-\d{2}-fantasy-grades\.json$/.test(f))
     .map(f => ({date:f.slice(0,10), file:path.join(dir,f)}))
     .filter(x => x.date < DATE)
     .sort((a,b)=>a.date.localeCompare(b.date));
@@ -120,7 +120,7 @@ const summary = {
   confirmedResearch: rows.filter(r=>r.pfStatus==="PF_CONFIRMED_RESEARCH").length,
   weakResearch: rows.filter(r=>r.pfStatus==="PF_WEAK_RESEARCH").length,
   notChecked: rows.filter(r=>r.pfStatus==="PF_NOT_CHECKED").length,
-  policy: "Fantasy PF-style is research-only. It cannot promote to official or lean until separate fantasy ROI validates."
+  policy: "Fantasy PF-style is research-only. Uses outputs/history/*-fantasy-grades.json. It cannot promote to official or lean until separate fantasy ROI validates."
 };
 
 fs.writeFileSync(`outputs/fantasy-pf-style-report-${DATE}.json`, JSON.stringify({summary, rows}, null, 2));
