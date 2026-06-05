@@ -724,7 +724,7 @@ function playable(r) {
       tier(r) === 'demon'
         ? n(r.expectedValue) >= 1.10
         : tier(r) === 'goblin'
-          ? n(r.recommendedProb) >= 0.60
+          ? n(r.recommendedProb) >= 0.60 && n(r.expectedValue) >= 1.10
           : n(r.expectedValue) >= 0.00
     );
 }
