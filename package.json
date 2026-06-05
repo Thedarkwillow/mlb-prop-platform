@@ -17,7 +17,7 @@
     "calibration:curves": "node src/research/calibration-curves.cjs",
     "show": "node src/research/show-todays-slips.cjs",
     "status": "node src/research/status.cjs",
-    "mobile": "node src/research/mobile-summary.cjs | tee outputs/mobile-summary.txt",
+    "mobile": "npm run pickfinder:support && npm run audit:filter-loss && (node src/research/mobile-summary.cjs; node scripts/local/pickfinder-lean-summary.cjs) | tee outputs/mobile-summary.txt",
     "final": "npm run pipeline $npm_config_date && npm run status && npm run summary $npm_config_date && npm run decision && npm run show",
     "grade:watchlist": "node src/research/grade-watchlist-slips.cjs ${npm_config_date:-$(date +%F)}",
     "history": "node src/research/show-history.cjs ${npm_config_date:-$(date +%F)}",
@@ -355,7 +355,8 @@
     "pickfinder:full": "node scripts/local/capture-pickfinder-mlb-full.cjs",
     "pickfinder:pitchers": "node scripts/local/normalize-pickfinder-pitcher-profiles.cjs",
     "pickfinder:support": "node scripts/local/enrich-pickfinder-support.cjs",
-    "audit:filter-loss": "node scripts/local/filter-loss-lean-audit.cjs"
+    "audit:filter-loss": "node scripts/local/filter-loss-lean-audit.cjs",
+    "report:pf-lean": "node scripts/local/pickfinder-lean-summary.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
