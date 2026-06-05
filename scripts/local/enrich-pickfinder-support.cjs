@@ -19,27 +19,9 @@ function normName(v) {
     .replace(/[^a-z0-9]+/g, "");
 }
 
-function normMarket(v) {
-  let m = String(v || "").toLowerCase().trim();
-
-  m = m.replace(/\s+/g, "_");
-  m = m.replace(/\+/g, "_plus_");
-  m = m.replace(/[^a-z0-9_]+/g, "_");
-  m = m.replace(/^_+|_+$/g, "");
-
-  if (m.includes("hits_runs_rbis") || m.includes("hits_plus_runs_plus_rbis")) return "hrr";
-  if (m.includes("total_bases") || m === "bases") return "bases";
-  if (m === "hits" || m.includes("batter_hits")) return "hits";
-  if (m.includes("singles")) return "singles";
-  if (m.includes("walks")) return "walks";
-  if (m.includes("runs_allowed") || m.includes("earned_runs")) return "earned_runs_allowed";
-  if (m.includes("hits_allowed")) return "hits_allowed";
-  if (m.includes("pitcher_walks") || m.includes("walks_allowed")) return "walks_allowed";
-  if (m.includes("strikeouts") || m.includes("pitcher_strikeouts")) return "strikeouts";
-  if (m.includes("outs")) return "pitching_outs";
-  if (m.includes("fantasy")) return "fantasy_score";
-
-  return m;
+function lineNum(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
 }
 
 function side(v) {
@@ -49,43 +31,148 @@ function side(v) {
   return "";
 }
 
-function lineNum(v) {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : null;
+function rawMarketText(v) {
+  return String(v || "")
+    .toLowerCase()
+    .replace(/\+/g, " plus ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-function flatten(v, out = []) {
+function normMarket(v) {
+  const t = rawMarketText(v);
+
+  if (!t) return "";
+
+  if (
+    t.includes("hits runs rbis") ||
+    t.includes("hit runs rbis") ||
+    t.includes("hrr")
+  ) return "hrr";
+
+  if (t.includes("total bases") || t === "bases") return "bases";
+  if (t.includes("singles")) return "singles";
+
+  if (t.includes("hits allowed") || t.includes("pitcher hits")) return "hits_allowed";
+  if (t === "hits" || t.includes("batter hits") || t.includes("player hits")) return "hits";
+
+  if (
+    t.includes("earned runs") ||
+    t.includes("runs allowed") ||
+    t.includes("pitcher runs")
+  ) return "earned_runs_allowed";
+
+  if (
+    t.includes("walks allowed") ||
+    t.includes("pitcher walks") ||
+    t.includes("walks issued")
+  ) return "walks_allowed";
+  if (t === "walks" || t.includes("batter walks") || t.includes("player walks")) return "walks";
+
+  if (t.includes("pitcher strikeouts") || t.includes("pitching strikeouts")) return "pitcher_strikeouts";
+  if (t.includes("batter strikeouts") || t.includes("hitter strikeouts") || t.includes("batting strikeouts")) return "hitter_strikeouts";
+  if (t.includes("strikeouts")) return "strikeouts";
+
+  if (t.includes("pitching outs") || t.includes("outs recorded")) return "pitching_outs";
+
+  if (t.includes("hitter fantasy")) return "hitter_fantasy_score";
+  if (t.includes("pitcher fantasy")) return "pitcher_fantasy_score";
+  if (t.includes("fantasy")) return "fantasy_score";
+
+  return t.replace(/\s+/g, "_");
+}
+
+function marketAliases(market, rawObj = {}) {
+  const base = normMarket(market);
+  const raw = rawMarketText([
+    market,
+    rawObj.market,
+    rawObj.stat,
+    rawObj.projectionType,
+    rawObj.type,
+    rawObj.name
+  ].filter(Boolean).join(" "));
+
+  const set = new Set([base]);
+
+  if (base === "hits") {
+    set.add("hits_allowed"); // pitcher prop sometimes labeled just hits in our model
+  }
+
+  if (base === "hits_allowed") {
+    set.add("hits");
+  }
+
+  if (base === "earned_runs_allowed") {
+    set.add("runs");
+    set.add("runs_allowed");
+  }
+
+  if (base === "runs") {
+    set.add("earned_runs_allowed");
+    set.add("runs_allowed");
+  }
+
+  if (base === "walks") {
+    set.add("walks_allowed");
+    set.add("pitcher_walks");
+  }
+
+  if (base === "walks_allowed") {
+    set.add("walks");
+    set.add("pitcher_walks");
+  }
+
+  if (base === "strikeouts") {
+    set.add("pitcher_strikeouts");
+    set.add("hitter_strikeouts");
+  }
+
+  if (base === "pitcher_strikeouts" || base === "hitter_strikeouts") {
+    set.add("strikeouts");
+  }
+
+  if (base === "fantasy_score") {
+    set.add("hitter_fantasy_score");
+    set.add("pitcher_fantasy_score");
+  }
+
+  if (base === "hitter_fantasy_score" || base === "pitcher_fantasy_score") {
+    set.add("fantasy_score");
+  }
+
+  if (raw.includes("hits") && raw.includes("allowed")) set.add("hits_allowed");
+  if (raw.includes("earned") && raw.includes("runs")) set.add("earned_runs_allowed");
+  if (raw.includes("walks") && raw.includes("allowed")) set.add("walks_allowed");
+
+  return [...set].filter(Boolean);
+}
+
+function flatten(v, out = [], seen = new Set()) {
   if (!v) return out;
   if (Array.isArray(v)) {
-    for (const x of v) flatten(x, out);
+    for (const x of v) flatten(x, out, seen);
     return out;
   }
   if (typeof v !== "object") return out;
 
-  if (
-    v.player || v.playerName || v.player_name ||
-    v.market || v.stat ||
-    v.side || v.line != null
-  ) out.push(v);
+  if (seen.has(v)) return out;
+  seen.add(v);
+
+  const looksLikeCandidate =
+    v.player || v.playerName || v.player_name || v.name ||
+    v.market || v.stat || v.projectionType ||
+    v.side || v.pick || v.selection ||
+    v.line != null || v.ppLine != null || v.prizepicksLine != null;
+
+  if (looksLikeCandidate) out.push(v);
 
   for (const x of Object.values(v)) {
-    if (x && typeof x === "object") flatten(x, out);
+    if (x && typeof x === "object") flatten(x, out, seen);
   }
+
   return out;
-}
-
-function candidateKey(x) {
-  const player = normName(x.player || x.playerName || x.player_name || x.name);
-  const market = normMarket(x.market || x.stat || x.projectionType || x.type);
-  const line = lineNum(x.line || x.ppLine || x.prizepicksLine);
-  return `${player}|${market}|${line}`;
-}
-
-function pfKey(x) {
-  const player = normName(x.player_name || x.playerName || x.player);
-  const market = normMarket(x.stat || x.market);
-  const line = lineNum(x.line);
-  return `${player}|${market}|${line}`;
 }
 
 function appCount(apps) {
@@ -93,6 +180,69 @@ function appCount(apps) {
   if (apps && typeof apps === "object") return Object.keys(apps).length;
   if (typeof apps === "string" && apps.trim()) return apps.split(",").filter(Boolean).length;
   return 0;
+}
+
+function pfPlayer(p) {
+  return p.player_name || p.playerName || p.player || p.name || "";
+}
+
+function candPlayer(c) {
+  return c.player || c.playerName || c.player_name || c.name || "";
+}
+
+function pfLine(p) {
+  return lineNum(p.line);
+}
+
+function candLine(c) {
+  return lineNum(c.line ?? c.ppLine ?? c.prizepicksLine);
+}
+
+function pfAliases(p) {
+  return marketAliases(p.stat || p.market || p.projectionType || p.type, p);
+}
+
+function candAliases(c) {
+  return marketAliases(c.market || c.stat || c.projectionType || c.type, c);
+}
+
+function makeKey(player, market, line) {
+  return `${normName(player)}|${market}|${line}`;
+}
+
+function addIndex(index, key, value) {
+  if (!index.has(key)) index.set(key, []);
+  index.get(key).push(value);
+}
+
+function bestPfMatch(matches, candSide) {
+  if (!matches || !matches.length) return null;
+  return [...matches].sort((a, b) => {
+    const score = p => {
+      const apps = appCount(p.apps);
+      const over = Number(p.consensus_over_ip || 0);
+      const under = Number(p.consensus_under_ip || 0);
+      const sideIp = candSide === "MORE" ? over : candSide === "LESS" ? under : Math.max(over, under);
+      const bestOdds = candSide === "MORE" ? p.best_over_odds : candSide === "LESS" ? p.best_under_odds : null;
+      return apps * 10 + sideIp * 100 + (bestOdds != null ? 5 : 0);
+    };
+    return score(b) - score(a);
+  })[0];
+}
+
+function findPf(index, candidate) {
+  const player = candPlayer(candidate);
+  const line = candLine(candidate);
+  if (!player || line == null) return null;
+
+  const matches = [];
+  for (const market of candAliases(candidate)) {
+    const key = makeKey(player, market, line);
+    const found = index.get(key);
+    if (found) matches.push(...found);
+  }
+
+  return bestPfMatch(matches, side(candidate.side || candidate.pick || candidate.selection));
 }
 
 function supportClass(pf, candSide) {
@@ -116,10 +266,20 @@ function supportClass(pf, candSide) {
     candSide === "LESS" ? consensusUnder :
     0;
 
-  if (apps >= 4 && sideApps && sideConsensus >= 0.60) return "PF_STRONG_SUPPORT";
-  if (apps >= 2 && sideApps && sideConsensus >= 0.55) return "PF_SUPPORTED";
+  const sideFav =
+    candSide === "MORE" ? favOver :
+    candSide === "LESS" ? favUnder :
+    0;
+
+  // Conservative: don't upgrade just because a prop exists. Need app depth plus side-specific signal.
+  if (apps >= 5 && sideApps && sideConsensus >= 0.62) return "PF_STRONG_SUPPORT";
+  if (apps >= 3 && sideApps && (sideConsensus >= 0.56 || sideFav >= 2)) return "PF_SUPPORTED";
   if (apps >= 1 && sideApps) return "PF_THIN_SUPPORT";
   return "PF_MATCH_ONLY";
+}
+
+function probability(c) {
+  return c.probability ?? c.prob ?? c.finalProbability ?? c.calibratedProbability ?? c.p ?? null;
 }
 
 const pfPropsFile = readJson(PF_PROPS, null);
@@ -131,8 +291,12 @@ else if (Array.isArray(pfFull?.props)) pfProps = pfFull.props;
 
 const pfIndex = new Map();
 for (const p of pfProps) {
-  const k = pfKey(p);
-  if (!k.includes("||") && !pfIndex.has(k)) pfIndex.set(k, p);
+  const player = pfPlayer(p);
+  const line = pfLine(p);
+  if (!player || line == null) continue;
+  for (const market of pfAliases(p)) {
+    addIndex(pfIndex, makeKey(player, market, line), p);
+  }
 }
 
 const finalRows = flatten(readJson(FINAL, []));
@@ -141,25 +305,35 @@ const blockedRows = flatten(readJson(BLOCKED, []));
 const candidates = [
   ...finalRows.map(x => ({...x, __bucket: "final"})),
   ...blockedRows.map(x => ({...x, __bucket: "blocked"}))
-];
+].filter(x => candPlayer(x) && candLine(x) != null);
 
-const enriched = candidates.map(c => {
-  const k = candidateKey(c);
-  const pf = pfIndex.get(k);
+const seenCand = new Set();
+const deduped = [];
+for (const c of candidates) {
+  const key = `${c.__bucket}|${candPlayer(c)}|${candAliases(c).join(",")}|${candLine(c)}|${side(c.side || c.pick || c.selection)}|${probability(c)}`;
+  if (seenCand.has(key)) continue;
+  seenCand.add(key);
+  deduped.push(c);
+}
+
+const enriched = deduped.map(c => {
   const s = side(c.side || c.pick || c.selection);
+  const pf = findPf(pfIndex, c);
   const cls = supportClass(pf, s);
 
   return {
     bucket: c.__bucket,
-    player: c.player || c.playerName || c.player_name || c.name || null,
-    team: c.team || c.playerTeam || null,
+    player: candPlayer(c),
+    team: c.team || c.playerTeam || c.rawTeam || null,
     market: normMarket(c.market || c.stat || c.projectionType || c.type),
+    marketAliases: candAliases(c),
     side: s,
-    line: lineNum(c.line || c.ppLine || c.prizepicksLine),
-    probability: c.probability ?? c.prob ?? c.finalProbability ?? c.calibratedProbability ?? null,
+    line: candLine(c),
+    probability: probability(c),
     currentSupportClass: c.supportClass || c.directSupportClass || c.bookSupportClass || c.disabledReason || c.reason || null,
     disabledReason: c.disabledReason || c.reason || c.blockReason || null,
     pickfinderMatched: Boolean(pf),
+    pickfinderStat: pf?.stat || null,
     pickfinderSupportClass: cls,
     pickfinderAppsCount: pf ? appCount(pf.apps) : 0,
     pickfinderBestOverApp: pf?.best_over_app || null,
@@ -179,19 +353,23 @@ const enriched = candidates.map(c => {
   };
 });
 
+const lowBookUpgradeCandidates = enriched.filter(x =>
+  x.pickfinderMatched &&
+  ["PF_STRONG_SUPPORT", "PF_SUPPORTED"].includes(x.pickfinderSupportClass) &&
+  /low|book|support|direct|weak/i.test(String(x.currentSupportClass || x.disabledReason || ""))
+);
+
 const summary = {
   generatedAt: new Date().toISOString(),
   pfProps: pfProps.length,
-  candidates: candidates.length,
+  pfIndexKeys: pfIndex.size,
+  candidates: deduped.length,
   matched: enriched.filter(x => x.pickfinderMatched).length,
   strong: enriched.filter(x => x.pickfinderSupportClass === "PF_STRONG_SUPPORT").length,
   supported: enriched.filter(x => x.pickfinderSupportClass === "PF_SUPPORTED").length,
   thin: enriched.filter(x => x.pickfinderSupportClass === "PF_THIN_SUPPORT").length,
-  lowBookUpgradeCandidates: enriched.filter(x =>
-    x.pickfinderMatched &&
-    ["PF_STRONG_SUPPORT", "PF_SUPPORTED"].includes(x.pickfinderSupportClass) &&
-    /low|book|support|direct/i.test(String(x.currentSupportClass || x.disabledReason || ""))
-  ).length
+  matchOnly: enriched.filter(x => x.pickfinderSupportClass === "PF_MATCH_ONLY").length,
+  lowBookUpgradeCandidates: lowBookUpgradeCandidates.length
 };
 
 fs.writeFileSync(OUT, JSON.stringify({summary, enriched}, null, 2) + "\n");
@@ -200,22 +378,28 @@ const lines = [];
 lines.push("PICKFINDER SUPPORT ENRICHER");
 lines.push(JSON.stringify(summary, null, 2));
 lines.push("");
+
 lines.push("LOW BOOK / SUPPORT UPGRADE CANDIDATES");
-for (const x of enriched.filter(x =>
-  x.pickfinderMatched &&
-  ["PF_STRONG_SUPPORT", "PF_SUPPORTED"].includes(x.pickfinderSupportClass) &&
-  /low|book|support|direct/i.test(String(x.currentSupportClass || x.disabledReason || ""))
-).slice(0, 80)) {
-  lines.push(`${x.player} ${x.market} ${x.side} ${x.line} prob=${x.probability} current=${x.currentSupportClass || x.disabledReason} pf=${x.pickfinderSupportClass} apps=${x.pickfinderAppsCount} overIP=${x.pickfinderConsensusOverIp} underIP=${x.pickfinderConsensusUnderIp}`);
+if (!lowBookUpgradeCandidates.length) lines.push("none");
+for (const x of lowBookUpgradeCandidates.slice(0, 80)) {
+  lines.push(`${x.player} ${x.market} ${x.side} ${x.line} prob=${x.probability} current=${x.currentSupportClass || x.disabledReason} pf=${x.pickfinderSupportClass} apps=${x.pickfinderAppsCount} overIP=${x.pickfinderConsensusOverIp} underIP=${x.pickfinderConsensusUnderIp} pfStat=${x.pickfinderStat}`);
 }
 
 lines.push("");
 lines.push("TOP PF SUPPORTED MATCHES");
+const scoreClass = c => c === "PF_STRONG_SUPPORT" ? 4 : c === "PF_SUPPORTED" ? 3 : c === "PF_THIN_SUPPORT" ? 2 : c === "PF_MATCH_ONLY" ? 1 : 0;
 for (const x of enriched.filter(x => x.pickfinderMatched).sort((a,b) => {
-  const score = c => (c.pickfinderSupportClass === "PF_STRONG_SUPPORT" ? 3 : c.pickfinderSupportClass === "PF_SUPPORTED" ? 2 : c.pickfinderSupportClass === "PF_THIN_SUPPORT" ? 1 : 0);
-  return score(b) - score(a);
-}).slice(0, 80)) {
-  lines.push(`${x.player} ${x.market} ${x.side} ${x.line} prob=${x.probability} current=${x.currentSupportClass || x.disabledReason || "-"} pf=${x.pickfinderSupportClass} apps=${x.pickfinderAppsCount}`);
+  return scoreClass(b.pickfinderSupportClass) - scoreClass(a.pickfinderSupportClass) ||
+    (b.pickfinderAppsCount || 0) - (a.pickfinderAppsCount || 0) ||
+    Number(b.probability || 0) - Number(a.probability || 0);
+}).slice(0, 100)) {
+  lines.push(`${x.player} ${x.market} ${x.side} ${x.line} prob=${x.probability} current=${x.currentSupportClass || x.disabledReason || "-"} pf=${x.pickfinderSupportClass} apps=${x.pickfinderAppsCount} pfStat=${x.pickfinderStat}`);
+}
+
+lines.push("");
+lines.push("UNMATCHED CANDIDATES SAMPLE");
+for (const x of enriched.filter(x => !x.pickfinderMatched).slice(0, 80)) {
+  lines.push(`${x.player} ${x.market} aliases=${x.marketAliases.join("|")} ${x.side} ${x.line} prob=${x.probability} current=${x.currentSupportClass || x.disabledReason || "-"}`);
 }
 
 fs.writeFileSync(TXT, lines.join("\n") + "\n");
