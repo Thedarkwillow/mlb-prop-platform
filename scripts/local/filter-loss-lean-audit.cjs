@@ -52,8 +52,8 @@ function market(v) {
   if (t.includes("earned") || t.includes("runs allowed") || t === "runs") return "earned_runs_allowed";
   if (t.includes("walks allowed")) return "walks_allowed";
   if (t.includes("walks")) return "walks";
-  if (t.includes("pitching outs") || t.includes("outs")) return "pitching_outs";
-  if (t.includes("strikeouts")) return "strikeouts";
+  if (t.includes("strikeouts") || t.includes("strikeout")) return "strikeouts";
+  if (t.includes("pitching outs") || t.includes("outs recorded") || t === "outs" || t.includes(" outs")) return "pitching_outs";
   return t.replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
 }
 
