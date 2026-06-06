@@ -386,7 +386,9 @@
     "audit:standard-hitters": "node scripts/local/audit-standard-hitter-rejections.cjs",
     "audit:standard-hitters:actionable": "node scripts/local/audit-standard-hitter-actionable.cjs",
     "preview:standard-hitter-bridge": "node scripts/local/preview-standard-hitter-probability-bridge.cjs",
-    "watchlist:standard-hitters": "node scripts/local/build-standard-hitter-bridge-watchlist.cjs"
+    "watchlist:standard-hitters": "node scripts/local/build-standard-hitter-bridge-watchlist.cjs",
+    "grade:standard-hitter-watchlist": "node scripts/local/grade-standard-hitter-bridge-watchlist.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
+    "standard-hitters:bridge": "npm run watchlist:standard-hitters && npm run preview:standard-hitter-bridge"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
