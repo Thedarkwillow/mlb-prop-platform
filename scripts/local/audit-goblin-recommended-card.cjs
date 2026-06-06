@@ -2,6 +2,7 @@ const fs = require("fs");
 
 const JSON_FILE = "outputs/goblin-recommended-card.json";
 const TXT_FILE = "outputs/goblin-recommended-card.txt";
+const OUT_TXT = "outputs/goblin-recommended-card-audit.txt";
 
 function readJson(file, fallback) {
   try { return JSON.parse(fs.readFileSync(file, "utf8")); }
@@ -13,121 +14,94 @@ function readText(file) {
   catch { return ""; }
 }
 
-function flatten(v, out = []) {
-  if (!v) return out;
-  if (Array.isArray(v)) {
-    for (const x of v) flatten(x, out);
-    return out;
-  }
-  if (typeof v !== "object") return out;
-
-  if (
-    v.id ||
-    v.slipId ||
-    v.lane ||
-    v.playability ||
-    v.recommendationBucket ||
-    v.bucket ||
-    v.entryType
-  ) out.push(v);
-
-  for (const val of Object.values(v)) flatten(val, out);
-  return out;
+function isDoNotPlay(row) {
+  return String(row?.playability || "").toUpperCase() === "DO_NOT_PLAY";
 }
 
-function norm(v) {
-  return String(v || "").trim().toUpperCase();
-}
-
-function section(text, startLabel, endLabels) {
-  const lines = String(text || "").split(/\r?\n/);
-  let on = false;
-  const out = [];
-  for (const line of lines) {
-    const t = line.trim();
-    if (t === startLabel) {
-      on = true;
-      continue;
-    }
-    if (on && endLabels.includes(t)) break;
-    if (on) out.push(line);
-  }
-  return out.join("\n");
-}
-
-const data = readJson(JSON_FILE, {});
+const json = readJson(JSON_FILE, {});
 const text = readText(TXT_FILE);
-const rows = flatten(data);
 
-const primaryRows = rows.filter(r => {
-  const bucket = norm(r.recommendationBucket || r.bucket);
-  return bucket.includes("PRIMARY");
-});
+const primaryRows = Array.isArray(json.primary) ? json.primary : [];
+const secondaryRows = Array.isArray(json.secondary) ? json.secondary : [];
+const shadowRows = Array.isArray(json.shadow) ? json.shadow : [];
+const doNotPlayRows = Array.isArray(json.doNotPlay) ? json.doNotPlay : [];
 
-const primaryDoNotPlay = primaryRows.filter(r => norm(r.playability) === "DO_NOT_PLAY");
+const primaryDoNotPlayRows = primaryRows.filter(isDoNotPlay);
+const secondaryDoNotPlayRows = secondaryRows.filter(isDoNotPlay);
+const shadowDoNotPlayRows = shadowRows.filter(isDoNotPlay);
 
-const primaryText = section(text, "PRIMARY CARD", [
-  "SECONDARY / UPSIDE",
-  "SHADOW ONLY",
-  "DO NOT PLAY"
-]);
+const primaryText = (() => {
+  const a = text.indexOf("PRIMARY CARD");
+  const b = text.indexOf("SECONDARY / UPSIDE");
+  if (a === -1) return "";
+  if (b === -1) return text.slice(a);
+  return text.slice(a, b);
+})();
 
-const primaryTextHasDoNotPlay = /\bDO_NOT_PLAY\b/i.test(primaryText);
-const primaryTextHasPlayableSlip = /^\d+\.\s+/m.test(primaryText);
 const primaryTextNoPlayableCard = /NO_PLAYABLE_GOBLIN_CARD/i.test(primaryText);
-
-const summary = {
-  generatedAt: new Date().toISOString(),
-  jsonFile: JSON_FILE,
-  txtFile: TXT_FILE,
-  primaryRows: primaryRows.length,
-  primaryDoNotPlay: primaryDoNotPlay.length,
-  primaryTextHasDoNotPlay,
-  primaryTextHasPlayableSlip,
-  primaryTextNoPlayableCard,
-  status: "PASS"
-};
+const primaryTextHasDoNotPlaySlip = /\|\s*DO_NOT_PLAY\s*\|/.test(primaryText);
+const primaryTextHasPlayableSlip = /\|\s*(WATCHLIST|PRIMARY_TRACK)\s*\|/.test(primaryText);
 
 const errors = [];
 
-if (primaryDoNotPlay.length) {
-  errors.push(`JSON primary bucket contains ${primaryDoNotPlay.length} DO_NOT_PLAY row(s).`);
+if (primaryDoNotPlayRows.length) {
+  errors.push(`JSON primary array contains ${primaryDoNotPlayRows.length} DO_NOT_PLAY row(s).`);
+}
+if (secondaryDoNotPlayRows.length) {
+  errors.push(`JSON secondary array contains ${secondaryDoNotPlayRows.length} DO_NOT_PLAY row(s).`);
+}
+if (shadowDoNotPlayRows.length) {
+  errors.push(`JSON shadow array contains ${shadowDoNotPlayRows.length} DO_NOT_PLAY row(s).`);
+}
+if (!primaryRows.length && !primaryTextNoPlayableCard) {
+  errors.push("No JSON primary rows, but text does not clearly say NO_PLAYABLE_GOBLIN_CARD.");
+}
+if (primaryTextHasDoNotPlaySlip && !primaryTextNoPlayableCard) {
+  errors.push("Primary text section contains DO_NOT_PLAY rows without NO_PLAYABLE_GOBLIN_CARD.");
+}
+if (primaryRows.length && !primaryTextHasPlayableSlip) {
+  errors.push("JSON primary rows exist, but primary text has no playable slip rows.");
 }
 
-if (primaryTextHasDoNotPlay && primaryTextHasPlayableSlip) {
-  errors.push("Text PRIMARY CARD section contains DO_NOT_PLAY playable rows.");
+const report = {
+  generatedAt: new Date().toISOString(),
+  jsonFile: JSON_FILE,
+  txtFile: TXT_FILE,
+  status: errors.length ? "FAIL" : "PASS",
+  primaryRows: primaryRows.length,
+  secondaryRows: secondaryRows.length,
+  shadowRows: shadowRows.length,
+  doNotPlayRows: doNotPlayRows.length,
+  primaryDoNotPlay: primaryDoNotPlayRows.length,
+  secondaryDoNotPlay: secondaryDoNotPlayRows.length,
+  shadowDoNotPlay: shadowDoNotPlayRows.length,
+  primaryTextHasDoNotPlaySlip,
+  primaryTextHasPlayableSlip,
+  primaryTextNoPlayableCard,
+  jsonStatus: json.status || null,
+  errors
+};
+
+const lines = [];
+lines.push("GOBLIN RECOMMENDED CARD SAFETY AUDIT");
+lines.push("====================================");
+lines.push(JSON.stringify(report, null, 2));
+
+if (primaryDoNotPlayRows.length) {
+  lines.push("");
+  lines.push("BAD PRIMARY ROWS:");
+  primaryDoNotPlayRows.forEach((row, i) => {
+    lines.push(`${i + 1}. ${row.id || "?"} | ${row.lane || "?"} | ${row.size || "?"}-man ${row.entryType || "?"} | ${row.playability || "?"} | bucket=${row.recommendationBucket || row.bucket || "?"}`);
+  });
 }
 
-if (!primaryTextHasPlayableSlip && !primaryTextNoPlayableCard) {
-  errors.push("Text PRIMARY CARD section has no playable slips and no NO_PLAYABLE_GOBLIN_CARD message.");
-}
+fs.writeFileSync(OUT_TXT, lines.join("\n"));
+
+console.log(report);
 
 if (errors.length) {
-  summary.status = "FAIL";
-  summary.errors = errors;
-}
-
-fs.mkdirSync("outputs", { recursive: true });
-fs.writeFileSync("outputs/goblin-recommended-card-audit.json", JSON.stringify(summary, null, 2));
-
-const txt = [
-  "GOBLIN RECOMMENDED CARD SAFETY AUDIT",
-  "====================================",
-  JSON.stringify(summary, null, 2),
-  "",
-  ...(primaryDoNotPlay.length ? [
-    "BAD PRIMARY ROWS:",
-    ...primaryDoNotPlay.slice(0, 25).map((r, i) =>
-      `${i + 1}. ${r.id || r.slipId || "unknown"} | ${r.lane || "?"} | ${r.size || "?"}-man ${r.entryType || "?"} | ${r.playability || "?"} | bucket=${r.recommendationBucket || r.bucket || "?"}`
-    )
-  ] : ["No DO_NOT_PLAY rows found in primary card."])
-].join("\n");
-
-fs.writeFileSync("outputs/goblin-recommended-card-audit.txt", txt);
-
-console.log(summary);
-
-if (summary.status !== "PASS") {
   console.error("GOBLIN RECOMMENDED CARD AUDIT FAILED");
   process.exit(1);
 }
+
+console.log("GOBLIN RECOMMENDED CARD AUDIT PASSED");
