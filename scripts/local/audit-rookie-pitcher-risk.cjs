@@ -92,12 +92,71 @@ function projection(r) {
     r.median
   );
 }
+function hasHitterSignals(r) {
+  const m = market(r);
+  return Boolean(
+    r.battingOrder ||
+    r.lineupPosition ||
+    r.hitterLast15Games ||
+    r.hitterSeasonGames ||
+    r.hitterLast15HitsPerGame ||
+    r.hitterSeasonHitsPerGame ||
+    r.lineupConfirmed ||
+    r.confirmedLineup ||
+    r.isConfirmedLineup ||
+    (m === "strikeouts" && (
+      r.hitterLast15KRate ||
+      r.hitterLast15Games ||
+      r.hitterSeasonGames ||
+      r.battingOrder ||
+      r.lineupPosition
+    ))
+  );
+}
+
+function hasPitcherSignals(r) {
+  return Boolean(
+    r.pitcherSeasonStarts ||
+    r.starterSeasonStarts ||
+    r.pitcherSeasonGames ||
+    r.starterSeasonGames ||
+    r.pitcherSeasonInnings ||
+    r.starterSeasonInnings ||
+    r.pitcherLast15Games ||
+    r.pitcherLast10Games ||
+    r.pitcherRollingReady ||
+    r.pitcherFormReady ||
+    r.probablePitcher ||
+    r.pitcherHand ||
+    r.pitcherArsenalReady ||
+    r.pitchTypeOpponentPitcher
+  );
+}
+
 function isPitcherMarket(r) {
   const m = market(r);
-  return (
-    /strikeout|pitching|outs|earned_runs_allowed|hits_allowed|pitcher_fantasy|walks_allowed/.test(m) ||
-    ["strikeouts", "pitching_outs", "earned_runs_allowed", "hits_allowed", "pitcher_fantasy_score"].includes(m)
-  );
+
+  // Explicit pitcher markets are always pitcher-risk eligible.
+  if ([
+    "pitching_outs",
+    "earned_runs_allowed",
+    "hits_allowed",
+    "walks_allowed",
+    "pitcher_fantasy_score"
+  ].includes(m)) return true;
+
+  if (/pitching|earned_runs_allowed|hits_allowed|walks_allowed|pitcher_fantasy/.test(m)) {
+    return true;
+  }
+
+  // Plain "strikeouts" can be hitter strikeouts or pitcher strikeouts.
+  // Only treat it as pitcher risk if the row has pitcher signals and no hitter lineup signals.
+  if (m === "strikeouts" || /strikeouts/.test(m)) {
+    if (hasHitterSignals(r)) return false;
+    return hasPitcherSignals(r);
+  }
+
+  return false;
 }
 function getAnyNumber(r, names) {
   for (const k of names) {
