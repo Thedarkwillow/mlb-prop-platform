@@ -32,7 +32,7 @@
     "validate": "node src/research/validation-cycle.cjs ${npm_config_date:-$(date +%F)}",
     "calibration:report": "node src/research/calibration-report.cjs ${npm_config_date:-$(date +%F)}",
     "clv:buckets": "NODE_OPTIONS='--max-old-space-size=4096' node src/research/clv-buckets.cjs ${npm_config_date:-$(date +%F)}",
-    "postgame": "npm run warehouse:date-guard $npm_config_date && npm run validation $npm_config_date && npm run decision:grade $npm_config_date && npm run roi:candidates && npm run fantasy:grade $npm_config_date && npm run save:history $npm_config_date && npm run warehouse:export $npm_config_date && npm run clean:warehouse && npm run warehouse:calibration && npm run validation:rules && npm run history:intel && npm run market:intel && npm run full-board:cycle --date=${npm_config_date:-$(date +%F)} && npm run live:tier-report -- ${npm_config_date:-$(date +%F)} && npm run mobile $npm_config_date && npm run fantasy:research --date=${npm_config_date:-$(date +%F)} && npm run fantasy:less:snapshot --date=${npm_config_date:-$(date +%F)} && npm run fantasy:less:grade-history -- ${npm_config_date:-$(date +%F)} ${npm_config_date:-$(date +%F)} && npm run fantasy:components && npm run fantasy:hitter-advanced && npm run fantasy:validate && npm run hitter:pf --date=${npm_config_date:-$(date +%F)} && npm run fantasy:pf --date=${npm_config_date:-$(date +%F)} && npm run unsupported:shadow -- --date=${npm_config_date:-$(date +%F)} && node src/research/context-roi-report.cjs && node src/learning/save-context-roi-history.cjs && node src/research/line-bucket-roi-report.cjs && node src/research/phase8-candidate-audit.cjs && npm run grade:goblin-hrr",
+    "postgame": "npm run warehouse:date-guard $npm_config_date && npm run validation $npm_config_date && npm run decision:grade $npm_config_date && npm run roi:candidates && npm run fantasy:grade $npm_config_date && npm run save:history $npm_config_date && npm run warehouse:export $npm_config_date && npm run clean:warehouse && npm run warehouse:calibration && npm run validation:rules && npm run history:intel && npm run market:intel && npm run full-board:cycle --date=${npm_config_date:-$(date +%F)} && npm run live:tier-report -- ${npm_config_date:-$(date +%F)} && npm run mobile $npm_config_date && npm run fantasy:research --date=${npm_config_date:-$(date +%F)} && npm run fantasy:less:snapshot --date=${npm_config_date:-$(date +%F)} && npm run fantasy:less:grade-history -- ${npm_config_date:-$(date +%F)} ${npm_config_date:-$(date +%F)} && npm run fantasy:components && npm run fantasy:hitter-advanced && npm run fantasy:validate && npm run hitter:pf --date=${npm_config_date:-$(date +%F)} && npm run fantasy:pf --date=${npm_config_date:-$(date +%F)} && npm run unsupported:shadow -- --date=${npm_config_date:-$(date +%F)} && node src/research/context-roi-report.cjs && node src/learning/save-context-roi-history.cjs && node src/research/line-bucket-roi-report.cjs && node src/research/phase8-candidate-audit.cjs && npm run grade:goblin-hrr && npm run grade:goblin-highprob:construction",
     "safe": "npm run snapshot:status && npm run clv:freshness && npm run picks && npm run models:apply && npm run warehouse:calibration && npm run validation:rules && npm run validation:penalties && npm run mobile && npm run decision && npm run clv && npm run clv:buckets && npm run audit:pf-disagree-hitters",
     "refresh": "npm run odds && npm run snap && npm run picks && npm run mobile && npm run decision",
     "save:history": "node src/research/save-graded-history.cjs ${npm_config_date:-$(date +%F)}",
@@ -359,7 +359,7 @@
     "report:pf-lean": "node scripts/local/pickfinder-lean-summary.cjs",
     "picks:fresh": "npm run prizepicks && npm run board:rebuild && npm run snap && npm run picks && npm run goblin:highprob && npm run goblin:hrr && npm run audit:prizepicks-validity && npm run mobile && npm run show",
     "refresh:fresh": "npm run prizepicks && npm run board:rebuild && npm run odds && npm run snap && npm run picks && npm run goblin:highprob && npm run goblin:hrr && npm run audit:prizepicks-validity && npm run mobile && npm run decision",
-    "goblin:highprob": "node scripts/local/goblin-highprob-slip-maker.cjs",
+    "goblin:highprob": "node scripts/local/goblin-highprob-clean-slip-maker.cjs && npm run rank:goblin-highprob",
     "grade:goblin-highprob": "node scripts/local/grade-goblin-highprob-slips.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)} && npm run save:goblin-highprob-history",
     "audit:prizepicks-validity": "node scripts/local/audit-prizepicks-slip-validity.cjs",
     "save:goblin-highprob-history": "node scripts/local/save-goblin-highprob-history.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
@@ -368,7 +368,9 @@
     "backtest:goblin-highprob": "node scripts/local/backtest-goblin-highprob-tightened.cjs",
     "goblin:hrr": "node scripts/local/goblin-hrr-controlled-slip-maker.cjs && npm run rank:goblin-hrr",
     "grade:goblin-hrr": "node scripts/local/grade-goblin-hrr-controlled-slips.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
-    "rank:goblin-hrr": "node scripts/local/rank-goblin-hrr-survivability.cjs"
+    "rank:goblin-hrr": "node scripts/local/rank-goblin-hrr-survivability.cjs",
+    "rank:goblin-highprob": "node scripts/local/rank-goblin-highprob-construction.cjs",
+    "grade:goblin-highprob:construction": "node scripts/local/grade-goblin-highprob-construction.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
