@@ -19,6 +19,8 @@ function readJson(file, fallback) {
   catch { return fallback; }
 }
 
+const GOBLIN_HISTORY = readJson("data/learning/goblin-highprob-history.json", { days: [] });
+
 function norm(v) {
   return String(v || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
@@ -156,6 +158,99 @@ function isSupportOk(r) {
   return false;
 }
 
+function isPitcherMarketName(m) {
+  return [
+    "pitching_outs",
+    "strikeouts",
+    "pitcher_strikeouts",
+    "walks_allowed",
+    "hits_allowed",
+    "earned_runs_allowed",
+    "pitcher_fantasy_score",
+    "pitches_thrown"
+  ].includes(String(m || ""));
+}
+
+function hasConfirmedHitterProblem(r, m) {
+  if (isPitcherMarketName(m)) return false;
+
+  const lineupStatus = String(r.lineupStatus || "").toLowerCase();
+  const playerStatus = String(r.lineupPlayerStatus || "").toLowerCase();
+
+  // Only enforce when a confirmed lineup signal exists.
+  const lineupKnown = lineupStatus.includes("confirmed") ||
+    r.confirmedLineup === true ||
+    r.isConfirmedLineup === true ||
+    r.lineupConfirmed === true ||
+    playerStatus.includes("confirmed") ||
+    playerStatus.includes("not_in_confirmed_lineup");
+
+  if (!lineupKnown) return false;
+
+  return !(
+    playerStatus === "confirmed" ||
+    playerStatus === "starter" ||
+    playerStatus === "in_lineup" ||
+    r.confirmedLineup === true ||
+    r.isConfirmedLineup === true ||
+    r.lineupConfirmed === true
+  );
+}
+
+function marketProbabilityFloor(m, l) {
+  const marketName = String(m || "");
+  const lineValue = Number(l);
+
+  if (marketName === "bases" && lineValue === 0.5) return 0.72;
+  if (marketName === "hits" && lineValue === 0.5) return 0.72;
+  if (marketName === "walks" || marketName === "walks_allowed") return 0.70;
+  if (marketName === "strikeouts" || marketName === "pitcher_strikeouts") return 0.70;
+  if (marketName === "pitches_thrown") return 0.70;
+
+  return MIN_PROB;
+}
+
+function hasPositiveContext(r) {
+  const blob = JSON.stringify({
+    sideBias: r.sideBias,
+    sideBiasClass: r.sideBiasClass,
+    grade: r.grade,
+    qualityGrade: r.qualityGrade,
+    marketSupportFlag: r.marketSupportFlag,
+    finalMarketGatePassed: r.finalMarketGatePassed,
+    finalMarketSupported: r.finalMarketSupported,
+    marketTrust: r.marketTrust,
+    validationRule: r.validationRule,
+    autoMarketDecision: r.autoMarketDecision
+  }).toUpperCase();
+
+  return blob.includes("STRONG_POSITIVE") ||
+    blob.includes("GREEN") ||
+    blob.includes("FINALMARKETGATEPASSED") ||
+    r.finalMarketGatePassed === true;
+}
+
+function historicalUnmatchedProne(r, m) {
+  const pKey = [
+    norm(player(r)),
+    String(m || ""),
+    side(r.side || r.recommendedSide || r.pick || r.selection),
+    String(num(r.line, r.ppLine, r.prizepicksLine))
+  ].join("|");
+
+  const legs = (GOBLIN_HISTORY.days || []).flatMap(d => d.legs || []);
+  const exact = legs.filter(l => l.key === pKey);
+  if (exact.length >= 1 && exact.every(l => l.result === "UNMATCHED")) return true;
+
+  const marketLegs = legs.filter(l => l.market === m);
+  if (marketLegs.length >= 8) {
+    const unmatched = marketLegs.filter(l => l.result === "UNMATCHED").length;
+    if (unmatched / marketLegs.length >= 0.35) return true;
+  }
+
+  return false;
+}
+
 function rejectReason(r) {
   const m = market(r.market || r.stat || r.projectionType || r.type);
   const s = side(r.side || r.recommendedSide || r.pick || r.selection);
@@ -172,15 +267,27 @@ function rejectReason(r) {
     r.autoMarketDecision,
   ]).toLowerCase();
 
+  const l = num(r.line, r.ppLine, r.prizepicksLine);
+  const floor = marketProbabilityFloor(m, l);
+
+  // Basic identity/tier/side checks first, so rejection counts stay honest.
   if (!player(r)) return "missing_player";
   if (!team(r)) return "missing_team";
   if (t !== "goblin") return "not_goblin";
   if (s !== "MORE") return "goblin_not_more";
   if (!Number.isFinite(p)) return "missing_probability";
-  if (p < MIN_PROB) return "below_min_probability";
-  if (!isSupportOk(r)) return "support_not_ok";
+
+  // Market exclusions before probability floors.
   if (!ALLOW_FANTASY && m.includes("fantasy")) return "fantasy_excluded";
   if (!ALLOW_HRR && m === "hrr") return "hrr_excluded_v1";
+
+  // Goblin-specific risk filters.
+  if (historicalUnmatchedProne(r, m)) return "historical_unmatched_prone";
+  if (hasConfirmedHitterProblem(r, m)) return "hitter_not_confirmed_active";
+  if (p < MIN_PROB) return "below_min_probability";
+  if (Number.isFinite(p) && p < floor) return `below_market_probability_floor_${floor}`;
+  if (m === "bases" && l === 0.5 && p < 0.72 && !hasPositiveContext(r)) return "bases_more_05_requires_72_or_positive_context";
+  if (!isSupportOk(r)) return "support_not_ok";
   if (String(r.marketSupportFlag || "").toUpperCase().includes("PHASE8_UNPRICED")) return "phase8_unpriced";
   if (String(r.grade || r.qualityGrade || "").toUpperCase() === "UNKNOWN") return "unknown_grade";
   if (reasonText.includes("negative_side_bias") || reasonText.includes("high_probability_conflict")) return "negative_side_bias_conflict";
