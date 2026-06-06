@@ -382,7 +382,8 @@
     "pull:slips": "npm run pull:slips:no-vegas",
     "pull:slips:safe": "npm run pull:slips:no-vegas",
     "pull:slips:vegas": "npm run odds:usage-note && npm run pull:slips:all",
-    "odds:usage-note": "echo 'WARNING: This command runs Vegas/Odds and may use paid API credits. Default slip pulls should use pull:slips or pull:slips:no-vegas unless Elijah explicitly asks for Vegas.'"
+    "odds:usage-note": "echo 'WARNING: This command runs Vegas/Odds and may use paid API credits. Default slip pulls should use pull:slips or pull:slips:no-vegas unless Elijah explicitly asks for Vegas.'",
+    "audit:standard-hitters": "node scripts/local/audit-standard-hitter-rejections.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
