@@ -292,7 +292,7 @@ function enforceNoDoNotPlayInRecommendedCard(card) {
   return out;
 }
 
-report = enforceNoDoNotPlayInRecommendedCard(report);
+enforceNoDoNotPlayInRecommendedCard(report);
 fs.writeFileSync(OUT, JSON.stringify(report, null, 2));
 fs.writeFileSync(TXT, txt.join("\n"));
 
