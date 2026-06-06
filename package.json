@@ -366,8 +366,9 @@
     "report:goblin-highprob": "node scripts/local/goblin-highprob-performance-report.cjs",
     "report:goblin-hrr": "node scripts/local/goblin-hrr-performance-report.cjs",
     "backtest:goblin-highprob": "node scripts/local/backtest-goblin-highprob-tightened.cjs",
-    "goblin:hrr": "node scripts/local/goblin-hrr-controlled-slip-maker.cjs",
-    "grade:goblin-hrr": "node scripts/local/grade-goblin-hrr-controlled-slips.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
+    "goblin:hrr": "node scripts/local/goblin-hrr-controlled-slip-maker.cjs && npm run rank:goblin-hrr",
+    "grade:goblin-hrr": "node scripts/local/grade-goblin-hrr-controlled-slips.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
+    "rank:goblin-hrr": "node scripts/local/rank-goblin-hrr-survivability.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
