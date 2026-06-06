@@ -278,6 +278,15 @@ function classify(r, source, overrides) {
   const highProb = pr !== null && pr >= 0.70;
   const extremeProb = pr !== null && pr >= 0.80;
 
+  const isDerivedOutput = ["goblin_card"].includes(source);
+  const hasManualOverride = risk.reasons.some(x => x.includes("manual_override"));
+
+  const derivedMissingOnly =
+    isDerivedOutput &&
+    !hasManualOverride &&
+    risk.reasons.length === 1 &&
+    risk.reasons[0] === "missing_mlb_pitcher_sample";
+
   const hasHardRisk =
     risk.reasons.some(x =>
       x.includes("manual_override") ||
@@ -298,7 +307,10 @@ function classify(r, source, overrides) {
   let riskStatus = "OK";
   let recommendedAction = "ALLOW";
 
-  if (hasHardRisk && highProb) {
+  if (derivedMissingOnly) {
+    riskStatus = "RESEARCH_ONLY";
+    recommendedAction = "DERIVED_OUTPUT_SAMPLE_NOT_CARRIED";
+  } else if (hasHardRisk && highProb) {
     riskStatus = "HARD_BLOCK";
     recommendedAction = "BLOCK_FROM_OFFICIAL_AND_PLAYABLE";
   } else if (hasHardRisk || (hasSoftRisk && extremeProb)) {
