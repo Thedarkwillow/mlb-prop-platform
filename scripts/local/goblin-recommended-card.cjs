@@ -54,7 +54,7 @@ function legsOf(slip) {
 }
 
 function marketsOf(slip) {
-  const out = {};
+  let out = {};
   for (const leg of legsOf(slip)) {
     const m = market(leg) || "unknown";
     out[m] = (out[m] || 0) + 1;
@@ -63,7 +63,7 @@ function marketsOf(slip) {
 }
 
 function teamsOf(slip) {
-  const out = {};
+  let out = {};
   for (const leg of legsOf(slip)) {
     const t = team(leg) || "UNK";
     out[t] = (out[t] || 0) + 1;
@@ -259,6 +259,40 @@ txt.push("DO NOT PLAY");
 txt.push("-----------");
 doNotPlay.forEach((s, i) => txt.push(formatSlip(s, i + 1)));
 
+
+function enforceNoDoNotPlayInRecommendedCard(card) {
+  const out = card && typeof card === "object" ? card : {};
+  const playable = row => {
+    const p = String(row?.playability || "").toUpperCase();
+    return p === "PRIMARY_TRACK" || p === "WATCHLIST";
+  };
+
+  const cleanArray = arr => Array.isArray(arr) ? arr.filter(playable) : [];
+
+  out.primary = cleanArray(out.primary);
+  out.secondary = cleanArray(out.secondary);
+  out.shadow = cleanArray(out.shadow);
+
+  if (!out.primary.length) {
+    out.status = "NO_PLAYABLE_GOBLIN_CARD";
+    out.primary = [];
+    out.secondary = [];
+    out.shadow = [];
+  } else {
+    out.status = out.status || "PLAYABLE_GOBLIN_CARD";
+  }
+
+  out.counts = out.counts && typeof out.counts === "object" ? out.counts : {};
+  out.counts.primary = out.primary.length;
+  out.counts.secondary = out.secondary.length;
+  out.counts.shadow = out.shadow.length;
+  out.counts.playableRows =
+    out.primary.length + out.secondary.length + out.shadow.length;
+
+  return out;
+}
+
+report = enforceNoDoNotPlayInRecommendedCard(report);
 fs.writeFileSync(OUT, JSON.stringify(report, null, 2));
 fs.writeFileSync(TXT, txt.join("\n"));
 
