@@ -161,17 +161,27 @@ const ranked = rows
   }))
   .sort((a, b) => b.finalScore - a.finalScore);
 
-const primary = ranked.filter(x =>
+function playableRow(x) {
+  const p = String(x.playability || "").toUpperCase();
+  return p === "PRIMARY_TRACK" || p === "WATCHLIST";
+}
+
+const playableRanked = ranked.filter(playableRow);
+const doNotPlayRanked = ranked.filter(x => !playableRow(x));
+
+const primary = playableRanked.filter(x =>
   ["PRIMARY_2_MAN_POWER", "PRIMARY_3_MAN_FLEX"].includes(x.recommendationBucket)
 ).slice(0, 8);
 
-const secondary = ranked.filter(x =>
+const secondary = playableRanked.filter(x =>
   ["SECONDARY_3_MAN_POWER", "UPSIDE_4_MAN_FLEX"].includes(x.recommendationBucket)
 ).slice(0, 8);
 
-const shadow = ranked.filter(x =>
+const shadow = playableRanked.filter(x =>
   x.recommendationBucket === "SHADOW_HIGHPROB_CLEAN"
 ).slice(0, 8);
+
+const doNotPlay = doNotPlayRanked.slice(0, 12);
 
 const report = {
   generatedAt: new Date().toISOString(),
@@ -183,18 +193,23 @@ const report = {
       "HRR controlled is preferred over clean highprob.",
       "2-man POWER and 3-man FLEX are the preferred playable goblin shapes.",
       "Clean highprob remains shadow/watch until slip-level results improve.",
-      "Do not auto-play DO_NOT_PLAY rows."
+      "Do not auto-play DO_NOT_PLAY rows.",
+      "If every goblin row is DO_NOT_PLAY, output NO_PLAYABLE_GOBLIN_CARD instead of a fake primary card."
     ]
   },
   counts: {
     primary: primary.length,
     secondary: secondary.length,
     shadow: shadow.length,
+    doNotPlay: doNotPlay.length,
+    playableRows: playableRanked.length,
     allRanked: ranked.length
   },
   primary,
   secondary,
-  shadow
+  doNotPlay,
+  shadow,
+  status: primary.length ? "PLAYABLE_GOBLIN_CARD_AVAILABLE" : "NO_PLAYABLE_GOBLIN_CARD"
 };
 
 function formatSlip(slip, idx) {
@@ -223,7 +238,11 @@ txt.push(JSON.stringify({
 txt.push("");
 txt.push("PRIMARY CARD");
 txt.push("------------");
-primary.forEach((s, i) => txt.push(formatSlip(s, i + 1)));
+if (!primary.length) {
+  txt.push("NO_PLAYABLE_GOBLIN_CARD: every candidate is currently DO_NOT_PLAY or failed playability filters.");
+} else {
+  primary.forEach((s, i) => txt.push(formatSlip(s, i + 1)));
+}
 
 txt.push("");
 txt.push("SECONDARY / UPSIDE");
@@ -235,6 +254,11 @@ txt.push("SHADOW ONLY");
 txt.push("-----------");
 shadow.forEach((s, i) => txt.push(formatSlip(s, i + 1)));
 
+txt.push("");
+txt.push("DO NOT PLAY");
+txt.push("-----------");
+doNotPlay.forEach((s, i) => txt.push(formatSlip(s, i + 1)));
+
 fs.writeFileSync(OUT, JSON.stringify(report, null, 2));
 fs.writeFileSync(TXT, txt.join("\n"));
 
@@ -243,6 +267,7 @@ console.log({
   source: PLAY,
   totalRows: rows.length,
   counts: report.counts,
+  status: report.status,
   topPrimary: primary.slice(0, 5).map(x => ({
     id: x.id,
     lane: x.lane,
