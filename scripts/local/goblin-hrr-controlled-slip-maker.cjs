@@ -6,11 +6,13 @@ const OUT = process.env.GOBLIN_HRR_OUT_JSON || "outputs/goblin-hrr-controlled-sl
 const TXT = process.env.GOBLIN_HRR_OUT_TXT || "outputs/goblin-hrr-controlled-slips.txt";
 
 const HRR_MIN_PROB = Number(process.env.GOBLIN_HRR_MIN_PROB || 0.70);
-const FILLER_MIN_PROB = Number(process.env.GOBLIN_HRR_FILLER_MIN_PROB || 0.72);
-const SLIP_SIZES = [4, 5, 6];
+const FILLER_MIN_PROB = Number(process.env.GOBLIN_HRR_FILLER_MIN_PROB || 0.68);
+const SLIP_SIZES = [2, 3, 4, 5, 6];
 const SLIPS_PER_SIZE = 5;
-const MAX_HRR_PER_SLIP = 1;
 const MAX_PROJECTIONS_PER_PLAYER = 3;
+
+const BAD_FILLER_PLAYERS = new Set(["reiddetmers", "jackperkins"]);
+const ALLOWED_FILLER_MARKETS = new Set(["earned_runs_allowed", "hits_allowed"]);
 
 function readJson(file, fallback) {
   try { return JSON.parse(fs.readFileSync(file, "utf8")); }
@@ -25,64 +27,68 @@ function norm(v) {
 }
 
 function player(r) {
-  return r.player || r.playerName || r.name || "";
+  return r?.player || r?.playerName || r?.name || "";
 }
 
 function team(r) {
-  return String(r.resolvedTeam || r.team || r.rawTeam || r.playerTeam || "").trim();
-}
-
-function side(r) {
-  const s = String(r.side || r.recommendedSide || r.playableSide || "").toUpperCase();
-  if (s.includes("MORE") || s.includes("OVER")) return "MORE";
-  if (s.includes("LESS") || s.includes("UNDER")) return "LESS";
-  return s;
-}
-
-function market(r) {
-  const t = String(r.market || r.stat || r.projectionType || r.type || "").toLowerCase();
-
-  if (t.includes("hrr") || t.includes("hits+runs+rbis") || t.includes("hits plus runs plus rbis")) return "hrr";
-  if (t.includes("fantasy")) return t.includes("pitcher") ? "pitcher_fantasy_score" : "hitter_fantasy_score";
-  if (t.includes("strikeouts") || t.includes("strikeout")) return "strikeouts";
-  if (t.includes("pitching outs") || t === "outs" || t.includes(" outs")) return "pitching_outs";
-  if (t.includes("total bases") || t === "bases") return "bases";
-  if (t.includes("hits allowed")) return "hits_allowed";
-  if (t === "hits" || t.includes("batter hits") || t.includes("player hits")) return "hits";
-  if (t.includes("earned") || t.includes("runs allowed") || t === "runs") return "earned_runs_allowed";
-  if (t.includes("walks allowed")) return "walks_allowed";
-  if (t.includes("walks")) return "walks";
-
-  return t.replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  return r?.resolvedTeam || r?.team || r?.rawTeam || "";
 }
 
 function tier(r) {
   const vals = [
-    r.oddsTier,
-    r.tier,
-    r.boardTier,
-    r.priceTier,
-    r.pickType,
-    r.projectionType,
-    r.raw?.oddsTier,
-    r.raw?.tier,
-    r.raw?.boardTier,
-    r.raw?.priceTier,
-    r.raw?.pickType,
-    r.raw?.projectionType
+    r?.oddsTier,
+    r?.tier,
+    r?.boardTier,
+    r?.priceTier,
+    r?.pickType,
+    r?.projectionType,
+    r?.projection_type,
+    r?.type,
+    r?.raw?.oddsTier,
+    r?.raw?.tier,
+    r?.raw?.boardTier,
+    r?.raw?.priceTier,
+    r?.raw?.pickType,
+    r?.raw?.projectionType,
+    r?.raw?.type
   ];
-
   for (const v of vals) {
-    const s = String(v || "").toLowerCase();
-    if (s.includes("goblin")) return "goblin";
-    if (s.includes("demon")) return "demon";
-    if (s.includes("standard")) return "standard";
+    const t = String(v || "").toLowerCase();
+    if (t.includes("goblin")) return "goblin";
+    if (t.includes("demon")) return "demon";
+    if (t.includes("standard")) return "standard";
   }
-
   return "";
 }
 
-function num(...vals) {
+function market(r) {
+  const t = String(r?.market || r?.stat || r?.projectionType || r?.type || "").toLowerCase();
+  if (t.includes("hrr") || t.includes("hits+runs+rbis") || t.includes("hits plus runs plus rbis")) return "hrr";
+  if (t.includes("fantasy")) return t.includes("pitcher") ? "pitcher_fantasy_score" : "hitter_fantasy_score";
+  if (t.includes("earned") || t.includes("runs allowed")) return "earned_runs_allowed";
+  if (t.includes("hits allowed")) return "hits_allowed";
+  if (t.includes("strikeouts") || t.includes("strikeout")) return "strikeouts";
+  if (t.includes("walks allowed")) return "walks_allowed";
+  if (t.includes("walks")) return "walks";
+  if (t.includes("total bases") || t === "bases") return "bases";
+  if (t === "hits" || t.includes("batter hits") || t.includes("player hits")) return "hits";
+  return t.replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+}
+
+function side(r) {
+  return String(r?.side || r?.recommendedSide || r?.playableSide || "").toUpperCase();
+}
+
+function probability(r) {
+  const vals = [
+    r?.prob,
+    r?.probability,
+    r?.recommendedProb,
+    r?.calibratedDistributionProb,
+    r?.contextAdjustedDistributionProb,
+    r?.distributionProb,
+    r?.twoSidedPricing?.selectedProb
+  ];
   for (const v of vals) {
     const n = Number(v);
     if (Number.isFinite(n)) return n;
@@ -90,290 +96,173 @@ function num(...vals) {
   return null;
 }
 
-function probability(r) {
-  return num(
-    r.prob,
-    r.probability,
-    r.recommendedProb,
-    r.calibratedDistributionProb,
-    r.contextAdjustedDistributionProb,
-    r.preContextCalibratedDistributionProb,
-    r.distributionProb,
-    r.twoSidedPricing?.selectedProb,
-    r.raw?.prob,
-    r.raw?.probability,
-    r.raw?.recommendedProb
-  );
-}
+function isConfirmedActive(r) {
+  const m = market(r);
+  if (m === "earned_runs_allowed" || m === "hits_allowed") return true;
 
-function hasNegativeBias(r) {
-  const blob = JSON.stringify({
-    sideBias: r.sideBias,
-    sideBiasClass: r.sideBiasClass,
-    reasons: r.reasons,
-    reason: r.reason,
-    disabledReason: r.disabledReason,
-    finalExecutionGate: r.finalExecutionGate,
-    autoMarketDecision: r.autoMarketDecision,
-    validationRule: r.validationRule,
-    marketTrust: r.marketTrust
-  }).toLowerCase();
+  const status = String(
+    r?.lineupPlayerStatus ||
+    r?.confirmedLineupStatus ||
+    r?.lineupStatus ||
+    ""
+  ).toLowerCase();
 
-  return blob.includes("negative_side_bias") ||
-    blob.includes("sidebias=negative") ||
-    blob.includes("negative") ||
-    blob.includes("high_probability_conflict") ||
-    blob.includes("suppress") ||
-    blob.includes("fade");
-}
-
-function confirmedOrUnknownOk(r) {
-  const playerStatus = String(r.lineupPlayerStatus || "").toLowerCase();
-  const lineupStatus = String(r.lineupStatus || "").toLowerCase();
-
-  const known = lineupStatus.includes("confirmed") ||
-    r.confirmedLineup === true ||
-    r.isConfirmedLineup === true ||
-    r.lineupConfirmed === true ||
-    playerStatus.includes("confirmed") ||
-    playerStatus.includes("not_in_confirmed_lineup");
-
-  if (!known) return true;
-
-  return playerStatus === "confirmed" ||
-    playerStatus === "starter" ||
-    playerStatus === "in_lineup" ||
-    r.confirmedLineup === true ||
-    r.isConfirmedLineup === true ||
-    r.lineupConfirmed === true;
-}
-
-function isSupportOk(r) {
-  const support = String(r.marketSupportFlag || r.support || r.priceCoverageTier || "").toUpperCase();
-  const grade = String(r.grade || r.qualityGrade || r.savantReportGrade || "").toUpperCase();
-
-  if (support.includes("PHASE8_UNPRICED")) return false;
-  if (support.includes("UNKNOWN")) return false;
-  if (grade.includes("FADE")) return false;
-
+  if (r?.confirmedLineup === true || r?.isConfirmedLineup === true || status === "confirmed") return true;
+  if (status.includes("not_in_confirmed_lineup")) return false;
   return true;
 }
 
-function isBadFillerMarket(m) {
-  // First goblin test: hits MORE went 0/7, walks were all unmatched.
-  return m === "hits" || m === "walks" || m === "walks_allowed";
-}
-
-function fillerFloor(m, line) {
-  if (m === "bases" && Number(line) === 0.5) return 0.72;
-  if (m === "earned_runs_allowed") return 0.72;
-  if (m === "hits_allowed") return 0.72;
-  if (m === "strikeouts") return 0.72;
-  return FILLER_MIN_PROB;
-}
-
-function rejectHrrAnchor(r) {
-  const p = probability(r);
-  const l = num(r.line, r.ppLine, r.prizepicksLine);
-
+function rejectHrr(r) {
   if (!player(r)) return "missing_player";
-  if (!team(r)) return "missing_team";
   if (tier(r) !== "goblin") return "not_goblin";
   if (market(r) !== "hrr") return "not_hrr";
   if (side(r) !== "MORE") return "not_more";
-  if (l !== 0.5) return "hrr_v1_only_line_0_5";
-  if (!Number.isFinite(p)) return "missing_probability";
-  if (p < HRR_MIN_PROB) return "below_hrr_min_probability";
-  if (hasNegativeBias(r)) return "negative_bias_or_conflict";
-  if (!confirmedOrUnknownOk(r)) return "hitter_not_confirmed_active";
-
+  if (Number(r?.line) !== 0.5) return "hrr_v1_only_line_0_5";
+  if (!isConfirmedActive(r)) return "hitter_not_confirmed_active";
+  const p = probability(r);
+  if (!Number.isFinite(p) || p < HRR_MIN_PROB) return "below_hrr_min_probability";
   return null;
 }
 
 function rejectFiller(r) {
-  const p = probability(r);
-  const m = market(r);
-  const l = num(r.line, r.ppLine, r.prizepicksLine);
-
   if (!player(r)) return "missing_player";
-  if (!team(r)) return "missing_team";
   if (tier(r) !== "goblin") return "not_goblin";
-  if (m === "hrr") return "filler_not_hrr";
+  if (BAD_FILLER_PLAYERS.has(norm(player(r)))) return "historical_unmatched_prone_filler";
+  const m = market(r);
+  if (!ALLOWED_FILLER_MARKETS.has(m)) return `bad_filler_market_${m || "unknown"}`;
   if (side(r) !== "MORE") return "not_more";
-  if (!Number.isFinite(p)) return "missing_probability";
-  if (m.includes("fantasy")) return "fantasy_excluded";
-  if (isBadFillerMarket(m)) return `bad_filler_market_${m}`;
-  if (!confirmedOrUnknownOk(r)) return "hitter_not_confirmed_active";
-  if (hasNegativeBias(r)) return "negative_bias_or_conflict";
-  if (!isSupportOk(r)) return "support_not_ok";
-  if (p < fillerFloor(m, l)) return `below_filler_floor_${fillerFloor(m, l)}`;
-
+  if (!isConfirmedActive(r)) return "filler_not_active";
+  const p = probability(r);
+  if (!Number.isFinite(p) || p < FILLER_MIN_PROB) return "below_filler_min_probability";
   return null;
 }
 
-function legKey(l) {
-  return [norm(l.player), l.market, l.side, String(l.line)].join("|");
-}
-
-function playerKey(l) {
-  return norm(l.player);
-}
-
 function makeLeg(r, role) {
-  const m = market(r);
   return {
+    role,
     player: player(r),
     team: team(r),
-    market: m,
-    stat: r.stat || m,
-    side: "MORE",
-    line: num(r.line, r.ppLine, r.prizepicksLine),
+    resolvedTeam: team(r),
+    market: market(r),
+    side: side(r),
+    line: Number(r?.line),
+    prob: probability(r),
     probability: probability(r),
-    edge: num(r.edge, r.adjustedEdge, r.expectedValue),
-    tier: "goblin",
-    role,
-    support: r.marketSupportFlag || r.support || "BOARD_NATIVE",
-    grade: r.grade || r.qualityGrade || r.savantReportGrade || "",
-    sideBias: r.sideBias || r.sideBiasClass || "",
-    lineupStatus: r.lineupStatus || "",
-    lineupPlayerStatus: r.lineupPlayerStatus || "",
-    game: r.resolvedGame || r.game || r.rawGame || "",
+    oddsTier: tier(r),
+    support: "OK",
     raw: r
   };
 }
 
-function canAdd(slip, leg) {
-  if (slip.some(x => legKey(x) === legKey(leg))) return false;
+function avg(xs) {
+  const ns = xs.map(Number).filter(Number.isFinite);
+  return ns.length ? ns.reduce((a,b) => a + b, 0) / ns.length : null;
+}
 
-  const samePlayer = slip.filter(x => playerKey(x) === playerKey(leg)).length;
-  if (samePlayer >= MAX_PROJECTIONS_PER_PLAYER) return false;
+function entryTypesForSize(size) {
+  const n = Number(size);
+  if (n === 2) return ["POWER"];
+  return ["POWER", "FLEX"];
+}
 
-  const hrrCount = slip.filter(x => x.market === "hrr").length;
-  if (leg.market === "hrr" && hrrCount >= MAX_HRR_PER_SLIP) return false;
-
+function playerProjectionCountsOk(legs) {
+  const counts = new Map();
+  for (const l of legs) {
+    const k = norm(player(l));
+    counts.set(k, (counts.get(k) || 0) + 1);
+    if (counts.get(k) > MAX_PROJECTIONS_PER_PLAYER) return false;
+  }
   return true;
 }
 
-function buildSlips(hrrPool, fillerPool, size) {
-  const slips = [];
 
-  for (let start = 0; start < hrrPool.length && slips.length < SLIPS_PER_SIZE; start++) {
-    const slip = [hrrPool[start]];
+function teamCountsObject(legs) {
+  const out = {};
+  for (const leg of Array.isArray(legs) ? legs : []) {
+    const t = team(leg);
+    if (!t) continue;
+    out[t] = (out[t] || 0) + 1;
+  }
+  return out;
+}
 
-    for (const leg of fillerPool) {
-      if (slip.length >= size) break;
-      if (canAdd(slip, leg)) slip.push(leg);
+function slipName(size, idx, entryType) {
+  return `goblin_hrr_controlled_${size}_man_${idx}_${String(entryType).toLowerCase()}`;
+}
+
+function buildSlips(hrrPool, fillerPool) {
+  const base = [];
+
+  for (const size of SLIP_SIZES) {
+    const neededFillers = size - 1;
+    if (fillerPool.length < neededFillers) continue;
+
+    let made = 0;
+    let hrrIdx = 0;
+    let fillerStart = 0;
+
+    while (made < SLIPS_PER_SIZE && hrrIdx < hrrPool.length * 2) {
+      const hrr = hrrPool[hrrIdx % hrrPool.length];
+      const fillers = [];
+
+      for (let i = 0; i < fillerPool.length && fillers.length < neededFillers; i++) {
+        const f = fillerPool[(fillerStart + i) % fillerPool.length];
+        if (norm(player(f)) === norm(player(hrr))) continue;
+        fillers.push(f);
+      }
+
+      hrrIdx++;
+      fillerStart++;
+
+      if (fillers.length !== neededFillers) continue;
+
+      const legs = [makeLeg(hrr, "HRR_ANCHOR"), ...fillers.map(f => makeLeg(f, "FILLER"))];
+
+      if (!playerProjectionCountsOk(legs)) continue;
+
+      const validation = prizePicksSlipValidation(legs);
+      if (!validation.valid) continue;
+
+      made++;
+      base.push({
+        name: `goblin_hrr_controlled_${size}_man_${made}`,
+        label: `${size}-man controlled HRR goblin`,
+        status: "TRACK_ONLY",
+        size,
+        avgProb: avg(legs.map(l => l.prob)),
+        minProb: Math.min(...legs.map(l => Number(l.prob)).filter(Number.isFinite)),
+        teams: teamCountsObject(legs),
+        prizePicksValid: validation.valid,
+        prizePicksValidation: validation,
+        legs
+      });
     }
-
-    if (slip.length !== size) continue;
-
-    const validation = prizePicksSlipValidation(slip);
-    if (!validation.valid) continue;
-
-    const teams = {};
-    for (const l of slip) teams[l.team] = (teams[l.team] || 0) + 1;
-
-    slips.push({
-      name: `goblin_hrr_controlled_${size}_man_${slips.length + 1}`,
-      type: `${size}-man controlled HRR goblin`,
-      status: "TRACK_ONLY",
-      reason: "controlled_hrr_reintroduction_v1_hrr_anchor_clean_fillers",
-      size,
-      avgProb: slip.reduce((a,l) => a + (l.probability || 0), 0) / slip.length,
-      minProb: Math.min(...slip.map(l => l.probability || 0)),
-      maxHrrPerSlip: MAX_HRR_PER_SLIP,
-      teams,
-      prizePicksValidation: validation,
-      legs: slip
-    });
   }
 
-  return slips;
-}
-
-
-const BASE_GOBLIN = process.env.GOBLIN_HRR_BASE_JSON || "outputs/goblin-highprob-slips.json";
-
-function existingGoblinSlips() {
-  const data = readJson(BASE_GOBLIN, {});
-  return Array.isArray(data.slips) ? data.slips : [];
-}
-
-
-function injectedBaseFillerOk(rawLeg) {
-  const l = rawLeg?.raw || rawLeg;
-  const m = market(l);
-  const p = probability(l);
-
-  if (!player(l)) return false;
-  if (!team(l)) return false;
-  if (m === "hrr") return false;
-  if (m.includes("fantasy")) return false;
-  if (!["earned_runs_allowed", "hits_allowed"].includes(m)) return false;
-  if (side(l) !== "MORE") return false;
-  if (!Number.isFinite(p)) return false;
-  if (p < 0.68) return false;
-
-  return true;
-}
-
-function injectHrrIntoBaseSlips(hrrPool, baseSlips) {
-  const out = [];
-  let hrrIndex = 0;
-
-  for (const base of baseSlips) {
-    if (!base || !Array.isArray(base.legs) || !base.legs.length) continue;
-    const size = Number(base.size || base.legs.length);
-    if (![4,5,6].includes(size)) continue;
-
-    const baseLegs = base.legs
-      .filter(l => injectedBaseFillerOk(l))
-      .map(l => makeLeg(l.raw || l, "FILLER"))
-      .filter(l => l.market !== "hrr");
-
-    if (baseLegs.length < size - 1) continue;
-
-    const anchor = hrrPool[hrrIndex % Math.max(1, hrrPool.length)];
-    if (!anchor) continue;
-    hrrIndex++;
-
-    const fillers = baseLegs
-      .sort((a,b) => (b.probability || 0) - (a.probability || 0))
-      .filter(l => playerKey(l) !== playerKey(anchor))
-      .slice(0, size - 1);
-
-    const slip = [anchor, ...fillers];
-
-    if (slip.length !== size) continue;
-
-    const validation = prizePicksSlipValidation(slip);
-    if (!validation.valid) continue;
-
-    const teams = {};
-    for (const l of slip) teams[l.team] = (teams[l.team] || 0) + 1;
-
-    out.push({
-      name: `goblin_hrr_controlled_injected_${size}_man_${out.filter(x => x.size === size).length + 1}`,
-      type: `${size}-man controlled HRR goblin injected`,
-      status: "TRACK_ONLY",
-      reason: "controlled_hrr_reintroduction_v1_hrr_anchor_injected_into_tightened_goblin",
-      size,
-      avgProb: slip.reduce((a,l) => a + (l.probability || 0), 0) / slip.length,
-      minProb: Math.min(...slip.map(l => l.probability || 0)),
-      maxHrrPerSlip: MAX_HRR_PER_SLIP,
-      sourceBaseSlip: base.name || base.type || "",
-      teams,
-      prizePicksValidation: validation,
-      legs: slip
-    });
+  const expanded = [];
+  const perSizeTypeCount = {};
+  for (const slip of base) {
+    for (const entryType of entryTypesForSize(slip.size)) {
+      const key = `${slip.size}_${entryType}`;
+      perSizeTypeCount[key] = (perSizeTypeCount[key] || 0) + 1;
+      expanded.push({
+        ...slip,
+        name: slipName(slip.size, perSizeTypeCount[key], entryType),
+        entryType,
+        payoutMode: entryType
+      });
+    }
   }
 
-  return out
-    .filter((s, _, arr) => arr.filter(x => x.size === s.size).indexOf(s) < SLIPS_PER_SIZE)
-    .slice(0, SLIP_SIZES.length * SLIPS_PER_SIZE);
+  return expanded;
 }
 
-const rows = readJson(BOARD, []).filter(x => x && typeof x === "object");
+function fmtPct(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? `${(n * 100).toFixed(1)}%` : "n/a";
+}
+
+const rows = readJson(BOARD, []).filter(r => r && typeof r === "object" && r.recordType !== "pricing_summary");
 
 const hrrRejected = {};
 const fillerRejected = {};
@@ -381,30 +270,22 @@ const hrrPool = [];
 const fillerPool = [];
 
 for (const r of rows) {
-  const hrrReason = rejectHrrAnchor(r);
-  if (!hrrReason) hrrPool.push(makeLeg(r, "HRR_ANCHOR"));
+  const hrrReason = rejectHrr(r);
+  if (!hrrReason) hrrPool.push(r);
   else hrrRejected[hrrReason] = (hrrRejected[hrrReason] || 0) + 1;
 
   const fillerReason = rejectFiller(r);
-  if (!fillerReason) fillerPool.push(makeLeg(r, "FILLER"));
+  if (!fillerReason) fillerPool.push(r);
   else fillerRejected[fillerReason] = (fillerRejected[fillerReason] || 0) + 1;
 }
 
-hrrPool.sort((a,b) =>
-  (b.probability || 0) - (a.probability || 0) ||
-  (b.edge || 0) - (a.edge || 0)
-);
+hrrPool.sort((a,b) => probability(b) - probability(a));
+fillerPool.sort((a,b) => probability(b) - probability(a));
 
-fillerPool.sort((a,b) =>
-  (b.probability || 0) - (a.probability || 0) ||
-  (b.edge || 0) - (a.edge || 0)
-);
+const slips = buildSlips(hrrPool, fillerPool);
 
-const baseSlips = existingGoblinSlips();
-let slips = SLIP_SIZES.flatMap(size => buildSlips(hrrPool, fillerPool, size));
-if (!slips.length && hrrPool.length && baseSlips.length) {
-  slips = injectHrrIntoBaseSlips(hrrPool, baseSlips);
-}
+const bySize = {};
+for (const s of slips) bySize[s.size] = (bySize[s.size] || 0) + 1;
 
 const summary = {
   generatedAt: new Date().toISOString(),
@@ -418,43 +299,41 @@ const summary = {
     hrrAnchorOnly: true,
     hrrLineOnly: 0.5,
     moreOnly: true,
-    maxHrrPerSlip: MAX_HRR_PER_SLIP,
     maxProjectionsPerPlayer: MAX_PROJECTIONS_PER_PLAYER,
     requireAtLeastTwoTeams: true,
+    allowedFillers: [...ALLOWED_FILLER_MARKETS],
     excludedFillers: ["bases", "hits", "walks", "walks_allowed", "strikeouts", "fantasy", "hrr"],
-    allowedFillers: ["earned_runs_allowed", "hits_allowed"],
-    trackOnly: true
+    entryTypes: "POWER for 2-6, FLEX for 3-6",
+    trackOnly: true,
+    cleanBuilderV2: true
   },
   rawRows: rows.length,
   hrrPool: hrrPool.length,
   fillerPool: fillerPool.length,
-  baseGoblinSlips: baseSlips.length,
-  injectionModeUsed: slips.some(s => String(s.reason || '').includes('injected')),
   slips: slips.length,
-  bySize: Object.fromEntries(SLIP_SIZES.map(s => [s, slips.filter(x => x.size === s).length])),
+  bySize,
   hrrRejected,
   fillerRejected
 };
 
-fs.writeFileSync(OUT, JSON.stringify({ summary, hrrPool, fillerPool, slips }, null, 2) + "\n");
+const out = { summary, slips };
+fs.writeFileSync(OUT, JSON.stringify(out, null, 2));
 
 const lines = [];
 lines.push("CONTROLLED HRR GOBLIN SLIP MAKER");
 lines.push("=================================");
 lines.push(JSON.stringify(summary, null, 2));
-lines.push("");
-lines.push("NOTE: TRACK ONLY. HRR goblin MORE 0.5 anchor + clean non-HRR goblin fillers.");
+lines.push("NOTE: TRACK ONLY. HRR goblin MORE 0.5 anchor + pitcher-damage fillers only.");
 for (const slip of slips) {
   lines.push("");
-  lines.push(`${slip.name} | ${slip.type} | ${slip.status} | avgProb=${(slip.avgProb*100).toFixed(1)}% | minProb=${(slip.minProb*100).toFixed(1)}%`);
-  lines.push(`Teams: ${Object.entries(slip.teams).map(([t,n]) => `${t}:${n}`).join(", ")}`);
-  for (const [i,l] of slip.legs.entries()) {
-    lines.push(`${i+1}. ${l.role} | ${l.player} | ${l.team} | ${l.market} ${l.side} ${l.line} | prob=${(l.probability*100).toFixed(1)}% | sideBias=${l.sideBias || "?"}`);
-  }
+  lines.push(`${slip.name} | ${slip.size}-man ${slip.entryType} controlled HRR goblin | ${slip.status} | avgProb=${fmtPct(slip.avgProb)} | minProb=${fmtPct(slip.minProb)}`);
+  lines.push(`Teams: ${Object.entries(slip.teams).map(([t,c]) => `${t}:${c}`).join(", ")}`);
+  slip.legs.forEach((l, i) => {
+    lines.push(`${i + 1}. ${l.role} | ${l.player} | ${l.team} | ${l.market} ${l.side} ${l.line} | prob=${fmtPct(l.prob)}`);
+  });
 }
-
 fs.writeFileSync(TXT, lines.join("\n") + "\n");
 
 console.log(summary);
-console.log("saved:", OUT);
-console.log("saved:", TXT);
+console.log(`saved: ${OUT}`);
+console.log(`saved: ${TXT}`);
