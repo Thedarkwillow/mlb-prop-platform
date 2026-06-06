@@ -365,7 +365,8 @@
     "save:goblin-highprob-history": "node scripts/local/save-goblin-highprob-history.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "report:goblin-highprob": "node scripts/local/goblin-highprob-performance-report.cjs",
     "report:goblin-hrr": "node scripts/local/goblin-hrr-performance-report.cjs",
-    "backtest:goblin-highprob": "node scripts/local/backtest-goblin-highprob-tightened.cjs"
+    "backtest:goblin-highprob": "node scripts/local/backtest-goblin-highprob-tightened.cjs",
+    "goblin:hrr": "node scripts/local/goblin-hrr-controlled-slip-maker.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

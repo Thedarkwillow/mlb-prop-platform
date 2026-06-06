@@ -17,7 +17,8 @@ const FILES = [
   "outputs/final-slips.json",
   "outputs/playable-final-slips.json",
   "outputs/official-slip.json",
-  "outputs/goblin-highprob-slips.json"
+  "outputs/goblin-highprob-slips.json",
+  "outputs/goblin-hrr-controlled-slips.json"
 ];
 
 function collectSlips(file, data) {
