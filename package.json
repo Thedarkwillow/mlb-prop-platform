@@ -359,7 +359,8 @@
     "report:pf-lean": "node scripts/local/pickfinder-lean-summary.cjs",
     "picks:fresh": "npm run prizepicks && npm run board:rebuild && npm run snap && npm run picks && npm run mobile && npm run show",
     "refresh:fresh": "npm run prizepicks && npm run board:rebuild && npm run odds && npm run snap && npm run picks && npm run mobile && npm run decision",
-    "goblin:highprob": "node scripts/local/goblin-highprob-slip-maker.cjs"
+    "goblin:highprob": "node scripts/local/goblin-highprob-slip-maker.cjs",
+    "grade:goblin-highprob": "node scripts/local/grade-goblin-highprob-slips.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
