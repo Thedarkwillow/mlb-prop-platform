@@ -372,9 +372,11 @@
     "rank:goblin-highprob": "node scripts/local/rank-goblin-highprob-construction.cjs",
     "grade:goblin-highprob:construction": "node scripts/local/grade-goblin-highprob-construction.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "select:goblin-context": "node scripts/local/goblin-context-playability-selector.cjs",
-    "grade:goblin-context": "node scripts/local/grade-goblin-context-playability.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
-    "recommend:goblin": "node scripts/local/goblin-recommended-card.cjs && npm run audit:goblin-card",
-    "audit:goblin-card": "node scripts/local/audit-goblin-recommended-card.cjs"
+    "grade:goblin-context": "node scripts/local/grade-goblin-context-playability.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)} && npm run roi:goblin-construction",
+    "recommend:goblin": "node scripts/local/goblin-recommended-card.cjs && npm run audit:goblin-card && npm run audit:goblin-construction",
+    "audit:goblin-card": "node scripts/local/audit-goblin-recommended-card.cjs",
+    "roi:goblin-construction": "node scripts/local/goblin-slip-construction-roi.cjs",
+    "audit:goblin-construction": "node scripts/local/audit-goblin-construction-gates.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
