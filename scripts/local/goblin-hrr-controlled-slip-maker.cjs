@@ -309,7 +309,7 @@ function injectedBaseFillerOk(rawLeg) {
   if (!team(l)) return false;
   if (m === "hrr") return false;
   if (m.includes("fantasy")) return false;
-  if (m === "hits" || m === "walks" || m === "walks_allowed") return false;
+  if (!["earned_runs_allowed", "hits_allowed"].includes(m)) return false;
   if (side(l) !== "MORE") return false;
   if (!Number.isFinite(p)) return false;
   if (p < 0.68) return false;
@@ -421,7 +421,8 @@ const summary = {
     maxHrrPerSlip: MAX_HRR_PER_SLIP,
     maxProjectionsPerPlayer: MAX_PROJECTIONS_PER_PLAYER,
     requireAtLeastTwoTeams: true,
-    excludedFillers: ["hits", "walks", "walks_allowed", "fantasy", "hrr"],
+    excludedFillers: ["bases", "hits", "walks", "walks_allowed", "strikeouts", "fantasy", "hrr"],
+    allowedFillers: ["earned_runs_allowed", "hits_allowed"],
     trackOnly: true
   },
   rawRows: rows.length,
