@@ -385,7 +385,8 @@
     "odds:usage-note": "echo 'WARNING: This command runs Vegas/Odds and may use paid API credits. Default slip pulls should use pull:slips or pull:slips:no-vegas unless Elijah explicitly asks for Vegas.'",
     "audit:standard-hitters": "node scripts/local/audit-standard-hitter-rejections.cjs",
     "audit:standard-hitters:actionable": "node scripts/local/audit-standard-hitter-actionable.cjs",
-    "preview:standard-hitter-bridge": "node scripts/local/preview-standard-hitter-probability-bridge.cjs"
+    "preview:standard-hitter-bridge": "node scripts/local/preview-standard-hitter-probability-bridge.cjs",
+    "watchlist:standard-hitters": "node scripts/local/build-standard-hitter-bridge-watchlist.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
