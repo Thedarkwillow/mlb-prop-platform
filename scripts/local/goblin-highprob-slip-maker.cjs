@@ -1,8 +1,8 @@
 const fs = require("fs");
 
-const BOARD = "outputs/priced-board.json";
-const OUT = "outputs/goblin-highprob-slips.json";
-const TXT = "outputs/goblin-highprob-slips.txt";
+const BOARD = process.env.GOBLIN_BOARD || "outputs/priced-board.json";
+const OUT = process.env.GOBLIN_OUT_JSON || "outputs/goblin-highprob-slips.json";
+const TXT = process.env.GOBLIN_OUT_TXT || "outputs/goblin-highprob-slips.txt";
 
 const MIN_PROB = Number(process.env.GOBLIN_MIN_PROB || 0.68);
 const STRONG_PROB = Number(process.env.GOBLIN_STRONG_PROB || 0.70);
@@ -19,7 +19,15 @@ function readJson(file, fallback) {
   catch { return fallback; }
 }
 
-const GOBLIN_HISTORY = readJson("data/learning/goblin-highprob-history.json", { days: [] });
+const RAW_GOBLIN_HISTORY = readJson("data/learning/goblin-highprob-history.json", { days: [] });
+const GOBLIN_HISTORY_MAX_DATE = process.env.GOBLIN_HISTORY_MAX_DATE || "";
+const GOBLIN_HISTORY = {
+  ...RAW_GOBLIN_HISTORY,
+  days: (RAW_GOBLIN_HISTORY.days || []).filter(d => {
+    if (!GOBLIN_HISTORY_MAX_DATE) return true;
+    return String(d.date || "") < GOBLIN_HISTORY_MAX_DATE;
+  })
+};
 
 function norm(v) {
   return String(v || "").toLowerCase().replace(/[^a-z0-9]+/g, "");

@@ -362,7 +362,10 @@
     "goblin:highprob": "node scripts/local/goblin-highprob-slip-maker.cjs",
     "grade:goblin-highprob": "node scripts/local/grade-goblin-highprob-slips.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)} && npm run save:goblin-highprob-history",
     "audit:prizepicks-validity": "node scripts/local/audit-prizepicks-slip-validity.cjs",
-    "save:goblin-highprob-history": "node scripts/local/save-goblin-highprob-history.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
+    "save:goblin-highprob-history": "node scripts/local/save-goblin-highprob-history.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
+    "report:goblin-highprob": "node scripts/local/goblin-highprob-performance-report.cjs",
+    "report:goblin-hrr": "node scripts/local/goblin-hrr-performance-report.cjs",
+    "backtest:goblin-highprob": "node scripts/local/backtest-goblin-highprob-tightened.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
