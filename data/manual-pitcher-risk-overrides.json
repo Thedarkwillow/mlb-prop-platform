@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-06-06T21:48:38.303Z",
+  "note": "Manual pitcher risk overrides. Use for MLB debut, first MLB start, opener, unknown workload, or minor-league-only projection risk.",
+  "players": {
+    "kademorris": {
+      "player": "Kade Morris",
+      "risk": "first_mlb_start_or_unknown_mlb_sample",
+      "action": "research_only",
+      "reason": "Do not allow high-prob pitcher props into official slips without MLB starter sample validation."
+    }
+  }
+}
