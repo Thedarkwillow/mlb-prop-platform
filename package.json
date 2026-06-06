@@ -389,7 +389,8 @@
     "watchlist:standard-hitters": "node scripts/local/build-standard-hitter-bridge-watchlist.cjs",
     "grade:standard-hitter-watchlist": "node scripts/local/grade-standard-hitter-bridge-watchlist.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "standard-hitters:bridge": "npm run watchlist:standard-hitters && npm run preview:standard-hitter-bridge",
-    "preview:standard-hitter-input-repairs": "node scripts/local/repair-standard-hitter-inputs-preview.cjs"
+    "preview:standard-hitter-input-repairs": "node scripts/local/repair-standard-hitter-inputs-preview.cjs",
+    "audit:less-batters": "node scripts/local/audit-less-batter-props.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
