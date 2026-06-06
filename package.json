@@ -376,7 +376,13 @@
     "recommend:goblin": "node scripts/local/goblin-recommended-card.cjs && npm run audit:goblin-card && npm run audit:goblin-construction",
     "audit:goblin-card": "node scripts/local/audit-goblin-recommended-card.cjs",
     "roi:goblin-construction": "node scripts/local/goblin-slip-construction-roi.cjs",
-    "audit:goblin-construction": "node scripts/local/audit-goblin-construction-gates.cjs"
+    "audit:goblin-construction": "node scripts/local/audit-goblin-construction-gates.cjs",
+    "pull:slips:all": "npm run prizepicks && npm run board:rebuild && npm run odds && npm run snap && npm run hitter:pf --date=${npm_config_date:-$(date +%F)} && npm run fantasy:pf --date=${npm_config_date:-$(date +%F)} && npm run picks && npm run goblin:highprob && npm run goblin:hrr && npm run audit:prizepicks-validity && npm run select:goblin-context && npm run recommend:goblin && npm run audit:goblin-card && npm run audit:goblin-construction && npm run mobile && npm run decision",
+    "pull:slips:no-vegas": "npm run prizepicks && npm run board:rebuild && npm run snap && npm run hitter:pf --date=${npm_config_date:-$(date +%F)} && npm run fantasy:pf --date=${npm_config_date:-$(date +%F)} && npm run picks && npm run goblin:highprob && npm run goblin:hrr && npm run audit:prizepicks-validity && npm run select:goblin-context && npm run recommend:goblin && npm run audit:goblin-card && npm run audit:goblin-construction && npm run mobile && npm run decision",
+    "pull:slips": "npm run pull:slips:no-vegas",
+    "pull:slips:safe": "npm run pull:slips:no-vegas",
+    "pull:slips:vegas": "npm run odds:usage-note && npm run pull:slips:all",
+    "odds:usage-note": "echo 'WARNING: This command runs Vegas/Odds and may use paid API credits. Default slip pulls should use pull:slips or pull:slips:no-vegas unless Elijah explicitly asks for Vegas.'"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
