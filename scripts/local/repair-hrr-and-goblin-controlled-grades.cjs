@@ -13,6 +13,7 @@ function getDate() {
 const DATE = getDate();
 const HIST = "outputs/history";
 const FULL = `${HIST}/${DATE}-full-board-graded.json`;
+const PITCHER_ACTUALS = `${HIST}/${DATE}-pitcher-actuals.json`;
 const CANON_HRR = `${HIST}/${DATE}-hrr-graded.json`;
 const CANON_HRR_TXT = `${HIST}/${DATE}-hrr-graded.txt`;
 const OUT = `${HIST}/${DATE}-goblin-hrr-controlled-repaired.json`;
@@ -112,6 +113,20 @@ function gradeByActualValue(leg, value) {
   return "unmatched";
 }
 
+function pitcherActualValueForMarket(row, marketName) {
+  const m = norm(marketName);
+  if (m === "earnedrunsallowed") return n(row.earned_runs_allowed);
+  if (m === "hitsallowed") return n(row.hits_allowed);
+  if (m === "walksallowed") return n(row.walks_allowed);
+  if (m === "strikeouts") return n(row.strikeouts);
+  if (m === "pitchingouts") return n(row.pitching_outs);
+  return null;
+}
+
+function isPitcherActualMarket(marketName) {
+  return /earnedrunsallowed|hitsallowed|walksallowed|pitchingouts|strikeouts/.test(norm(marketName));
+}
+
 function gradeLeg(leg, exact, loose) {
   let match = exact.get(key(leg));
   let matchType = match ? "exact" : "unmatched";
@@ -197,6 +212,48 @@ function gradeLeg(leg, exact, loose) {
       : "missing_pitcher_actual_source";
   }
 
+  if (!match && finalResult === "unmatched" && isPitcherActualMarket(market(leg))) {
+    const pitcherRows = pitcherActualByPlayer[norm(player(leg))] || [];
+    const usable = pitcherRows
+      .map(r => ({ row: r, value: pitcherActualValueForMarket(r, market(leg)) }))
+      .filter(x => x.value !== null);
+
+    if (usable.length === 1) {
+      actualValue = usable[0].value;
+      finalResult = gradeByActualValue(leg, actualValue);
+      srcResult = finalResult;
+      matchType = "pitcher_actuals_exact";
+      actualFallbackSource = {
+        source: PITCHER_ACTUALS,
+        player: usable[0].row.player,
+        team: usable[0].row.team,
+        gamePk: usable[0].row.gamePk,
+        game: usable[0].row.game,
+        market: market(leg),
+        value: actualValue
+      };
+    } else if (usable.length > 1) {
+      const values = [...new Set(usable.map(x => x.value))];
+      if (values.length === 1) {
+        actualValue = values[0];
+        finalResult = gradeByActualValue(leg, actualValue);
+        srcResult = finalResult;
+        matchType = "pitcher_actuals_multi_game_same_value";
+        actualFallbackSource = {
+          source: PITCHER_ACTUALS,
+          player: player(leg),
+          market: market(leg),
+          value: actualValue,
+          games: usable.map(x => ({ gamePk: x.row.gamePk, game: x.row.game, team: x.row.team })).slice(0, 10)
+        };
+      } else {
+        matchType = "pitcher_actuals_ambiguous_multi_game";
+      }
+    } else {
+      matchType = "missing_pitcher_actual_source";
+    }
+  }
+
   return {
     ...leg,
     result: finalResult,
@@ -229,6 +286,9 @@ if (!fs.existsSync(FULL)) {
   console.error(`Missing full-board source: ${FULL}`);
   process.exit(2);
 }
+
+const pitcherActualPayload = readJson(PITCHER_ACTUALS, {});
+const pitcherActualByPlayer = pitcherActualPayload.byPlayer || {};
 
 const fullRows = flatten(readJson(FULL, []))
   .filter(r => player(r) && market(r) && line(r) !== null && result(r));
@@ -342,6 +402,7 @@ const out = {
   generatedAt: new Date().toISOString(),
   date: DATE,
   fullBoardSource: FULL,
+  pitcherActualsSource: PITCHER_ACTUALS,
   candidateFiles,
   canonicalHrrFile: CANON_HRR,
   sourceObjects: sourceObjects.map(x => ({ file: x.file, rows: x.rows.length })),
@@ -363,6 +424,7 @@ lines.push(JSON.stringify({
   generatedAt: out.generatedAt,
   date: DATE,
   fullBoardSource: FULL,
+  pitcherActualsSource: PITCHER_ACTUALS,
   canonicalHrrFile: CANON_HRR,
   candidateFiles,
   sourceObjects: out.sourceObjects,
