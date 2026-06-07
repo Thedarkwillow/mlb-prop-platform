@@ -14,10 +14,12 @@ function side(v) {
 }
 
 function marketOf(r) {
+  if (!r || typeof r !== "object") return "";
   return norm(r.market || r.stat || r.statKey);
 }
 
 function resultOf(r) {
+  if (!r || typeof r !== "object") return "UNKNOWN";
   const raw = String(r.result || r.grade || r.outcome || r.status || "").toUpperCase();
   if (["WIN", "WON", "HIT", "CASH", "GREEN"].includes(raw)) return "WIN";
   if (["LOSS", "LOST", "MISS", "RED"].includes(raw)) return "LOSS";
@@ -74,7 +76,7 @@ for (const file of files) {
 }
 
 const groups = {};
-for (const r of rows) {
+for (const r of rows.filter(Boolean)) {
   const prob = probOf(r);
   const edge = edgeOf(r);
   const keys = [
