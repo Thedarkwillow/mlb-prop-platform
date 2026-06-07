@@ -101,6 +101,17 @@ function inverseResult(res) {
   return res;
 }
 
+function gradeByActualValue(leg, value) {
+  const a = n(value);
+  const ln = line(leg);
+  const sd = side(leg);
+  if (a === null || ln === null || !sd) return "unmatched";
+  if (a === ln) return "push";
+  if (sd === "MORE") return a > ln ? "hit" : "miss";
+  if (sd === "LESS") return a < ln ? "hit" : "miss";
+  return "unmatched";
+}
+
 function gradeLeg(leg, exact, loose) {
   let match = exact.get(key(leg));
   let matchType = match ? "exact" : "unmatched";
@@ -137,18 +148,65 @@ function gradeLeg(leg, exact, loose) {
     }
   }
 
-  const srcResult = match ? result(match) : "unmatched";
-  const finalResult = match ? (inverse ? inverseResult(srcResult) : srcResult) : "unmatched";
+  let srcResult = match ? result(match) : "unmatched";
+  let finalResult = match ? (inverse ? inverseResult(srcResult) : srcResult) : "unmatched";
+  let actualValue = match ? actual(match) : null;
+  let actualFallbackSource = null;
+
+  if (!match) {
+    const pm = [norm(player(leg)), norm(market(leg))].join("|");
+    const options = actualByPlayerMarket.get(pm) || [];
+    const usable = options.filter(x => actual(x) !== null);
+
+    if (usable.length === 1) {
+      const src = usable[0];
+      actualValue = actual(src);
+      finalResult = gradeByActualValue(leg, actualValue);
+      srcResult = result(src);
+      matchType = "actual_same_player_market_any_line";
+      actualFallbackSource = {
+        player: player(src),
+        market: market(src),
+        sourceSide: side(src),
+        sourceLine: line(src),
+        sourceResult: result(src)
+      };
+    } else if (usable.length > 1) {
+      const actuals = [...new Set(usable.map(x => actual(x)).filter(x => x !== null))];
+      if (actuals.length === 1) {
+        const src = usable[0];
+        actualValue = actuals[0];
+        finalResult = gradeByActualValue(leg, actualValue);
+        srcResult = result(src);
+        matchType = "actual_same_player_market_multi_line";
+        actualFallbackSource = {
+          player: player(src),
+          market: market(src),
+          sourceLines: usable.map(x => ({ side: side(x), line: line(x), result: result(x) })).slice(0, 10)
+        };
+      } else {
+        matchType = "actual_same_player_market_ambiguous";
+      }
+    }
+  }
+
+  if (!match && finalResult === "unmatched" && /earned_runs_allowed|hits_allowed|walks_allowed|pitching_outs|strikeouts/.test(norm(market(leg)))) {
+    const playerOptions = actualByPlayerAnyMarket.get(norm(player(leg))) || [];
+    matchType = playerOptions.length
+      ? "missing_same_pitcher_market_actual_source"
+      : "missing_pitcher_actual_source";
+  }
 
   return {
     ...leg,
     result: finalResult,
-    actual: match ? actual(match) : null,
+    actual: actualValue,
     matchType,
     inverseMatched: inverse,
     sourceSide: match ? side(match) : null,
-    sourceResult: match ? srcResult : null,
-    gradedSource: match ? FULL : null
+    sourceResult: srcResult,
+    actualFallbackSource,
+    gradedSource: match || actualFallbackSource ? FULL : null
   };
 }
 
@@ -177,12 +235,22 @@ const fullRows = flatten(readJson(FULL, []))
 
 const exact = new Map();
 const loose = new Map();
+const actualByPlayerMarket = new Map();
+const actualByPlayerAnyMarket = new Map();
 
 for (const r of fullRows) {
   exact.set(key(r), r);
   const lk = looseKey(r);
   if (!loose.has(lk)) loose.set(lk, []);
   loose.get(lk).push(r);
+
+  const pm = [norm(player(r)), norm(market(r))].join("|");
+  if (!actualByPlayerMarket.has(pm)) actualByPlayerMarket.set(pm, []);
+  actualByPlayerMarket.get(pm).push(r);
+
+  const pOnly = norm(player(r));
+  if (!actualByPlayerAnyMarket.has(pOnly)) actualByPlayerAnyMarket.set(pOnly, []);
+  actualByPlayerAnyMarket.get(pOnly).push(r);
 }
 
 // 1) Canonical HRR grade file from full-board rows.
@@ -211,21 +279,13 @@ hrrLines.push(JSON.stringify({
 fs.writeFileSync(CANON_HRR_TXT, hrrLines.join("\n") + "\n");
 
 // 2) Repair goblin HRR controlled slips/legs by searching available input/grade files.
-const candidateFiles = [];
-for (const dir of ["outputs", HIST]) {
-  if (!fs.existsSync(dir)) continue;
-  for (const name of fs.readdirSync(dir)) {
-    const lower = name.toLowerCase();
-    if (
-      lower.endsWith(".json") &&
-      lower.includes("goblin") &&
-      lower.includes("hrr") &&
-      (lower.includes("controlled") || lower.includes("context") || lower.includes("grade"))
-    ) {
-      candidateFiles.push(path.join(dir, name));
-    }
-  }
-}
+const candidateFiles = [
+  `${HIST}/${DATE}-goblin-hrr-controlled-slips-graded.json`
+].filter(fs.existsSync);
+
+// Do not pull generic current files or neighboring dates into a date-specific repair.
+// Generic outputs/goblin-hrr-controlled-slips.json may belong to today's slate, not DATE.
+
 
 const sourceObjects = [];
 for (const file of candidateFiles) {
