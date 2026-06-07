@@ -408,7 +408,8 @@
     "grade:reverse-hitter-signal": "node scripts/local/grade-reverse-hitter-signal.cjs --date=${npm_config_date:-$(date +%F)}",
     "gate:reverse-hitter": "node scripts/local/gate-reverse-hitter-promotion.cjs",
     "archive:reverse-hitter-signal": "node scripts/local/archive-reverse-hitter-signal.cjs --date=${npm_config_date:-$(date +%F)}",
-    "audit:canonical": "node scripts/local/audit-canonical-fields.cjs"
+    "audit:canonical": "node scripts/local/audit-canonical-fields.cjs",
+    "canonical:apply-derived": "node scripts/local/apply-canonical-to-derived-outputs.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
