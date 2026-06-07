@@ -1,6 +1,7 @@
 const fs = require("fs");
 
 const ROLLING = "outputs/rolling-lane-promotion-review.json";
+const REVERSE_GATE = "outputs/reverse-hitter-promotion-gate.json";
 const OUT = "outputs/lane-status-summary.txt";
 
 function readJson(file, fallback = null) {
@@ -61,6 +62,18 @@ if (!lanes.length) {
     }
 
     if (reasons) lines.push(`   reason: ${reasons}`);
+  }
+}
+
+
+const reverseGate = readJson(REVERSE_GATE, null);
+if (reverseGate && reverseGate.lane) {
+  const emoji = laneEmoji(reverseGate.status);
+  lines.push(`${emoji} ${reverseGate.lane}: ${shortDecision(reverseGate.status)}`);
+  const b = reverseGate.summary?.total || {};
+  lines.push(`   all: ${b.hit || 0}/${b.graded || 0} = ${pct(b.hitRate)} | unmatched=${b.unmatched || 0}`);
+  if (Array.isArray(reverseGate.reasons) && reverseGate.reasons.length) {
+    lines.push(`   reason: ${reverseGate.reasons.join(", ")}`);
   }
 }
 
