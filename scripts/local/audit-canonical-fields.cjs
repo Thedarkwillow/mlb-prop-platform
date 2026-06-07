@@ -21,23 +21,43 @@ function readJson(file, fallback = null) {
   catch { return fallback; }
 }
 
-function flatten(v, out = []) {
+function isPropLike(v) {
+  if (!v || typeof v !== "object") return false;
+
+  const hasPlayer = !!(v.player || v.playerName || v.athleteName);
+  const hasMarket = !!(v.market || v.statType || v.projectionType || v.stat);
+  const hasSide = !!(v.side || v.pick || v.direction || v.recommendation);
+  const hasLine = v.line !== undefined || v.statValue !== undefined || v.target !== undefined || v.value !== undefined;
+
+  // Require enough prop identity to avoid counting wrappers like {name, legs:[...]} as rows.
+  return hasPlayer && (hasMarket || hasSide || hasLine);
+}
+
+function flattenProps(v, out = [], path = "") {
   if (!v) return out;
+
   if (Array.isArray(v)) {
-    for (const x of v) flatten(x, out);
+    for (let i = 0; i < v.length; i++) flattenProps(v[i], out, `${path}[${i}]`);
     return out;
   }
+
   if (typeof v !== "object") return out;
 
-  const looksLikeProp =
-    v.player || v.playerName || v.name || v.athleteName ||
-    v.market || v.statType || v.projectionType ||
-    v.side || v.pick || v.direction ||
-    v.line !== undefined || v.statValue !== undefined;
+  if (isPropLike(v)) {
+    out.push({ row: v, path });
+  }
 
-  if (looksLikeProp) out.push(v);
+  // Prefer explicit prop containers first.
+  for (const key of ["legs", "picks", "topLegs", "candidates", "graded", "rows", "plays", "watchlist"]) {
+    if (Array.isArray(v[key])) flattenProps(v[key], out, path ? `${path}.${key}` : key);
+  }
 
-  for (const val of Object.values(v)) flatten(val, out);
+  // Then recurse through remaining object values, but do not double-count explicit containers.
+  for (const [key, val] of Object.entries(v)) {
+    if (["legs", "picks", "topLegs", "candidates", "graded", "rows", "plays", "watchlist"].includes(key)) continue;
+    if (val && typeof val === "object") flattenProps(val, out, path ? `${path}.${key}` : key);
+  }
+
   return out;
 }
 
@@ -72,10 +92,14 @@ for (const file of FILES) {
     continue;
   }
 
-  const rows = flatten(data);
-  const canonical = rows.map(r => canonicalPropRow(r, { source: file }));
+  const propEntries = flattenProps(data);
+  const rows = propEntries.map(x => x.row);
+  const canonical = propEntries.map(x => ({
+    ...canonicalPropRow(x.row, { source: file }),
+    canonicalPath: x.path
+  }));
   const missingRequired = canonical
-    .map((r, i) => ({ i, row: r, check: hasCanonicalRequiredFields(r) }))
+    .map((r, i) => ({ i, path: r.canonicalPath, row: r, check: hasCanonicalRequiredFields(r) }))
     .filter(x => !x.check.ok);
 
   const unknownSample = canonical.filter(r => r.sampleStatus === "UNKNOWN_SAMPLE").length;
@@ -94,6 +118,7 @@ for (const file of FILES) {
     sampleCanonicalRows: canonical.slice(0, 5),
     missingRequiredSample: missingRequired.slice(0, 10).map(x => ({
       index: x.i,
+      path: x.path,
       missing: x.check.missing,
       row: x.row
     }))
