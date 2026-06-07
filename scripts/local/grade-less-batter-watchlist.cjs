@@ -66,6 +66,28 @@ function key(r) {
 function looseKey(r) {
   return [norm(player(r)), norm(market(r)), side(r), String(line(r) ?? "")].join("|");
 }
+
+function oppositeSide(x) {
+  const raw = String(x || "").toUpperCase();
+  if (raw === "MORE") return "LESS";
+  if (raw === "LESS") return "MORE";
+  return "";
+}
+
+function inverseResult(res) {
+  const raw = String(res || "").toLowerCase();
+  if (raw === "hit") return "miss";
+  if (raw === "miss") return "hit";
+  return raw;
+}
+
+function inverseKey(r) {
+  return [norm(player(r)), norm(team(r)), norm(market(r)), oppositeSide(side(r)), String(line(r) ?? "")].join("|");
+}
+
+function inverseLooseKey(r) {
+  return [norm(player(r)), norm(market(r)), oppositeSide(side(r)), String(line(r) ?? "")].join("|");
+}
 function emptyBucket() {
   return { total: 0, hit: 0, miss: 0, push: 0, refund: 0, unmatched: 0, graded: 0, hitRate: null };
 }
@@ -132,6 +154,7 @@ const byMarket = {};
 for (const c of candidates) {
   let match = exact.get(key(c));
   let matchType = "exact";
+  let useInverse = false;
 
   if (!match) {
     const options = loose.get(looseKey(c)) || [];
@@ -145,12 +168,36 @@ for (const c of candidates) {
     }
   }
 
-  const res = match ? result(match) : "unmatched";
+  if (!match) {
+    const inv = exact.get(inverseKey(c));
+    if (inv) {
+      match = inv;
+      matchType = "inverse_exact";
+      useInverse = true;
+    }
+  }
+
+  if (!match) {
+    const invOptions = loose.get(inverseLooseKey(c)) || [];
+    if (invOptions.length === 1) {
+      match = invOptions[0];
+      matchType = "inverse_loose_unique";
+      useInverse = true;
+    } else if (invOptions.length > 1 && matchType === "unmatched") {
+      matchType = "inverse_loose_ambiguous";
+    }
+  }
+
+  const rawRes = match ? result(match) : "unmatched";
+  const res = match && useInverse ? inverseResult(rawRes) : rawRes;
   const row = {
     ...c,
     result: res,
     matchType,
     actual: match?.actual ?? match?.value ?? match?.stat ?? null,
+    sourceSide: match ? side(match) : null,
+    sourceResult: match ? result(match) : null,
+    inverseMatched: useInverse,
     gradedSource: match ? FULL_BOARD_GRADE : null
   };
   graded.push(row);
