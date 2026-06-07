@@ -399,7 +399,8 @@
     "package:eod": "node scripts/local/package-eod-results.cjs --date=${npm_config_date:-$(date +%F)}",
     "package:eod:strict": "STRICT_EOD_PACKAGE=1 node scripts/local/package-eod-results.cjs --date=${npm_config_date:-$(date +%F)}",
     "repair:hrr-goblin-grades": "node scripts/local/repair-hrr-and-goblin-controlled-grades.cjs --date=${npm_config_date:-$(date +%F)}",
-    "guard:goblin-hrr-controlled": "node scripts/local/guard-goblin-hrr-controlled-official.cjs --date=${npm_config_date:-$(date +%F)}"
+    "guard:goblin-hrr-controlled": "node scripts/local/guard-goblin-hrr-controlled-official.cjs --date=${npm_config_date:-$(date +%F)}",
+    "actuals:pitchers": "node scripts/local/build-pitcher-actuals-from-mlb-boxscores.cjs --date=${npm_config_date:-$(date +%F)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
