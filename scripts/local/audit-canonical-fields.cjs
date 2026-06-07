@@ -52,9 +52,23 @@ function flattenProps(v, out = [], path = "") {
     if (Array.isArray(v[key])) flattenProps(v[key], out, path ? `${path}.${key}` : key);
   }
 
-  // Then recurse through remaining object values, but do not double-count explicit containers.
+  // Then recurse through remaining object values, but do not double-count explicit containers
+  // or canonical metadata blocks attached to rows.
   for (const [key, val] of Object.entries(v)) {
-    if (["legs", "picks", "topLegs", "candidates", "graded", "rows", "plays", "watchlist"].includes(key)) continue;
+    if ([
+      "legs",
+      "picks",
+      "topLegs",
+      "candidates",
+      "graded",
+      "rows",
+      "plays",
+      "watchlist",
+      "canonical",
+      "original",
+      "sampleCanonicalRows",
+      "missingRequiredSample"
+    ].includes(key)) continue;
     if (val && typeof val === "object") flattenProps(val, out, path ? `${path}.${key}` : key);
   }
 
