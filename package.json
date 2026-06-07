@@ -22,7 +22,7 @@
     "grade:watchlist": "node src/research/grade-watchlist-slips.cjs ${npm_config_date:-$(date +%F)}",
     "history": "node src/research/show-history.cjs ${npm_config_date:-$(date +%F)}",
     "summary": "node src/research/daily-summary.cjs ${npm_config_date:-$(date +%F)}",
-    "decision": "node src/research/current-decision-report.cjs && npm run auto:hitter-signal && npm run decision:auto-notes && npm run auto:reverse-hitter && npm run gate:reverse-hitter && npm run pickfinder:signal && npm run summary:lanes",
+    "decision": "node src/research/current-decision-report.cjs && npm run auto:hitter-signal && npm run decision:auto-notes && npm run auto:reverse-hitter && npm run archive:reverse-hitter-signal && npm run gate:reverse-hitter && npm run pickfinder:signal && npm run summary:lanes",
     "markets": "node src/research/check-market-roadmap.cjs",
     "market:exposure": "node src/research/market-exposure-report.cjs",
     "odds": "node src/research/oddsapi-dk-mlb-props.cjs && node src/research/convert-oddsapi-props.cjs && node src/research/odds-api-summary.cjs",
@@ -406,7 +406,8 @@
     "review:lanes:rolling": "node scripts/local/build-rolling-lane-promotion-review.cjs",
     "summary:lanes": "node scripts/local/lane-status-summary.cjs",
     "grade:reverse-hitter-signal": "node scripts/local/grade-reverse-hitter-signal.cjs --date=${npm_config_date:-$(date +%F)}",
-    "gate:reverse-hitter": "node scripts/local/gate-reverse-hitter-promotion.cjs"
+    "gate:reverse-hitter": "node scripts/local/gate-reverse-hitter-promotion.cjs",
+    "archive:reverse-hitter-signal": "node scripts/local/archive-reverse-hitter-signal.cjs --date=${npm_config_date:-$(date +%F)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

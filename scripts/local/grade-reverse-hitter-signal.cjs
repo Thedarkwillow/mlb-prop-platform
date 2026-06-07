@@ -10,7 +10,9 @@ function getDate() {
 }
 
 const DATE = getDate();
-const INPUT = "outputs/manual/auto-reverse-hitter-signal.json";
+const DATED_INPUT = `outputs/history/${DATE}-reverse-hitter-signal.json`;
+const LIVE_INPUT = "outputs/manual/auto-reverse-hitter-signal.json";
+const INPUT = fs.existsSync(DATED_INPUT) ? DATED_INPUT : LIVE_INPUT;
 const FULL = `outputs/history/${DATE}-full-board-graded.json`;
 const OUT = `outputs/history/${DATE}-reverse-hitter-signal-graded.json`;
 const TXT = `outputs/history/${DATE}-reverse-hitter-signal-graded.txt`;
