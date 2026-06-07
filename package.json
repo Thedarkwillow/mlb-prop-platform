@@ -17,7 +17,7 @@
     "calibration:curves": "node src/research/calibration-curves.cjs",
     "show": "node src/research/show-todays-slips.cjs",
     "status": "node src/research/status.cjs",
-    "mobile": "npm run pickfinder:support && npm run audit:filter-loss && (node src/research/mobile-summary.cjs; node scripts/local/pickfinder-lean-summary.cjs) | tee outputs/mobile-summary.txt && npm run summary:lanes",
+    "mobile": "npm run pickfinder:support && npm run audit:filter-loss && (node src/research/mobile-summary.cjs; node scripts/local/pickfinder-lean-summary.cjs) | tee outputs/mobile-summary.txt && npm run summary:lanes && cat outputs/lane-status-summary.txt >> outputs/mobile-summary.txt",
     "final": "npm run pipeline $npm_config_date && npm run status && npm run summary $npm_config_date && npm run decision && npm run show",
     "grade:watchlist": "node src/research/grade-watchlist-slips.cjs ${npm_config_date:-$(date +%F)}",
     "history": "node src/research/show-history.cjs ${npm_config_date:-$(date +%F)}",
