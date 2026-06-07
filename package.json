@@ -393,7 +393,8 @@
     "audit:less-batters": "node scripts/local/audit-less-batter-props.cjs",
     "watchlist:less-batters": "node scripts/local/build-less-batter-watchlist.cjs",
     "audit:rookie-pitchers": "node scripts/local/audit-rookie-pitcher-risk.cjs",
-    "guard:rookie-pitchers": "STRICT_ROOKIE_PITCHER_GUARD=1 node scripts/local/audit-rookie-pitcher-risk.cjs"
+    "guard:rookie-pitchers": "STRICT_ROOKIE_PITCHER_GUARD=1 node scripts/local/audit-rookie-pitcher-risk.cjs",
+    "grade:less-batter-watchlist": "node scripts/local/grade-less-batter-watchlist.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

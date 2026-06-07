@@ -10,18 +10,16 @@ function getDate() {
 }
 
 const DATE = getDate();
-const WATCH = "outputs/standard-hitter-bridge-watchlist.json";
+const WATCH = "outputs/less-batter-watchlist.json";
 const FULL_BOARD_GRADE = `outputs/history/${DATE}-full-board-graded.json`;
-const OUT = `outputs/history/${DATE}-standard-hitter-bridge-watchlist-graded.json`;
-const TXT = `outputs/history/${DATE}-standard-hitter-bridge-watchlist-graded.txt`;
+const OUT = `outputs/history/${DATE}-less-batter-watchlist-graded.json`;
+const TXT = `outputs/history/${DATE}-less-batter-watchlist-graded.txt`;
 
 function readJson(file, fallback) {
   try { return JSON.parse(fs.readFileSync(file, "utf8")); }
   catch { return fallback; }
 }
-function arr(v) {
-  return Array.isArray(v) ? v : [];
-}
+function arr(v) { return Array.isArray(v) ? v : []; }
 function norm(v) {
   return String(v || "")
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -33,29 +31,23 @@ function n(v) {
   const x = Number(v);
   return Number.isFinite(x) ? x : null;
 }
-function market(r) {
-  return s(r.market || r.statType || r.projectionType || r.type).toLowerCase();
-}
-function player(r) {
-  return s(r.player || r.playerName || r.name || r.athleteName);
-}
-function team(r) {
-  return s(r.team || r.resolvedTeam || r.rawTeam || r.abbrev);
-}
-function side(r) {
-  return s(r.side || r.pick || r.direction || r.recommendation).toUpperCase();
-}
-function line(r) {
-  return n(r.line ?? r.target ?? r.value ?? r.statValue);
-}
+function player(r) { return s(r.player || r.playerName || r.name || r.athleteName); }
+function team(r) { return s(r.team || r.resolvedTeam || r.rawTeam || r.abbrev); }
+function market(r) { return s(r.market || r.statType || r.projectionType || r.type).toLowerCase(); }
+function side(r) { return s(r.side || r.pick || r.direction || r.recommendation).toUpperCase(); }
+function line(r) { return n(r.line ?? r.target ?? r.value ?? r.statValue); }
+
 function result(r) {
   const raw = s(r.result || r.outcome || r.grade || r.status).toLowerCase();
-  if (["hit", "win", "won", "over", "under"].includes(raw)) return "hit";
+  if (["hit", "win", "won"].includes(raw)) return "hit";
   if (["miss", "loss", "lost"].includes(raw)) return "miss";
   if (["push", "tie"].includes(raw)) return "push";
   if (["refund", "dnp", "void"].includes(raw)) return "refund";
+  if (r.hit === true) return "hit";
+  if (r.hit === false) return "miss";
   return raw || "";
 }
+
 function flatten(v, out = []) {
   if (!v) return out;
   if (Array.isArray(v)) {
@@ -67,6 +59,7 @@ function flatten(v, out = []) {
   for (const val of Object.values(v)) flatten(val, out);
   return out;
 }
+
 function key(r) {
   return [norm(player(r)), norm(team(r)), norm(market(r)), side(r), String(line(r) ?? "")].join("|");
 }
@@ -93,6 +86,8 @@ function finalize(bucket) {
 const watch = readJson(WATCH, {});
 const candidates = arr(watch.candidates);
 
+fs.mkdirSync("outputs/history", { recursive: true });
+
 if (!fs.existsSync(FULL_BOARD_GRADE)) {
   const msg = [
     "MISSING_FULL_BOARD_GRADE_SOURCE",
@@ -100,7 +95,6 @@ if (!fs.existsSync(FULL_BOARD_GRADE)) {
     "Run postgame/full-board grading first.",
     "Refusing to write misleading matched=0 grading output."
   ].join("\n");
-  fs.mkdirSync("outputs/history", { recursive: true });
   fs.writeFileSync(TXT, msg + "\n");
   fs.writeFileSync(OUT, JSON.stringify({
     generatedAt: new Date().toISOString(),
@@ -118,7 +112,6 @@ if (!fs.existsSync(FULL_BOARD_GRADE)) {
 }
 
 const gradedRows = flatten(readJson(FULL_BOARD_GRADE, []));
-
 const exact = new Map();
 const loose = new Map();
 
@@ -133,8 +126,8 @@ for (const r of gradedRows) {
 
 const graded = [];
 const byStatus = {};
+const byType = {};
 const byMarket = {};
-const byPlayer = {};
 
 for (const c of candidates) {
   let match = exact.get(key(c));
@@ -162,20 +155,20 @@ for (const c of candidates) {
   };
   graded.push(row);
 
-  const status = c.bridgeStatus || "UNKNOWN";
+  const status = c.lessWatchStatus || "UNKNOWN";
+  const type = c.lessType || "UNKNOWN";
   const mk = c.market || "unknown";
-  const pl = c.player || "unknown";
 
   byStatus[status] ||= emptyBucket();
+  byType[type] ||= emptyBucket();
   byMarket[mk] ||= emptyBucket();
-  byPlayer[pl] ||= emptyBucket();
 
   inc(byStatus[status], res);
+  inc(byType[type], res);
   inc(byMarket[mk], res);
-  inc(byPlayer[pl], res);
 }
 
-for (const obj of [byStatus, byMarket, byPlayer]) {
+for (const obj of [byStatus, byType, byMarket]) {
   for (const k of Object.keys(obj)) finalize(obj[k]);
 }
 
@@ -183,7 +176,7 @@ const summary = {
   generatedAt: new Date().toISOString(),
   date: DATE,
   watchlistInput: WATCH,
-  gradedSourceUsed: fs.existsSync(FULL_BOARD_GRADE) ? FULL_BOARD_GRADE : null,
+  gradedSourceUsed: FULL_BOARD_GRADE,
   candidates: candidates.length,
   matched: graded.filter(x => x.result !== "unmatched").length,
   unmatched: graded.filter(x => x.result === "unmatched").length,
@@ -192,14 +185,14 @@ const summary = {
     return b;
   }, emptyBucket())),
   byStatus,
+  byType,
   byMarket,
-  byPlayer,
   graded
 };
 
 const lines = [];
-lines.push("STANDARD HITTER BRIDGE WATCHLIST GRADED");
-lines.push("=======================================");
+lines.push("LESS BATTER WATCHLIST GRADED");
+lines.push("============================");
 lines.push(JSON.stringify({
   generatedAt: summary.generatedAt,
   date: summary.date,
@@ -208,6 +201,7 @@ lines.push(JSON.stringify({
   unmatched: summary.unmatched,
   results: summary.results,
   byStatus: summary.byStatus,
+  byType: summary.byType,
   byMarket: summary.byMarket
 }, null, 2));
 
@@ -215,10 +209,9 @@ lines.push("");
 lines.push("GRADED CANDIDATES");
 lines.push("-----------------");
 graded.forEach((x, i) => {
-  lines.push(`${i + 1}. ${x.player} | ${x.team} | ${x.market} ${x.side} ${x.line} | ${x.bridgeStatus} | prob=${((Number(x.probability || 0)) * 100).toFixed(1)}% | result=${x.result} | actual=${x.actual ?? "?"} | match=${x.matchType}`);
+  lines.push(`${i + 1}. ${x.player} | ${x.team} | ${x.market} ${x.side} ${x.line} | ${x.lessWatchStatus} | type=${x.lessType} | under=${((Number(x.underProb || 0)) * 100).toFixed(1)}% | result=${x.result} | actual=${x.actual ?? "?"} | match=${x.matchType}`);
 });
 
-fs.mkdirSync("outputs/history", { recursive: true });
 fs.writeFileSync(OUT, JSON.stringify(summary, null, 2));
 fs.writeFileSync(TXT, lines.join("\n"));
 
@@ -230,6 +223,7 @@ console.log({
   unmatched: summary.unmatched,
   results: summary.results,
   byStatus: summary.byStatus,
+  byType: summary.byType,
   byMarket: summary.byMarket
 });
 console.log(`saved: ${OUT}`);
