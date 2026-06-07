@@ -411,7 +411,8 @@
     "audit:canonical": "node scripts/local/audit-canonical-fields.cjs",
     "canonical:apply-derived": "node scripts/local/apply-canonical-to-derived-outputs.cjs",
     "canonical:normalize-status": "node scripts/local/normalize-derived-canonical-statuses.cjs",
-    "canonical:derived": "npm run canonical:apply-derived && npm run canonical:normalize-status && npm run audit:canonical"
+    "canonical:derived": "npm run canonical:apply-derived && npm run canonical:normalize-status && npm run audit:canonical && npm run audit:canonical-risk",
+    "audit:canonical-risk": "node scripts/local/audit-canonical-risk-gates.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
