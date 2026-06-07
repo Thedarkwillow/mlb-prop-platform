@@ -26,13 +26,15 @@ function isPropLike(v) {
   );
 }
 
-function applyToObject(v, source) {
+function applyToObject(v, source, seen = new WeakSet()) {
   if (!v || typeof v !== "object") return 0;
+  if (seen.has(v)) return 0;
+  seen.add(v);
 
   let count = 0;
 
   if (Array.isArray(v)) {
-    for (const x of v) count += applyToObject(x, source);
+    for (const x of v) count += applyToObject(x, source, seen);
     return count;
   }
 
@@ -44,8 +46,12 @@ function applyToObject(v, source) {
     count++;
   }
 
-  for (const val of Object.values(v)) {
-    if (val && typeof val === "object") count += applyToObject(val, source);
+  for (const [key, val] of Object.entries(v)) {
+    if (key === "canonical") continue;
+    if (key === "original") continue;
+    if (key === "sampleCanonicalRows") continue;
+    if (key === "missingRequiredSample") continue;
+    if (val && typeof val === "object") count += applyToObject(val, source, seen);
   }
 
   return count;
