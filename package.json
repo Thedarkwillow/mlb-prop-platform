@@ -17,12 +17,12 @@
     "calibration:curves": "node src/research/calibration-curves.cjs",
     "show": "node src/research/show-todays-slips.cjs",
     "status": "node src/research/status.cjs",
-    "mobile": "npm run pickfinder:support && npm run audit:filter-loss && (node src/research/mobile-summary.cjs; node scripts/local/pickfinder-lean-summary.cjs) | tee outputs/mobile-summary.txt",
+    "mobile": "npm run pickfinder:support && npm run audit:filter-loss && (node src/research/mobile-summary.cjs; node scripts/local/pickfinder-lean-summary.cjs) | tee outputs/mobile-summary.txt && npm run summary:lanes",
     "final": "npm run pipeline $npm_config_date && npm run status && npm run summary $npm_config_date && npm run decision && npm run show",
     "grade:watchlist": "node src/research/grade-watchlist-slips.cjs ${npm_config_date:-$(date +%F)}",
     "history": "node src/research/show-history.cjs ${npm_config_date:-$(date +%F)}",
     "summary": "node src/research/daily-summary.cjs ${npm_config_date:-$(date +%F)}",
-    "decision": "node src/research/current-decision-report.cjs && npm run auto:hitter-signal && npm run decision:auto-notes && npm run auto:reverse-hitter && npm run pickfinder:signal",
+    "decision": "node src/research/current-decision-report.cjs && npm run auto:hitter-signal && npm run decision:auto-notes && npm run auto:reverse-hitter && npm run pickfinder:signal && npm run summary:lanes",
     "markets": "node src/research/check-market-roadmap.cjs",
     "market:exposure": "node src/research/market-exposure-report.cjs",
     "odds": "node src/research/oddsapi-dk-mlb-props.cjs && node src/research/convert-oddsapi-props.cjs && node src/research/odds-api-summary.cjs",
@@ -403,7 +403,8 @@
     "actuals:pitchers": "node scripts/local/build-pitcher-actuals-from-mlb-boxscores.cjs --date=${npm_config_date:-$(date +%F)}",
     "suppress:goblin-hrr-controlled": "node scripts/local/build-goblin-hrr-controlled-suppression.cjs --date=${npm_config_date:-$(date +%F)}",
     "review:lanes": "node scripts/local/build-lane-promotion-review.cjs --date=${npm_config_date:-$(date +%F)}",
-    "review:lanes:rolling": "node scripts/local/build-rolling-lane-promotion-review.cjs"
+    "review:lanes:rolling": "node scripts/local/build-rolling-lane-promotion-review.cjs",
+    "summary:lanes": "node scripts/local/lane-status-summary.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
