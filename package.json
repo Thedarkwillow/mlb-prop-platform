@@ -397,7 +397,8 @@
     "grade:less-batter-watchlist": "node scripts/local/grade-less-batter-watchlist.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "enforce:goblin-gate": "node scripts/local/enforce-goblin-card-gate.cjs",
     "package:eod": "node scripts/local/package-eod-results.cjs --date=${npm_config_date:-$(date +%F)}",
-    "package:eod:strict": "STRICT_EOD_PACKAGE=1 node scripts/local/package-eod-results.cjs --date=${npm_config_date:-$(date +%F)}"
+    "package:eod:strict": "STRICT_EOD_PACKAGE=1 node scripts/local/package-eod-results.cjs --date=${npm_config_date:-$(date +%F)}",
+    "repair:hrr-goblin-grades": "node scripts/local/repair-hrr-and-goblin-controlled-grades.cjs --date=${npm_config_date:-$(date +%F)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
