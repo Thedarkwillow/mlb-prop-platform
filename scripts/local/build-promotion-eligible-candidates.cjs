@@ -87,28 +87,83 @@ function flatten(v, out = [], path = "") {
   return out;
 }
 
+function newestMatchingFile(pattern) {
+  const dir = "outputs/history";
+  if (!fs.existsSync(dir)) return null;
+  const files = fs.readdirSync(dir)
+    .filter(name => pattern.test(name))
+    .map(name => `${dir}/${name}`)
+    .filter(file => fs.existsSync(file))
+    .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+  return files[0] || null;
+}
+
+function addLaneDecision(map, lane, decision, reasons = [], dates = [], raw = null) {
+  if (!lane) return;
+  map.set(s(lane), {
+    decision: s(decision || "RESEARCH_ONLY"),
+    reasons: arr(reasons).map(String),
+    dates: arr(dates).map(String),
+    raw
+  });
+}
+
 function rollingDecisionMap() {
-  const rolling = readJson(ROLLING, {});
-  const recs = arr(rolling.recommendations);
   const map = new Map();
 
-  for (const r of recs) {
-    map.set(s(r.lane), {
-      decision: s(r.decision || "RESEARCH_ONLY"),
-      reasons: arr(r.reasons).map(String),
-      dates: arr(r.dates).map(String),
-      raw: r
-    });
+  const rollingFiles = [
+    ROLLING,
+    newestMatchingFile(/^\d{4}-\d{2}-\d{2}-lane-promotion-review\.json$/)
+  ].filter(Boolean);
+
+  for (const file of rollingFiles) {
+    const rolling = readJson(file, {});
+    const recs = [
+      ...arr(rolling.recommendations),
+      ...arr(rolling.lanes),
+      ...arr(rolling.reviews)
+    ];
+
+    for (const r of recs) {
+      addLaneDecision(
+        map,
+        r.lane || r.name,
+        r.decision || r.status,
+        r.reasons || r.decisionReasons,
+        r.dates,
+        { sourceFile: file, ...r }
+      );
+    }
+  }
+
+  const suppressionFiles = [
+    newestMatchingFile(/^\d{4}-\d{2}-\d{2}-goblin-hrr-controlled-suppression\.json$/)
+  ].filter(Boolean);
+
+  for (const file of suppressionFiles) {
+    const sup = readJson(file, null);
+    if (sup) {
+      addLaneDecision(
+        map,
+        "goblin_hrr_controlled",
+        sup.status === "SUPPRESS_GOBLIN_HRR_CONTROLLED" ? "SUPPRESS" : sup.status,
+        sup.reasons,
+        [sup.date].filter(Boolean),
+        { sourceFile: file, ...sup }
+      );
+    }
   }
 
   const reverse = readJson(REVERSE_GATE, null);
   if (reverse) {
-    map.set("reverse_hitter_signal", {
-      decision: s(reverse.status || "RESEARCH_ONLY"),
-      reasons: arr(reverse.reasons).map(String),
-      dates: arr(reverse.dates).map(String),
-      raw: reverse
-    });
+    addLaneDecision(
+      map,
+      "reverse_hitter_signal",
+      reverse.status || "RESEARCH_ONLY",
+      reverse.reasons,
+      reverse.dates,
+      { sourceFile: REVERSE_GATE, ...reverse }
+    );
   }
 
   return map;
