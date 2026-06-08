@@ -17,7 +17,8 @@ const HIST_TXT = `outputs/history/${DATE}-fantasy-less-promotion-candidates.txt`
 const META_SOURCES = [
   `outputs/history/${DATE}-fantasy-less-watchlist.json`,
   "outputs/fantasy-less-watchlist.json",
-  "outputs/fantasy-less-watchlist-latest.json"
+  "outputs/fantasy-less-watchlist-latest.json",
+  `outputs/fantasy-less-history-graded-${DATE}-to-${DATE}.json`
 ];
 
 function readJson(file, fallback = null) {
@@ -52,57 +53,35 @@ function norm(v) {
 }
 
 function market(r) {
-  return s(r.market || r.statType || r.projectionType || r.stat)
+  return s(r.market || r.statType || r.projectionType || r.stat || r.type)
     .toLowerCase()
+    .replace(/hitter fantasy score/g, "hitter_fantasy_score")
+    .replace(/pitcher fantasy score/g, "pitcher_fantasy_score")
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
 }
 
 function side(r) {
-  return s(r.side || r.pick || r.direction || r.selection).toUpperCase();
+  return s(r.side || r.pick || r.direction || r.selection || r.recommendation).toUpperCase();
 }
 
 function player(r) {
-  return s(r.player || r.playerName || r.name || r.athleteName);
+  return s(r.player || r.playerName || r.name || r.athleteName || r.displayName);
+}
+
+function team(r) {
+  return s(r.team || r.teamAbbr || r.playerTeam || r.awayTeam || r.homeTeam);
+}
+
+function game(r) {
+  return s(r.game || r.matchup || r.gameLabel || r.event || r.eventName);
 }
 
 function line(r) {
-  return n(r.line ?? r.statValue ?? r.value ?? r.projectionLine);
+  return n(r.line ?? r.statValue ?? r.value ?? r.projectionLine ?? r.threshold);
 }
 
-function flat(v, out = []) {
-  if (!v) return out;
-  if (Array.isArray(v)) {
-    for (const x of v) flat(x, out);
-    return out;
-  }
-  if (typeof v !== "object") return out;
-
-  if (player(v) || market(v) || v.result || v.actual !== undefined || v.actualValue !== undefined) {
-    out.push(v);
-  }
-
-  for (const x of Object.values(v)) {
-    if (x && typeof x === "object") flat(x, out);
-  }
-  return out;
-}
-
-function key(r) {
-  return [
-    norm(player(r)),
-    norm(market(r)),
-    side(r),
-    String(line(r))
-  ].join("|");
-}
-
-function isUnknownGame(v) {
-  const x = s(v);
-  return !x || x === "UNKNOWN_GAME" || /^null\s*@\s*null$/i.test(x);
-}
-
-function bestProb(r) {
+function prob(r) {
   return n(
     r.probability ??
     r.prob ??
@@ -113,97 +92,140 @@ function bestProb(r) {
   );
 }
 
-function buildMetaMap() {
-  const map = new Map();
+function actual(r) {
+  return n(r.actual ?? r.actualValue ?? r.final ?? r.score ?? r.fantasyScore ?? r.points);
+}
 
-  for (const file of META_SOURCES) {
-    const data = readJson(file, null);
-    if (!data) continue;
+function result(r) {
+  return s(r.result || r.grade || r.outcome).toLowerCase();
+}
 
-    for (const r of flat(data)) {
-      if (market(r) !== "hitter_fantasy_score") continue;
-      if (side(r) !== "LESS") continue;
+function isPropLike(v) {
+  if (!v || typeof v !== "object") return false;
+  return Boolean(player(v) || market(v) || v.result || v.actual !== undefined || v.actualValue !== undefined);
+}
 
-      const k = key(r);
-      if (!k || k.includes("||")) continue;
+function flat(v, out = [], seen = new Set()) {
+  if (!v) return out;
+  if (typeof v !== "object") return out;
+  if (seen.has(v)) return out;
+  seen.add(v);
 
-      const existing = map.get(k);
-      const candidate = {
-        player: player(r),
-        team: s(r.team || r.teamAbbr || r.playerTeam),
-        game: s(r.game || r.matchup || r.gameLabel),
-        probability: bestProb(r),
-        overProb: n(r.overProb),
-        underProb: n(r.underProb),
-        sampleStatus: s(r.sampleStatus),
-        lineupStatus: s(r.lineupStatus),
-        riskStatus: s(r.riskStatus),
-        reasonCodes: Array.isArray(r.reasonCodes) ? r.reasonCodes : [],
-        sourceFile: file
-      };
-
-      if (!existing) {
-        map.set(k, candidate);
-        continue;
-      }
-
-      const existingScore =
-        (existing.team ? 1 : 0) +
-        (!isUnknownGame(existing.game) ? 1 : 0) +
-        (existing.probability !== null ? 1 : 0);
-
-      const candidateScore =
-        (candidate.team ? 1 : 0) +
-        (!isUnknownGame(candidate.game) ? 1 : 0) +
-        (candidate.probability !== null ? 1 : 0);
-
-      if (candidateScore > existingScore) map.set(k, candidate);
-    }
+  if (Array.isArray(v)) {
+    for (const x of v) flat(x, out, seen);
+    return out;
   }
 
-  return map;
-}
+  if (isPropLike(v)) out.push(v);
 
-function enrichRow(row, meta) {
-  if (!row || typeof row !== "object") return row;
-  if (market(row) !== "hitter_fantasy_score" || side(row) !== "LESS") return row;
-
-  const m = meta.get(key(row));
-  if (!m) return row;
-
-  const mergedReasons = Array.from(new Set([
-    ...(Array.isArray(row.reasonCodes) ? row.reasonCodes : []),
-    ...(Array.isArray(m.reasonCodes) ? m.reasonCodes : [])
-  ]));
-
-  return {
-    ...row,
-    team: s(row.team) || m.team || "",
-    game: isUnknownGame(row.game) ? (m.game || row.game || "UNKNOWN_GAME") : row.game,
-    probability: n(row.probability) ?? m.probability ?? null,
-    prob: n(row.prob) ?? m.probability ?? null,
-    overProb: n(row.overProb) ?? m.overProb ?? null,
-    underProb: n(row.underProb) ?? m.underProb ?? null,
-    sampleStatus: s(row.sampleStatus) || m.sampleStatus || "",
-    lineupStatus: s(row.lineupStatus) || m.lineupStatus || "",
-    riskStatus: s(row.riskStatus) || m.riskStatus || "",
-    reasonCodes: mergedReasons,
-    metadataSource: m.sourceFile
-  };
-}
-
-function enrichDeep(v, meta) {
-  if (Array.isArray(v)) return v.map(x => enrichDeep(x, meta));
-  if (!v || typeof v !== "object") return v;
-
-  let out = { ...v };
-  if (player(out) && market(out)) out = enrichRow(out, meta);
-
-  for (const [k, val] of Object.entries(out)) {
-    if (val && typeof val === "object") out[k] = enrichDeep(val, meta);
+  for (const val of Object.values(v)) {
+    if (val && typeof val === "object") flat(val, out, seen);
   }
 
   return out;
+}
+
+function key(r) {
+  return [
+    norm(player(r)),
+    norm(market(r)),
+    side(r) || "LESS",
+    String(line(r))
+  ].join("|");
+}
+
+function bucketOf(r) {
+  const m = market(r);
+  const l = line(r);
+  if (!m || l === null) return "";
+  if (m !== "hitter_fantasy_score") return `${m}|other`;
+
+  if (l >= 4.5 && l <= 5.5) return "hitter_fantasy_score|4.5_5.5";
+  if (l >= 6.5 && l <= 8.5) return "hitter_fantasy_score|6.5_8.5";
+  if (l >= 9.5 && l <= 12.5) return "hitter_fantasy_score|9.5_12.5";
+  if (l >= 13.5 && l <= 20.5) return "hitter_fantasy_score|13.5_20.5";
+  return "hitter_fantasy_score|other";
+}
+
+function isUnknownGame(v) {
+  const x = s(v);
+  return !x || x === "UNKNOWN_GAME" || /^null\s*@\s*null$/i.test(x);
+}
+
+function betterMeta(a, b) {
+  const score = x =>
+    (player(x) ? 1 : 0) +
+    (team(x) ? 1 : 0) +
+    (!isUnknownGame(game(x)) ? 1 : 0) +
+    (prob(x) !== null ? 1 : 0) +
+    (actual(x) !== null ? 1 : 0) +
+    (result(x) ? 1 : 0);
+
+  return score(b) > score(a) ? b : a;
+}
+
+function buildMetaMap() {
+  const map = new Map();
+  const counts = [];
+
+  for (const file of META_SOURCES) {
+    const data = readJson(file, null);
+    const rows = flat(data);
+    let used = 0;
+
+    for (const r of rows) {
+      const m = market(r);
+      const p = player(r);
+      const l = line(r);
+      if (!p || !m || l === null) continue;
+      if (m !== "hitter_fantasy_score") continue;
+
+      const k = key({ ...r, side: side(r) || "LESS" });
+      const old = map.get(k);
+      map.set(k, old ? betterMeta(old, r) : r);
+      used++;
+    }
+
+    counts.push({ file, rows: rows.length, used });
+  }
+
+  return { map, counts };
+}
+
+function mergeRow(row, meta) {
+  if (!row || typeof row !== "object") return row;
+  if (market(row) !== "hitter_fantasy_score") return row;
+
+  const k = key({ ...row, side: side(row) || "LESS" });
+  const m = meta.get(k);
+  if (!m) return row;
+
+  const merged = {
+    ...row,
+    player: player(row) || player(m),
+    team: team(row) || team(m),
+    game: isUnknownGame(game(row)) ? (game(m) || game(row) || "UNKNOWN_GAME") : game(row),
+    market: market(row) || market(m),
+    side: side(row) || side(m) || "LESS",
+    line: line(row) ?? line(m),
+    probability: prob(row) ?? prob(m),
+    prob: prob(row) ?? prob(m),
+    actual: actual(row) ?? actual(m),
+    result: result(row) || result(m) || row.result,
+    bucket: row.bucket || bucketOf(row),
+    metadataSourceFound: true
+  };
+
+  for (const f of ["sampleStatus", "lineupStatus", "riskStatus"]) {
+    if (!s(merged[f]) && s(m[f])) merged[f] = s(m[f]);
+  }
+
+  return merged;
+}
+
+function enrichList(list, meta) {
+  if (!Array.isArray(list)) return [];
+  return list.map(r => mergeRow(r, meta));
 }
 
 function pct(v) {
@@ -212,14 +234,7 @@ function pct(v) {
 }
 
 function rowLine(r) {
-  const prob = n(r.probability ?? r.prob);
-  return [
-    `${player(r)} | ${s(r.team) || "?"} | ${s(r.game) || "UNKNOWN_GAME"}`,
-    `${market(r)} ${side(r)} ${line(r)}`,
-    `prob=${prob === null ? "?" : pct(prob)}`,
-    `actual=${r.actual ?? r.actualValue ?? "?"}`,
-    `result=${s(r.result || "ungraded")}`
-  ].join(" | ");
+  return `${player(r)} | ${team(r) || "?"} | ${game(r) || "UNKNOWN_GAME"} | ${market(r)} ${side(r) || "LESS"} ${line(r)} | prob=${prob(r) === null ? "?" : pct(prob(r))} | actual=${actual(r) === null ? "?" : actual(r)} | result=${result(r) || "ungraded"}`;
 }
 
 const data = readJson(FILE, null);
@@ -228,22 +243,40 @@ if (!data) {
   process.exit(1);
 }
 
-const meta = buildMetaMap();
-const enriched = enrichDeep(data, meta);
+const { map: meta, counts } = buildMetaMap();
 
-const eligible = Array.isArray(enriched.eligible) ? enriched.eligible : [];
-const beforeUnknown = flat(data).filter(r => market(r) === "hitter_fantasy_score" && side(r) === "LESS" && isUnknownGame(r.game)).length;
-const afterUnknown = flat(enriched).filter(r => market(r) === "hitter_fantasy_score" && side(r) === "LESS" && isUnknownGame(r.game)).length;
+const rawEligible = Array.isArray(data.eligibleRows) ? data.eligibleRows :
+  Array.isArray(data.eligible) ? data.eligible :
+  Array.isArray(data.rows) ? data.rows.filter(r => bucketOf(r) === "hitter_fantasy_score|9.5_12.5") :
+  [];
+
+const rawBlocked = Array.isArray(data.blockedRows) ? data.blockedRows :
+  Array.isArray(data.blocked) ? data.blocked :
+  [];
+
+const eligibleRows = enrichList(rawEligible, meta);
+const blockedRows = enrichList(rawBlocked, meta);
+
+const allCandidateRows = [...eligibleRows, ...blockedRows];
+const beforeUnknown = [...rawEligible, ...rawBlocked].filter(r => market(r) === "hitter_fantasy_score" && isUnknownGame(game(r))).length;
+const afterUnknown = allCandidateRows.filter(r => market(r) === "hitter_fantasy_score" && isUnknownGame(game(r))).length;
 const filled = Math.max(0, beforeUnknown - afterUnknown);
 
-enriched.metadataEnrichment = {
-  generatedAt: new Date().toISOString(),
-  date: DATE,
-  metaSources: META_SOURCES,
-  metaKeys: meta.size,
-  beforeUnknownGameRows: beforeUnknown,
-  afterUnknownGameRows: afterUnknown,
-  filledGameRows: filled
+const enriched = {
+  ...data,
+  eligibleRows,
+  blockedRows,
+  eligible: eligibleRows.length,
+  blocked: blockedRows.length,
+  metadataEnrichment: {
+    generatedAt: new Date().toISOString(),
+    date: DATE,
+    metaSources: counts,
+    metaKeys: meta.size,
+    beforeUnknownGameRows: beforeUnknown,
+    afterUnknownGameRows: afterUnknown,
+    filledGameRows: filled
+  }
 };
 
 const lines = [];
@@ -253,13 +286,24 @@ lines.push(`generatedAt=${enriched.generatedAt || enriched.metadataEnrichment.ge
 lines.push(`date=${DATE}`);
 lines.push(`gateDecision=${enriched.gateDecision || "UNKNOWN"}`);
 lines.push(`sourceFile=${enriched.sourceFile || "unknown"}`);
-lines.push(`eligible=${eligible.length || enriched.eligible || 0}`);
+lines.push(`targetBucket=${enriched.targetBucket || "hitter_fantasy_score|9.5_12.5"}`);
+lines.push(`eligible=${eligibleRows.length}`);
+lines.push(`blocked=${blockedRows.length}`);
+lines.push(`metaKeys=${meta.size}`);
 lines.push(`metadataFilledGames=${filled}`);
 lines.push(`unknownGamesRemaining=${afterUnknown}`);
 lines.push("");
+lines.push("META SOURCES");
+lines.push("------------");
+for (const c of counts) lines.push(`${c.file}: rows=${c.rows} used=${c.used}`);
+lines.push("");
 lines.push("ELIGIBLE SAMPLE");
 lines.push("---------------");
-for (const r of eligible.slice(0, 40)) lines.push(rowLine(r));
+for (const r of eligibleRows.slice(0, 40)) lines.push(rowLine(r));
+lines.push("");
+lines.push("TOP BLOCKED");
+lines.push("-----------");
+for (const r of blockedRows.slice(0, 25)) lines.push(rowLine(r));
 
 writeJson(FILE, enriched);
 writeJson(HIST_OUT, enriched);
@@ -272,5 +316,7 @@ console.log({
   beforeUnknown,
   afterUnknown,
   filled,
-  eligible: eligible.length
+  eligible: eligibleRows.length,
+  blocked: blockedRows.length,
+  counts
 });
