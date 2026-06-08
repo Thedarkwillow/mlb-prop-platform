@@ -75,9 +75,30 @@ for (const r of rows) {
   if (prob !== null && prob >= 0.62) tags.push("MODEL_PROB_OK");
   if (ev !== null && ev >= 0.20) tags.push("EV_OK");
 
+  // Hard agreement guard:
+  // A clean standard PF lean must have PickFinder trend support AND model/EV support.
+  // This prevents rows with strong PF trend but weak model score, or strong model score but weak PF trend.
   if (!pass) continue;
-  if (prob !== null && prob < 0.55) continue;
-  if (ev !== null && ev < 0.05) continue;
+
+  const modelAgrees =
+    prob !== null &&
+    prob >= 0.58 &&
+    ev !== null &&
+    ev >= 0.10;
+
+  const strongerModelAgrees =
+    prob !== null &&
+    prob >= 0.62 &&
+    ev !== null &&
+    ev >= 0.20;
+
+  const pfStrong =
+    side === "MORE"
+      ? (pfAvg !== null && pfAvg >= 62 && l10 !== null && l10 >= 60 && l15 !== null && l15 >= 55 && diff !== null && diff >= 40)
+      : (pfAvg !== null && pfAvg <= 38 && l10 !== null && l10 <= 40 && l15 !== null && l15 <= 45 && diff !== null && diff <= -20);
+
+  if (!pfStrong) continue;
+  if (!(modelAgrees || strongerModelAgrees)) continue;
 
   clean.push({
     player: r.player,

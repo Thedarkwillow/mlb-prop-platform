@@ -17,7 +17,7 @@
     "calibration:curves": "node src/research/calibration-curves.cjs",
     "show": "node src/research/show-todays-slips.cjs",
     "status": "node src/research/status.cjs",
-    "mobile": "npm run pickfinder:support && npm run audit:filter-loss && (node src/research/mobile-summary.cjs; node scripts/local/pickfinder-lean-summary.cjs) | tee outputs/mobile-summary.txt && npm run gate:reverse-hitter && npm run canonical:current && npm run summary:lanes && cat outputs/lane-status-summary.txt >> outputs/mobile-summary.txt",
+    "mobile": "npm run pickfinder:support && npm run audit:filter-loss && (node src/research/mobile-summary.cjs; node scripts/local/pickfinder-lean-summary.cjs) | tee outputs/mobile-summary.txt && npm run gate:reverse-hitter && npm run canonical:current && npm run summary:lanes && cat outputs/lane-status-summary.txt >> outputs/mobile-summary.txt && npm run standard:pf-mobile",
     "final": "npm run pipeline $npm_config_date && npm run status && npm run summary $npm_config_date && npm run decision && npm run show",
     "grade:watchlist": "node src/research/grade-watchlist-slips.cjs ${npm_config_date:-$(date +%F)}",
     "history": "node src/research/show-history.cjs ${npm_config_date:-$(date +%F)}",
@@ -434,7 +434,8 @@
     "pickfinder:mark-board-lineups": "node scripts/local/mark-priced-board-pickfinder-lineups.cjs",
     "standard:pf-leans": "node scripts/local/audit-standard-leans-pickfinder.cjs",
     "standard:pf-clean-card": "node scripts/local/build-clean-standard-pf-lean-card.cjs",
-    "standard:pf-all": "npm run standard:pf-leans && npm run standard:pf-clean-card"
+    "standard:pf-all": "npm run standard:pf-leans && npm run standard:pf-clean-card",
+    "standard:pf-mobile": "node scripts/local/append-standard-pf-card-to-mobile.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
