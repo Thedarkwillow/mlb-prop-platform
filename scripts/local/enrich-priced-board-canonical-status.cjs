@@ -27,143 +27,162 @@ function n(v) {
   return Number.isFinite(x) ? x : null;
 }
 
-function normMarket(v) {
-  return s(v).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+function normSide(v) {
+  const raw = s(v).toUpperCase();
+  if (raw === "OVER") return "MORE";
+  if (raw === "UNDER") return "LESS";
+  return raw;
 }
 
-function isPitcherMarket(market) {
-  return [
-    "strikeouts",
-    "pitching_outs",
-    "earned_runs_allowed",
-    "hits_allowed",
-    "walks_allowed",
-    "pitcher_fantasy_score"
-  ].includes(normMarket(market));
+function isComboPlayerName(name) {
+  return /\s\+\s/.test(s(name)) || / combo/i.test(s(name));
 }
 
 function isPropLike(v) {
-  return v && typeof v === "object" &&
-    (v.player || v.playerName || v.athleteName || v.name) &&
-    (v.market || v.statType || v.projectionType || v.stat || v.side || v.pick || v.direction || v.line !== undefined || v.statValue !== undefined);
+  if (!v || typeof v !== "object") return false;
+
+  const hasPlayer = !!(v.player || v.playerName || v.name || v.athleteName);
+  const hasPropShape = !!(
+    v.market || v.statType || v.projectionType || v.stat ||
+    v.side || v.pick || v.direction || v.selection ||
+    v.line !== undefined || v.statValue !== undefined || v.projectionLine !== undefined
+  );
+
+  return hasPlayer && hasPropShape;
+}
+
+function canonicalAuditExclusionReason(row) {
+  const player = s(row.player || row.playerName || row.name || row.athleteName);
+  const market = s(row.market || row.statType || row.projectionType || row.stat);
+  const side = normSide(row.side || row.pick || row.direction || row.selection);
+  const line = n(row.line ?? row.statValue ?? row.value ?? row.projectionLine);
+
+  if (!player) return "missing_player";
+  if (isComboPlayerName(player)) return "combo_player_row";
+  if (!market) return "missing_market";
+  if (line === null) return "missing_line";
+
+  // These are raw board/context rows, not playable prop selections.
+  if (!["MORE", "LESS"].includes(side)) return "missing_or_non_playable_side";
+
+  return "";
 }
 
 function inferSampleStatus(row) {
-  const explicit = s(row.sampleStatus || row.sample_status || row.canonical?.sampleStatus);
-  if (explicit && explicit !== "UNKNOWN_SAMPLE") return explicit;
+  const existing = s(row.sampleStatus || row.sample_status || row.contextSampleStatus);
+  if (existing && !/unknown/i.test(existing)) return existing;
 
   const sample =
     n(row.sample) ??
     n(row.sampleSize) ??
-    n(row.sample_size) ??
-    n(row.games) ??
-    n(row.gamesPlayed) ??
-    n(row.recentSample) ??
-    n(row.lastSample) ??
-    n(row.historySample);
+    n(row.historicalSample) ??
+    n(row.n) ??
+    n(row.gamesSample);
 
-  if (sample === null) {
-    if (row.last5 || row.last10 || row.last15 || row.recentForm || row.rollingForm) {
-      return "HAS_CONTEXT_SAMPLE";
-    }
-    return "MISSING_SAMPLE";
-  }
-
-  if (sample >= 25) return "STRONG_SAMPLE";
-  if (sample >= 10) return "MEDIUM_SAMPLE";
-  if (sample >= 5) return "LOW_SAMPLE";
-  return "TINY_SAMPLE";
+  if (sample !== null && sample >= 25) return "SAMPLE_OK";
+  if (sample !== null && sample > 0) return "LOW_SAMPLE";
+  return "MISSING_SAMPLE";
 }
 
 function inferLineupStatus(row) {
-  const explicit = s(row.lineupStatus || row.lineup_status || row.canonical?.lineupStatus);
-  if (explicit && explicit !== "UNKNOWN_LINEUP") return explicit;
+  const existing = s(row.lineupStatus || row.lineup_status || row.confirmedLineupStatus);
+  if (existing && !/unknown/i.test(existing)) return existing;
 
-  const market = row.market || row.statType || row.projectionType;
-  if (isPitcherMarket(market)) return "LINEUP_NOT_REQUIRED_PITCHER_MARKET";
+  const confirmed = row.confirmedLineup ?? row.lineupConfirmed ?? row.isConfirmedLineup;
+  if (confirmed === true) return "CONFIRMED";
+  if (confirmed === false) return "UNCONFIRMED";
 
-  const raw = s(row.lineupConfirmed ?? row.confirmedLineup ?? row.isConfirmedLineup ?? row.confirmed);
-  if (/true|yes|confirmed/i.test(raw)) return "CONFIRMED";
+  const market = s(row.market || row.statType || row.projectionType || row.stat).toLowerCase();
+  if (/strikeout|pitching|pitcher|earned_runs_allowed|hits_allowed|walks_allowed|outs|pitches/.test(market)) {
+    return "LINEUP_NOT_REQUIRED_PITCHER_MARKET";
+  }
 
-  const battingOrder = n(row.battingOrder ?? row.lineupSlot ?? row.order);
-  if (battingOrder !== null) return "LINEUP_ORDER_AVAILABLE";
-
-  return "LINEUP_CONTEXT_PARTIAL";
+  return "LINEUP_CONTEXT_UNKNOWN";
 }
 
-function inferRiskStatus(row, canonical) {
-  const explicit = s(row.riskStatus || row.risk_status || row.canonical?.riskStatus);
-  if (explicit && explicit !== "UNKNOWN_RISK") return explicit;
+function inferRiskStatus(row, canonical, exclusionReason) {
+  if (exclusionReason) return "NON_CANONICAL_BOARD_ROW";
 
+  const existing = s(row.riskStatus || row.risk_status || row.canonicalRiskStatus);
+  if (existing && !/unknown/i.test(existing)) return existing;
+
+  const sampleStatus = s(canonical.sampleStatus || "");
+  const lineupStatus = s(canonical.lineupStatus || "");
   const prob = n(canonical.probability);
-  const sample = canonical.sampleStatus;
-  const lineup = canonical.lineupStatus;
 
-  const reasons = [];
+  if (/MISSING|LOW|PENDING|UNKNOWN/i.test(sampleStatus)) return "CONTEXT_REVIEW";
+  if (/UNKNOWN|UNCONFIRMED|PARTIAL/i.test(lineupStatus)) return "CONTEXT_REVIEW";
+  if (prob !== null && prob >= 0.75) return "HIGH_PROB_REQUIRES_CONTEXT_REVIEW";
 
-  if (/MISSING|TINY|LOW/.test(sample)) reasons.push("sample_not_strong");
-  if (/UNKNOWN|PARTIAL/.test(lineup)) reasons.push("lineup_not_fully_confirmed");
-
-  if (row.rookieRisk || row.debutRisk || row.rookiePitcherRisk) {
-    reasons.push("rookie_or_debut_risk");
-  }
-
-  if (row.fallbackProjection || row.projectionSource === "fallback" || row.source === "fallback") {
-    reasons.push("fallback_projection");
-  }
-
-  if (prob !== null && prob >= 0.75 && reasons.length) {
-    return "HIGH_PROB_REQUIRES_REVIEW";
-  }
-
-  if (reasons.includes("rookie_or_debut_risk")) return "ROOKIE_DEBUT_REVIEW";
-  if (reasons.includes("fallback_projection")) return "FALLBACK_PROJECTION_REVIEW";
-  if (reasons.length) return "CONTEXT_REVIEW";
-
-  return "CANONICAL_OK";
+  return "CANONICAL_BOARD_ROW";
 }
 
-function enrichObject(v, source) {
-  if (!v || typeof v !== "object") return 0;
+function addReasons(c, row) {
+  const reasons = Array.isArray(c.reasonCodes) ? [...c.reasonCodes] : [];
 
-  let count = 0;
+  for (const tag of [
+    `sample:${c.sampleStatus}`,
+    `lineup:${c.lineupStatus}`,
+    `risk:${c.riskStatus}`
+  ]) {
+    if (!reasons.includes(tag)) reasons.push(tag);
+  }
+
+  if (row.canonicalAuditExclusionReason) {
+    const tag = `canonical_exclusion:${row.canonicalAuditExclusionReason}`;
+    if (!reasons.includes(tag)) reasons.push(tag);
+  }
+
+  c.reasonCodes = reasons;
+  return c;
+}
+
+function enrichObject(v, source, stats) {
+  if (!v || typeof v !== "object") return;
 
   if (Array.isArray(v)) {
-    for (const x of v) count += enrichObject(x, source);
-    return count;
+    for (const x of v) enrichObject(x, source, stats);
+    return;
   }
 
   if (isPropLike(v)) {
-    const canonical = canonicalPropRow(v, {
+    const exclusionReason = canonicalAuditExclusionReason(v);
+
+    let c = canonicalPropRow(v, {
       source,
       modelVersion: "canonical_v1"
     });
 
-    canonical.sampleStatus = inferSampleStatus(v);
-    canonical.lineupStatus = inferLineupStatus(v);
-    canonical.riskStatus = inferRiskStatus(v, canonical);
+    c.sampleStatus = inferSampleStatus(v);
+    c.lineupStatus = inferLineupStatus(v);
+    c.riskStatus = inferRiskStatus(v, c, exclusionReason);
 
-    const reasonCodes = new Set(Array.isArray(canonical.reasonCodes) ? canonical.reasonCodes : []);
-    reasonCodes.add(`sample:${canonical.sampleStatus}`);
-    reasonCodes.add(`lineup:${canonical.lineupStatus}`);
-    reasonCodes.add(`risk:${canonical.riskStatus}`);
-    canonical.reasonCodes = [...reasonCodes];
+    c = addReasons(c, v);
 
-    v.canonical = canonical;
-    v.sampleStatus = canonical.sampleStatus;
-    v.lineupStatus = canonical.lineupStatus;
-    v.riskStatus = canonical.riskStatus;
+    v.canonical = c;
+    v.sampleStatus = c.sampleStatus;
+    v.lineupStatus = c.lineupStatus;
+    v.riskStatus = c.riskStatus;
+    v.canonicalAuditStatus = exclusionReason
+      ? "EXCLUDED_NON_CANONICAL_BOARD_ROW"
+      : "INCLUDED_CANONICAL_PROP_ROW";
+    v.canonicalAuditExclusionReason = exclusionReason || "";
 
-    count++;
-    return count;
+    stats.updatedRows++;
+    if (exclusionReason) {
+      stats.excludedRows++;
+      stats.exclusionReasons[exclusionReason] = (stats.exclusionReasons[exclusionReason] || 0) + 1;
+    } else {
+      stats.includedRows++;
+    }
+
+    return;
   }
 
   for (const [key, val] of Object.entries(v)) {
-    if (key === "canonical") continue;
-    if (val && typeof val === "object") count += enrichObject(val, source);
+    if (["canonical", "metadata", "summary"].includes(key)) continue;
+    if (val && typeof val === "object") enrichObject(val, source, stats);
   }
-
-  return count;
 }
 
 const report = {
@@ -174,13 +193,29 @@ const report = {
 for (const file of FILES) {
   const data = readJson(file, null);
   if (!data) {
-    report.files.push({ file, exists: false, updatedRows: 0 });
+    report.files.push({
+      file,
+      exists: false,
+      updatedRows: 0,
+      includedRows: 0,
+      excludedRows: 0,
+      exclusionReasons: {}
+    });
     continue;
   }
 
-  const updatedRows = enrichObject(data, file);
+  const stats = {
+    file,
+    exists: true,
+    updatedRows: 0,
+    includedRows: 0,
+    excludedRows: 0,
+    exclusionReasons: {}
+  };
+
+  enrichObject(data, file, stats);
   writeJson(file, data);
-  report.files.push({ file, exists: true, updatedRows });
+  report.files.push(stats);
 }
 
 writeJson(OUT, report);
@@ -190,7 +225,10 @@ lines.push("PRICED BOARD CANONICAL STATUS ENRICHMENT");
 lines.push("========================================");
 lines.push(`generatedAt=${report.generatedAt}`);
 for (const f of report.files) {
-  lines.push(`${f.file}: exists=${f.exists} updatedRows=${f.updatedRows}`);
+  lines.push(`${f.file}: exists=${f.exists} updatedRows=${f.updatedRows} includedRows=${f.includedRows} excludedRows=${f.excludedRows}`);
+  if (f.exclusionReasons && Object.keys(f.exclusionReasons).length) {
+    lines.push(`  exclusions=${JSON.stringify(f.exclusionReasons)}`);
+  }
 }
 fs.writeFileSync(TXT, lines.join("\n") + "\n");
 
