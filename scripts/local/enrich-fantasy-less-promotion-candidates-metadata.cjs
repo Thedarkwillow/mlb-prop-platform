@@ -31,6 +31,22 @@ function writeJson(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n");
 }
 
+
+function originalBlockedCount(data, rawBlocked) {
+  if (Array.isArray(rawBlocked) && rawBlocked.length) return rawBlocked.length;
+  const vals = [
+    data.blocked,
+    data.blockedCount,
+    data.blockedRows,
+    data.blockedCandidates
+  ];
+  for (const v of vals) {
+    if (typeof v === "number" && Number.isFinite(v)) return v;
+    if (Array.isArray(v)) return v.length;
+  }
+  return 0;
+}
+
 function writeText(file, text) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, text);
@@ -276,8 +292,8 @@ const enriched = {
   blockedRows,
   eligibleRows,
   eligible: eligibleRows.length,
-  blocked: blockedRows.length,
-  blockedCount: blockedRows.length,
+  blocked: originalBlockedCount(data, blockedRows),
+  blockedCount: originalBlockedCount(data, blockedRows),
   metadataEnrichment: {
     generatedAt: new Date().toISOString(),
     date: DATE,
@@ -327,6 +343,6 @@ console.log({
   afterUnknown,
   filled,
   eligible: eligibleRows.length,
-  blocked: blockedRows.length,
+  blocked: originalBlockedCount(data, blockedRows),
   counts
 });
