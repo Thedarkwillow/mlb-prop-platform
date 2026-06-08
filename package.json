@@ -435,7 +435,9 @@
     "standard:pf-leans": "node scripts/local/audit-standard-leans-pickfinder.cjs",
     "standard:pf-clean-card": "node scripts/local/build-clean-standard-pf-lean-card.cjs",
     "standard:pf-all": "npm run standard:pf-leans && npm run standard:pf-clean-card",
-    "standard:pf-mobile": "node scripts/local/append-standard-pf-card-to-mobile.cjs"
+    "standard:pf-mobile": "node scripts/local/append-standard-pf-card-to-mobile.cjs",
+    "pickfinder:coverage-lite": "node scripts/local/audit-pickfinder-coverage-lite.cjs",
+    "pickfinder:coverage-matrix": "node scripts/local/audit-pickfinder-coverage-lite.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
