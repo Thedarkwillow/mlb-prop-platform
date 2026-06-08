@@ -34,7 +34,7 @@ lines.push(marker);
 lines.push("================================");
 lines.push(`Status: ${card.officialStatus || "RESEARCH_ONLY"}`);
 lines.push(`Count: ${rows.length}`);
-lines.push("Rule: model + EV + exact PickFinder prop match + PF trend agreement");
+lines.push("Rule: model + EV + exact PickFinder prop match + PF trend agreement + PickFinder lineup confirmation");
 lines.push("");
 
 if (!rows.length) {

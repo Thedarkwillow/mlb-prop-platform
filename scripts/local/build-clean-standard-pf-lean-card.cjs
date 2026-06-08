@@ -50,6 +50,12 @@ for (const r of rows) {
 
   if (r.pfRows < 1) continue;
   if (!String(r.lineupStatus || "").includes("CONFIRMED")) continue;
+
+  // Pure PickFinder clean card guard:
+  // Require the row to have PickFinder prop support AND PickFinder lineup confirmation.
+  // Rows confirmed only by MLB Stats API can still live elsewhere, but not in this clean PF card.
+  if (!String(r.lineupSource || "").toUpperCase().includes("PICKFINDER")) continue;
+
   if (String(r.tier || "").toLowerCase().includes("goblin")) continue;
   if (String(r.tier || "").toLowerCase().includes("demon")) continue;
 
@@ -136,7 +142,7 @@ write(OUT, {
   generatedAt: new Date().toISOString(),
   source: IN,
   count: clean.length,
-  rule: "standard only, confirmed lineup, exact PickFinder prop match, PF trend threshold, model/EV sanity",
+  rule: "standard only, PickFinder-confirmed lineup, exact PickFinder prop match, PF trend threshold, model/EV agreement",
   officialStatus: "RESEARCH_ONLY_UNTIL_STANDARD_LANE_PROMOTES",
   rows: clean
 });
