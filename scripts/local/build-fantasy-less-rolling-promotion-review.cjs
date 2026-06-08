@@ -155,14 +155,15 @@ for (const file of candidateFiles) {
   byDate.set(date, rec);
 }
 
-const dates = [...byDate.keys()].sort();
+const allDates = [...byDate.keys()].sort();
 
 const daily = [];
 const officialRows = [];
 const guardBlocked = [];
 const gateRows = [];
+const skippedEmptyDates = [];
 
-for (const date of dates) {
+for (const date of allDates) {
   const rec = byDate.get(date);
   const candidates = rec.candidates || {};
 
@@ -176,16 +177,24 @@ for (const date of dates) {
     Array.isArray(candidates.guardBlocked) ? candidates.guardBlocked :
     [];
 
+  const hasGate = rec.gateDecision && rec.gateDecision !== "UNKNOWN" && rec.gateDecision !== "undefined";
+  const hasCandidateRows = official.length > 0 || blocked.length > 0;
+
+  if (!hasGate && !hasCandidateRows) {
+    skippedEmptyDates.push(date);
+    continue;
+  }
+
   const officialSummary = summarizeRows(official);
   const blockedSummary = summarizeRows(blocked);
 
   officialRows.push(...official);
   guardBlocked.push({ date, count: blocked.length });
-  gateRows.push({ date, gateDecision: rec.gateDecision });
+  gateRows.push({ date, gateDecision: rec.gateDecision || "UNKNOWN" });
 
   daily.push({
     date,
-    gateDecision: rec.gateDecision,
+    gateDecision: rec.gateDecision || "UNKNOWN",
     officialEligible: official.length,
     guardBlocked: blocked.length,
     officialSummary,
@@ -193,8 +202,11 @@ for (const date of dates) {
   });
 }
 
+const dates = daily.map(d => d.date);
+
 const rollingDecision = decisionFromRolling({
   dates,
+  skippedEmptyDates,
   officialRows,
   guardBlocked,
   gateRows
@@ -221,6 +233,7 @@ lines.push(`lane=${report.lane}`);
 lines.push(`decision=${report.decision}`);
 lines.push(`reasons=${report.reasons.join(", ")}`);
 lines.push(`dates=${dates.join(", ") || "none"}`);
+lines.push(`skippedEmptyDates=${skippedEmptyDates.join(", ") || "none"}`);
 lines.push("");
 lines.push("ROLLING SUMMARY");
 lines.push("---------------");
