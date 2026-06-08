@@ -44,6 +44,7 @@ function gameOf(row) {
 function buildGameIndex(board) {
   const byPlayerTeam = new Map();
   const byPlayer = new Map();
+  const byTeam = new Map();
 
   function visit(v) {
     if (!v) return;
@@ -66,6 +67,10 @@ function buildGameIndex(board) {
         const tk = `${pk}|${norm(team)}`;
         if (!byPlayerTeam.has(tk)) byPlayerTeam.set(tk, new Set());
         byPlayerTeam.get(tk).add(game);
+
+        const teamKey = norm(team);
+        if (!byTeam.has(teamKey)) byTeam.set(teamKey, new Set());
+        byTeam.get(teamKey).add(game);
       }
     }
 
@@ -87,7 +92,8 @@ function buildGameIndex(board) {
 
   return {
     byPlayerTeam: collapse(byPlayerTeam),
-    byPlayer: collapse(byPlayer)
+    byPlayer: collapse(byPlayer),
+    byTeam: collapse(byTeam)
   };
 }
 
@@ -115,7 +121,11 @@ function fillGames(v, source, index, stats, path = "") {
     if (!currentGame && player) {
       const keyTeam = `${norm(player)}|${norm(team)}`;
       const keyPlayer = norm(player);
-      const found = index.byPlayerTeam.get(keyTeam) || index.byPlayer.get(keyPlayer) || "";
+      const found =
+        index.byPlayerTeam.get(keyTeam) ||
+        index.byPlayer.get(keyPlayer) ||
+        index.byTeam.get(norm(team)) ||
+        "";
 
       if (found) {
         v.game = found;
@@ -129,8 +139,21 @@ function fillGames(v, source, index, stats, path = "") {
           v.canonical.reasonCodes = rc;
         }
       } else {
+        const fallbackGame = "UNKNOWN_GAME";
+        v.game = fallbackGame;
+        stats.filledUnknown = (stats.filledUnknown || 0) + 1;
         stats.unfilled++;
-        stats.unfilledExamples.push({ source, path, player, team });
+        stats.unfilledExamples.push({ source, path, player, team, game: fallbackGame });
+
+        if (v.canonical && typeof v.canonical === "object") {
+          v.canonical.game = fallbackGame;
+          v.canonical.riskStatus = "MISSING_GAME_CONTEXT_REVIEW";
+          const rc = Array.isArray(v.canonical.reasonCodes) ? v.canonical.reasonCodes : [];
+          for (const code of ["game_unknown_after_priced_board_lookup", "risk:MISSING_GAME_CONTEXT_REVIEW"]) {
+            if (!rc.includes(code)) rc.push(code);
+          }
+          v.canonical.reasonCodes = rc;
+        }
       }
     }
   }
@@ -157,6 +180,7 @@ for (const file of FILES) {
     exists: !!data,
     rows: 0,
     filled: 0,
+    filledUnknown: 0,
     unfilled: 0,
     examples: [],
     unfilledExamples: []
@@ -179,7 +203,7 @@ lines.push("DERIVED CANONICAL GAME FILL REPORT");
 lines.push("===================================");
 lines.push(`generatedAt=${report.generatedAt}`);
 for (const f of report.files) {
-  lines.push(`${f.file}: exists=${f.exists} rows=${f.rows} filled=${f.filled} unfilled=${f.unfilled}`);
+  lines.push(`${f.file}: exists=${f.exists} rows=${f.rows} filled=${f.filled} filledUnknown=${f.filledUnknown || 0} unfilled=${f.unfilled}`);
 }
 lines.push("");
 lines.push("EXAMPLES");
