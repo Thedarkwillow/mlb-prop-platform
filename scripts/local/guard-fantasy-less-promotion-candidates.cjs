@@ -18,203 +18,113 @@ function readJson(file, fallback = null) {
   try { return JSON.parse(fs.readFileSync(file, "utf8")); }
   catch { return fallback; }
 }
-
 function writeJson(file, data) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n");
 }
-
 function writeText(file, text) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, text);
 }
-
-function s(v) {
-  return String(v ?? "").trim();
-}
-
+function s(v) { return String(v ?? "").trim(); }
 function n(v) {
   const x = Number(v);
   return Number.isFinite(x) ? x : null;
 }
-
 function norm(v) {
   return s(v).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
 }
-
-function player(r) {
-  return s(r.player || r.playerName || r.name || r.athleteName);
-}
-
-function market(r) {
-  return norm(r.market || r.statType || r.projectionType || r.stat);
-}
-
-function side(r) {
-  return s(r.side || r.pick || r.direction || r.selection).toUpperCase();
-}
-
-function line(r) {
-  return n(r.line ?? r.statValue ?? r.value ?? r.projectionLine);
-}
-
-function game(r) {
-  return s(r.game || r.matchup || r.gameText || r.eventName);
-}
-
+function player(r) { return s(r?.player || r?.playerName || r?.name || r?.athleteName); }
+function team(r) { return s(r?.team || r?.teamAbbr || r?.teamCode); }
+function market(r) { return norm(r?.market || r?.statType || r?.projectionType || r?.stat); }
+function side(r) { return s(r?.side || r?.pick || r?.direction).toUpperCase(); }
+function line(r) { return n(r?.line ?? r?.target ?? r?.threshold); }
+function game(r) { return s(r?.game || r?.matchup || r?.gameText); }
 function tier(r) {
-  return norm(
-    r.tier ||
-    r.priceTier ||
-    r.projectionTier ||
-    r.payoutTier ||
-    r.type ||
-    r.pickType ||
-    r.oddsTier ||
-    r.specialType ||
-    r.boardTier
-  );
+  return norm(r?.tier || r?.priceTier || r?.oddsTier || r?.specialType || r?.pickType || "");
 }
-
-function fillMethod(r) {
-  return norm(
-    r.gameFillMethod ||
-    r.gameFill?.method ||
-    r.gameMatchMethod ||
-    r.matchMethod ||
-    r.gameSourceMethod ||
-    r.fillMethod
-  );
+function resultOf(r) {
+  return s(r?.result || r?.grade || r?.outcome || "").toLowerCase();
 }
-
+function actualOf(r) {
+  return n(r?.actual ?? r?.actualValue ?? r?.fantasyActual ?? r?.score ?? r?.finalScore);
+}
 function isUnknownGame(v) {
   const x = s(v);
   return !x || x === "UNKNOWN_GAME" || /^null\s*@\s*null$/i.test(x);
 }
-
-function isSpecialTier(r) {
+function isPlayerOnlyFill(r) {
+  const method = s(r?.gameFillMethod || r?.matchMethod || r?.gameMatchMethod);
+  return method === "player_only";
+}
+function isStandardTier(r) {
   const t = tier(r);
-  return (
-    t.includes("demon") ||
-    t.includes("goblin") ||
-    t.includes("special") ||
-    t.includes("discount") ||
-    t.includes("boost")
-  );
+  return !t || t === "standard" || t === "standard_or_blank";
 }
-
-function hasPlayerOnlyFill(r) {
-  const m = fillMethod(r);
-  const notes = JSON.stringify(r.reasonCodes || r.notes || r.gameFill || r.metadata || {});
-  return m === "player_only" || /player_only/i.test(notes);
-}
-
-function guardReason(r) {
-  const reasons = [];
-
-  if (market(r) !== "hitter_fantasy_score") {
-    reasons.push("market_not_hitter_fantasy_score");
-  }
-
-  if (side(r) !== "LESS") {
-    reasons.push("side_not_less");
-  }
-
-  const ln = line(r);
-  if (ln === null || ln < 9.5 || ln > 12.5) {
-    reasons.push("outside_promoted_line_bucket_9_5_to_12_5");
-  }
-
-  if (isSpecialTier(r)) {
-    reasons.push("special_tier_less_not_allowed");
-  }
-
-  if (isUnknownGame(game(r))) {
-    reasons.push("unknown_game_not_allowed");
-  }
-
-  if (hasPlayerOnlyFill(r)) {
-    reasons.push("player_only_game_fill_not_allowed");
-  }
-
-  if (!player(r)) {
-    reasons.push("missing_player");
-  }
-
-  return reasons;
-}
-
 function summarize(rows) {
-  const out = {
-    total: rows.length,
-    byReason: {},
-    byMarket: {},
-    byTier: {},
-    byLine: {}
-  };
-
+  const byReason = {};
+  const byMarket = {};
+  const byTier = {};
+  const byLine = {};
   for (const r of rows) {
-    for (const reason of r.guardReasons || []) {
-      out.byReason[reason] = (out.byReason[reason] || 0) + 1;
-    }
-    const mk = market(r) || "unknown";
-    const tr = tier(r) || "standard_or_blank";
-    const ln = String(line(r) ?? "unknown");
-    out.byMarket[mk] = (out.byMarket[mk] || 0) + 1;
-    out.byTier[tr] = (out.byTier[tr] || 0) + 1;
-    out.byLine[ln] = (out.byLine[ln] || 0) + 1;
+    const reasons = Array.isArray(r.guardReasons) ? r.guardReasons : [r.guardReason || "passed"];
+    for (const reason of reasons) byReason[reason] = (byReason[reason] || 0) + 1;
+    byMarket[market(r) || "unknown"] = (byMarket[market(r) || "unknown"] || 0) + 1;
+    byTier[tier(r) || "standard_or_blank"] = (byTier[tier(r) || "standard_or_blank"] || 0) + 1;
+    byLine[String(line(r) ?? "?")] = (byLine[String(line(r) ?? "?")] || 0) + 1;
   }
-
-  return out;
+  return { total: rows.length, byReason, byMarket, byTier, byLine };
 }
 
-const data = readJson(FILE, null);
-if (!data || typeof data !== "object") {
-  console.error(`Missing or invalid ${FILE}`);
-  process.exit(1);
-}
-
-const eligibleRows = Array.isArray(data.eligibleRows)
-  ? data.eligibleRows
-  : Array.isArray(data.eligible)
-    ? data.eligible
-    : [];
-
-const passed = [];
+const data = readJson(FILE, {});
+const input = Array.isArray(data.eligibleRows) ? data.eligibleRows : [];
+const official = [];
 const blocked = [];
 
-for (const row of eligibleRows) {
-  const reasons = guardReason(row);
-  if (reasons.length) {
-    blocked.push({
-      ...row,
-      guardStatus: "BLOCKED",
-      guardReasons: reasons
-    });
-  } else {
-    passed.push({
-      ...row,
-      guardStatus: "FANTASY_LESS_PROMOTION_GUARD_PASSED",
-      guardReasons: ["standard_hitter_fantasy_less_9_5_to_12_5_clean_game"]
-    });
-  }
+for (const row of input) {
+  const reasons = [];
+  const m = market(row);
+  const sd = side(row);
+  const ln = line(row);
+  const gm = game(row);
+  const res = resultOf(row);
+  const actual = actualOf(row);
+
+  if (m !== "hitter_fantasy_score") reasons.push("market_not_hitter_fantasy_score");
+  if (sd !== "LESS") reasons.push("side_not_less");
+  if (ln === null || ln < 9.5 || ln > 12.5) reasons.push("line_not_9_5_to_12_5");
+  if (!isStandardTier(row)) reasons.push("non_standard_tier_not_allowed");
+  if (isUnknownGame(gm)) reasons.push("unknown_game_not_allowed");
+  if (isPlayerOnlyFill(row)) reasons.push("player_only_game_fill_not_allowed");
+  if (res === "unmatched" || res === "unknown" || !res) reasons.push("historical_unmatched_not_allowed");
+  if (actual === null) reasons.push("missing_actual_not_allowed");
+
+  const out = {
+    ...row,
+    guardChecked: true,
+    guardReasons: reasons.length ? reasons : ["standard_hitter_fantasy_less_9_5_to_12_5_clean_game_known_actual"],
+    riskStatus: reasons.length ? "FANTASY_LESS_PROMOTION_GUARD_BLOCKED" : "FANTASY_LESS_PROMOTION_REVIEW",
+    sampleStatus: reasons.length ? "FANTASY_LESS_GUARD_BLOCKED" : "FANTASY_LESS_PROMOTION_SAMPLE_PASSED"
+  };
+
+  if (reasons.length) blocked.push(out);
+  else official.push(out);
 }
 
-data.fantasyLessPromotionGuard = {
+data.officialEligible = official.length;
+data.officialEligibleRows = official;
+data.guardBlocked = blocked.length;
+data.guardBlockedRows = blocked;
+data.guard = {
   generatedAt: new Date().toISOString(),
   date: DATE,
-  rule: "Only STANDARD hitter_fantasy_score LESS 9.5-12.5 with clean non-player-only game context may pass.",
-  inputEligibleRows: eligibleRows.length,
-  passedRows: passed.length,
+  rule: "Only STANDARD hitter_fantasy_score LESS 9.5-12.5 with clean game context, non-player-only game fill, matched result, and known actual may pass.",
+  inputEligibleRows: input.length,
+  passedRows: official.length,
   blockedRows: blocked.length,
-  passedSummary: summarize(passed),
+  passedSummary: summarize(official),
   blockedSummary: summarize(blocked)
 };
-
-data.officialEligibleRows = passed;
-data.guardBlockedRows = blocked;
-data.officialEligible = passed.length;
-data.guardBlocked = blocked.length;
 
 writeJson(FILE, data);
 writeJson(HIST_OUT, data);
@@ -222,42 +132,34 @@ writeJson(HIST_OUT, data);
 const lines = [];
 lines.push("FANTASY LESS PROMOTION SAFETY GUARD");
 lines.push("===================================");
-lines.push(`generatedAt=${data.fantasyLessPromotionGuard.generatedAt}`);
+lines.push(`generatedAt=${data.guard.generatedAt}`);
 lines.push(`date=${DATE}`);
-lines.push(`inputEligibleRows=${eligibleRows.length}`);
-lines.push(`officialEligible=${passed.length}`);
+lines.push(`inputEligibleRows=${input.length}`);
+lines.push(`officialEligible=${official.length}`);
 lines.push(`guardBlocked=${blocked.length}`);
-lines.push("");
 lines.push("RULE");
 lines.push("----");
-lines.push(data.fantasyLessPromotionGuard.rule);
-lines.push("");
+lines.push(data.guard.rule);
 lines.push("BLOCKED REASONS");
 lines.push("---------------");
-for (const [reason, count] of Object.entries(data.fantasyLessPromotionGuard.blockedSummary.byReason)) {
-  lines.push(`${reason}: ${count}`);
-}
-lines.push("");
+for (const [k, v] of Object.entries(data.guard.blockedSummary.byReason)) lines.push(`${k}: ${v}`);
 lines.push("OFFICIAL ELIGIBLE SAMPLE");
 lines.push("------------------------");
-for (const r of passed.slice(0, 30)) {
-  lines.push(`${player(r)} | ${s(r.team || "?")} | ${game(r)} | ${market(r)} ${side(r)} ${line(r)} | tier=${tier(r) || "standard_or_blank"} | actual=${r.actual ?? "?"} | result=${r.result ?? "ungraded"}`);
+for (const r of official.slice(0, 30)) {
+  lines.push(`${player(r)} | ${team(r) || "?"} | ${game(r)} | ${market(r)} ${side(r)} ${line(r)} | tier=${tier(r) || "standard_or_blank"} | actual=${actualOf(r) ?? "?"} | result=${resultOf(r) || "?"}`);
 }
-lines.push("");
 lines.push("GUARD BLOCKED SAMPLE");
 lines.push("--------------------");
 for (const r of blocked.slice(0, 40)) {
-  lines.push(`${player(r)} | ${s(r.team || "?")} | ${game(r) || "UNKNOWN_GAME"} | ${market(r)} ${side(r)} ${line(r)} | tier=${tier(r) || "standard_or_blank"} | reasons=${(r.guardReasons || []).join(",")}`);
+  lines.push(`${player(r)} | ${team(r) || "?"} | ${game(r) || "UNKNOWN_GAME"} | ${market(r)} ${side(r)} ${line(r)} | tier=${tier(r) || "standard_or_blank"} | reasons=${(r.guardReasons || []).join(",")}`);
 }
-lines.push("");
-
-writeText(TXT, lines.join("\n"));
-writeText(HIST_TXT, lines.join("\n"));
+writeText(TXT, lines.join("\n") + "\n");
+writeText(HIST_TXT, lines.join("\n") + "\n");
 
 console.log({
   date: DATE,
-  inputEligibleRows: eligibleRows.length,
-  officialEligible: passed.length,
+  inputEligibleRows: input.length,
+  officialEligible: official.length,
   guardBlocked: blocked.length,
-  blockedReasons: data.fantasyLessPromotionGuard.blockedSummary.byReason
+  blockedReasons: data.guard.blockedSummary.byReason
 });
