@@ -35,7 +35,19 @@ const MARKET_ALIAS = {
   hits_allowed:"hits_allowed",
   pitcher_strikeouts:"strikeouts",
   pitching_outs:"pitching_outs",
-  walks_allowed:"walks_allowed"
+  walks_allowed:"walks_allowed",
+  batter_walks:"walks",
+  pitcher_fantasy_score_pp:"pitcher_fantasy_score",
+  pitcher_fantasy_score:"pitcher_fantasy_score",
+  fantasy_score_pp:"hitter_fantasy_score",
+  total_pitches:"pitches_thrown",
+  pitches_thrown:"pitches_thrown",
+  "1st_inning_pitches":"first_inning_pitches",
+  first_inning_pitches:"first_inning_pitches",
+  "1st_inning_hits_allowed":"first_inning_hits_allowed",
+  first_inning_hits_allowed:"first_inning_hits_allowed",
+  "1st_inning_runs_allowed":"first_inning_runs_allowed",
+  first_inning_runs_allowed:"first_inning_runs_allowed"
 };
 
 function read(file, fallback=null){ try{return JSON.parse(fs.readFileSync(file,"utf8"));}catch{return fallback;} }
