@@ -20,7 +20,8 @@ function tv(v){ if(!v)return ""; if(typeof v==="string")return v; if(typeof v===
 function tm(v){ const x=tv(v).toUpperCase(); return TEAM_ALIAS[x]||x; }
 function player(r){ return s(r.player||r.playerName||r.player_name||r.fullName||r.displayName||r.name); }
 function team(r){ return tm(r.team||r.teamAbbr||r.playerTeam||r.player_team||""); }
-function market(r){ return s(r.market||r.statType||r.stat_type||r.type||r.projection_type||r.stat).toLowerCase().replace(/[^a-z0-9+]+/g,"_"); }
+const MARKET_ALIAS={hitter_fantasy_score_pp:"hitter_fantasy_score",hitter_fantasy_score:"hitter_fantasy_score",fantasy_score:"hitter_fantasy_score",hits_runs_rbis:"hrr","hits+runs+rbis":"hrr",hrr:"hrr",hits:"hits",singles:"singles",runs:"runs",rbis:"rbis",runs_batted_in:"rbis",bases:"bases",total_bases:"bases",walks:"walks",hitter_walks:"walks",hitter_strikeouts:"hitter_strikeouts",strikeouts:"strikeouts",home_runs:"home_runs",hr:"home_runs",earned_runs_allowed:"earned_runs_allowed",hits_allowed:"hits_allowed",pitcher_strikeouts:"strikeouts",pitching_outs:"pitching_outs",walks_allowed:"walks_allowed"};
+function market(r){ const raw=s(r.market||r.statType||r.stat_type||r.type||r.projection_type||r.stat); const k=raw.toLowerCase().replace(/\(pp\)/g," pp").replace(/[^a-z0-9+]+/g,"_").replace(/^_+|_+$/g,"").replace(/_+/g,"_"); return MARKET_ALIAS[k]||k; }
 function line(r){ const n=Number(r.line ?? r.projectionLine ?? r.threshold ?? r.value); return Number.isFinite(n)?n:null; }
 function tier(r){ return s(r.tier||r.oddsTier||r.type||"standard").toLowerCase(); }
 function flat(v,out=[]){ if(!v)return out; if(Array.isArray(v)){for(const x of v)flat(x,out);return out;} if(typeof v!=="object")return out; if(v.player||v.playerName||v.player_name||v.market||v.statType||v.stat||v.line||v.player_id)out.push(v); for(const x of Object.values(v))if(x&&typeof x==="object")flat(x,out); return out; }
