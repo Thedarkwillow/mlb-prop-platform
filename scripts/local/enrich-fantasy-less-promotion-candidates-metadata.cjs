@@ -314,7 +314,13 @@ lines.push(`gateDecision=${enriched.gateDecision || "UNKNOWN"}`);
 lines.push(`sourceFile=${enriched.sourceFile || "unknown"}`);
 lines.push(`targetBucket=${enriched.targetBucket || "hitter_fantasy_score|9.5_12.5"}`);
 lines.push(`eligible=${eligibleRows.length}`);
-lines.push(`blocked=${report.blocked ?? report.blockedCount ?? report.blockedRows ?? 0}`);
+lines.push(`blocked=${(typeof report !== "undefined" && report && report.blocked != null)
+  ? report.blocked
+  : (typeof data !== "undefined" && data && data.blocked != null)
+    ? data.blocked
+    : (typeof originalBlocked !== "undefined")
+      ? originalBlocked
+      : blockedRows.length}`);
 lines.push(`metaKeys=${meta.size}`);
 lines.push(`metadataFilledGames=${filled}`);
 lines.push(`unknownGamesRemaining=${afterUnknown}`);
