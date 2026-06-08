@@ -432,7 +432,8 @@
     "pickfinder:merge-lineups": "node scripts/local/merge-pickfinder-lineups-into-context.cjs",
     "pickfinder:lineups:apply": "npm run pickfinder:normalize-current && npm run pickfinder:merge-lineups && npm run context:lineup",
     "pickfinder:mark-board-lineups": "node scripts/local/mark-priced-board-pickfinder-lineups.cjs",
-    "standard:pf-leans": "node scripts/local/audit-standard-leans-pickfinder.cjs"
+    "standard:pf-leans": "node scripts/local/audit-standard-leans-pickfinder.cjs",
+    "standard:pf-clean-card": "node scripts/local/build-clean-standard-pf-lean-card.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
