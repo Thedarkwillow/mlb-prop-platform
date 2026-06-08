@@ -12,9 +12,9 @@ function argDate() {
 const DATE = argDate();
 const GATE = "outputs/fantasy-less-promotion-gate.json";
 const SOURCES = [
+  `outputs/fantasy-less-history-graded-${DATE}-to-${DATE}.json`,
   `outputs/history/${DATE}-fantasy-less-watchlist.json`,
-  "outputs/fantasy-less-watchlist.json",
-  `outputs/fantasy-less-history-graded-${DATE}-to-${DATE}.json`
+  "outputs/fantasy-less-watchlist.json"
 ];
 
 const OUT = "outputs/fantasy-less-promotion-candidates.json";
