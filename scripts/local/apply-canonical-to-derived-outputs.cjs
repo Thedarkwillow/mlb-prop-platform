@@ -5,7 +5,10 @@ const FILES = [
   "outputs/less-batter-watchlist.json",
   "outputs/standard-hitter-bridge-watchlist.json",
   "outputs/manual/auto-reverse-hitter-signal.json",
-  "outputs/goblin-recommended-card.json"
+  "outputs/goblin-recommended-card.json",
+  "outputs/final-slips.json",
+  "outputs/playable-final-slips.json",
+  "outputs/official-slip.json"
 ];
 
 function readJson(file, fallback = null) {

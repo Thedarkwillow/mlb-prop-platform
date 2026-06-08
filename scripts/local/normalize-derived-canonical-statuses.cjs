@@ -24,6 +24,24 @@ const FILES = [
     defaultRisk: "GOBLIN_GATE_REVIEW",
     defaultSample: "GOBLIN_SAMPLE_PENDING",
     defaultLineup: "LINEUP_CONTEXT_NOT_REQUIRED_FOR_PITCHER"
+  },
+  {
+    file: "outputs/final-slips.json",
+    defaultRisk: "FINAL_SLIP_CANONICAL_REVIEW",
+    defaultSample: "FINAL_SLIP_SAMPLE_PENDING",
+    defaultLineup: "FINAL_SLIP_LINEUP_PENDING"
+  },
+  {
+    file: "outputs/playable-final-slips.json",
+    defaultRisk: "PLAYABLE_FINAL_CANONICAL_REVIEW",
+    defaultSample: "PLAYABLE_FINAL_SAMPLE_PENDING",
+    defaultLineup: "PLAYABLE_FINAL_LINEUP_PENDING"
+  },
+  {
+    file: "outputs/official-slip.json",
+    defaultRisk: "OFFICIAL_CANONICAL_REVIEW",
+    defaultSample: "OFFICIAL_SAMPLE_PENDING",
+    defaultLineup: "OFFICIAL_LINEUP_PENDING"
   }
 ];
 
