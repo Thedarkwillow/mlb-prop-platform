@@ -152,6 +152,11 @@ function isUnknownGame(v) {
   return !x || x === "UNKNOWN_GAME" || /^null\s*@\s*null$/i.test(x);
 }
 
+function cleanGame(v) {
+  const x = s(v);
+  return isUnknownGame(x) ? "" : x;
+}
+
 function betterMeta(a, b) {
   const score = x =>
     (player(x) ? 1 : 0) +
@@ -204,7 +209,7 @@ function mergeRow(row, meta) {
     ...row,
     player: player(row) || player(m),
     team: team(row) || team(m),
-    game: isUnknownGame(game(row)) ? (game(m) || game(row) || "UNKNOWN_GAME") : game(row),
+    game: isUnknownGame(game(row)) ? (cleanGame(game(m)) || "UNKNOWN_GAME") : cleanGame(game(row)),
     market: market(row) || market(m),
     side: side(row) || side(m) || "LESS",
     line: line(row) ?? line(m),
@@ -251,6 +256,9 @@ const rawEligible = Array.isArray(data.eligibleRows) ? data.eligibleRows :
   [];
 
 const rawBlocked = Array.isArray(data.blockedRows) ? data.blockedRows :
+  Array.isArray(data.blockedCandidates) ? data.blockedCandidates :
+  Array.isArray(data.blockedRowsSample) ? data.blockedRowsSample :
+  Array.isArray(data.topBlocked) ? data.topBlocked :
   Array.isArray(data.blocked) ? data.blocked :
   [];
 
@@ -266,8 +274,10 @@ const enriched = {
   ...data,
   eligibleRows,
   blockedRows,
+  eligibleRows,
   eligible: eligibleRows.length,
   blocked: blockedRows.length,
+  blockedCount: blockedRows.length,
   metadataEnrichment: {
     generatedAt: new Date().toISOString(),
     date: DATE,
