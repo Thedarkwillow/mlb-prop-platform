@@ -415,7 +415,8 @@
     "audit:canonical-risk": "node scripts/local/audit-canonical-risk-gates.cjs",
     "guard:official-canonical-risk": "node scripts/local/guard-official-canonical-risk.cjs",
     "candidates:promotion-eligible": "node scripts/local/build-promotion-eligible-candidates.cjs",
-    "canonical:current": "npm run canonical:apply-derived && npm run canonical:normalize-status && npm run audit:canonical && npm run audit:canonical-risk && npm run candidates:promotion-eligible"
+    "canonical:current": "npm run canonical:priced-board && npm run canonical:apply-derived && npm run canonical:normalize-status && npm run audit:canonical && npm run audit:canonical-risk && npm run candidates:promotion-eligible",
+    "canonical:priced-board": "node scripts/local/enrich-priced-board-canonical-status.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
