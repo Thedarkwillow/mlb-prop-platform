@@ -29,64 +29,71 @@ function norm(v) {
     .replace(/[^a-z0-9]+/g, "");
 }
 
-function teamOf(row) {
-  return s(row.team || row.teamAbbr || row.teamCode);
+function uniqGame(set) {
+  if (!set || set.size !== 1) return "";
+  return Array.from(set)[0] || "";
 }
 
-function playerOf(row) {
-  return s(row.player || row.playerName || row.name || row.athleteName);
-}
+function flatten(v, out = [], path = "") {
+  if (!v) return out;
 
-function gameOf(row) {
-  return s(row.game || row.gameInfo || row.matchup || row.eventName);
+  if (Array.isArray(v)) {
+    v.forEach((x, i) => flatten(x, out, `${path}[${i}]`));
+    return out;
+  }
+
+  if (typeof v !== "object") return out;
+
+  const hasPlayer = !!(v.player || v.playerName || v.athleteName);
+  const hasMarket = !!(v.market || v.statType || v.projectionType || v.stat);
+  const hasLine = v.line !== undefined || v.statValue !== undefined || v.value !== undefined;
+
+  if (hasPlayer && (hasMarket || hasLine)) {
+    out.push({ row: v, path });
+  }
+
+  for (const [k, val] of Object.entries(v)) {
+    if (["canonical", "original"].includes(k)) continue;
+    if (val && typeof val === "object") {
+      flatten(val, out, path ? `${path}.${k}` : k);
+    }
+  }
+
+  return out;
 }
 
 function buildGameIndex(board) {
   const byPlayerTeam = new Map();
   const byPlayer = new Map();
   const byTeam = new Map();
-  const byTeam = new Map();
 
-  function visit(v) {
-    if (!v) return;
-    if (Array.isArray(v)) {
-      for (const x of v) visit(x);
-      return;
-    }
-    if (typeof v !== "object") return;
+  for (const { row } of flatten(board)) {
+    const player = s(row.player || row.playerName || row.name || row.athleteName);
+    const team = s(row.team || row.teamAbbrev || row.teamCode);
+    const game = s(row.game || row.matchup || row.gameLabel || row.eventName);
 
-    const player = playerOf(v);
-    const team = teamOf(v);
-    const game = gameOf(v);
+    if (!player || !game || game === "UNKNOWN_GAME") continue;
 
-    if (player && game) {
-      const pk = norm(player);
-      if (!byPlayer.has(pk)) byPlayer.set(pk, new Set());
-      byPlayer.get(pk).add(game);
+    const pk = norm(player);
+    if (!byPlayer.has(pk)) byPlayer.set(pk, new Set());
+    byPlayer.get(pk).add(game);
 
-      if (team) {
-        const tk = `${pk}|${norm(team)}`;
-        if (!byPlayerTeam.has(tk)) byPlayerTeam.set(tk, new Set());
-        byPlayerTeam.get(tk).add(game);
+    if (team) {
+      const tk = `${pk}|${norm(team)}`;
+      if (!byPlayerTeam.has(tk)) byPlayerTeam.set(tk, new Set());
+      byPlayerTeam.get(tk).add(game);
 
-        const teamKey = norm(team);
-        if (!byTeam.has(teamKey)) byTeam.set(teamKey, new Set());
-        byTeam.get(teamKey).add(game);
-      }
-    }
-
-    for (const val of Object.values(v)) {
-      if (val && typeof val === "object") visit(val);
+      const teamKey = norm(team);
+      if (!byTeam.has(teamKey)) byTeam.set(teamKey, new Set());
+      byTeam.get(teamKey).add(game);
     }
   }
-
-  visit(board);
 
   function collapse(map) {
     const out = new Map();
     for (const [k, set] of map.entries()) {
-      const vals = [...set].filter(Boolean);
-      if (vals.length === 1) out.set(k, vals[0]);
+      const g = uniqGame(set);
+      if (g) out.set(k, g);
     }
     return out;
   }
@@ -98,71 +105,66 @@ function buildGameIndex(board) {
   };
 }
 
-function isPropLike(v) {
-  return v && typeof v === "object" &&
-    (v.player || v.playerName || v.name || v.athleteName) &&
-    (v.market || v.statType || v.projectionType || v.stat || v.side || v.pick || v.direction || v.line !== undefined);
-}
+function applyGameFill(data, source, index) {
+  const stats = {
+    file: source,
+    exists: true,
+    rows: 0,
+    filled: 0,
+    filledUnknown: 0,
+    unfilled: 0,
+    examples: [],
+    unfilledExamples: []
+  };
 
-function fillGames(v, source, index, stats, path = "") {
-  if (!v) return;
-  if (Array.isArray(v)) {
-    v.forEach((x, i) => fillGames(x, source, index, stats, `${path}[${i}]`));
-    return;
-  }
-  if (typeof v !== "object") return;
-
-  if (isPropLike(v)) {
+  for (const { row, path } of flatten(data)) {
     stats.rows++;
 
-    const currentGame = gameOf(v);
-    const player = playerOf(v);
-    const team = teamOf(v);
+    const player = s(row.player || row.playerName || row.name || row.athleteName);
+    const team = s(row.team || row.teamAbbrev || row.teamCode);
+    const currentGame = s(row.game || row.matchup || row.gameLabel || row.eventName);
 
-    if (!currentGame && player) {
-      const keyTeam = `${norm(player)}|${norm(team)}`;
-      const keyPlayer = norm(player);
-      const found =
-        index.byPlayerTeam.get(keyTeam) ||
-        index.byPlayer.get(keyPlayer) ||
-        index.byTeam.get(norm(team)) ||
-        "";
+    if (currentGame && currentGame !== "UNKNOWN_GAME") continue;
 
-      if (found) {
-        v.game = found;
-        stats.filled++;
-        stats.examples.push({ source, path, player, team, game: found });
+    const keyPlayer = norm(player);
+    const keyTeam = `${keyPlayer}|${norm(team)}`;
 
-        if (v.canonical && typeof v.canonical === "object") {
-          v.canonical.game = found;
-          const rc = Array.isArray(v.canonical.reasonCodes) ? v.canonical.reasonCodes : [];
-          if (!rc.includes("game_filled_from_priced_board")) rc.push("game_filled_from_priced_board");
-          v.canonical.reasonCodes = rc;
+    const found =
+      index.byPlayerTeam.get(keyTeam) ||
+      index.byPlayer.get(keyPlayer) ||
+      index.byTeam.get(norm(team)) ||
+      "";
+
+    const targetGame = found || "UNKNOWN_GAME";
+
+    row.game = targetGame;
+    if (row.canonical && typeof row.canonical === "object") {
+      row.canonical.game = targetGame;
+    }
+
+    if (found) {
+      stats.filled++;
+      if (stats.examples.length < 20) {
+        stats.examples.push({ player, team, game: found, path });
+      }
+    } else {
+      stats.filledUnknown++;
+      stats.unfilled++;
+      if (row.canonical && typeof row.canonical === "object") {
+        row.canonical.riskStatus = "MISSING_GAME_CONTEXT_REVIEW";
+        const rc = Array.isArray(row.canonical.reasonCodes) ? row.canonical.reasonCodes : [];
+        for (const code of ["game_unknown_after_priced_board_lookup", "risk:MISSING_GAME_CONTEXT_REVIEW"]) {
+          if (!rc.includes(code)) rc.push(code);
         }
-      } else {
-        const fallbackGame = "UNKNOWN_GAME";
-        v.game = fallbackGame;
-        stats.filledUnknown = (stats.filledUnknown || 0) + 1;
-        stats.unfilled++;
-        stats.unfilledExamples.push({ source, path, player, team, game: fallbackGame });
-
-        if (v.canonical && typeof v.canonical === "object") {
-          v.canonical.game = fallbackGame;
-          v.canonical.riskStatus = "MISSING_GAME_CONTEXT_REVIEW";
-          const rc = Array.isArray(v.canonical.reasonCodes) ? v.canonical.reasonCodes : [];
-          for (const code of ["game_unknown_after_priced_board_lookup", "risk:MISSING_GAME_CONTEXT_REVIEW"]) {
-            if (!rc.includes(code)) rc.push(code);
-          }
-          v.canonical.reasonCodes = rc;
-        }
+        row.canonical.reasonCodes = rc;
+      }
+      if (stats.unfilledExamples.length < 20) {
+        stats.unfilledExamples.push({ player, team, game: targetGame, path });
       }
     }
   }
 
-  for (const [key, val] of Object.entries(v)) {
-    if (key === "canonical") continue;
-    if (val && typeof val === "object") fillGames(val, source, index, stats, path ? `${path}.${key}` : key);
-  }
+  return stats;
 }
 
 const board = readJson(BOARD, []);
@@ -176,24 +178,13 @@ const report = {
 
 for (const file of FILES) {
   const data = readJson(file, null);
-  const stats = {
-    file,
-    exists: !!data,
-    rows: 0,
-    filled: 0,
-    filledUnknown: 0,
-    unfilled: 0,
-    examples: [],
-    unfilledExamples: []
-  };
-
-  if (data) {
-    fillGames(data, file, index, stats);
-    stats.examples = stats.examples.slice(0, 20);
-    stats.unfilledExamples = stats.unfilledExamples.slice(0, 20);
-    writeJson(file, data);
+  if (!data) {
+    report.files.push({ file, exists: false, rows: 0, filled: 0, filledUnknown: 0, unfilled: 0 });
+    continue;
   }
 
+  const stats = applyGameFill(data, file, index);
+  writeJson(file, data);
   report.files.push(stats);
 }
 
@@ -206,12 +197,18 @@ lines.push(`generatedAt=${report.generatedAt}`);
 for (const f of report.files) {
   lines.push(`${f.file}: exists=${f.exists} rows=${f.rows} filled=${f.filled} filledUnknown=${f.filledUnknown || 0} unfilled=${f.unfilled}`);
 }
-lines.push("");
 lines.push("EXAMPLES");
 lines.push("--------");
 for (const f of report.files) {
-  for (const e of f.examples.slice(0, 10)) {
-    lines.push(`${e.player} | ${e.team} | ${e.game} | ${e.path}`);
+  for (const ex of f.examples || []) {
+    lines.push(`${ex.player} | ${ex.team} | ${ex.game} | ${ex.path}`);
+  }
+}
+lines.push("UNKNOWN GAME FALLBACKS");
+lines.push("----------------------");
+for (const f of report.files) {
+  for (const ex of f.unfilledExamples || []) {
+    lines.push(`${ex.player} | ${ex.team} | ${ex.game} | ${ex.path}`);
   }
 }
 fs.writeFileSync(TXT, lines.join("\n") + "\n");
