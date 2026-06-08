@@ -22,7 +22,7 @@
     "grade:watchlist": "node src/research/grade-watchlist-slips.cjs ${npm_config_date:-$(date +%F)}",
     "history": "node src/research/show-history.cjs ${npm_config_date:-$(date +%F)}",
     "summary": "node src/research/daily-summary.cjs ${npm_config_date:-$(date +%F)}",
-    "decision": "node src/research/current-decision-report.cjs && npm run auto:hitter-signal && npm run decision:auto-notes && npm run auto:reverse-hitter && npm run archive:reverse-hitter-signal && npm run gate:reverse-hitter && npm run pickfinder:signal && npm run canonical:current && npm run summary:lanes && npm run audit:canonical && npm run candidates:promotion-eligible",
+    "decision": "node src/research/current-decision-report.cjs && npm run auto:hitter-signal && npm run decision:auto-notes && npm run auto:reverse-hitter && npm run archive:reverse-hitter-signal && npm run gate:reverse-hitter && npm run pickfinder:signal && npm run canonical:current && npm run summary:lanes && npm run audit:canonical && npm run candidates:promotion-eligible && npm run candidates:fantasy-less-promotion",
     "markets": "node src/research/check-market-roadmap.cjs",
     "market:exposure": "node src/research/market-exposure-report.cjs",
     "odds": "node src/research/oddsapi-dk-mlb-props.cjs && node src/research/convert-oddsapi-props.cjs && node src/research/odds-api-summary.cjs",
@@ -415,11 +415,12 @@
     "audit:canonical-risk": "node scripts/local/audit-canonical-risk-gates.cjs",
     "guard:official-canonical-risk": "node scripts/local/guard-official-canonical-risk.cjs",
     "candidates:promotion-eligible": "node scripts/local/build-promotion-eligible-candidates.cjs",
-    "canonical:current": "npm run canonical:priced-board && npm run canonical:apply-derived && npm run canonical:normalize-status && npm run canonical:fill-games && npm run audit:canonical && npm run audit:canonical-risk && npm run candidates:promotion-eligible",
+    "canonical:current": "npm run canonical:priced-board && npm run canonical:apply-derived && npm run canonical:normalize-status && npm run canonical:fill-games && npm run audit:canonical && npm run audit:canonical-risk && npm run candidates:promotion-eligible && npm run candidates:fantasy-less-promotion",
     "canonical:priced-board": "node scripts/local/enrich-priced-board-canonical-status.cjs",
     "canonical:fill-games": "node scripts/local/fill-derived-canonical-games.cjs",
     "repair:fantasy-less-boxscore": "node scripts/local/repair-fantasy-less-unmatched-from-boxscore.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
-    "gate:fantasy-less": "node scripts/local/fantasy-less-promotion-gate.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
+    "gate:fantasy-less": "node scripts/local/fantasy-less-promotion-gate.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
+    "candidates:fantasy-less-promotion": "node scripts/local/build-fantasy-less-promotion-candidates.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
