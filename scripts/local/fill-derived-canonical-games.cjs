@@ -45,6 +45,7 @@ function buildGameIndex(board) {
   const byPlayerTeam = new Map();
   const byPlayer = new Map();
   const byTeam = new Map();
+  const byTeam = new Map();
 
   function visit(v) {
     if (!v) return;
