@@ -139,10 +139,17 @@ rows = rows.map(r => {
     };
   }
 
+  const pfSignalUsableForModel = matchType === "exact" || matchType === "player_market";
+  const pfSignalDecisionEligible = matchType === "exact";
+  const pfSignalInfoOnly = matchType === "player_only";
+
   const out = {
     ...r,
     pfSignalMatch: true,
     pfSignalMatchType: matchType,
+    pfSignalUsableForModel,
+    pfSignalDecisionEligible,
+    pfSignalInfoOnly,
     pfTrendAvg: sig.pfTrendAvg ?? null,
     pfHitRate5: sig.pfHitRate5 ?? null,
     pfHitRate10: sig.pfHitRate10 ?? null,
@@ -198,8 +205,13 @@ const audit = {
   matchedPlayerOnly,
   unmatched,
   matchedTotal: matchedExact + matchedPlayerMarket + matchedPlayerOnly,
+  usableForModel: matchedExact + matchedPlayerMarket,
+  decisionEligible: matchedExact,
+  infoOnly: matchedPlayerOnly,
   rates: {
     exact: total ? +(100*matchedExact/total).toFixed(2) + "%" : "0%",
+    usableForModel: total ? +(100*(matchedExact+matchedPlayerMarket)/total).toFixed(2) + "%" : "0%",
+    infoOnly: total ? +(100*matchedPlayerOnly/total).toFixed(2) + "%" : "0%",
     totalMatched: total ? +(100*(matchedExact+matchedPlayerMarket+matchedPlayerOnly)/total).toFixed(2) + "%" : "0%",
     unmatched: total ? +(100*unmatched/total).toFixed(2) + "%" : "0%"
   },
@@ -219,6 +231,9 @@ lines.push(`totalRows: ${total}`);
 lines.push(`matchedExact: ${matchedExact} (${audit.rates.exact})`);
 lines.push(`matchedPlayerMarket: ${matchedPlayerMarket}`);
 lines.push(`matchedPlayerOnly: ${matchedPlayerOnly}`);
+lines.push(`usableForModel: ${audit.usableForModel} (${audit.rates.usableForModel})`);
+lines.push(`decisionEligibleExactOnly: ${audit.decisionEligible} (${audit.rates.exact})`);
+lines.push(`infoOnlyPlayerOnly: ${audit.infoOnly} (${audit.rates.infoOnly})`);
 lines.push(`matchedTotal: ${audit.matchedTotal} (${audit.rates.totalMatched})`);
 lines.push(`unmatched: ${unmatched} (${audit.rates.unmatched})`);
 lines.push("");

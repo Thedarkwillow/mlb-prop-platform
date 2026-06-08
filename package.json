@@ -440,7 +440,8 @@
     "pickfinder:coverage-matrix": "node scripts/local/audit-pickfinder-coverage-lite.cjs",
     "pickfinder:field-inventory": "node scripts/local/audit-pickfinder-field-inventory.cjs",
     "pickfinder:signals": "node scripts/local/build-pickfinder-player-signals.cjs",
-    "pickfinder:mark-board-signals": "node scripts/local/mark-board-pickfinder-signals.cjs"
+    "pickfinder:mark-board-signals": "node scripts/local/mark-board-pickfinder-signals.cjs",
+    "pickfinder:refresh": "xvfb-run -a npm run pickfinder:full && npm run pickfinder:normalize-current && npm run pickfinder:merge-lineups && npm run context:lineup && npm run pickfinder:signals && npm run pickfinder:mark-board-signals"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
