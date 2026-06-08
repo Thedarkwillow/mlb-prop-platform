@@ -438,7 +438,8 @@
     "standard:pf-mobile": "node scripts/local/append-standard-pf-card-to-mobile.cjs",
     "pickfinder:coverage-lite": "node scripts/local/audit-pickfinder-coverage-lite.cjs",
     "pickfinder:coverage-matrix": "node scripts/local/audit-pickfinder-coverage-lite.cjs",
-    "pickfinder:field-inventory": "node scripts/local/audit-pickfinder-field-inventory.cjs"
+    "pickfinder:field-inventory": "node scripts/local/audit-pickfinder-field-inventory.cjs",
+    "pickfinder:signals": "node scripts/local/build-pickfinder-player-signals.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
