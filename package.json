@@ -448,7 +448,8 @@
     "research:snapshot": "node scripts/local/snapshot-research-lanes.cjs",
     "research:grade": "node scripts/local/grade-research-lanes.cjs",
     "pickfinder:hand-goblin-card": "node scripts/local/build-pickfinder-hand-goblin-card.cjs",
-    "batting-hands:refresh": "node scripts/local/refresh-batter-batting-hands.cjs"
+    "batting-hands:refresh": "node scripts/local/refresh-batter-batting-hands.cjs",
+    "grade:pickfinder:hand-goblin": "node scripts/local/grade-pickfinder-hand-goblin-card.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
