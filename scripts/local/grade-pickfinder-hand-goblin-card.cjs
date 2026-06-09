@@ -71,9 +71,10 @@ function sideOf(row){
   return "";
 }
 
-function grade(row, actual){
+function grade(row, actual, gameFinal){
   const line=n(row.line);
   const side=sideOf(row);
+  if(!gameFinal) return "PENDING";
   if(actual===null || actual===undefined || line===null || !side) return "UNMATCHED";
   if(side==="MORE") return actual>line ? "HIT" : actual<line ? "MISS" : "PUSH";
   if(side==="LESS") return actual<line ? "HIT" : actual>line ? "MISS" : "PUSH";
@@ -100,12 +101,13 @@ function orderBucket(v){
 }
 
 function addGroup(groups, key, row){
-  groups[key] ||= {count:0,hit:0,miss:0,push:0,unmatched:0,graded:0,hitRate:null};
+  groups[key] ||= {count:0,hit:0,miss:0,push:0,pending:0,unmatched:0,graded:0,hitRate:null};
   const g=groups[key];
   g.count++;
   if(row.result==="HIT"){ g.hit++; g.graded++; }
   else if(row.result==="MISS"){ g.miss++; g.graded++; }
   else if(row.result==="PUSH"){ g.push++; }
+  else if(row.result==="PENDING"){ g.pending++; }
   else g.unmatched++;
 }
 
@@ -134,8 +136,13 @@ async function main(){
   const schedule=await getJson(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${DATE}`);
   const games=(schedule.dates||[]).flatMap(d=>d.games||[]);
   const playerStats=new Map();
+  const gameFinalByPk=new Map();
 
   for(const g of games){
+    const detailedState = String(g.status?.detailedState || g.status?.abstractGameState || "");
+    const gameFinal = /final|completed|game over/i.test(detailedState);
+    gameFinalByPk.set(g.gamePk, gameFinal);
+
     const box=await getJson(`https://statsapi.mlb.com/api/v1/game/${g.gamePk}/boxscore`);
     for(const side of ["home","away"]){
       const team=box.teams?.[side]?.team?.abbreviation || "";
@@ -148,6 +155,8 @@ async function main(){
           gamePk:g.gamePk,
           team,
           batting:p.stats?.batting || {},
+          gameFinal,
+          gameState:detailedState,
           score:scoreBatting(p.stats?.batting || {})
         });
       }
@@ -158,13 +167,15 @@ async function main(){
     const st=playerStats.get(norm(r.player));
     const m=s(r.market);
     const actual=st ? st.score[m] : null;
-    const result=grade(r,actual);
+    const result=grade(r,actual,!!st?.gameFinal);
     return {
       ...r,
       actual,
       result,
       gamePk:st?.gamePk || null,
       mlbTeam:st?.team || "",
+      gameFinal:!!st?.gameFinal,
+      gameState:st?.gameState || "",
       scoring:st?.score || null,
       trendBucket:trendBucket(r.pfTrendAvg),
       orderBucket:orderBucket(r.pfBattingOrder)
@@ -225,7 +236,7 @@ async function main(){
     const entries=Object.entries(obj)
       .sort((a,b)=>(b[1].graded-a[1].graded)||(b[1].hitRate??-1)-(a[1].hitRate??-1));
     for(const [k,v] of entries){
-      lines.push(`${k}: count=${v.count} graded=${v.graded} hit=${v.hit} miss=${v.miss} push=${v.push} unmatched=${v.unmatched} hitRate=${v.hitRate}`);
+      lines.push(`${k}: count=${v.count} graded=${v.graded} hit=${v.hit} miss=${v.miss} push=${v.push} pending=${v.pending} unmatched=${v.unmatched} hitRate=${v.hitRate}`);
     }
     lines.push("");
   }
@@ -242,7 +253,7 @@ async function main(){
   lines.push("GOBLIN MORE ROWS");
   lines.push("----------------");
   for(const r of graded.filter(x=>String(x.tier||"").includes("goblin")).slice(0,80)){
-    lines.push(`${r.player} | ${r.team} | ${r.market} ${r.side} ${r.line} | actual=${r.actual} | ${r.result} | hand=${r.matchupHand||""} | platoon=${r.platoonEdge||""} | trend=${r.pfTrendAvg} | order=${r.pfBattingOrder} | pf=${r.pfSignalMatchType}`);
+    lines.push(`${r.player} | ${r.team} | ${r.market} ${r.side} ${r.line} | actual=${r.actual} | ${r.result} | gameFinal=${r.gameFinal} | hand=${r.matchupHand||""} | platoon=${r.platoonEdge||""} | trend=${r.pfTrendAvg} | order=${r.pfBattingOrder} | pf=${r.pfSignalMatchType}`);
   }
 
   writeText(`outputs/history/${DATE}-pickfinder-hand-goblin-graded.txt`,lines.join("\n")+"\n");
