@@ -125,15 +125,67 @@ function enrichRow(r){
   const sig=findCtx(signalIdx,r);
   const ctx=findCtx(enrichedIdx,r);
   const lu=findCtx(lineupIdx,r);
+  const hc=r.handednessContext||{};
 
   const hitterHand =
-    handValue(r.hitterHand||r.bats||r.batSide||sig.hitterHand||sig.bats||ctx.hitterHand||ctx.bats||lu.hitterHand||lu.bats);
+    handValue(
+      r.hitterHand ||
+      r.battingHand ||
+      r.bats ||
+      r.batSide ||
+      sig.hitterHand ||
+      sig.battingHand ||
+      sig.bats ||
+      ctx.hitterHand ||
+      ctx.battingHand ||
+      ctx.bats ||
+      lu.hitterHand ||
+      lu.battingHand ||
+      lu.bats ||
+      lu.hand
+    );
 
   const opposingPitcher =
-    s(r.opposingPitcher||r.pitcher||r.probablePitcher||sig.opposingPitcher||sig.pitcher||ctx.opposingPitcher||ctx.pitcher);
+    s(
+      hc.opposingPitcher ||
+      r.pitchTypeOpponentPitcher ||
+      r.opposingPitcher ||
+      r.pitcher ||
+      r.probablePitcher ||
+      sig.opposingPitcher ||
+      sig.pitcher ||
+      ctx.opposingPitcher ||
+      ctx.pitcher
+    );
 
   const opposingPitcherHand =
-    handValue(r.opposingPitcherHand||r.pitcherHand||sig.opposingPitcherHand||sig.pitcherHand||ctx.opposingPitcherHand||ctx.pitcherHand);
+    handValue(
+      hc.pitcherHand ||
+      r.pitchTypeOpponentPitcherHand ||
+      r.opposingPitcherHand ||
+      r.pitcherHand ||
+      sig.opposingPitcherHand ||
+      sig.pitcherHand ||
+      ctx.opposingPitcherHand ||
+      ctx.pitcherHand
+    );
+
+  const selectedSplit =
+    s(
+      hc.selectedSplit ||
+      r.splitUsed ||
+      r.handednessSplit ||
+      ctx.splitUsed ||
+      ""
+    );
+
+  const matchupHand = hitterHand && opposingPitcherHand
+    ? `${hitterHand}v${opposingPitcherHand}`
+    : selectedSplit || (opposingPitcherHand ? `vs${opposingPitcherHand}HP` : "");
+
+  const edge = hitterHand && opposingPitcherHand
+    ? platoonEdge(hitterHand,opposingPitcherHand)
+    : (selectedSplit || opposingPitcherHand ? "split_context_available" : "unknown");
 
   return {
     player:player(r),
@@ -163,13 +215,22 @@ function enrichRow(r){
     hitterHand,
     opposingPitcher,
     opposingPitcherHand,
-    matchupHand: hitterHand && opposingPitcherHand ? `${hitterHand}v${opposingPitcherHand}` : "",
-    platoonEdge: platoonEdge(hitterHand,opposingPitcherHand),
+    selectedSplit,
+    handednessReady:!!r.handednessReady,
+    handednessMatched:!!r.handednessMatched,
+    handednessMatchType:r.handednessMatchType||"",
+    matchupHand,
+    platoonEdge:edge,
+
+    pitchTypeOpponentPitcher:r.pitchTypeOpponentPitcher||"",
+    pitchTypeOpponentPitcherHand:r.pitchTypeOpponentPitcherHand||"",
+    pitchTypePitcherArsenalReady:!!r.pitchTypePitcherArsenalReady,
 
     raw: {
       game:r.game||r.matchup||"",
-      opponent:r.opponent||r.pfOpponent||sig.opponent||ctx.opponent||"",
-      source:r.source||r.lineupSource||""
+      opponent:r.opponent||r.pfOpponent||sig.opponent||ctx.opponent||hc.opponent||"",
+      source:r.source||r.lineupSource||"",
+      pitcherHandSource:hc.pitcherHandSource||r.pitchTypeOpponentPitcherSource||""
     }
   };
 }
@@ -209,7 +270,7 @@ const handRows=rows.filter(r =>
   r.pfSignalMatch &&
   r.pfSignalUsableForModel &&
   r.pfLineupConfirmed &&
-  r.matchupHand
+  (r.matchupHand || r.opposingPitcherHand || r.selectedSplit || r.handednessReady)
 ).sort((a,b)=>
   (a.platoonEdge==="advantage"?-1:0) - (b.platoonEdge==="advantage"?-1:0) ||
   (b.pfTrendAvg??0)-(a.pfTrendAvg??0)
@@ -231,7 +292,11 @@ const out={
     standardMore:standardMore.length,
     handRows:handRows.length,
     rowsWithMatchupHand:rows.filter(r=>r.matchupHand).length,
+    rowsWithPitcherHand:rows.filter(r=>r.opposingPitcherHand).length,
+    rowsWithSelectedSplit:rows.filter(r=>r.selectedSplit).length,
+    rowsWithHandednessReady:rows.filter(r=>r.handednessReady).length,
     rowsWithPlatoonAdvantage:rows.filter(r=>r.platoonEdge==="advantage").length,
+    rowsWithSplitContext:rows.filter(r=>r.platoonEdge==="split_context_available").length,
     rowsWithUnknownHand:rows.filter(r=>r.platoonEdge==="unknown").length
   },
   lanes:{
@@ -253,19 +318,19 @@ lines.push("");
 lines.push("GOBLIN MORE PF RESEARCH");
 lines.push("-----------------------");
 for(const r of goblinMore.slice(0,25)){
-  lines.push(`${r.player} | ${r.team} | ${r.market} MORE ${r.line} | prob=${r.probability} | ev=${r.ev} | pf=${r.pfSignalMatchType} | trend=${r.pfTrendAvg} | hand=${r.matchupHand||"?"} | platoon=${r.platoonEdge} | order=${r.pfBattingOrder}`);
+  lines.push(`${r.player} | ${r.team} | ${r.market} MORE ${r.line} | prob=${r.probability} | ev=${r.ev} | pf=${r.pfSignalMatchType} | trend=${r.pfTrendAvg} | hand=${r.matchupHand||"?"} | pitcher=${r.opposingPitcher||"?"} | platoon=${r.platoonEdge} | order=${r.pfBattingOrder}`);
 }
 lines.push("");
 lines.push("STANDARD MORE PF RESEARCH");
 lines.push("-------------------------");
 for(const r of standardMore.slice(0,25)){
-  lines.push(`${r.player} | ${r.team} | ${r.market} MORE ${r.line} | prob=${r.probability} | ev=${r.ev} | pf=${r.pfSignalMatchType} | trend=${r.pfTrendAvg} | hand=${r.matchupHand||"?"} | platoon=${r.platoonEdge} | order=${r.pfBattingOrder}`);
+  lines.push(`${r.player} | ${r.team} | ${r.market} MORE ${r.line} | prob=${r.probability} | ev=${r.ev} | pf=${r.pfSignalMatchType} | trend=${r.pfTrendAvg} | hand=${r.matchupHand||"?"} | pitcher=${r.opposingPitcher||"?"} | platoon=${r.platoonEdge} | order=${r.pfBattingOrder}`);
 }
 lines.push("");
 lines.push("HANDEDNESS / PLATOON VIEW");
 lines.push("-------------------------");
 for(const r of handRows.slice(0,40)){
-  lines.push(`${r.player} | ${r.team} | ${r.market} ${r.side} ${r.line} | tier=${r.tier} | hand=${r.matchupHand} | platoon=${r.platoonEdge} | oppPitcher=${r.opposingPitcher||"?"} | trend=${r.pfTrendAvg} | pf=${r.pfSignalMatchType}`);
+  lines.push(`${r.player} | ${r.team} | ${r.market} ${r.side} ${r.line} | tier=${r.tier} | split=${r.matchupHand||"?"} | pitcher=${r.opposingPitcher||"?"} ${r.opposingPitcherHand||""} | ready=${r.handednessReady} | trend=${r.pfTrendAvg} | pf=${r.pfSignalMatchType}`);
 }
 lines.push("");
 lines.push("saved: outputs/pickfinder-hand-goblin-card.json");
