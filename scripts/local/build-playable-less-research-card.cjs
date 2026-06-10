@@ -67,10 +67,16 @@ function tier(v){
 }
 
 function prob(row){
+  const side = normSide(row.recommendedSide || row.side || row.pick || row.recommendation || row.direction);
+
   const vals=[
+    row.recommendedProb,
+    side === "LESS" ? row.underProb : null,
+    side === "MORE" ? row.overProb : null,
     row.probability,row.prob,row.hitProbability,row.adjustedProbability,row.finalProbability,
     row.pLess,row.lessProbability,row.probLess
   ];
+
   for(const v of vals){
     const x=n(v);
     if(x!==null) return x>1 ? x/100 : x;
@@ -91,7 +97,7 @@ function projection(row){
 }
 
 function edge(row){
-  const vals=[row.edge,row.ev,row.expectedValue,row.value];
+  const vals=[row.expectedValue,row.edge,row.ev,row.value];
   for(const v of vals){
     const x=n(v);
     if(x!==null) return x;
@@ -161,7 +167,7 @@ function scoreRow(row){
 function blockReasons(row){
   const reasons=[];
   const m=normMarket(row.market || row.stat || row.projectionMarket || row.propType);
-  const side=normSide(row.side || row.pick || row.recommendation || row.direction);
+  const side=normSide(row.recommendedSide || row.side || row.pick || row.recommendation || row.direction);
   const t=tier(row.tier || row.oddsTier || row.priceTier || row.specialType);
   const p=prob(row);
   const proj=projection(row);
@@ -205,14 +211,14 @@ function main(){
       game:s(raw.game || raw.matchup),
       market:m,
       family:marketFamily(m),
-      side:normSide(raw.side || raw.pick || raw.recommendation || raw.direction),
+      side:normSide(raw.recommendedSide || raw.side || raw.pick || raw.recommendation || raw.direction),
       line,
       tier:tier(raw.tier || raw.oddsTier || raw.priceTier || raw.specialType),
       probability:p,
       projection:proj,
       gap:(line!==null && proj!==null) ? +(line-proj).toFixed(3) : null,
       ev:edge(raw),
-      confidence:s(raw.confidence || raw.confidenceTier),
+      confidence:s(raw.confidenceBucket || raw.confidence || raw.confidenceTier),
       pfSignalMatchType:s(raw.pfSignalMatchType || raw.pickfinderMatchType || raw.pfMatchType),
       pfSignalUsableForModel:!!raw.pfSignalUsableForModel,
       pfLineupConfirmed:!!(raw.pfLineupConfirmed || raw.lineupConfirmed || raw.confirmedLineup),
