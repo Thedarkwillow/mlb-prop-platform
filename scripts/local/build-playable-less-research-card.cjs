@@ -132,6 +132,36 @@ function marketFamily(m){
   return "other";
 }
 
+function lessV2Allowed(row){
+  const m = normMarket(row.market || row.stat || row.projectionMarket || row.propType);
+  const line = n(row.line ?? row.target ?? row.threshold ?? row.boardLine);
+  const p = prob(row);
+  const proj = projection(row);
+  const gap = (line !== null && proj !== null) ? line - proj : null;
+  const pfMatch = s(row.pfSignalMatchType || row.pickfinderMatchType || row.pfMatchType);
+
+  // 6/09 grading: ER LESS, HRR LESS, and walks_allowed LESS failed first playable test.
+  // Keep them out of the playable LESS card until multi-slate proof improves.
+  if(["earned_runs_allowed","hrr","walks_allowed"].includes(m)) return false;
+
+  // Do not let player_only PF matches into the stricter playable LESS card.
+  if(pfMatch === "player_only") return false;
+
+  if(m === "strikeouts"){
+    return line >= 4.5 && line <= 6.5 && p !== null && p >= 0.70 && gap !== null && gap >= 1.0;
+  }
+
+  if(m === "hits_allowed"){
+    return line >= 4.5 && line <= 6.5 && p !== null && p >= 0.60 && gap !== null && gap >= 0.5;
+  }
+
+  if(m === "pitching_outs"){
+    return line >= 16.5 && line <= 17.5 && p !== null && p >= 0.60 && gap !== null && gap >= 0.5;
+  }
+
+  return false;
+}
+
 function scoreRow(row){
   const p=prob(row);
   const proj=projection(row);
@@ -178,6 +208,7 @@ function blockReasons(row){
   if(!allowedLine(m,line)) reasons.push("line_not_allowed");
   if(p===null || p<0.58) reasons.push("prob_below_58_or_missing");
   if(proj===null || line===null || !(proj<line)) reasons.push("projection_not_below_line");
+  if(!lessV2Allowed(row)) reasons.push("less_v2_filter_failed");
   if(row.blocked || row.blockReasons || row.blockedReason) reasons.push("already_blocked");
   if(row.doubleheaderRisk || row.isDoubleheader || row.doubleHeaderRisk) reasons.push("doubleheader_risk");
   if(!s(row.player || row.playerName || row.name || row.participantName)) reasons.push("missing_player");
@@ -190,8 +221,8 @@ function main(){
   const rows = flatten(board);
 
   const allowedMarkets = new Set([
-    "hrr","hits","bases","walks","home_runs","rbis","runs",
-    "strikeouts","pitching_outs","hits_allowed","earned_runs_allowed","walks_allowed"
+    "strikeouts","pitching_outs","hits_allowed",
+    "hrr","earned_runs_allowed","walks_allowed"
   ]);
 
   const candidates=[];
@@ -257,7 +288,8 @@ function main(){
     source:"outputs/priced-board.json",
     rules:{
       status:"research only",
-      required:"LESS, standard, allowed line bucket, prob >= .58, projection below line, no block/doubleheader",
+      required:"LESS, standard, allowed line bucket, prob >= .58, projection below line, no block/doubleheader, and strict LESS v2 filter",
+      lessV2:"active: allows only strikeouts LESS, hits_allowed LESS, pitching_outs LESS; suppresses ER LESS, HRR LESS, walks_allowed LESS until more proof",
       note:"This avoids blindly trusting inflated full-board LESS rates."
     },
     counts:{
