@@ -320,7 +320,7 @@
     "grade:highprob": "node scripts/local/grade-high-probability-buckets.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)} && node scripts/local/repair-highprob-shadow-splits.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "grade:highprob:hrr": "node scripts/local/grade-high-probability-hrr-synthetic.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "audit:highprob:promotion": "node scripts/local/high-probability-promotion-audit.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)} && node scripts/local/repair-highprob-fantasy-suppression.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
-    "grade:promotion:watch": "node scripts/local/grade-promotion-watch-buckets.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)} && npm run watch:pickfinder:matchups && npm run matrix:all-props && npm run matrix:full-board-sides",
+    "grade:promotion:watch": "node scripts/local/grade-promotion-watch-buckets.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)} && npm run watch:pickfinder:matchups && npm run matrix:all-props && npm run matrix:full-board-sides && npm run grade:research:less-card",
     "unlock:highprob": "node scripts/local/build-controlled-highprob-unlocks.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "production:hardening": "node scripts/local/production-candidate-hardening-report.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
     "roi:production-hardening": "node scripts/local/grade-production-hardening-history.cjs ${npm_config_date:-$(node scripts/local/board-slate-date.cjs)}",
@@ -453,7 +453,8 @@
     "watch:pickfinder:matchups": "node scripts/local/pickfinder-matchup-promotion-watch.cjs",
     "matrix:all-props": "node scripts/local/all-prop-research-matrix.cjs",
     "matrix:full-board-sides": "node scripts/local/full-board-side-matrix.cjs",
-    "research:less-card": "node scripts/local/build-playable-less-research-card.cjs"
+    "research:less-card": "node scripts/local/build-playable-less-research-card.cjs",
+    "grade:research:less-card": "node scripts/local/grade-playable-less-research-card.cjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
