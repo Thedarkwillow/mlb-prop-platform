@@ -132,34 +132,84 @@ function marketFamily(m){
   return "other";
 }
 
-function lessV2Allowed(row){
+function lessResearchLane(row){
   const m = normMarket(row.market || row.stat || row.projectionMarket || row.propType);
   const line = n(row.line ?? row.target ?? row.threshold ?? row.boardLine);
   const p = prob(row);
   const proj = projection(row);
   const gap = (line !== null && proj !== null) ? line - proj : null;
   const pfMatch = s(row.pfSignalMatchType || row.pickfinderMatchType || row.pfMatchType);
+  const order = n(row.pfBattingOrder || row.battingOrder || row.lineupOrder);
 
-  // 6/09 grading: ER LESS, HRR LESS, and walks_allowed LESS failed first playable test.
-  // Keep them out of the playable LESS card until multi-slate proof improves.
-  if(["earned_runs_allowed","hrr","walks_allowed"].includes(m)) return false;
-
-  // Do not let player_only PF matches into the stricter playable LESS card.
-  if(pfMatch === "player_only") return false;
+  // Keep player_only rows, but make them lower-trust. Exact/player_market are cleaner.
+  const pfClean = pfMatch === "exact" || pfMatch === "player_market" || !pfMatch;
 
   if(m === "strikeouts"){
-    return line >= 4.5 && line <= 6.5 && p !== null && p >= 0.70 && gap !== null && gap >= 1.0;
+    if(line >= 4.5 && line <= 6.5 && p !== null && p >= 0.70 && gap !== null && gap >= 1.0 && pfClean) return "pitcher_k_less_v2";
+    return null;
   }
 
   if(m === "hits_allowed"){
-    return line >= 4.5 && line <= 6.5 && p !== null && p >= 0.60 && gap !== null && gap >= 0.5;
+    if(line >= 4.5 && line <= 6.5 && p !== null && p >= 0.60 && gap !== null && gap >= 0.5 && pfClean) return "pitcher_hits_allowed_less_v2";
+    return null;
   }
 
   if(m === "pitching_outs"){
-    return line >= 16.5 && line <= 17.5 && p !== null && p >= 0.60 && gap !== null && gap >= 0.5;
+    if(line >= 15.5 && line <= 18.5 && p !== null && p >= 0.60 && gap !== null && gap >= 0.5 && pfClean) return "pitcher_outs_less_v2";
+    return null;
   }
 
-  return false;
+  if(m === "earned_runs_allowed"){
+    // Re-added as separate research lane only, because 6/09 playable ER LESS failed.
+    if(line >= 2.5 && line <= 3.5 && p !== null && p >= 0.72 && gap !== null && gap >= 1.25 && pfClean) return "pitcher_er_less_retest";
+    return null;
+  }
+
+  if(m === "walks_allowed"){
+    // Re-added as separate research lane only, tighter than the failed first pass.
+    if(line >= 1.5 && line <= 2.5 && p !== null && p >= 0.70 && gap !== null && gap >= 0.75 && pfClean) return "pitcher_walks_allowed_less_retest";
+    return null;
+  }
+
+  if(m === "hrr"){
+    // Hitter LESS retest: standard playable lines, not tiny gaps.
+    // Prefer higher lines; 1.5 is fragile unless probability/gap are strong.
+    if(line >= 2.5 && line <= 3.5 && p !== null && p >= 0.60 && gap !== null && gap >= 0.35 && pfClean) return "hitter_hrr_less_retest";
+    if(line === 1.5 && p !== null && p >= 0.68 && gap !== null && gap >= 0.50 && pfClean) return "hitter_hrr_less_retest";
+    return null;
+  }
+
+  if(m === "bases"){
+    if(line >= 1.5 && line <= 2.5 && p !== null && p >= 0.60 && gap !== null && gap >= 0.35 && pfClean) return "hitter_bases_less_retest";
+    if(line === 0.5 && p !== null && p >= 0.68 && gap !== null && gap >= 0.50 && pfClean) return "hitter_bases_less_retest";
+    return null;
+  }
+
+  if(m === "hits"){
+    if(line >= 1.5 && line <= 2.5 && p !== null && p >= 0.60 && gap !== null && gap >= 0.25 && pfClean) return "hitter_hits_less_retest";
+    return null;
+  }
+
+  if(m === "runs" || m === "rbis" || m === "walks"){
+    if(line >= 0.5 && line <= 1.5 && p !== null && p >= 0.62 && gap !== null && gap >= 0.25 && pfClean) return `hitter_${m}_less_retest`;
+    return null;
+  }
+
+  if(m === "home_runs"){
+    if(line === 0.5 && p !== null && p >= 0.70 && gap !== null && gap >= 0.25 && pfClean) return "hitter_home_runs_less_retest";
+    return null;
+  }
+
+  if(m === "hitter_fantasy_score"){
+    if(line >= 5 && line <= 9.5 && p !== null && p >= 0.60 && gap !== null && gap >= 0.50 && pfClean) return "hitter_fantasy_less_retest";
+    return null;
+  }
+
+  return null;
+}
+
+function lessV2Allowed(row){
+  return !!lessResearchLane(row);
 }
 
 function scoreRow(row){
@@ -221,8 +271,8 @@ function main(){
   const rows = flatten(board);
 
   const allowedMarkets = new Set([
-    "strikeouts","pitching_outs","hits_allowed",
-    "hrr","earned_runs_allowed","walks_allowed"
+    "strikeouts","pitching_outs","hits_allowed","earned_runs_allowed","walks_allowed",
+    "hrr","hits","bases","walks","home_runs","rbis","runs","hitter_fantasy_score"
   ]);
 
   const candidates=[];
@@ -251,6 +301,7 @@ function main(){
       ev:edge(raw),
       confidence:s(raw.confidenceBucket || raw.confidence || raw.confidenceTier),
       pfSignalMatchType:s(raw.pfSignalMatchType || raw.pickfinderMatchType || raw.pfMatchType),
+      lessResearchLane:lessResearchLane(raw),
       pfSignalUsableForModel:!!raw.pfSignalUsableForModel,
       pfLineupConfirmed:!!(raw.pfLineupConfirmed || raw.lineupConfirmed || raw.confirmedLineup),
       battingOrder:n(raw.pfBattingOrder || raw.battingOrder),
@@ -289,7 +340,7 @@ function main(){
     rules:{
       status:"research only",
       required:"LESS, standard, allowed line bucket, prob >= .58, projection below line, no block/doubleheader, and strict LESS v2 filter",
-      lessV2:"active: allows only strikeouts LESS, hits_allowed LESS, pitching_outs LESS; suppresses ER LESS, HRR LESS, walks_allowed LESS until more proof",
+      lessV2:"active: includes pitcher LESS, hitter LESS, and fantasy LESS as separate research lanes with market-specific filters",
       note:"This avoids blindly trusting inflated full-board LESS rates."
     },
     counts:{
