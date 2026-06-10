@@ -368,7 +368,7 @@ function main(){
   lines.push("");
 
   for(const [i,c] of limited.entries()){
-    lines.push(`${i+1}. ${c.player} | ${c.team} | ${c.market.toUpperCase()} LESS ${c.line} | prob=${c.probability} proj=${c.projection} gap=${c.gap} ev=${c.ev} conf=${c.confidence || "NA"} score=${c.score} pf=${c.pfSignalMatchType || "NA"}`);
+    lines.push(`${i+1}. ${c.player} | ${c.team} | ${c.market.toUpperCase()} LESS ${c.line} | lane=${c.lessResearchLane || "unknown"} | prob=${c.probability} proj=${c.projection} gap=${c.gap} ev=${c.ev} conf=${c.confidence || "NA"} score=${c.score} pf=${c.pfSignalMatchType || "NA"}`);
   }
 
   writeText(`outputs/history/${DATE}-playable-less-research-card.txt`,lines.join("\n")+"\n");
