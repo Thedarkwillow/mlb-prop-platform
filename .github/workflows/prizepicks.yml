@@ -2,6 +2,11 @@ name: PrizePicks Snapshot
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '7 6 * * *'
+      timezone: America/Los_Angeles
+    - cron: '7 9 * * *'
+      timezone: America/Los_Angeles
 
 jobs:
   run-prizepicks:
@@ -19,10 +24,19 @@ jobs:
         with:
           node-version: 20
 
+      - name: Test free schedule gate
+        run: node --test scripts/mlb-season-guard.test.cjs
+
+      - name: Check official MLB schedule
+        id: season
+        run: node scripts/mlb-season-guard.cjs
+
       - name: Run PrizePicks scraper
+        if: steps.season.outputs.allow_live == 'true' && (github.event_name == 'workflow_dispatch' || vars.MLB_AUTOMATED_SNAPSHOT_AUTHORIZED == '1')
         run: node src/scrapers/prizepicks.js
 
       - name: Commit output files
+        if: steps.season.outputs.allow_live == 'true' && (github.event_name == 'workflow_dispatch' || vars.MLB_AUTOMATED_SNAPSHOT_AUTHORIZED == '1')
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
