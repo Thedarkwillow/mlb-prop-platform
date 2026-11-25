@@ -1,0 +1,20 @@
+name: MLB season guard tests
+on:
+  pull_request:
+    paths: ['scripts/mlb-season-guard*','.github/workflows/prizepicks.yml','.github/workflows/mlb-season-guard-tests.yml']
+  push:
+    branches: [main]
+    paths: ['scripts/mlb-season-guard*','.github/workflows/prizepicks.yml','.github/workflows/mlb-season-guard-tests.yml']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node --test scripts/mlb-season-guard.test.cjs
